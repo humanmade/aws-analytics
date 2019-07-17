@@ -1,0 +1,42 @@
+{
+  "name": "hm-analytics",
+  "version": "0.0.1",
+  "description": "AWS backed analytics and multivariate testing tools for WordPress",
+  "repository": "https://github.com/humanmade/analytics",
+  "main": "src/tracker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js",
+    "start": "NODE_ENV=development webpack --watch --config webpack.config.js"
+  },
+  "author": "Robert O'Rourke <rob@humanmade.com>",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@aws-amplify/analytics": "^1.2.17",
+    "@aws-amplify/auth": "^1.2.25",
+    "@aws-amplify/core": "^1.0.28",
+    "@aws-sdk/client-cognito-identity-browser": "0.1.0-preview.2",
+    "@aws-sdk/client-pinpoint-browser": "0.1.0-preview.2",
+    "@babel/runtime": "^7.4.5",
+    "@wordpress/babel-preset-default": "^4.3.0",
+    "arrive": "^2.4.1",
+    "styled-components": "^4.3.2",
+    "ua-parser-js": "^0.7.20",
+    "ua-parser2": "^0.4.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-transform-runtime": "^7.4.4",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.0.1",
+    "eslint-config-prettier": "^5.1.0",
+    "prettier": "^1.18.2",
+    "webpack": "^4.35.0",
+    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-cli": "^3.3.5"
+  }
+}
