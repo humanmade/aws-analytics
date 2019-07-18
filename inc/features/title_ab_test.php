@@ -121,7 +121,7 @@ function register_test( int $post_id ) {
 	// Set clickthrough conversion goal.
 	$test->set_goal( __( 'Click through rate', 'hm-analytics' ), 'click', [
 		// Target only clicks matching our URL.
-		'attribute.elementHref' => [
+		'attributes.elementHref' => [
 			'operator' => '^=',
 			'value' => $url,
 		],

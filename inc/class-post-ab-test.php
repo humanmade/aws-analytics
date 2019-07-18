@@ -115,10 +115,19 @@ class Post_AB_Test extends AB_Test {
 	 * @param integer $post_id
 	 * @return AB_Test
 	 */
-	public function set_post( int $post_id ) : AB_Test {
+	public function set_post_id( int $post_id ) : AB_Test {
 		$this->post_id = $post_id;
 		self::$instances[ $this->get_id() ] = $this;
 		return $this;
+	}
+
+	/**
+	 * Get the assigned post ID.
+	 *
+	 * @return int
+	 */
+	public function get_post_id() : int {
+		return $this->post_id;
 	}
 
 	/**

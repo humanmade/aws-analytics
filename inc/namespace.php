@@ -195,7 +195,7 @@ function register_ab_test( string $id ) : AB_Test {
  */
 function register_post_ab_test( string $id, int $post_id ) : Post_AB_Test {
 	$test = new Post_AB_Test( $id );
-	$test->set_post( $post_id );
+	$test->set_post_id( $post_id );
 	$test->setup();
 	return $test;
 }

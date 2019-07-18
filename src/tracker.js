@@ -57,11 +57,6 @@ window.addEventListener("scroll", () => {
 });
 
 /**
- * Mouse movements time series.
- * @todo
- */
-
-/**
  * Campaign.
  */
 const params = new URLSearchParams(window.location.search);
@@ -100,52 +95,65 @@ const applyTest = (test, variantId) => {
    *
    * - actions:
    *   - selector
-   *   - set text (html?)
+   *   - set text
    *   - set attributes
    *   - trigger events
    */
-  test.variants.forEach((variant, vid) => {
-    variant.actions.forEach(action => {
-      document.arrive(action.selector, function() {
-        // Log that this test is modifying this page.
-        activeTests[`test_${test.id}`] = variantId;
+  const variant = test.variants[variantId];
 
-        // Bail if this variant is not the active one.
-        if (vid !== variantId) {
-          return;
-        }
+  // Combine selectors from other variants for the control to set active tests.
+  const selector = test.variants.reduce((carry, v) => {
+    const selectors = v.actions.map(a => a.selector);
+    return [ ...new Set(carry.concat(selectors)) ];
+  }, []).join(', ');
 
-        const el = this;
+  if (variantId === 0) {
+    variant.actions[0] = {
+      selector: selector,
+    };
+  }
 
-        // Set a data attribute to improve later queryability.
-        el.setAttribute(`data-test-${test.id}`, variantId);
+  // Apply actions.
+  variant.actions.forEach(action => {
+    document.arrive(action.selector, function() {
+      // Log that this test is modifying this page.
+      activeTests[`test_${test.id}`] = variantId;
 
-        // Find the text node and update its value.
-        const textNode = Array.from(el.childNodes).find(
-          node =>
-            node.nodeName === "#text" && node.nodeValue.replace(/\s+/g, "") !== ""
-        );
-        if (action.text && textNode) {
-          textNode.nodeValue = action.text;
-        }
-        // Update attributes.
-        if (action.attributes) {
-          Object.entries(action.attributes).forEach(([name, value]) => {
-            el.setAttribute(name, value);
-          });
-        }
-        // Trigger events.
-        if (action.events) {
-          action.events.forEach(event => {
-            document.dispatchEvent(new window.CustomEvent(event.name, {
-              detail: {
-                element: el,
-                data: event.data || {},
-              },
-            }));
-          });
-        }
-      });
+      const el = this;
+
+      // Set a data attribute to improve later queryability.
+      el.setAttribute(`data-test-${test.id}`, variantId);
+
+      if (variantId === 0) {
+        return;
+      }
+
+      // Find the text node and update its value.
+      const textNode = Array.from(el.childNodes).find(
+        node =>
+          node.nodeName === "#text" && node.nodeValue.replace(/\s+/g, "") !== ""
+      );
+      if (action.text && textNode) {
+        textNode.nodeValue = action.text;
+      }
+      // Update attributes.
+      if (action.attributes) {
+        Object.entries(action.attributes).forEach(([name, value]) => {
+          el.setAttribute(name, value);
+        });
+      }
+      // Trigger events.
+      if (action.events) {
+        action.events.forEach(event => {
+          document.dispatchEvent(new window.CustomEvent(event.name, {
+            detail: {
+              element: el,
+              variant: variant,
+              data: event.data || {},
+            },
+          }));
+        });
+      }
     });
   });
 };
@@ -238,7 +246,7 @@ const getMetrics = (extra = {}) =>
     scrollDepthMax,
     scrollDepthNow,
     ...extra,
-  }).reduce((carry, [name, value]) => ({ ...carry, [name]: value }), {});
+  }).reduce((carry, [name, value]) => ({ ...carry, [name]: Number(value) }), {});
 
 /**
  * Initialise cognito services.
@@ -571,14 +579,17 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
-// Session start.
-Analytics.record('_session.start', {
-  attributes: getAttributes({}),
-});
+// Start recording after document loaded and tests applied.
+window.addEventListener('DOMContentLoaded', () => {
+  // Session start.
+  Analytics.record('_session.start', {
+    attributes: getAttributes({}),
+  });
 
-// Record page view event immediately.
-Analytics.record('pageView', {
-  attributes: getAttributes({}),
+  // Record page view event immediately.
+  Analytics.record('pageView', {
+    attributes: getAttributes({}),
+  }, false);
 });
 
 // Flush remaining events.
@@ -594,6 +605,7 @@ window.addEventListener( 'beforeunload', async () => {
 window.Analytics = {
   updateEndpoint: Analytics.updateEndpoint,
   record: (type, data = {}, queue = true) => Analytics.record(type, {
-    attributes: getAttributes(data),
+    attributes: getAttributes(data.attributes || {}),
+    metrics: getMetrics(data.metrics || {}),
   }, queue),
 };

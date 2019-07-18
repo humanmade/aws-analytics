@@ -41,6 +41,11 @@ registerPlugin('hm-analytics-ab-test', {
 						>
 							<PanelRow>
 								<PanelRowInner>
+									<Results />
+								</PanelRowInner>
+							</PanelRow>
+							<PanelRow>
+								<PanelRowInner>
 									<p>{__('Add multiple post titles and see how each performs in real time.')}</p>
 									<p>{__('To get started fill out the title fields below.')}</p>
 									<TitleTextField />
@@ -59,11 +64,6 @@ registerPlugin('hm-analytics-ab-test', {
 							<PanelRow>
 								<PanelRowInner>
 									<PauseField />
-								</PanelRowInner>
-							</PanelRow>
-							<PanelRow>
-								<PanelRowInner>
-									<Results />
 								</PanelRowInner>
 							</PanelRow>
 						</PanelBody>

@@ -21,9 +21,12 @@ export const Results = props => {
 		? (
 			<Fragment>
 				{__('Your title')}
+				{' '}
 				<em>“{titles[goal.winner - 1]}”</em>
+				{' '}
 				{__('performed better than the original by')}
-				{winningVariant.rate - control.rate}%
+				{' '}
+				{((winningVariant.rate - control.rate) * 100).toFixed(2)}%
 			</Fragment>
 		)
 		: __('You should keep the original post title.');

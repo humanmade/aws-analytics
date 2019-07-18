@@ -35,7 +35,7 @@ export const TitleTextField = props => {
 				// Get variant data.
 				const variantId = index + 1;
 				const variant = Object.assign( { rate: 0.0 }, goal.variants[variantId] || {} );
-				const change = variant.rate - control.rate;
+				const change = (variant.rate - control.rate) * 100;
 
 				return (
 					<Variant key={index}>
@@ -48,7 +48,7 @@ export const TitleTextField = props => {
 							value={title}
 						/>
 						<PercentageChange>
-							{`${change >= 0 ? '+' : '-'}${change.toFixed(2)}`}%
+							{`${change >= 0 ? '+' : ''}${change.toFixed(2)}`}%
 						</PercentageChange>
 					</Variant>
 				)
