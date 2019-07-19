@@ -16,7 +16,7 @@ export const PauseField = props => {
 	return (
 		<Fragment>
 			<ToggleControl
-				label={__('Paused')}
+				label={paused ? __('Unpause') : __('Pause')}
 				onChange={checked => setPaused(checked)}
 				checked={paused}
 			/>
@@ -37,7 +37,6 @@ export const PauseFieldWithData = compose(
 	withDispatch(dispatch => {
 		return {
 			setPaused: paused => {
-				console.log(paused ? 'true' : 'false')
 				dispatch('core/editor').editPost({
 					meta: {
 						_hm_analytics_test_titles_paused: paused ? 'true' : 'false',
