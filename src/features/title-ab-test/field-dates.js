@@ -1,44 +1,49 @@
 import React, { Fragment } from 'react';
 
-const { DatePicker } = wp.components;
+const { TimePicker } = wp.components;
 const { withSelect, withDispatch } = wp.data;
 const { compose } = wp.compose;
 const { __ } = wp.i18n;
 
 export const DateRange = props => {
-	const { endTime, setEndTime } = props;
+	const {
+		description,
+		label,
+		setTime,
+		time
+	} = props;
 
 	return (
 		<Fragment>
-			<div className="hm-anlaytics-test-titles-label">
-				<label>{__('End date')}</label>
+			<div className="hm-analytics-test-titles-label">
+				<label>{label}</label>
 			</div>
-			<DatePicker
-				currentDate={new Date( endTime ).toISOString()}
-				onChange={value => setEndTime(value)}
+			<TimePicker
+				currentTime={new Date( time ).toISOString().replace(/\.\d+Z$/, 'Z')}
+				onChange={value => setTime(value)}
 			/>
-			<p className="description">{__('The tests will not run past this date.')}</p>
+			{description && <p className="description">{description}</p>}
 		</Fragment>
 	);
 };
 
 export const DateRangeWithData = compose(
-	withSelect(select => {
-		const endTime = select('core/editor')
-			.getEditedPostAttribute('meta')['_hm_analytics_test_titles_end_time'];
+	withSelect((select, props) => {
+		const time = select('core/editor')
+			.getEditedPostAttribute('meta')[`_hm_analytics_test_titles_${props.name}`];
 		return {
-			endTime: endTime || Date.now() + (30 * 24 * 60 * 60 * 1000),
+			time: time || props.defaultValue || Date.now(),
 		};
 	}),
-	withDispatch(dispatch => {
+	withDispatch((dispatch, props) => {
 		return {
-			setEndTime: time => {
+			setTime: time => {
 				dispatch('core/editor').editPost({
 					meta: {
-						_hm_analytics_test_titles_end_time: new Date( time ).getTime(),
+						[`_hm_analytics_test_titles_${props.name}`]: new Date( time ).getTime(),
 					}
 				} );
-			}
+			},
 		};
 	})
 )(DateRange);

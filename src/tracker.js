@@ -84,6 +84,12 @@ const removeTestForUser = testName => {
   window.localStorage.setItem("_hm_tests", JSON.stringify(tests));
 };
 
+// Extract test set by campaign parameter and add for user.
+const utm_test = utm.utm_campaign.match(/tests_([a-z0-9_-]+):(\d+)/i);
+if ( utm_test ) {
+  addTestForUser( { [utm_test[1]]: parseInt( utm_test[2], 10 ) } );
+}
+
 const testConfig = Tests || [];
 const userConfig = getTestsForUser();
 const activeTests = {};
@@ -164,6 +170,15 @@ testConfig.map(test => {
   if (test.winner !== false) {
     removeTestForUser(test.id);
     applyTest(test, test.winner);
+    return;
+  }
+  // If the test hasn't started yet don't apply it.
+  if (test.startTime > Date.now()) {
+    return;
+  }
+  // If the test is over then remove it and stop.
+  if (test.endTime < Date.now()) {
+    removeTestForUser(test.id);
     return;
   }
   // If the test is paused then bail.

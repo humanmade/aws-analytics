@@ -73,3 +73,12 @@ function get_elasticsearch_url() : string {
 
 	return $url;
 }
+
+/**
+ * Get actual milliseconds value as integer.
+ *
+ * @return int Milliseconds since unix epoch.
+ */
+function milliseconds() : int {
+	return (int) microtime( true ) * 1000;
+}

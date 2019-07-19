@@ -182,20 +182,24 @@ function enqueue_scripts() {
  */
 function register_ab_test( string $id ) : AB_Test {
 	$test = new AB_Test( $id );
-	$test->setup();
+	$test->init();
 	return $test;
 }
 
 /**
  * Register a new Post AB Test.
  *
- * @param string $id
- * @param integer $post_id
+ * @param string $id A unique ID for the test.
+ * @param callable $init A callback in which to configure variants and goals.
+ * @param array $schema An optional REST API schema for storing and retrieving your variant data.
+ *                      Defaults to [ 'type' => 'string' ].
  * @return Post_AB_Test
  */
-function register_post_ab_test( string $id, int $post_id ) : Post_AB_Test {
+function register_post_ab_test( string $id, callable $init, ?array $schema = null ) : Post_AB_Test {
 	$test = new Post_AB_Test( $id );
-	$test->set_post_id( $post_id );
-	$test->setup();
+	if ( ! empty( $schema ) ) {
+		$test->set_variant_data_schema( $schema );
+	}
+	$test->on_init( $init );
 	return $test;
 }

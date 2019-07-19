@@ -7,6 +7,12 @@ const { __ } = wp.i18n;
 export const Results = props => {
 	const { endTime, goal, titles } = props;
 
+	// Ensure titles and variants are present.
+	if ( ! titles.length || goal.variants.length < 2 ) {
+		return null;
+	}
+
+	// Check if test has ended or we have a winner.
 	const hasEnded = endTime
 		? parseInt( endTime, 10 ) >= Date.now()
 		: goal.winner !== false;

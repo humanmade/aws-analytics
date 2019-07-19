@@ -7,7 +7,7 @@ namespace HM\Analytics\Features\Title_AB_Test;
 
 use const HM\Analytics\ROOT_DIR;
 use function HM\Analytics\register_post_ab_test;
-use WP_Query;
+use HM\Analytics\Post_AB_Test;
 
 /**
  * Bootstrap Title AB Tests Feature.
@@ -25,7 +25,7 @@ function setup() {
  * @param string $hook
  */
 function admin_scripts( string $hook ) {
-	if ( ! in_array( $hook, [ 'post.php' ], true ) ) {
+	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
 		return;
 	}
 
@@ -52,84 +52,60 @@ function admin_scripts( string $hook ) {
  * Set up the post meta for our titles and create the tests.
  */
 function init() {
-	$public_post_types = get_post_types( [ 'public' => true ] );
 
-	foreach( $public_post_types as $post_type ) {
-		register_post_meta( $post_type, '_hm_analytics_ab_titles', [
-			'show_in_rest' => true,
-			'single' => false,
-			'type' => 'string',
-		] );
-	}
+	// Register test object.
+	register_post_ab_test( 'titles', function ( Post_AB_Test $test ) {
+		$post_id = $test->get_post_id();
 
-	// Register tests.
-	$test_posts = new WP_Query( [
-		'no_found_rows' => true,
-		'posts_per_page' => 300,
-		'post_type' => $public_post_types,
-		'post_status' => 'publish',
-		'meta_key' => '_hm_analytics_ab_titles',
-		'fields' => 'ids',
-	] );
+		// Get alternative titles.
+		$titles = $test->get_data( 'variants' );
 
-	if ( $test_posts->have_posts() ) {
-		foreach ( $test_posts->posts as $post_id ) {
-			register_test( $post_id );
+		// Get post URL for selectors and filters.
+		$url = get_the_permalink( $post_id );
+
+		/**
+		 * Override the default selector.
+		 *
+		 * @param string $selector CSS Selector to apply transformations to.
+		 */
+		$selector = apply_filters(
+			'hm.analytics.ab_test.titles.selector',
+			sprintf(
+				'.post-%d h1, a[href="%s"]',
+				$post_id,
+				$url
+			),
+			$post_id
+		);
+
+		// Add variants.
+		foreach ( $titles as $title ) {
+			$test->add_variant( [
+				[
+					'selector' => $selector,
+					'text' => $title,
+				]
+			] );
 		}
-	}
-}
 
-/**
- * Create the titles AB Test for the given post ID.
- *
- * @param integer $post_id
- */
-function register_test( int $post_id ) {
-	$titles = get_post_meta( $post_id, '_hm_analytics_ab_titles' );
-
-	// Create test object.
-	$test = register_post_ab_test( 'titles', $post_id );
-
-	// Get post URL for selectors and filters.
-	$url = get_the_permalink( $post_id );
-
-	/**
-	 * Override the default selector.
-	 *
-	 * @param string $selector CSS Selector to apply transformations to.
-	 */
-	$selector = apply_filters(
-		'hm.analytics.title_ab_test.selector',
-		sprintf(
-			'.post-%d h1, a[href="%s"]',
-			$post_id,
-			$url
-		),
-		$post_id
-	);
-
-	// Add variants.
-	foreach ( $titles as $title ) {
-		$test->add_variant( [
-			[
-				'selector' => $selector,
-				'text' => $title,
-			]
+		// Create clickthrough conversion goal.
+		$test->set_goal( __( 'Click through rate', 'hm-analytics' ), [
+			// Target only clicks matching our URL.
+			'filter' => [
+				[
+					'term' => [ 'event_type.keyword' => 'click' ],
+				],
+				[
+					'term' => [ 'attributes.elementHref.keyword' => $url ],
+				],
+			],
+		], [
+			// Ignore events on the target page.
+			'must_not' => [
+				[
+					'term' => [ 'attributes.url.keyword' => $url ],
+				],
+			],
 		] );
-	}
-
-	// Set clickthrough conversion goal.
-	$test->set_goal( __( 'Click through rate', 'hm-analytics' ), 'click', [
-		// Target only clicks matching our URL.
-		'attributes.elementHref' => [
-			'operator' => '^=',
-			'value' => $url,
-		],
-	], [
-		// Ignore actual page.
-		'attributes.url' => [
-			'operator' => '!=',
-			'value' => $url,
-		],
-	] );
+	} );
 }

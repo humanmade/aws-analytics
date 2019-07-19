@@ -21,20 +21,17 @@ font-size: 90%;
 export const TitleTextField = props => {
 	const { goal, titles, setTitles } = props;
 
-	let control = {
-		rate: 0.0,
-	};
-
-	if ( goal && goal.variants ) {
-		control = Object.assign( control, goal.variants[0] || {} );
-	}
+	const variants = new Array(titles.length + 1)
+		.fill({ rate: 0.0 })
+		.map((variant, id) => Object.assign({}, variant, (goal && goal.variants && goal.variants[id]) || {}));
+	const control = variants[0];
 
 	return (
 		<Fragment>
 			{titles.map((title, index) => {
 				// Get variant data.
 				const variantId = index + 1;
-				const variant = Object.assign( { rate: 0.0 }, goal.variants[variantId] || {} );
+				const variant = variants[variantId];
 				const change = (variant.rate - control.rate) * 100;
 
 				return (
@@ -66,7 +63,7 @@ export const TitleTextField = props => {
 export const TitleTextFieldWithData = compose(
 	withSelect(select => {
 		return {
-			titles: select('core/editor').getEditedPostAttribute('meta')['_hm_analytics_ab_titles'] || [],
+			titles: select('core/editor').getEditedPostAttribute('_hm_analytics_test_titles_variants') || [],
 			goal: select('core/editor').getCurrentPostAttribute('_hm_analytics_test_titles_goal') || {},
 		};
 	}),
@@ -76,9 +73,7 @@ export const TitleTextFieldWithData = compose(
 				const newTitles = titles.slice();
 				newTitles[index] = title;
 				dispatch('core/editor').editPost({
-					meta: {
-						_hm_analytics_ab_titles: newTitles
-					}
+					_hm_analytics_test_titles_variants: newTitles
 				} );
 			}
 		};

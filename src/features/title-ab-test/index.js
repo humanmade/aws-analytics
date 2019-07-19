@@ -15,7 +15,6 @@ const {
 
 const PanelRowInner = styled.div`
 .components-base-control__help { margin-top: 5px; color: #666; }
-.components-range-control .components-base-control__label { max-width: 100%; }
 `
 
 registerPlugin('hm-analytics-ab-test', {
@@ -35,13 +34,18 @@ registerPlugin('hm-analytics-ab-test', {
 				>
 					<Panel>
 						<PanelBody
-							title={__('Post Title A/B Tests')}
+							title={__('Post Titles')}
 							icon="editor-paragraph"
 							initialOpen={true}
 						>
 							<PanelRow>
 								<PanelRowInner>
 									<Results />
+								</PanelRowInner>
+							</PanelRow>
+							<PanelRow>
+								<PanelRowInner>
+									<PauseField />
 								</PanelRowInner>
 							</PanelRow>
 							<PanelRow>
@@ -58,12 +62,19 @@ registerPlugin('hm-analytics-ab-test', {
 							</PanelRow>
 							<PanelRow>
 								<PanelRowInner>
-									<DatesField />
+									<DatesField
+										name="start_time"
+										label={__('Start date')}
+									/>
 								</PanelRowInner>
 							</PanelRow>
 							<PanelRow>
 								<PanelRowInner>
-									<PauseField />
+									<DatesField
+										name="end_time"
+										label={__('End date')}
+										defaultValue={Date.now() + (30 * 24 * 60 * 60 * 1000)}
+									/>
 								</PanelRowInner>
 							</PanelRow>
 						</PanelBody>

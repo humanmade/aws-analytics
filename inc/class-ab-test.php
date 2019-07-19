@@ -8,6 +8,7 @@ namespace HM\Analytics;
 
 use function HM\Analytics\Helpers\get_elasticsearch_url;
 use function HM\Analytics\Helpers\composite_stddev;
+use function HM\Analytics\Helpers\milliseconds;
 use MathPHP\Probability\Distribution\Discrete;
 
 class AB_Test {
@@ -97,6 +98,30 @@ class AB_Test {
 	protected $cron_hook = '_hm_analytics_ab_test';
 
 	/**
+	 * Callback that gets run after the test setup method has run.
+	 *
+	 * @var callable
+	 */
+	protected $on_init_callback;
+
+	/**
+	 * Callback that gets run in the cron context before process_goal() is called.
+	 *
+	 * @var callable
+	 */
+	protected $on_cron_callback;
+
+	/**
+	 * Returns a test instance by ID.
+	 *
+	 * @param string $id The test instance ID.
+	 * @return AB_Test|null
+	 */
+	public static function get( string $id ) : AB_Test {
+		return self::$instances[ $id ] ?? null;
+	}
+
+	/**
 	 * Creates a new AB Test object.
 	 *
 	 * @param string $id A unique identifier for the test.
@@ -113,31 +138,23 @@ class AB_Test {
 		// Set the ID.
 		$this->id = $id;
 
-		// Add the default control variant.
-		$this->add_variant();
-
 		// Set default storage key.
 		$this->storage_key = "_hm_analytics_test_{$id}_";
-
-		// Add test config to front end output.
-		add_filter( 'hm.analytics.tests', function ( array $tests ) : array {
-			$tests[] = $this->to_config();
-			return $tests;
-		} );
-
-		// Create background task as late as possible.
-		add_action( 'shutdown', [ $this, 'create_cron_task' ] );
-		add_action( $this->cron_hook, __CLASS__ . '::do_cron_task' );
 	}
 
 	/**
-	 * Sets up properties from the data source.
+	 * Set up properties from the data source, register client side
+	 * configuration and set up background task.
 	 */
-	public function setup() {
+	public function init() {
+		// Add default control test.
+		$this->add_variant();
+
+		// Fetch data and configure test.
 		$start_time = absint( $this->get_data( 'start_time' ) );
 		$end_time = absint( $this->get_data( 'end_time' ) );
 		$traffic_percentage = $this->get_data( 'traffic_percentage' ) ?? 35;
-		$paused = (bool) ( $this->get_data( 'paused' ) ?? true );
+		$paused = ( $this->get_data( 'paused' ) ?? 'true' ) !== 'false';
 		$goal = $this->get_data( 'goal' );
 
 		$this->set_start_time( $start_time );
@@ -148,6 +165,41 @@ class AB_Test {
 		if ( $goal && isset( $goal['winner'] ) ) {
 			$this->set_winner( $goal['winner'] );
 		}
+
+		// Run init callback.
+		if ( is_callable( $this->on_init_callback ) ) {
+			$check = call_user_func_array( $this->on_init_callback, [ $this ] );
+			// Abort set up if init callback returns false.
+			if ( $check === false ) {
+				return;
+			}
+		}
+
+		// Check if test should be run.
+		if ( ! $this->is_running() ) {
+			return;
+		}
+
+		// Create background task as late as possible.
+		add_action( 'shutdown', [ $this, 'create_cron_task' ] );
+		add_action( $this->cron_hook, __CLASS__ . '::do_cron_task' );
+
+		// Add test config to front end output.
+		$config = $this->to_config();
+		add_filter( 'hm.analytics.tests', function ( array $tests ) use ( $config ) : array {
+			$tests[] = $config;
+			return $tests;
+		} );
+
+		// Clear variants for next run.
+		$this->variants = [];
+	}
+
+	/**
+	 * Set a callback for setting up the test.
+	 */
+	public function on_init( ?callable $callback ) {
+		$this->on_init_callback = $callback;
 	}
 
 	/**
@@ -191,50 +243,66 @@ class AB_Test {
 	/**
 	 * Cron task handler. Calls $this->process_goal()
 	 *
-	 * @param array $args
-	 * @return void
+	 * @param array $args Arguments recieved from the cron task.
 	 */
 	public static function do_cron_task( array $args ) {
+		// Get registered instance.
 		$test = self::$instances[ $args['id'] ];
+
+		// Run pre-flight hook.
+		$test->on_cron( $args );
+
+		// Init test.
+		$test->init();
+
+		// Process goals.
 		if ( $test && $test->is_running() ) {
 			$test->process_goal();
 		} else {
 			trigger_error( sprintf(
-				'Analytics: Test "%s" is not registered while trying to run background task.',
+				'Analytics: Test "%s" is not registered while trying to run background task. Make sure it is registered in the `init` action.',
 				$args['id']
 			), E_USER_WARNING );
 		}
 	}
 
 	/**
+	 * Called prior to running process_goal() in the cron context.
+	 * Useful if you need to further configure the object in a sub-class.
+	 *
+	 * @param array $args Arguments returned from get_cron_args().
+	 */
+	protected function on_cron( array $args ) {
+		// No-op.
+	}
+
+	/**
 	 * Retrieve data for the test.
 	 *
-	 * @param string $sub_key Optional sub key to split out data storage.
+	 * @param string $key Key to save data to.
 	 * @return mixed
 	 */
-	public function get_data( string $sub_key = '' ) {
-		return get_option( $this->storage_key . $sub_key, null );
+	public function get_data( string $key ) {
+		return get_option( $this->storage_key . $key, null );
 	}
 
 	/**
 	 * Set data for the test.
 	 *
+	 * @param string $key Key to get data from.
 	 * @param mixed $data Data to store.
-	 * @param string $sub_key Optional sub key to split out data storage.
 	 * @return AB_Test
 	 */
-	public function set_data( $data, string $sub_key = '' ) : AB_Test {
-		update_option( $this->storage_key . $sub_key, $data );
-		return $this;
+	public function set_data( string $key, $data ) {
+		update_option( $this->storage_key . $key, $data );
 	}
 
 	/**
-	 * Adds a variant.
+	 * Adds a test variant.
 	 *
-	 * @param array $actions An array of action arrays
-	 * @return AB_Test
+	 * @param array $actions An array of action arrays.
 	 */
-	public function add_variant( array $actions = [] ) : AB_Test {
+	public function add_variant( array $actions = [] ) {
 		if ( did_action( 'wp_head' ) ) {
 			trigger_error( 'Variants must be added before the wp_head action', E_WARNING );
 		}
@@ -244,8 +312,6 @@ class AB_Test {
 		$this->variants[] = [
 			'actions' => $sanitized_actions,
 		];
-
-		return $this;
 	}
 
 	/**
@@ -272,22 +338,17 @@ class AB_Test {
 	/**
 	 * Set the percentage of traffic to test variations against.
 	 *
-	 * @param float $amount
-	 * @return AB_Test
+	 * @param float $amount Percentage of traffic to run test for.
 	 */
-	public function set_traffic_percentage( ?float $amount = 35.0 ) : AB_Test {
+	public function set_traffic_percentage( float $amount = 35.0 ) {
 		$this->traffic_percentage = (float) max( 0.0, min( $amount, 100.0 ) );
-		return $this;
 	}
 
 	/**
 	 * Pause the test.
-	 *
-	 * @return AB_Test
 	 */
-	public function pause( bool $paused = true ) : AB_Test {
+	public function pause( bool $paused = true ) {
 		$this->paused = $paused;
-		return $this;
 	}
 
 	/**
@@ -303,22 +364,18 @@ class AB_Test {
 	 * Set the time to start running the test and return the winning variant.
 	 *
 	 * @param integer $timestamp Milliseconds since epoch.
-	 * @return AB_Test
 	 */
-	public function set_start_time( ?int $timestamp ) : AB_Test {
+	public function set_start_time( int $timestamp ) {
 		$this->start_time = $timestamp;
-		return $this;
 	}
 
 	/**
 	 * Set the time to stop running the test and return the winning variant.
 	 *
 	 * @param integer $timestamp Milliseconds since epoch.
-	 * @return AB_Test
 	 */
-	public function set_end_time( ?int $timestamp ) : AB_Test {
+	public function set_end_time( int $timestamp ) {
 		$this->end_time = $timestamp;
-		return $this;
 	}
 
 	/**
@@ -327,9 +384,8 @@ class AB_Test {
 	 * @param integer $id
 	 * @return AB_Test
 	 */
-	public function set_winner( int $id ) : AB_Test {
+	public function set_winner( int $id ) {
 		$this->winner = $id;
-		return $this;
 	}
 
 	/**
@@ -365,7 +421,7 @@ class AB_Test {
 	 * @return integer Milliseconds since epoch.
 	 */
 	public function get_start_time() : int {
-		return $this->start_time ?? microtime( true );
+		return $this->start_time ?: milliseconds();
 	}
 
 	/**
@@ -374,8 +430,9 @@ class AB_Test {
 	 * @return integer Milliseconds since epoch.
 	 */
 	public function get_end_time() : int {
-		return $this->end_time ?? microtime( true ) + ( 24 * 60 * 60 * 1000 );
+		return $this->end_time ?: milliseconds() + ( 30 * 24 * 60 * 60 * 1000 );
 	}
+
 
 	/**
 	 * Get the winning variant ID.
@@ -392,8 +449,10 @@ class AB_Test {
 	 *
 	 * @return boolean
 	 */
-	public function is_running() {
-		return ! $this->is_paused() && $this->get_start_time() <= microtime( true ) && $this->get_end_time() > microtime( true );
+	public function is_running() : bool {
+		return ! $this->is_paused()
+			&& $this->get_start_time() <= milliseconds()
+			&& $this->get_end_time() > milliseconds();
 	}
 
 	/**
@@ -401,20 +460,16 @@ class AB_Test {
 	 * follow up filter to determine conversions.
 	 *
 	 * @param string $label
-	 * @param string $event
-	 * @param array $conversion_filter Filters to narrow down the conversion aggregation set by.
-	 * @param array $query_filter Filters to narrow down the primary query.
+	 * @param array $conversion_filter Filters to narrow down results that count as a conversion.
+	 * @param array $query_filter Filters to narrow down the initial result set.
 	 * @return AB_Test
 	 */
-	public function set_goal( string $label, string $event, array $conversion_filter = [], array $query_filter = [] ) : AB_Test {
+	public function set_goal( string $label, array $conversion_filter, array $query_filter = [] ) {
 		$this->goal = [
 			'label' => sanitize_text_field( $label ),
-			'event' => $event,
 			'conversion_filter' => $conversion_filter,
 			'query_filter' => $query_filter,
 		];
-
-		return $this;
 	}
 
 	/**
@@ -439,7 +494,7 @@ class AB_Test {
 		if ( ! $this->is_running() ) {
 			if ( $this->get_end_time() <= microtime( true ) ) {
 				// Pause the test.
-				$this->set_data( 1, 'paused' );
+				$this->set_data( 'paused', 1 );
 
 				/**
 				 * Dispatch action when test has ended.
@@ -456,7 +511,12 @@ class AB_Test {
 		$data = $this->get_data( 'goal' );
 
 		// Process event filter.
-		$record_filter = $this->process_filters( $goal['query_filter'] ?? [] );
+		$record_filter = wp_parse_args( $goal['query_filter'] ?? [], [
+			'filter' => [],
+			'should' => [],
+			'must' => [],
+			'must_not' => [],
+		] );
 
 		// Scope to events associated with this test.
 		$record_filter['filter'][] = [
@@ -475,10 +535,12 @@ class AB_Test {
 		];
 
 		// Build conversion filters.
-		$conversion_filter = $this->process_filters( $goal['conversion_filter'] );
-		$conversion_filter['filter'][] = [
-			'term' => [ 'event_type.keyword' => $goal['event'] ],
-		];
+		$conversion_filter = wp_parse_args( $goal['conversion_filter'], [
+			'filter' => [],
+			'should' => [],
+			'must' => [],
+			'must_not' => [],
+		] );
 
 		// Collect aggregates for statistical analysis.
 		$test_aggregation = [
@@ -588,7 +650,7 @@ class AB_Test {
 		$merged_data = wp_parse_args( $processed_results, $merged_data );
 
 		// Save updated data.
-		$this->set_data( $merged_data, 'goal' );
+		$this->set_data( 'goal', $merged_data );
 	}
 
 	/**
@@ -642,7 +704,7 @@ class AB_Test {
 				/**
 				 * Dispatch action when winner found.
 				 */
-				do_action( 'hm.analytics.ab_test.winner_foound', $this );
+				do_action( 'hm.analytics.ab_test.winner_found', $this );
 			}
 		}
 
@@ -650,72 +712,6 @@ class AB_Test {
 			'winning' => $winning,
 			'winner' => $winner,
 			'variants' => $variants,
-		];
-	}
-
-	/**
-	 * Convert simplified filter format into elasticsearch query params.
-	 *
-	 * @param array $filters Array of fields as keys with value of an array with keys operator and value.
-	 * @return array Elasticsearch filter query array.
-	 */
-	protected function process_filters( array $filters ) : array {
-		$filter = [];
-		$must_not = [];
-
-		foreach ( $filters as $field => $condition ) {
-			// Default to direct comparison.
-			if ( ! is_array( $condition ) ) {
-				$condition = [ 'value' => $condition ];
-			}
-
-			$condition = wp_parse_args( $condition, [
-				'operator' => '=',
-				'value'    => '',
-			] );
-
-			// Normalise field name with and without .keyword suffix.
-			$field_keyword = $field;
-			if ( strpos( $field, '.keyword' ) === false ) {
-				$field_keyword = "{$field}.keyword";
-			} else {
-				$field = str_replace( '.keyword', '', $field );
-			}
-
-			switch ( $condition['operator'] ) {
-				case '=':
-					$filter[] = [ 'term' => [ $field_keyword => $condition['value'] ] ];
-					break;
-				case '!=':
-					$must_not[] = [ 'term' => [ $field_keyword => $condition['value'] ] ];
-					break;
-				case '^=':
-					$filter[] = [ 'prefix' => [ $field_keyword => $condition['value'] ] ];
-					break;
-				case '*=':
-					$filter[] = [ 'wildcard' => [ $field_keyword => "*{$condition['value']}*" ] ];
-					break;
-				case 'match':
-					$filter[] = [ 'match' => [ $field => $condition['value'] ] ];
-					break;
-				case '>':
-					$filter[] = [ 'range' => [ $field_keyword => [ 'gt' => $condition['value'] ] ] ];
-					break;
-				case '>=':
-					$filter[] = [ 'range' => [ $field_keyword => [ 'gte' => $condition['value'] ] ] ];
-					break;
-				case '<':
-					$filter[] = [ 'range' => [ $field_keyword => [ 'lt' => $condition['value'] ] ] ];
-					break;
-				case '<=':
-					$filter[] = [ 'range' => [ $field_keyword => [ 'lte' => $condition['value'] ] ] ];
-					break;
-			}
-		}
-
-		return [
-			'filter' => $filter,
-			'must_not' => $must_not,
 		];
 	}
 
@@ -729,12 +725,12 @@ class AB_Test {
 	 * @param array $new
 	 * @return array
 	 */
-	protected function merge_buckets( $current, $new ) {
+	protected function merge_buckets( array $current, array $new, string $bucket_type = '' ) {
 		$merged = $current;
-		static $bucket_type = false;
 
 		foreach ( $new as $key => $value ) {
 			if ( is_string( $key ) ) {
+				// Get bucket type.
 				if ( preg_match( '/^([a-z0-9_-]+)#.*$/', $key, $matches ) ) {
 					$bucket_type = $matches[1];
 				}
@@ -771,7 +767,8 @@ class AB_Test {
 									$merged[ $key ] = $current[ $key ] ?? 0;
 									break;
 							}
-							$bucket_type = false;
+							// Reset bucket type.
+							$bucket_type = '';
 						} else {
 							$merged[ $key ] = ( $current[ $key ] ?? 0 ) + $value;
 						}
@@ -804,7 +801,7 @@ class AB_Test {
 			}
 
 			if ( is_array( $value ) ) {
-				$merged[ $key ] = $this->merge_buckets( $current[ $key ] ?? [], $value );
+				$merged[ $key ] = $this->merge_buckets( $current[ $key ] ?? [], $value, $bucket_type );
 			}
 		}
 
