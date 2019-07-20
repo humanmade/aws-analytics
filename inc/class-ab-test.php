@@ -171,12 +171,16 @@ class AB_Test {
 			$check = call_user_func_array( $this->on_init_callback, [ $this ] );
 			// Abort set up if init callback returns false.
 			if ( $check === false ) {
+				// Clear variants for next run.
+				$this->variants = [];
 				return;
 			}
 		}
 
 		// Check if test should be run.
 		if ( ! $this->is_running() ) {
+			// Clear variants for next run.
+			$this->variants = [];
 			return;
 		}
 
