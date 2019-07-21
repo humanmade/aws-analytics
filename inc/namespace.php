@@ -15,8 +15,6 @@ namespace HM\Analytics;
 use WP_Post;
 
 require_once ROOT_DIR . '/inc/helpers.php';
-require_once ROOT_DIR . '/inc/class-ab-test.php';
-require_once ROOT_DIR . '/inc/class-post-ab-test.php';
 
 // Include features.
 require_once ROOT_DIR . '/inc/features/title_ab_test.php';
@@ -375,7 +373,7 @@ function output_test_html_for_post( string $test_id, int $post_id, string $defau
  * Processes the goal configuration, requests analytics data from Elasticsearch
  * and merges it with existing data before performning statistical analysis.
  */
-public function process_post_ab_test_result( string $test_id, int $post_id ) {
+function process_post_ab_test_result( string $test_id, int $post_id ) {
 	if ( empty( $this->get_goal() ) ) {
 		return;
 	}
