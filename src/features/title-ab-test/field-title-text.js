@@ -63,7 +63,7 @@ export const TitleTextField = props => {
 export const TitleTextFieldWithData = compose(
 	withSelect(select => {
 		return {
-			titles: select('core/editor').getEditedPostAttribute('_hm_analytics_test_titles_variants') || [],
+			titles: select('core/editor').getEditedPostAttribute('alternative_titles') || [],
 			goal: select('core/editor').getCurrentPostAttribute('_hm_analytics_test_titles_goal') || {},
 		};
 	}),
@@ -73,7 +73,7 @@ export const TitleTextFieldWithData = compose(
 				const newTitles = titles.slice();
 				newTitles[index] = title;
 				dispatch('core/editor').editPost({
-					_hm_analytics_test_titles_variants: newTitles
+					alternative_titles: newTitles
 				} );
 			}
 		};

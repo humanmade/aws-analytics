@@ -31,7 +31,7 @@ export const TrafficPercentage = props => {
 export const TrafficPercentageWithData = compose(
 	withSelect(select => {
 		const percentage = select('core/editor')
-			.getEditedPostAttribute('meta')['_hm_analytics_test_titles_traffic_percentage'];
+			.getEditedPostAttribute('ab_tests').titles.traffic_percentage;
 		return {
 			percentage: parseFloat( percentage || 35 ),
 		};
@@ -40,8 +40,10 @@ export const TrafficPercentageWithData = compose(
 		return {
 			setPercentage: percentage => {
 				dispatch('core/editor').editPost({
-					meta: {
-						_hm_analytics_test_titles_traffic_percentage: parseFloat( percentage ),
+					ab_tests: {
+						titles: {
+							traffic_percentage: percentage
+						}
 					}
 				} );
 			}

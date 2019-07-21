@@ -6,8 +6,9 @@
 namespace HM\Analytics\Features\Title_AB_Test;
 
 use const HM\Analytics\ROOT_DIR;
+use function HM\Analytics\is_test_running_for_post;
+use function HM\Analytics\output_test_html_for_post;
 use function HM\Analytics\register_post_ab_test;
-use HM\Analytics\Post_AB_Test;
 
 /**
  * Bootstrap Title AB Tests Feature.
@@ -48,64 +49,25 @@ function admin_scripts( string $hook ) {
 	);
 }
 
+function add_title_ab_test_to_title( string $title, int $post_id ) : string {
+	if ( ! is_test_running_for_post( 'titles', $post_id ) ) {
+		return $title;
+	}
+
+	return output_test_html_for_post( 'titles', $post_id, $title );
+}
+
 /**
  * Set up the post meta for our titles and create the tests.
  */
 function init() {
+	add_filter( 'the_title', __NAMESPACE__ . '\\add_title_ab_test_to_title', 10, 2 );
 
-	// Register test object.
-	register_post_ab_test( 'titles', function ( Post_AB_Test $test ) {
-		$post_id = $test->get_post_id();
-
-		// Get alternative titles.
-		$titles = $test->get_data( 'variants' );
-
-		// Get post URL for selectors and filters.
-		$url = get_the_permalink( $post_id );
-
-		/**
-		 * Override the default selector.
-		 *
-		 * @param string $selector CSS Selector to apply transformations to.
-		 */
-		$selector = apply_filters(
-			'hm.analytics.ab_test.titles.selector',
-			sprintf(
-				'.post-%d h1, a[href="%s"]',
-				$post_id,
-				$url
-			),
-			$post_id
-		);
-
-		// Add variants.
-		foreach ( $titles as $title ) {
-			$test->add_variant( [
-				[
-					'selector' => $selector,
-					'text' => $title,
-				]
-			] );
-		}
-
-		// Create clickthrough conversion goal.
-		$test->set_goal( __( 'Click through rate', 'hm-analytics' ), [
-			// Target only clicks matching our URL.
-			'filter' => [
-				[
-					'term' => [ 'event_type.keyword' => 'click' ],
-				],
-				[
-					'term' => [ 'attributes.elementHref.keyword' => $url ],
-				],
-			],
-		], [
-			// Ignore events on the target page.
-			'must_not' => [
-				[
-					'term' => [ 'attributes.url.keyword' => $url ],
-				],
-			],
-		] );
-	} );
+	register_post_ab_test(
+		'titles',
+		[
+			'rest_api_variants_field' => 'alternative_titles',
+			'metric'                  => 'click',
+		]
+	);
 }

@@ -27,19 +27,21 @@ export const PauseField = props => {
 export const PauseFieldWithData = compose(
 	withSelect(select => {
 		const paused = select('core/editor')
-			.getEditedPostAttribute('meta')['_hm_analytics_test_titles_paused'] || 'true';
+			.getEditedPostAttribute('ab_tests').titles.paused;
 		const status = select('core/editor').getCurrentPostAttribute('status');
 		return {
 			published: status === 'publish',
-			paused: paused !== 'false',
+			paused: paused,
 		};
 	}),
 	withDispatch(dispatch => {
 		return {
 			setPaused: paused => {
 				dispatch('core/editor').editPost({
-					meta: {
-						_hm_analytics_test_titles_paused: paused ? 'true' : 'false',
+					ab_tests: {
+						titles: {
+							paused: paused
+						}
 					}
 				} );
 			}
