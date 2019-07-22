@@ -67,7 +67,7 @@ const utm = {
 /**
  * Tests.
  */
-document.arrive( '.post-ab-test', function () {
+document.arrive( '[data-test]', function () {
 	const testId = this.dataset.test;
 	const variants = JSON.parse( this.dataset.variants );
 	const trafficPercentage = this.dataset['traffic-percentage'];

@@ -13,6 +13,7 @@
 namespace HM\Analytics;
 
 use WP_Post;
+use WP_Query;
 
 require_once ROOT_DIR . '/inc/helpers.php';
 
@@ -231,6 +232,42 @@ function register_post_ab_test( string $id, array $options ) {
 			],
 		]
 	);
+
+	// Set up background task.
+	if ( ! wp_next_scheduled( 'hm_analytics_post_ab_test', [ $id ] ) ) {
+		wp_schedule_event( time(), 'hourly', 'hm_analytics_post_ab_test', [ $id ] );
+	}
+
+	add_action( 'hm_analytics_post_ab_test', __NAMESPACE__ . '\\handle_cron', 10, 2 );
+}
+
+/**
+ * Process results for each test.
+ *
+ * @param string $test_id
+ * @param integer $page
+ */
+function handle_cron( string $test_id, int $page = 1 ) {
+	$test = get_post_ab_test( $test_id );
+
+	$posts_per_page = 50;
+	$posts = new WP_Query( [
+		'post_type' => get_post_types( [ 'public' => true ] ),
+		'fields' => 'ids',
+		'post_status' => 'publish',
+		'posts_per_page' => $posts_per_page,
+		'paged' => $page,
+		'meta_key' => $test['rest_api_variants_field'],
+	] );
+
+	foreach ( $posts as $post_id ) {
+		process_post_ab_test_result( $test_id, $post_id );
+	}
+
+	// Queue up next batch.
+	if ( $posts->found_posts > $page * $posts_per_page ) {
+		wp_schedule_single_event( time(), 'hm_analytics_post_ab_test', [ $test_id, $page + 1 ] );
+	}
 }
 
 /**
@@ -321,7 +358,7 @@ function update_test_start_time_for_post( string $test_id, int $post_id, int $da
  * @param string $test_id
  * @param string $post_id
  */
-function update_test_end_time_for_post( string $test_id, int $post_id, int $date ) : int {
+function update_test_end_time_for_post( string $test_id, int $post_id, int $date ) {
 	update_post_meta( $post_id, '_hm_analytics_test_' . $test_id . '_end_time', $date );
 }
 
@@ -356,8 +393,7 @@ function output_test_html_for_post( string $test_id, int $post_id, string $defau
 	ob_start();
 	?>
 	<span
-		class="post-ab-test"
-		data-test=<?php echo esc_attr( $test_id ) ?>
+		data-test="<?php echo esc_attr( $test_id ) ?>"
 		data-variants="<?php echo esc_attr( wp_json_encode( $variants ) ) ?>"
 		data-traffic-percentage="<?php echo get_test_traffic_percentage_for_post( $test_id, $post_id ) ?>"
 		data-post-id="<?php echo esc_attr( $post_id ) ?>"
@@ -374,7 +410,9 @@ function output_test_html_for_post( string $test_id, int $post_id, string $defau
  * and merges it with existing data before performning statistical analysis.
  */
 function process_post_ab_test_result( string $test_id, int $post_id ) {
-	if ( empty( $this->get_goal() ) ) {
+	$test = get_post_ab_test( $test_id );
+
+	if ( empty( $test) ) {
 		return;
 	}
 
