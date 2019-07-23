@@ -14,6 +14,7 @@ namespace HM\Analytics;
 
 use WP_Post;
 use WP_Query;
+use function HM\Analytics\Helpers\milliseconds;
 
 require_once ROOT_DIR . '/inc/helpers.php';
 
@@ -176,13 +177,13 @@ function register_post_ab_tests_rest_fields() {
 	register_rest_field( 'post', 'ab_tests', [
 		'get_callback' => function ( $post ) {
 			$response = [];
-
-			foreach ( get_post_ab_tests() as $test_id => $test_options ) {
+			foreach ( array_keys( get_post_ab_tests() ) as $test_id ) {
 				$response[ $test_id ] = [
 					'start_time'         => get_test_start_time_for_post( $test_id, $post['id'] ),
 					'end_time'           => get_test_end_time_for_post( $test_id, $post['id'] ),
 					'traffic_percentage' => get_test_traffic_percentage_for_post( $test_id, $post['id'] ),
 					'paused'             => is_test_paused_for_post( $test_id, $post['id'] ),
+					'results'            => get_test_results_for_post( $test_id, $post['id'] ),
 				];
 			}
 			return $response;
@@ -203,39 +204,164 @@ function register_post_ab_tests_rest_fields() {
 				}
 			}
 		},
+		'schema' => [
+			'type' => 'object',
+			'patternProperties' => [
+				'.*' => [
+					'type' => 'object',
+					'properties' => [
+						'start_time' => [
+							'type' => 'integer'
+						],
+						'end_time' => [
+							'type' => 'integer'
+						],
+						'traffic_percentage' => [
+							'type' => 'number',
+							'default' => 35,
+						],
+						'paused' => [
+							'type' => 'boolean',
+							'default' => true,
+						],
+						'results' => [
+							'type' => 'object',
+							'readOnly' => true,
+							'properties' => [
+								'timestamp' => [
+									'type' => 'integer'
+								],
+								'winning' => [
+									'type' => 'integer'
+								],
+								'winner' => [
+									'type' => 'integer'
+								],
+								'aggs' => [
+									'type' => 'array',
+									'items' => [
+										'type' => 'object',
+									],
+								],
+								'variants' => [
+									'type' => 'array',
+									'items' => [
+										'type' => 'object',
+										'properties' => [
+											'size' => [
+												'type' => 'integer',
+												'default' => 0,
+												'description' => __( 'Variant sample size', 'hm-analytics' ),
+											],
+											'hits' => [
+												'type' => 'integer',
+												'default' => 0,
+												'description' => __( 'Variant conversion count', 'hm-analytics' ),
+											],
+											'rate' => [
+												'type' => 'number',
+												'default' => 0,
+												'description' => __( 'Variant conversion rate', 'hm-analytics' ),
+											],
+											'p' => [
+												'type' => 'number',
+												'default' => 1,
+												'description' => __( 'Variant p-value', 'hm-analytics' ),
+											],
+										],
+									],
+								],
+							],
+						],
+					],
+				],
+			],
+		],
 	] );
 }
 
 /**
  * Register an AB test for post objects.
  *
- * @param string $id
+ * @param string $test_id
  * @param array $options
+ *     $options = [
+ *       'rest_api_variants_field' => (string) REST API field name to return variants on.
+ *       'query_filter' => (array) Elasticsearch bool filter to narrow down overall result set.
+ *       'goal_filter' => (array) Elasticsearch bool filter to determine conversion events.
+ *     ]
  */
-function register_post_ab_test( string $id, array $options ) {
+function register_post_ab_test( string $test_id, array $options ) {
 	global $post_ab_tests;
-	$post_ab_tests[ $id ] = $options;
+
+	$post_ab_tests[ $test_id ] = wp_parse_args( $options, [
+		'rest_api_variants_field' => 'ab_test_' . $test_id,
+		'query_filter' => [],
+		'goal_filter' => [],
+	] );
 
 	register_rest_field(
-		'post', $options['rest_api_variants_field'], [
-			'get_callback' => function ( $post ) use ( $id ) : array {
-				return get_test_variants_for_post( $id, $post['id'] );
+		'post',
+		$options['rest_api_variants_field'],
+		[
+			'get_callback' => function ( $post ) use ( $test_id ) : array {
+				return get_test_variants_for_post( $test_id, $post['id'] );
 			},
-			'update_callback' => function ( array $variants, WP_Post $post ) use ( $id ) {
-				return update_test_variants_for_post( $id, $post->ID, $variants );
+			'update_callback' => function ( array $variants, WP_Post $post ) use ( $test_id ) {
+				return update_test_variants_for_post( $test_id, $post->ID, $variants );
 			},
 			'schema' => [
 				'type' => 'array',
 				'items' => [
-					'type' => 'string',
+					'type' => 'object',
+					'properties' => [
+						'selector' => [
+							'type' => [ 'string', 'null' ],
+						],
+						'text' => [
+							'type' => [ 'string', 'null' ],
+						],
+						'attributes' => [
+							'type' => 'array',
+							'required' => false,
+							'items' => [
+								'type' => 'object',
+								'properties' => [
+									'name' => [
+										'type' => 'string',
+										'required' => true,
+									],
+									'value' => [
+										'type' => 'string',
+									],
+								],
+							],
+						],
+						'events' => [
+							'type' => 'array',
+							'required' => false,
+							'items' => [
+								'type' => 'object',
+								'properties' => [
+									'name' => [
+										'type' => 'string',
+										'required' => true,
+									],
+									'data' => [
+										'type' => 'object',
+									],
+								],
+							],
+						],
+					],
 				],
 			],
-		]
+		],
 	);
 
 	// Set up background task.
-	if ( ! wp_next_scheduled( 'hm_analytics_post_ab_test', [ $id ] ) ) {
-		wp_schedule_event( time(), 'hourly', 'hm_analytics_post_ab_test', [ $id ] );
+	if ( ! wp_next_scheduled( 'hm_analytics_post_ab_test', [ $test_id ] ) ) {
+		wp_schedule_event( time(), 'hourly', 'hm_analytics_post_ab_test', [ $test_id ] );
 	}
 
 	add_action( 'hm_analytics_post_ab_test', __NAMESPACE__ . '\\handle_cron', 10, 2 );
@@ -248,8 +374,6 @@ function register_post_ab_test( string $id, array $options ) {
  * @param integer $page
  */
 function handle_cron( string $test_id, int $page = 1 ) {
-	$test = get_post_ab_test( $test_id );
-
 	$posts_per_page = 50;
 	$posts = new WP_Query( [
 		'post_type' => get_post_types( [ 'public' => true ] ),
@@ -257,10 +381,10 @@ function handle_cron( string $test_id, int $page = 1 ) {
 		'post_status' => 'publish',
 		'posts_per_page' => $posts_per_page,
 		'paged' => $page,
-		'meta_key' => $test['rest_api_variants_field'],
+		'meta_key' => '_hm_analytics_test_' . $test_id . '_variants',
 	] );
 
-	foreach ( $posts as $post_id ) {
+	foreach ( $posts->posts as $post_id ) {
 		process_post_ab_test_result( $test_id, $post_id );
 	}
 
@@ -321,6 +445,17 @@ function get_test_traffic_percentage_for_post( string $test_id, int $post_id ) :
 }
 
 /**
+ * Get the percentage of traffic to run the test for.
+ *
+ * @param string $test_id
+ * @param string $post_id
+ * @return array Results array
+ */
+function get_test_results_for_post( string $test_id, int $post_id ) : array {
+	return (array) get_post_meta( $post_id, '_hm_analytics_test_' . $test_id . '_results', true );
+}
+
+/**
  * Check if a given test is paused on a post.
  *
  * @param string $test_id
@@ -373,6 +508,16 @@ function update_test_traffic_percentage_for_post( string $test_id, int $post_id,
 }
 
 /**
+ * Update the results for the test.
+ *
+ * @param string $test_id
+ * @param string $post_id
+ */
+function update_test_results_for_post( string $test_id, int $post_id, array $data ) {
+	update_post_meta( $post_id, '_hm_analytics_test_' . $test_id . '_results', $data );
+}
+
+/**
  * Check if a given test is paused on a post.
  *
  * @param string $test_id
@@ -383,23 +528,44 @@ function update_is_test_paused_for_post( string $test_id, int $post_id, bool $is
 	update_post_meta( $post_id, '_hm_analytics_test_' . $test_id . '_paused', $is_paused );
 }
 
+/**
+ * Check if the given test is running or not.
+ *
+ * @param string $test_id
+ * @param integer $post_id
+ * @return boolean
+ */
 function is_test_running_for_post( string $test_id, int $post_id ) : bool {
-	return (bool) get_test_variants_for_post( $test_id, $post_id );
+	$has_variants = (bool) get_test_variants_for_post( $test_id, $post_id );
+	$is_paused = (bool) is_test_paused_for_post( $test_id, $post_id );
+	$start_time = (int) get_test_start_time_for_post( $test_id, $post_id );
+	$end_time = (int) get_test_end_time_for_post( $test_id, $post_id );
+	return $has_variants && ! $is_paused && $start_time <= milliseconds() && $end_time > milliseconds();
 }
 
-function output_test_html_for_post( string $test_id, int $post_id, string $default_output ) {
-	$test = get_post_ab_test( $test_id );
+/**
+ * Undocumented function
+ *
+ * @param string $test_id
+ * @param integer $post_id
+ * @param string $default_output
+ * @return string
+ */
+function output_test_html_for_post( string $test_id, int $post_id, string $default_output ) : string {
+	if ( ! is_test_running_for_post( $test_id, $post_id ) ) {
+		return $default_output;
+	}
+
 	$variants = get_test_variants_for_post( $test_id, $post_id );
 	ob_start();
 	?>
 	<span
-		data-test="<?php echo esc_attr( $test_id ) ?>"
+		data-test="<?php echo esc_attr( $test_id . '_' . $post_id ) ?>"
 		data-variants="<?php echo esc_attr( wp_json_encode( $variants ) ) ?>"
 		data-traffic-percentage="<?php echo get_test_traffic_percentage_for_post( $test_id, $post_id ) ?>"
 		data-post-id="<?php echo esc_attr( $post_id ) ?>"
-		data-metric="<?php echo esc_attr( $test['metric'] ) ?>"
 	>
-		<?php echo $default_output ?>
+		<?php echo $default_output; ?>
 	</span>
 	<?php
 	return ob_get_clean();
@@ -412,17 +578,18 @@ function output_test_html_for_post( string $test_id, int $post_id, string $defau
 function process_post_ab_test_result( string $test_id, int $post_id ) {
 	$test = get_post_ab_test( $test_id );
 
-	if ( empty( $test) ) {
+	if ( empty( $test ) ) {
 		return;
 	}
 
-	// @todo update.
+	// Get a unique ID for the test.
+	$test_id_with_post = $test_id . '_' . $post_id;
 
 	// Bail if test no longer running.
-	if ( ! $this->is_running() ) {
-		if ( $this->get_end_time() <= microtime( true ) ) {
+	if ( ! is_test_running_for_post( $test_id, $post_id ) ) {
+		if ( get_test_end_time_for_post( $test_id, $post_id ) <= microtime( true ) ) {
 			// Pause the test.
-			$this->set_data( 'paused', 1 );
+			update_is_test_paused_for_post( $test_id, $post_id, true );
 
 			/**
 			 * Dispatch action when test has ended.
@@ -432,14 +599,26 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		return;
 	}
 
-	// Get the goal config.
-	$goal = $this->get_goal();
-
 	// Get existing data for use with queries.
-	$data = $this->get_data( 'goal' );
+	$data = get_test_results_for_post( $test_id, $post_id );
 
 	// Process event filter.
-	$record_filter = wp_parse_args( $goal['query_filter'] ?? [], [
+	if ( is_callable( $test['query_filter'] ) ) {
+		$query_filter = call_user_func_array( $test['query_filter'], [ $test_id, $post_id ] );
+	} else {
+		$query_filter = $test['query_filter'];
+	}
+
+	if ( ! is_array( $query_filter ) ) {
+		trigger_error( sprintf(
+			"Analytics: Query filter for test %s on post %d is not an array",
+			$test_id,
+			$post_id
+		), E_USER_WARNING );
+		return;
+	}
+
+	$query_filter = wp_parse_args( $query_filter, [
 		'filter' => [],
 		'should' => [],
 		'must' => [],
@@ -447,14 +626,14 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	] );
 
 	// Scope to events associated with this test.
-	$record_filter['filter'][] = [
+	$query_filter['filter'][] = [
 		'exists' => [
-			'field' => sprintf( "attributes.test_%s.keyword", $this->get_id() ),
+			'field' => sprintf( "attributes.test_%s.keyword", $test_id_with_post ),
 		],
 	];
 
 	// Add time based filter from last updated timestamp.
-	$record_filter['filter'][] = [
+	$query_filter['filter'][] = [
 		'range' => [
 			'event_timestamp' => [
 				'gt' => $data['timestamp'] ?? 0,
@@ -463,7 +642,22 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	];
 
 	// Build conversion filters.
-	$conversion_filter = wp_parse_args( $goal['conversion_filter'], [
+	if ( is_callable( $test['goal_filter'] ) ) {
+		$goal_filter = call_user_func_array( $test['goal_filter'], [ $test_id, $post_id ] );
+	} else {
+		$goal_filter = $test['goal_filter'];
+	}
+
+	if ( ! is_array( $goal_filter ) ) {
+		trigger_error( sprintf(
+			"Analytics: Goal filter for test %s on post %d is not an array",
+			$test_id,
+			$post_id
+		), E_USER_WARNING );
+		return;
+	}
+
+	$goal_filter = wp_parse_args( $goal_filter, [
 		'filter' => [],
 		'should' => [],
 		'must' => [],
@@ -475,13 +669,13 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		// Variant buckets.
 		"test" => [
 			"terms" => [
-				"field" => sprintf( "attributes.test_%s.keyword", $this->get_id() ),
+				"field" => sprintf( "attributes.test_%s.keyword", $test_id_with_post ),
 			],
 			"aggs" => [
 				// Conversion events.
 				'conversions' => [
 					'filter' => [
-						'bool' => $conversion_filter,
+						'bool' => $goal_filter,
 					],
 				],
 				// Number of unique page sessions where test is running.
@@ -502,7 +696,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	$query = [
 		"size" => 0,
 		"query" => [
-			"bool" => $record_filter,
+			"bool" => $query_filter,
 		],
 		"aggs" => $test_aggregation,
 		"sort" => [
@@ -558,11 +752,15 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'variants' => [],
 	] );
 
-	$merged_data['timestamp'] = max( $merged_data['timestamp'], $result['aggregations']['max#timestamp']['value'] ?? 0 );
+	$merged_data['timestamp'] = max(
+		$merged_data['timestamp'],
+		$result['aggregations']['max#timestamp']['value'] ?? 0
+	);
 
 	// Sort buckets by variant ID.
+	$variants = get_test_variants_for_post( $test_id, $post_id );
 	$new_aggs = $result['aggregations']['sterms#test']['buckets'] ?? [];
-	$sorted_aggs = array_fill( 0, count( $this->get_variants() ), [] );
+	$sorted_aggs = array_fill( 0, count( $variants ) + 1, [] );
 
 	foreach ( $new_aggs as $aggregation ) {
 		$sorted_aggs[ $aggregation['key'] ] = $aggregation;
@@ -578,7 +776,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	$merged_data = wp_parse_args( $processed_results, $merged_data );
 
 	// Save updated data.
-	// $this->set_data( 'goal', $merged_data );
+	update_test_results_for_post( $test_id, $post_id, $merged_data );
 }
 
 /**

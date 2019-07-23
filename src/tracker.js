@@ -12,7 +12,7 @@ import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient"
 import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
 import { UpdateEndpointCommand } from "@aws-sdk/client-pinpoint-browser/commands/UpdateEndpointCommand";
 
-const { Config, Tests, Data } = HM.Analytics;
+const { Config, Data } = HM.Analytics;
 
 if (!Config.PinpointId || !Config.CognitoId) {
 	console.warn(
@@ -67,15 +67,22 @@ const utm = {
 /**
  * Tests.
  */
+
+const activeTests = {};
+
 document.arrive( '[data-test]', function () {
 	const testId = this.dataset.test;
-	const variants = JSON.parse( this.dataset.variants );
-	const trafficPercentage = this.dataset['traffic-percentage'];
+	const variants = JSON.parse( this.dataset.variants || "[]" );
+	const trafficPercentage = this.dataset.trafficPercentage;
+
+	// Add control variant.
+	variants.unshift({});
 
 	// Check if this user already have a variant for this test.
 	const currentTests = getTestsForUser();
 	let variantId = null;
-	if ( currentTests[ testId ] ) {
+	// Test variant can be 0 so check for not undefined and not strictly false.
+	if ( typeof currentTests[ testID ] !== 'undefined' && currentTests[ testId ] !== false ) {
 		variantId = currentTests[ testId ];
 	} else if ( currentTests[ testId ] === false ) {
 		return;
@@ -83,17 +90,20 @@ document.arrive( '[data-test]', function () {
 		// Otherwise lets check the probability we should experiment on this individual. That sounded weird.
 		if ( Math.random() * 100 > trafficPercentage ) {
 			// Exclude from this test.
-			addTestForUser({
-				[testId]: false
-			});
+			addTestForUser( {
+				[ testId ]: false
+			} );
 			return;
 		}
 		// Add one of the variants to the cookie.
-		variantId = Math.floor(Math.random() * variants.length);
-		addTestForUser({
-			[testId]: variantId
-		});
+		variantId = Math.floor( Math.random() * variants.length );
+		addTestForUser( {
+			[ testId ]: variantId
+		} );
 	}
+
+	// Log active tests.
+	activeTests[ testId ] = variantId;
 
 	// Apply the variant
 	this.innerHTML = variants[ variantId ];
@@ -116,8 +126,6 @@ const utm_test = utm.utm_campaign.match(/tests_([a-z0-9_-]+):(\d+)/i);
 if (utm_test) {
 	addTestForUser({ [utm_test[1]]: parseInt(utm_test[2], 10) });
 }
-
-const activeTests = {};
 
 /**
  * Attributes helper.
@@ -449,23 +457,6 @@ document.addEventListener("click", event => {
 		return;
 	}
 
-	let test = {};
-
-	// Check for any tests as child nodes for tests
-	if ( event.target.dataset.test && event.target.dataset.metric === 'click' ) {
-		const testId = event.target.dataset.test;
-		const tests = getTestsForUser();
-		if ( typeof tests[ testId ] === 'number' ) {
-			test = {
-				testId,
-				testPostId: event.target.dataset.postId,
-				testVariantId: tests[ testId ]
-			};
-		}
-	}
-
-	// create a one time cookie / session value?
-	// collect source event?
 	const attributes = getAttributes({
 		targetNode: event.target.nodeName || "",
 		targetClassName: event.target.className || "",
@@ -478,7 +469,6 @@ document.addEventListener("click", event => {
 		elementText: el.innerText || "",
 		clickX: event.pageX,
 		clickY: event.pageY,
-		...test,
 	});
 	Analytics.record("click", {
 		attributes

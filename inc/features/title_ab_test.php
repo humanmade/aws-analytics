@@ -66,8 +66,25 @@ function init() {
 	register_post_ab_test(
 		'titles',
 		[
-			'rest_api_variants_field' => 'alternative_titles',
-			'metric'                  => 'click',
+			// Exclude all events on the target post page.
+			'query_filter' => function ( $test_id, $post_id ) : array {
+				$url = get_the_permalink( $post_id );
+				return [
+					'must_not' => [
+						[ 'prefix' => [ 'attributes.url.keyword' => $url ] ],
+					],
+				];
+			},
+			// Use click events as conversions.
+			'goal_filter' => function ( $test_id, $post_id ) : array {
+				$url = get_the_permalink( $post_id );
+				return [
+					'filter' => [
+						[ 'term' => [ 'event_type.keyword' => 'click' ] ],
+						[ 'term' => [ 'attributes.elementHref.keyword' => $url ] ],
+					],
+				];
+			},
 		]
 	);
 }
