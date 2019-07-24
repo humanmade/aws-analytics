@@ -45,7 +45,7 @@ const sharedConfig = {
       ? "cheap-module-source-map"
       : "cheap-module-eval-source-map",
   externals: {
-    "HM": "HM",
+    "Altis": "Altis",
     "wp": "wp",
     "react": "React",
     "react-dom": "ReactDOM",

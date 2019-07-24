@@ -1,9 +1,9 @@
 {
-  "name": "hm-analytics",
+  "name": "altis-analytics",
   "version": "0.0.1",
-  "description": "AWS backed analytics and multivariate testing tools for WordPress",
+  "description": "AWS Pinpoint analytics for WordPress",
   "repository": "https://github.com/humanmade/analytics",
-  "main": "src/tracker.js",
+  "main": "src/analytics.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js",
@@ -16,8 +16,6 @@
     "@aws-sdk/client-pinpoint-browser": "0.1.0-preview.2",
     "@babel/runtime": "^7.4.5",
     "@wordpress/babel-preset-default": "^4.3.0",
-    "arrive": "^2.4.1",
-    "styled-components": "^4.3.2",
     "ua-parser-js": "^0.7.20"
   },
   "devDependencies": {

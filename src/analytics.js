@@ -11,16 +11,16 @@ import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient"
 import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
 import { UpdateEndpointCommand } from "@aws-sdk/client-pinpoint-browser/commands/UpdateEndpointCommand";
 
-const { Config, Data } = HM.Analytics;
+const { Config, Data } = Altis.Analytics;
 
 if (!Config.PinpointId || !Config.CognitoId) {
 	console.warn(
-		"HM Analytics: Missing configuration. \
+		"Altis Analytics: Missing configuration. \
 	You must define the following constants in PHP:\n \
-	define( 'HM_ANALYTICS_PINPOINT_ID', '...' );\n \
-	define( 'HM_ANALYTICS_PINPOINT_REGION', '...' );\n \
-	define( 'HM_ANALYTICS_COGNITO_ID', '...' );\n \
-	define( 'HM_ANALYTICS_COGNITO_REGION', '...' ); \
+	define( 'ALTIS_ANALYTICS_PINPOINT_ID', '...' );\n \
+	define( 'ALTIS_ANALYTICS_PINPOINT_REGION', '...' );\n \
+	define( 'ALTIS_ANALYTICS_COGNITO_ID', '...' );\n \
+	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' ); \
 	"
 	);
 }
@@ -442,16 +442,14 @@ window.addEventListener("beforeunload", async () => {
 });
 
 // Expose userland API.
-window.Analytics = {
-	updateEndpoint: Analytics.updateEndpoint,
-	record: (type, data = {}) =>
-		Analytics.record(
-			type,
-			{
-				attributes: getAttributes(data.attributes || {}),
-				metrics: getMetrics(data.metrics || {})
-			}
-		),
-	registerAttribute: (name, value) => registeredAttributes[name] = value,
-	registerMetric: (name, value) => registeredMetrics[name] = value,
-};
+window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+window.Altis.Analytics.record = (type, data = {}) =>
+	Analytics.record(
+		type,
+		{
+			attributes: getAttributes(data.attributes || {}),
+			metrics: getMetrics(data.metrics || {})
+		}
+	);
+window.Altis.Analytics.registerAttribute = (name, value) => registeredAttributes[name] = value;
+window.Altis.Analytics.registerMetric = (name, value) => registeredMetrics[name] = value;

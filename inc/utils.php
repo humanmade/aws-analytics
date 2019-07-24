@@ -3,7 +3,7 @@
  * Helper functions for stats and significance.
  */
 
-namespace HM\Analytics\Helpers;
+namespace Altis\Analytics\Utils;
 
 /**
  * Calculate the combined standard deviation for multiple groups of
@@ -60,16 +60,18 @@ function composite_stddev( array $means, array $stddevs, array $group_counts ) :
  * @return string
  */
 function get_elasticsearch_url() : string {
+	$url = '';
+
 	if ( defined( 'HM_ANALYTICS_ELASTICSEARCH_URL' ) ) {
-		return HM_ANALYTICS_ELASTICSEARCH_URL;
+		$url = HM_ANALYTICS_ELASTICSEARCH_URL;
 	}
 
 	/**
 	 * Filter the elasticsearch URL for use with analytics.
 	 *
-	 * @param string $url
+	 * @param string $url Elasticsearch Server URL.
 	 */
-	$url = apply_filters( 'hm.analytics.elasticsearch.url', '' );
+	$url = apply_filters( 'hm.analytics.elasticsearch.url', $url );
 
 	return $url;
 }

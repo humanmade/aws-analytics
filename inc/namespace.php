@@ -8,7 +8,7 @@
 
 namespace Altis\Analytics;
 
-require_once ROOT_DIR . '/inc/helpers.php';
+require_once ROOT_DIR . '/inc/utils.php';
 
 function setup() {
 	// Load analytics script early.
@@ -104,21 +104,21 @@ function get_client_side_data() : array {
 	 *
 	 * @param array $data
 	 */
-	$data['Endpoint'] = (object) apply_filters( 'hm.analytics.data.endpoint', $data['Endpoint'] );
+	$data['Endpoint'] = (object) apply_filters( 'altis.analytics.data.endpoint', $data['Endpoint'] );
 
 	/**
 	 * Filter the custom analytics attributes to record with all events.
 	 *
 	 * @param array $data
 	 */
-	$data['Attributes'] = (object) apply_filters( 'hm.analytics.data.attributes', $data['Attributes'] );
+	$data['Attributes'] = (object) apply_filters( 'altis.analytics.data.attributes', $data['Attributes'] );
 
 	/**
 	 * Filter the custom analytics variable data.
 	 *
 	 * @param array $data
 	 */
-	$data = apply_filters( 'hm.analytics.data', $data );
+	$data = apply_filters( 'altis.analytics.data', $data );
 
 	return $data;
 }
