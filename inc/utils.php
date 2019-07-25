@@ -135,7 +135,7 @@ function milliseconds() : int {
  * Merge aggregations from ES results.
  *
  *
- * @todo work out how to merge percentiles & percentile ranks
+ * @todo work out how to merge percentiles & percentile ranks.
  *
  * @param array $current
  * @param array $new
@@ -217,7 +217,7 @@ function merge_aggregates( array $current, array $new, string $bucket_type = '' 
 		}
 
 		if ( is_array( $value ) ) {
-			$merged[ $key ] = merge_buckets_aggregates( $current[ $key ] ?? [], $value, $bucket_type );
+			$merged[ $key ] = merge_aggregates( $current[ $key ] ?? [], $value, $bucket_type );
 		}
 	}
 
