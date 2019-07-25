@@ -13,7 +13,7 @@ import { UpdateEndpointCommand } from "@aws-sdk/client-pinpoint-browser/commands
 
 const { Config, Data } = Altis.Analytics;
 
-if (!Config.PinpointId || !Config.CognitoId) {
+if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	console.warn(
 		"Altis Analytics: Missing configuration. \
 	You must define the following constants in PHP:\n \

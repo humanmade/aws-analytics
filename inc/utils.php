@@ -62,8 +62,8 @@ function composite_stddev( array $means, array $stddevs, array $group_counts ) :
 function get_elasticsearch_url() : string {
 	$url = '';
 
-	if ( defined( 'HM_ANALYTICS_ELASTICSEARCH_URL' ) ) {
-		$url = HM_ANALYTICS_ELASTICSEARCH_URL;
+	if ( defined( 'ALTIS_ANALYTICS_ELASTICSEARCH_URL' ) ) {
+		$url = ALTIS_ANALYTICS_ELASTICSEARCH_URL;
 	}
 
 	/**
@@ -71,9 +71,55 @@ function get_elasticsearch_url() : string {
 	 *
 	 * @param string $url Elasticsearch Server URL.
 	 */
-	$url = apply_filters( 'hm.analytics.elasticsearch.url', $url );
+	$url = apply_filters( 'altis.analytics.elasticsearch.url', $url );
 
 	return $url;
+}
+
+/**
+ * Query Analytics data in Elasticsearch.
+ *
+ * @param array $query A full elasticsearch Query DSL array.
+ * @param array $params URL query parameters to append to request URL.
+ * @return array|null
+ */
+function query( array $query, array $params = [] ) : ?array {
+
+	// Get URL.
+	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/_search' );
+
+	$response = wp_remote_post( $url, [
+		'headers' => [
+			'Content-Type' => 'application/json',
+		],
+		'body' => json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+	] );
+
+	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
+		if ( is_wp_error( $response ) ) {
+			trigger_error( sprintf(
+				"Analytics: elasticsearch query failed: %s",
+				$response->get_error_message()
+			), E_USER_WARNING );
+		} else {
+			trigger_error( sprintf(
+				"Analytics: elasticsearch query failed:\n%s\n%s",
+				json_encode( $query ),
+				wp_remote_retrieve_body( $response )
+			), E_USER_WARNING );
+		}
+		return null;
+	}
+
+	$json = wp_remote_retrieve_body( $response );
+	$result = json_decode( $json, true );
+
+	if ( json_last_error() ) {
+		trigger_error( 'Analytics: elasticsearch response could not be decoded.', E_USER_WARNING );
+		return null;
+	}
+
+	return $result;
 }
 
 /**

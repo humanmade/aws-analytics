@@ -11,8 +11,8 @@ namespace Altis\Analytics;
 require_once ROOT_DIR . '/inc/utils.php';
 
 function setup() {
-	// Load analytics script early.
-	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts', 1 );
+	// Load analytics scripts super early.
+	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
 }
 
 /**
@@ -114,6 +114,13 @@ function get_client_side_data() : array {
 	$data['Attributes'] = (object) apply_filters( 'altis.analytics.data.attributes', $data['Attributes'] );
 
 	/**
+	 * Filter the custom analytics metrics to record with all events.
+	 *
+	 * @param array $data
+	 */
+	$data['Metrics'] = (object) apply_filters( 'altis.analytics.data.metrics', $data['Metrics'] );
+
+	/**
 	 * Filter the custom analytics variable data.
 	 *
 	 * @param array $data
@@ -147,4 +154,12 @@ function enqueue_scripts() {
 		),
 		'before'
 	);
+
+	/**
+	 * Create our own early hook for queueing
+	 */
+	do_action( 'altis.analytics.enqueue_scripts' );
+
+	// Print queued scripts.
+	print_head_scripts();
 }

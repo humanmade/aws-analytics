@@ -1,5 +1,5 @@
 {
-    "name": "altis/analytics",
+    "name": "altis/aws-analytics",
     "description": "AWS Pinpoint Analytics integration for WordPress",
     "type": "wordpress-plugin",
     "require": {
