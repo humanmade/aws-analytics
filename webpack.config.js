@@ -2,13 +2,11 @@ const path = require("path");
 const mode = process.env.NODE_ENV || "production";
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
-const EnvironmentPlugin = require('webpack').EnvironmentPlugin;
 
 const sharedConfig = {
   mode: mode,
   entry: {
-    tracker: path.resolve(__dirname, "src/tracker.js"),
-    "features/title-ab-test": path.resolve(__dirname, "src/features/title-ab-test/index.js"),
+    analytics: path.resolve(__dirname, "src/analytics.js"),
   },
   output: {
     path: path.resolve(__dirname, "build"),
@@ -41,18 +39,13 @@ const sharedConfig = {
   optimization: {
     noEmitOnErrors: true,
   },
-  plugins: [
-    new EnvironmentPlugin({
-      SC_ATTR: 'hm-analytics',
-    }),
-  ],
+  plugins: [],
   devtool:
     mode === "production"
       ? "cheap-module-source-map"
       : "cheap-module-eval-source-map",
   externals: {
-    "HM": "HM",
-    "AWS": "AWS",
+    "Altis": "Altis",
     "wp": "wp",
     "react": "React",
     "react-dom": "ReactDOM",

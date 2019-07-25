@@ -1,12 +1,15 @@
 <?php
 /**
- * Plugin Name: HM Analytics
- * Description: Handles splitting traffic for multivariate testing and generating different output.
+ * Plugin Name: Altis Analytics
+ * Description: Analytics layer for Altis powered by AWS Pinpoint.
+ * Version: 0.1.0
+ * Author: Human Made Limited
+ * Author URI: https://humanmade.com/
  *
- * @package hm-analytics
+ * @package altis-analytics
  */
 
-namespace HM\Analytics;
+namespace Altis\Analytics;
 
 const ROOT_DIR = __DIR__;
 

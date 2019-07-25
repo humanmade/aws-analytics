@@ -1,40 +1,32 @@
 <?php
 /**
- * Analytics helpers.
+ * Altis Analytics.
  *
- * @package hm-analytics
+ * @package altis-analytics
  *
- *
- * @TODO:
- * - Analytics ES service client getter
- * -
  */
 
-namespace HM\Analytics;
+namespace Altis\Analytics;
 
-require_once ROOT_DIR . '/inc/helpers.php';
-require_once ROOT_DIR . '/inc/class-ab-test.php';
-require_once ROOT_DIR . '/inc/class-post-ab-test.php';
-
-// Include features.
-require_once ROOT_DIR . '/inc/features/title_ab_test.php';
+require_once ROOT_DIR . '/inc/utils.php';
 
 function setup() {
-	// Load analytics scripts early.
-	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts', 1 );
-
-	/**
-	 * Enable Title AB Tests.
-	 *
-	 * @param bool $enabled Whether to enable this feature or not.
-	 */
-	$title_ab_testing = apply_filters( 'hm.analytics.title_ab_test.enabled', true );
-	if ( $title_ab_testing ) {
-		Features\Title_AB_Test\setup();
-	}
+	// Load analytics scripts super early.
+	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
 }
 
-function get_data_layer() : array {
+/**
+ * Returns contextual data to be associated with the user's endpoint
+ * as well as custom attributes and metrics to record with every
+ * analytics event.
+ *
+ * @uses apply_filters( 'hm.analytics.data.endpoint', $endpoint );
+ * @uses apply_filters( 'hm.analytics.data.attributes', $attributes );
+ * @uses apply_filters( 'hm.analytics.data', $data );
+ *
+ * @return array
+ */
+function get_client_side_data() : array {
 
 	// Initialise data array.
 	$data = [
@@ -112,94 +104,62 @@ function get_data_layer() : array {
 	 *
 	 * @param array $data
 	 */
-	$data['Endpoint'] = (object) apply_filters( 'hm.analytics.data.endpoint', $data['Endpoint'] );
+	$data['Endpoint'] = (object) apply_filters( 'altis.analytics.data.endpoint', $data['Endpoint'] );
 
 	/**
 	 * Filter the custom analytics attributes to record with all events.
 	 *
 	 * @param array $data
 	 */
-	$data['Attributes'] = (object) apply_filters( 'hm.analytics.data.attributes', $data['Attributes'] );
+	$data['Attributes'] = (object) apply_filters( 'altis.analytics.data.attributes', $data['Attributes'] );
+
+	/**
+	 * Filter the custom analytics metrics to record with all events.
+	 *
+	 * @param array $data
+	 */
+	$data['Metrics'] = (object) apply_filters( 'altis.analytics.data.metrics', $data['Metrics'] );
 
 	/**
 	 * Filter the custom analytics variable data.
 	 *
 	 * @param array $data
 	 */
-	$data = apply_filters( 'hm.analytics.data', $data );
+	$data = apply_filters( 'altis.analytics.data', $data );
 
 	return $data;
-}
-
-/**
- * Get the client side tests config.
- *
- * @return void
- */
-function get_tests() {
-	/**
-	 * Tests add to this filter when created.
-	 *
-	 * @param array $tests An array of test config objects.
-	 */
-	$tests = apply_filters( 'hm.analytics.tests', [] );
-
-	return $tests;
 }
 
 /**
  * Queue up the tracker script and required configuration.
  */
 function enqueue_scripts() {
-	wp_enqueue_script( 'hm-analytics', plugins_url( 'build/tracker.js', __DIR__ ), [], null, false );
+	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], null, false );
 	wp_add_inline_script(
-		'hm-analytics',
+		'altis-analytics',
 		sprintf(
-			'var HM = HM || {}; HM.Analytics = %s;', wp_json_encode(
+			'var Altis = Altis || {}; Altis.Analytics = %s;', wp_json_encode(
 				[
 					'Config' => [
-						'PinpointId' => defined( 'HM_ANALYTICS_PINPOINT_ID' ) ? HM_ANALYTICS_PINPOINT_ID : null,
-						'PinpointRegion' => defined( 'HM_ANALYTICS_PINPOINT_REGION' ) ? HM_ANALYTICS_PINPOINT_REGION : null,
-						'PinpointEndpoint' => defined( 'HM_ANALYTICS_PINPOINT_ENDPOINT' ) ? HM_ANALYTICS_PINPOINT_ENDPOINT : null,
-						'CognitoId' => defined( 'HM_ANALYTICS_COGNITO_ID' ) ? HM_ANALYTICS_COGNITO_ID : null,
-						'CognitoRegion' => defined( 'HM_ANALYTICS_COGNITO_REGION' ) ? HM_ANALYTICS_COGNITO_REGION : null,
-						'CognitoEndpoint' => defined( 'HM_ANALYTICS_COGNITO_ENDPOINT' ) ? HM_ANALYTICS_COGNITO_ENDPOINT : null,
+						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
+						'PinpointRegion' => defined( 'ALTIS_ANALYTICS_PINPOINT_REGION' ) ? ALTIS_ANALYTICS_PINPOINT_REGION : null,
+						'PinpointEndpoint' => defined( 'ALTIS_ANALYTICS_PINPOINT_ENDPOINT' ) ? ALTIS_ANALYTICS_PINPOINT_ENDPOINT : null,
+						'CognitoId' => defined( 'ALTIS_ANALYTICS_COGNITO_ID' ) ? ALTIS_ANALYTICS_COGNITO_ID : null,
+						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
+						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
-					'Tests' => apply_filters( 'hm.analytics.tests', [] ),
-					'Data' => get_data_layer(),
+					'Data' => get_client_side_data(),
 				]
 			)
 		),
 		'before'
 	);
-}
 
-/**
- * Register a new standard AB Test.
- *
- * @param string $id
- * @return AB_Test
- */
-function register_ab_test( string $id ) : AB_Test {
-	$test = new AB_Test( $id );
-	$test->init();
-	return $test;
-}
+	/**
+	 * Create our own early hook for queueing
+	 */
+	do_action( 'altis.analytics.enqueue_scripts' );
 
-/**
- * Register a new Post AB Test.
- *
- * @param string $id A unique ID for the test.
- * @param callable $init A callback in which to configure variants and goals.
- * @param array $schema An optional REST API schema for storing and retrieving your variant data.
- *                      Defaults to [ 'type' => 'string' ].
- * @return Post_AB_Test
- */
-function register_post_ab_test( string $id, callable $init, ?array $schema = null ) : Post_AB_Test {
-	$test = new Post_AB_Test( $id );
-	if ( ! empty( $schema ) ) {
-		$test->set_variant_data_schema( $schema );
-	}
-	$test->on_init( $init );
-	return $test;
+	// Print queued scripts.
+	print_head_scripts();
 }
