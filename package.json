@@ -1,0 +1,34 @@
+{
+  "name": "altis-analytics",
+  "version": "0.0.1",
+  "description": "AWS Pinpoint analytics for WordPress",
+  "repository": "https://github.com/humanmade/analytics",
+  "main": "src/analytics.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js",
+    "start": "NODE_ENV=development webpack --watch --config webpack.config.js"
+  },
+  "author": "Robert O'Rourke <rob@humanmade.com>",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-browser": "0.1.0-preview.2",
+    "@aws-sdk/client-pinpoint-browser": "0.1.0-preview.2",
+    "@babel/runtime": "^7.5.5",
+    "ua-parser-js": "^0.7.20"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@wordpress/babel-preset-default": "^4.3.0",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.1.0",
+    "webpack": "^4.37.0",
+    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-cli": "^3.3.6"
+  }
+}
