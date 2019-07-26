@@ -25,10 +25,10 @@
     "ua-parser-js": "^0.7.20",
     "babel-loader": "^8.0.6",
     "webpack": "^4.37.0",
+    "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.3.6"
   },
   "devDependencies": {
-    "eslint": "^6.1.0",
-    "webpack-bundle-analyzer": "^3.3.2"
+    "eslint": "^6.1.0"
   }
 }
