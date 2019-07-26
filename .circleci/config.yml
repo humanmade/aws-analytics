@@ -10,7 +10,7 @@ jobs:
         - master
     steps:
       # Install dependecies
-      - run: apt install -y rsync
+      - run: sudo apt install -y rsync
 
       # Checkout repo & subs:
       - checkout
