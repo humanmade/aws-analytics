@@ -9,6 +9,9 @@ jobs:
         # Whitelist branches to build for.
         - master
     steps:
+      # Install dependecies
+      - run: apt install -y rsync
+
       # Checkout repo & subs:
       - checkout
 
