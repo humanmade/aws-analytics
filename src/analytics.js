@@ -11,7 +11,12 @@ import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient"
 import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
 import { UpdateEndpointCommand } from "@aws-sdk/client-pinpoint-browser/commands/UpdateEndpointCommand";
 
-const { Config, Data } = Altis.Analytics;
+const {
+	_attributes,
+	_metrics,
+	Config,
+	Data,
+} = Altis.Analytics;
 
 if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	console.warn(
@@ -24,16 +29,6 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	"
 	);
 }
-
-/**
- * Registered attributes.
- */
-let registeredAttributes = {};
-
-/**
- * Registered metrics.
- */
-let registeredMetrics = {};
 
 /**
  * Page view session.
@@ -111,7 +106,7 @@ const getAttributes = (extra = {}) =>
 		...utm,
 		...(Data.Attributes || {}),
 		...extra,
-		...registeredAttributes,
+		...(_attributes || {}),
 	}).reduce( (carry, [name, value]) => ({
 		...carry,
 		[name]: (typeof value === 'function' ? value() : value).toString(),
@@ -122,7 +117,7 @@ const getMetrics = (extra = {}) =>
 		scrollDepthMax,
 		scrollDepthNow,
 		...extra,
-		...registeredMetrics,
+		...(_metrics || {}),
 	}).reduce( (carry, [name, value]) => ({
 		...carry,
 		[name]: Number(typeof value === 'function' ? value() : value),
@@ -421,7 +416,6 @@ window.addEventListener("DOMContentLoaded", () => {
 	Analytics.record("_session.start", {
 		attributes: getAttributes()
 	});
-
 	// Record page view event immediately.
 	Analytics.record(
 		"pageView",
@@ -451,5 +445,3 @@ window.Altis.Analytics.record = (type, data = {}) =>
 			metrics: getMetrics(data.metrics || {})
 		}
 	);
-window.Altis.Analytics.registerAttribute = (name, value) => registeredAttributes[name] = value;
-window.Altis.Analytics.registerMetric = (name, value) => registeredMetrics[name] = value;

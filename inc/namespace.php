@@ -11,6 +11,8 @@ namespace Altis\Analytics;
 require_once ROOT_DIR . '/inc/utils.php';
 
 function setup() {
+	// Handle async scripts.
+	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
 }
@@ -131,14 +133,38 @@ function get_client_side_data() : array {
 }
 
 /**
+ * Adds an async attribute to the script tag output.
+ *
+ * @param string $tag The enqueued HTML script tag.
+ * @param string $handle The script handle.
+ * @return string The script tag markup.
+ */
+function async_scripts( string $tag, string $handle ) : string {
+	global $wp_scripts;
+
+	if ( ! $wp_scripts->get_data( $handle, 'async' ) || strpos( $tag, 'async' ) !== false ) {
+		return $tag;
+	}
+
+	$tag = str_replace( '></script>', ' async></script>', $tag );
+
+	return $tag;
+}
+
+/**
  * Queue up the tracker script and required configuration.
  */
 function enqueue_scripts() {
+	global $wp_scripts;
+
 	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
-			'var Altis = Altis || {}; Altis.Analytics = %s;', wp_json_encode(
+			'var Altis = Altis || {}; Altis.Analytics = %s;' .
+			'Altis.Analytics.registerAttribute = function (key, value) { Altis.Analytics._attributes[key] = value; };' .
+			'Altis.Analytics.registerMetric = function (key, value) { Altis.Analytics._metrics[key] = value; };',
+			wp_json_encode(
 				[
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
@@ -148,12 +174,17 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
-					'Data' => get_client_side_data(),
+					'Data' => (object) get_client_side_data(),
+					'_attributes' => (object) [],
+					'_metrics' => (object) [],
 				]
 			)
 		),
 		'before'
 	);
+
+	// Load async for performance.
+	$wp_scripts->add_data( 'altis-analytics', 'async', true );
 
 	/**
 	 * Create our own early hook for queueing
