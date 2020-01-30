@@ -98,7 +98,7 @@ It is recommended to use the `Altis\Analytics\Utils\query()` function for this.
 
 A user session covers every event recorded between opening the website and closing it. For every event recorded the following data is recorded depending on the scope.
 
-- `event_type`: The type of event recorded, eg. "pageView", "click", "_session.start" or "_session.stop".
+- `event_type`: The type of event recorded, eg. `pageView`, `click`, `_session.start` or `_session.stop`.
 - `event_timestamp`: The timestamp in milliseconds of when the event was recorded on the site.
 - `attributes`
   - `session`: Unique ID across all page views.
