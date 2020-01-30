@@ -106,6 +106,10 @@ A user session covers every event recorded between opening the website and closi
   - `url`: The current page URL.
   - `hash`: The current URL hash.
   - `referer`: The page referer.
+  - `blog`: The current site URL.
+  - `network`: The current network's primary URL.
+  - `blogId`: The current blog ID.
+  - `networkId`: The current network ID.
   - `utm_campaign`: The Urchin Tracker campaign from the query string if set.
   - `utm_source`: The Urchin Tracker source from the query string if set.
   - `utm_medium`: The Urchin Tracker medium from the query string if set.
