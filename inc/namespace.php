@@ -29,7 +29,10 @@ function setup() {
  * @return array
  */
 function get_client_side_data() : array {
-
+	// Return empty object if preview.
+	if ( is_preview() ) {
+		return [];
+	}
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],

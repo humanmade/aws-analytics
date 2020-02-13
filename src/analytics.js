@@ -436,12 +436,14 @@ window.addEventListener("beforeunload", async () => {
 });
 
 // Expose userland API.
-window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
-window.Altis.Analytics.record = (type, data = {}) =>
-	Analytics.record(
-		type,
-		{
-			attributes: getAttributes(data.attributes || {}),
-			metrics: getMetrics(data.metrics || {})
-		}
-	);
+if (!Object.keys(Data).length === 0) {
+	window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+	window.Altis.Analytics.record = (type, data = {}) =>
+		Analytics.record(
+			type,
+			{
+				attributes: getAttributes(data.attributes || {}),
+				metrics: getMetrics(data.metrics || {})
+			}
+		);
+}
