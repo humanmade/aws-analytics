@@ -8,8 +8,6 @@
 
 namespace Altis\Analytics;
 
-require_once ROOT_DIR . '/inc/utils.php';
-
 function setup() {
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
@@ -33,9 +31,9 @@ function get_client_side_data() : array {
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],
-		'AppPackageName' => sanitize_key( get_bloginfo('name') ),
+		'AppPackageName' => sanitize_key( get_bloginfo( 'name' ) ),
 		'AppVersion' => '',
-		'SiteName' => get_bloginfo('name'),
+		'SiteName' => get_bloginfo( 'name' ),
 		'Attributes' => [],
 		'Metrics' => [],
 	];
