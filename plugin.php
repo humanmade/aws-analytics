@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Altis Analytics
  * Description: Analytics layer for Altis powered by AWS Pinpoint.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Human Made Limited
  * Author URI: https://humanmade.com/
  *
@@ -19,5 +19,6 @@ if ( file_exists( ROOT_DIR . '/vendor/autoload.php' ) ) {
 }
 
 require_once 'inc/namespace.php';
+require_once 'inc/utils/namespace.php';
 
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\setup' );
