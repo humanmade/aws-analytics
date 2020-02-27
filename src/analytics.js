@@ -16,6 +16,7 @@ const {
 	_metrics,
 	Config,
 	Data,
+	Noop,
 } = Altis.Analytics;
 
 if ( ! Config.PinpointId || ! Config.CognitoId ) {
@@ -435,8 +436,11 @@ window.addEventListener("beforeunload", async () => {
 	await Analytics.flushEvents();
 });
 
-// Expose userland API.
-if (!Object.keys(Data).length === 0) {
+// Expose userland API. Return empty functions if the Noop field is true.
+if (Noop) {
+	window.Altis.Analytics.updateEndpoint = () => { };
+	window.Altis.record = () => { };
+} else {
 	window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
 	window.Altis.Analytics.record = (type, data = {}) =>
 		Analytics.record(

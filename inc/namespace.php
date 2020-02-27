@@ -15,6 +15,16 @@ function setup() {
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
+	add_filter( 'altis.analytics.preview', __NAMESPACE__ . '\\check_preview' );
+}
+
+/**
+ * Filter to check if current page is a preview.
+ * 
+ * return bool;
+ */
+function check_preview() {
+	return is_preview();
 }
 
 /**
@@ -29,10 +39,6 @@ function setup() {
  * @return array
  */
 function get_client_side_data() : array {
-	// Return empty object if preview.
-	if ( is_preview() ) {
-		return [];
-	}
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],
@@ -179,6 +185,7 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
+					'Noop' => (bool) apply_filters( 'altis.analytics.preview', false ),
 					'Data' => (object) get_client_side_data(),
 					'_attributes' => (object) [],
 					'_metrics' => (object) [],
