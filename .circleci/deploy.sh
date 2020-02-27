@@ -63,7 +63,8 @@ fi
 rsync -av "$SRC_DIR/" "$BUILD_DIR" --exclude-from "$SRC_DIR/.circleci/deploy-exclude.txt"
 
 # Swap commit placeholders
-find . -name '*.php' | xargs sed -i .bak 's/__SCRIPT_HASH__/'`md5 < build/analytics.js`'/g'
+SCRIPT_HASH=$(md5sum -z build/analytics.js | awk '{ print $1 }')
+find . -name '*.php' | xargs sed -i .bak 's/__SCRIPT_HASH__/'"$SCRIPT_HASH"'/g'
 find . -name '*.bak' -delete
 
 # Add changed files
