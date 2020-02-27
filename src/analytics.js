@@ -438,8 +438,8 @@ window.addEventListener("beforeunload", async () => {
 
 // Expose userland API. Return empty functions if the Noop field is true.
 if (Noop) {
-	window.Altis.Analytics.updateEndpoint = () => { };
-	window.Altis.record = () => { };
+	Analytics.updateEndpoint = () => { };
+	Analytics.record = () => { };
 } else {
 	window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
 	window.Altis.Analytics.record = (type, data = {}) =>
