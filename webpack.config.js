@@ -7,7 +7,7 @@ const sharedConfig = {
   mode: mode,
   entry: {
     analytics: path.resolve( __dirname, "src/analytics.js" ),
-    audiences: path.resolve( __dirname, "src/audiences/admin.js" ),
+    audiences: path.resolve( __dirname, "src/audiences/index.js" ),
   },
   output: {
     path: path.resolve(__dirname, "build"),

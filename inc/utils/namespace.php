@@ -81,12 +81,19 @@ function get_elasticsearch_url() : string {
  *
  * @param array $query A full elasticsearch Query DSL array.
  * @param array $params URL query parameters to append to request URL.
+ * @param string $path The endpoint to query against, defaults to _search.
  * @return array|null
  */
-function query( array $query, array $params = [] ) : ?array {
+function query( array $query, array $params = [], string $path = '_search' ) : ?array {
+
+	// Sanitize path.
+	$path = trim( $path, '/' );
 
 	// Get URL.
-	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/_search' );
+	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/' . $path );
+
+	// Ensure URL is legit.
+	$url = esc_url_raw( $url );
 
 	$response = wp_remote_post( $url, [
 		'headers' => [
@@ -98,12 +105,14 @@ function query( array $query, array $params = [] ) : ?array {
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
 		if ( is_wp_error( $response ) ) {
 			trigger_error( sprintf(
-				'Analytics: elasticsearch query failed: %s',
+				"Analytics: elasticsearch query failed:\n%s\n%s",
+				$url,
 				$response->get_error_message()
 			), E_USER_WARNING );
 		} else {
 			trigger_error( sprintf(
-				"Analytics: elasticsearch query failed:\n%s\n%s",
+				"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
+				$url,
 				json_encode( $query ),
 				wp_remote_retrieve_body( $response )
 			), E_USER_WARNING );
