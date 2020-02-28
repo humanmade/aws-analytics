@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\Audiences;
 
+use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
 use WP_Post;
 
@@ -98,7 +99,7 @@ function admin_enqueue_scripts() {
 		// 	'filter' => [
 		// 		// For the past week.
 		// 		[ 'range' => [
-		// 			'event_timestamp' => [ 'gte' => intval( microtime( false ) - ( 7 * 24 * 60 * 60 * 1000 ) ) ],
+		// 			'event_timestamp' => [ 'gte' => intval( milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ) ],
 		// 		] ],
 		// 	],
 		// ],
