@@ -6,7 +6,8 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
 const sharedConfig = {
   mode: mode,
   entry: {
-    analytics: path.resolve(__dirname, "src/analytics.js"),
+    analytics: path.resolve( __dirname, "src/analytics.js" ),
+    audiences: path.resolve( __dirname, "src/audiences/admin.js" ),
   },
   output: {
     path: path.resolve(__dirname, "build"),
