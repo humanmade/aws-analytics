@@ -4,7 +4,6 @@
  */
 
 namespace Altis\Analytics\Utils;
-use function Altis\get_config;
 
 /**
  * Calculate the combined standard deviation for multiple groups of
@@ -123,62 +122,6 @@ function query( array $query, array $params = [] ) : ?array {
 	return $result;
 }
 
-/**
- * Delete old Analytics indexes in Elasticsearch.
- *
- * @return array|null
- */
-function delete_old_indexes() : ?array {
-	// Index age in days.
-	$duration = get_config()['modules']['analytics']['max_index_age'] ?? 7;
-
-	// Get index name by date. 
-	$date = new \DateTime();
-	$date->sub( new \DateInterval( 'P'. $duration . 'D' ) );
-	$index_date = ( $date->format('Y-m-d') ); 
-	$index = 'analytics-' .  $index_date;
-
-	// Get URL.
-	$url = add_query_arg( [], get_elasticsearch_url() . '/' . $index . '/' );
-
-	$response = wp_remote_request( $url, [
-		'method' => 'DELETE',
-	] );
-
-	// Check for failures.
-	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
-		if ( is_wp_error( $response ) ) {
-			trigger_error( sprintf(
-				"Analytics: ES index deletion failed: %s",
-				$response->get_error_message()
-			), E_USER_WARNING );
-		} else {
-			trigger_error( sprintf(
-				"Analytics: ES index deletion failed:\n%s\n%s",
-				json_encode( $index ),
-				wp_remote_retrieve_body( $response )
-			), E_USER_WARNING );
-		}
-		return null;
-	}
-
-	$json = wp_remote_retrieve_body( $response );
-	$result = json_decode( $json, true );
-
-	if ( json_last_error() ) {
-		trigger_error( 'Analytics: ES deletion response could not be decoded.', E_USER_WARNING );
-		return null;
-	}
-
-	return $result;
-}
-
-add_action( 'index_maintenance', 'delete_old_indexes' );
-
-// Schedule index maintenance daily.
-if( !wp_next_scheduled( __NAMESPACE__ . '\\index_maintenance' ) ) {
-	wp_schedule_event( time(), 'daily',  __NAMESPACE__ . '\\index_maintenance' );
-}
 
 /**
  * Get actual milliseconds value as integer.

@@ -15,6 +15,8 @@ function setup() {
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
+	add_action( 'index_maintenance', __NAMESPACE__ . '\\delete_old_indexes' );
+
 }
 
 /**
@@ -195,4 +197,78 @@ function enqueue_scripts() {
 
 	// Print queued scripts.
 	print_head_scripts();
+}
+
+/**
+ * Schedule index maintenance daily.
+ */
+if( ! wp_next_scheduled( __NAMESPACE__ . '\\index_maintenance' ) ) {
+	wp_schedule_event( time(), 'daily',  __NAMESPACE__ . '\\index_maintenance' );
+}
+
+
+/**
+ * Delete old Analytics indexes in Elasticsearch.
+ */
+function delete_old_indexes() : ?array {
+	// Index age in days.
+	$duration = apply_filters( 'altis.analytics.index_age', 7 );
+
+	// If duration has been set out of the 60-day limit, default to 7 days and warn user.
+	if ( $duration < 1 || $duration > 60 ) {
+		$duration = 7;
+		trigger_error( 
+			'Analytics data retention period must be between 1 and 60 days, defaulting to 7.', 
+			E_USER_WARNING 
+		);
+	}
+
+	// Get index name by date. 
+	$date = new \DateTime();
+	$date->sub( new \DateInterval( 'P'. $duration . 'D' ) );
+	$index_date = ( $date->format('U') );
+
+	// Get URL.
+	$index_list = wp_remote_request( get_elasticsearch_url() . '/analytics-*/');
+
+	$indices = json_decode( wp_remote_retrieve_body( $index_list ), true);
+	
+	// Check each available index's creation date, and delete if too old. 
+	foreach ( $indices as $i ) {
+		if ( $i['settings']['index']['creation_date'] < $index_date ) {
+			// Get the name of the index to delete;
+			$index = $i['settings']['index']['provided_name'];
+
+			// Create new deletion URL.
+			$delete_url = add_query_arg( [], get_elasticsearch_url() . '/' . $index . '/' );
+			$response = wp_remote_request( $delete_url, [
+				'method' => 'DELETE',
+			] );
+
+			// Check for failures.
+			if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
+				if ( is_wp_error( $response ) ) {
+					trigger_error( sprintf(
+						"Analytics: ES index deletion failed: %s",
+						$response->get_error_message()
+					), E_USER_WARNING );
+				} else {
+					trigger_error( sprintf(
+						"Analytics: ES index deletion failed:\n%s\n%s",
+						json_encode( $index ),
+						wp_remote_retrieve_body( $response )
+					), E_USER_WARNING );
+				}
+				return null;
+			} else {
+				$json = wp_remote_retrieve_body( $response );
+				$result = json_decode( $json, true );
+			
+				if ( json_last_error() ) {
+					trigger_error( 'Analytics: ES deletion response could not be decoded.', E_USER_WARNING );
+					return null;
+				}
+			}
+		}
+	}
 }
