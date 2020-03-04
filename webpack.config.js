@@ -41,10 +41,6 @@ const sharedConfig = {
     noEmitOnErrors: true,
   },
   plugins: [],
-  devtool:
-    mode === "production"
-      ? "cheap-module-source-map"
-      : "cheap-module-eval-source-map",
   externals: {
     "Altis": "Altis",
     "wp": "wp",
@@ -52,6 +48,10 @@ const sharedConfig = {
     "react-dom": "ReactDOM",
   },
 };
+
+if ( mode !== "production" ) {
+  sharedConfig.devtool = "cheap-module-eval-source-map";
+}
 
 if (process.env.ANALYSE_BUNDLE) {
   // Add bundle analyser.
