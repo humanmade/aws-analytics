@@ -11,26 +11,36 @@ use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
 use WP_Post;
 
-const POST_TYPE = 'audiences';
+const POST_TYPE = 'audience';
 
 function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'edit_form_after_title', __NAMESPACE__ . '\\audience_ui' );
 	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
+
+	// Setup Audience REST API.
+	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
 }
 
 /**
  * Setup the audiences data store.
  */
 function register_post_type() {
-	register_extended_post_type( POST_TYPE, [
-		'public' => false,
-		'show_ui' => true,
-		'supports' => [ 'title' ],
-		'menu_icon' => 'dashicons-groups',
-		'menu_position' => 151
-	] );
+	register_extended_post_type(
+		POST_TYPE,
+		[
+			'public' => false,
+			'show_ui' => true,
+			'supports' => [ 'title' ],
+			'menu_icon' => 'dashicons-groups',
+			'menu_position' => 151,
+		],
+		[
+			'singular' => __( 'Audience', 'altis-analytics' ),
+			'plural' => __( 'Audiences', 'altis-analytics' ),
+		]
+	);
 }
 
 function meta_boxes() {
@@ -82,6 +92,8 @@ function admin_enqueue_scripts() {
 		true
 	);
 
+	wp_enqueue_style( 'wp-components' );
+
 	// Register default audience data maps.
 	register_event_data_map( 'attributes.referer', __( 'Referrer', 'altis-analytics' ) );
 	register_event_data_map( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
@@ -95,18 +107,23 @@ function admin_enqueue_scripts() {
 
 	// TODO: Move this to API endpoint and fetch aggregation by key on demand.
 	$query = [
-		// 'query' => [
-		// 	'filter' => [
-		// 		// For the past week.
-		// 		[ 'range' => [
-		// 			'event_timestamp' => [ 'gte' => intval( milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ) ],
-		// 		] ],
-		// 	],
-		// ],
+		'query' => [
+			'bool' => [
+				'filter' => [
+					// For the past week.
+					[
+						'range' => [
+							'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ],
+						],
+					],
+				],
+			],
+		],
 		'size' => 0,
 		'aggs' => [],
 		'sort' => [ 'event_timestamp' => 'desc' ],
 	];
+
 	foreach ( $maps as $map ) {
 		// Query for all the different values available for each.
 		$query['aggs'][ $map['field'] ] = [
@@ -129,7 +146,9 @@ function admin_enqueue_scripts() {
 		sprintf(
 			'window.Altis = window.Altis || {};' .
 			'window.Altis.Analytics = window.Altis.Analytics || {};' .
+			'window.Altis.Analytics.BuildURL = %s;' .
 			'window.Altis.Analytics.Audiences = %s;',
+			wp_json_encode( plugins_url( 'build/', dirname( __FILE__, 2 ) ) ),
 			wp_json_encode( $data )
 		),
 		'before'

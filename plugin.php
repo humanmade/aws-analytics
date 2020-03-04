@@ -20,6 +20,7 @@ if ( file_exists( ROOT_DIR . '/vendor/autoload.php' ) ) {
 
 require_once 'inc/namespace.php';
 require_once 'inc/audiences/namespace.php';
+require_once 'inc/audiences/rest_api/namespace.php';
 require_once 'inc/utils/namespace.php';
 
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\setup' );
