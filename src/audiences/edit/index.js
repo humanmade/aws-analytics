@@ -1,32 +1,24 @@
 import React, { useState } from 'react';
-import SelectInclude from './select-include';
+import ReactDOM from 'react-dom';
+import Editor from './components/editor';
+import Group from './components/group';
+import Options from './components/options';
+import Rule from './components/rule';
+import SelectInclude from './components/select-include';
+import {
+	defaultAudience,
+	defaultGroup,
+	defaultRule,
+} from './data/defaults';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
 
-const defaultRule = {
-	field: Altis.Analytics.Audiences.DataMaps[ 0 ].field,
-	operator: '=', // =, !=, *, !*
-	value: '', // mixed
-	type: 'string', // data type, string or number
-};
-
-const defaultGroup = {
-	include: 'any', // ANY, ALL, NONE
-	rules: [
-		defaultRule
-	],
-};
+const AudienceOptionsUI = document.getElementById( 'altis-analytics-audience-options' );
 
 const Edit = () => {
-
 	// Collect the audience state.
-	const [ audience, setAudience ] = useState( {
-		include: 'any', // ANY, ALL, NONE
-		groups: [
-			defaultGroup,
-		],
-	} );
+	const [ audience, setAudience ] = useState( defaultAudience );
 
 	const updateAudience = ( newAudience ) => {
 		setAudience( audienceToUpdate => {
@@ -49,35 +41,35 @@ const Edit = () => {
 	};
 
 	return (
-		<div className="altis-analytics-audience-editor">
-			<p>
-				{ __( 'Include visitors who match', 'altis-analytics' ) }
-				{ ' ' }
+		<Editor>
+			{ AudienceOptionsUI && ReactDOM.createPortal( <Options audience={ audience } />, AudienceOptionsUI ) }
+
+			<div className="audience-editor__include">
 				<SelectInclude
 					onChange={ e => updateAudience( { include: e.target.value } ) }
 					value={ audience.include }
 					name="audience_include"
+					label={ __( 'groups', 'altis-analytics' ) }
 				/>
-				{ ' ' }
-				{ __( 'of the following', 'altis-analytics' ) }:
-			</p>
+			</div>
 
 			{ audience.groups.map( ( group, groupId ) => {
 				return (
-					<div className="altis-analytics-audience-editor__group">
-						{ group.rules.length > 1 && (
-							<p>
-								<SelectInclude
-									onChange={ e => updateGroup( groupId, { include: e.target.value } ) }
-									value={ group.include }
-									name={`audience_group[${groupId}][include]`}
-								/>
-							</p>
-						) }
+					<Group>
+						<div className="audience-editor__group-header">
+							<h3>{ __( 'Group', 'altis-analytics' ) } { groupId + 1 }</h3>
+							<SelectInclude
+								onChange={ e => updateGroup( groupId, { include: e.target.value } ) }
+								value={ group.include }
+								name={ `audience_group[${ groupId }][include]` }
+								label={ __( 'rules', 'altis-analytics' ) }
+							/>
+						</div>
 						{ group.rules.map( ( rule, ruleId ) => {
 							return (
-								<div className="altis-analytics-audience-editor__group-rule">
+								<Rule>
 									<select
+										className="audience-editor__rule-field"
 										onChange={ e => updateRule( groupId, ruleId, { field: e.target.value } ) }
 										value={ rule.field }
 										name={`audience_group[${groupId}][rules][${ruleId}][field]`}
@@ -87,6 +79,7 @@ const Edit = () => {
 										) ) }
 									</select>
 									<select
+										className="audience-editor__rule-operator"
 										onChange={ e => updateRule( groupId, ruleId, { operator: e.target.value } ) }
 										value={ rule.operator }
 										name={`audience_group[${groupId}][rules][${ruleId}][operator]`}
@@ -97,6 +90,7 @@ const Edit = () => {
 										<option value="!*">does not contain</option>
 									</select>
 									<select
+										className="audience-editor__rule-value"
 										onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
 										value={ rule.value }
 										name={`audience_group[${groupId}][rules][${ruleId}][value]`}
@@ -109,19 +103,25 @@ const Edit = () => {
 
 									{ group.rules.length > 1 && (
 										<Button
+											className="audience-editor__rule-remove"
+											isDestructive={ true }
+											isLink={ true }
 											onClick={ () => {
 												const newRules = group.rules.slice();
 												newRules.splice( ruleId, 1 );
 												updateGroup( groupId, { rules: newRules } );
 											} }
 										>
-											{ __( 'Remove rule', 'altis-analytics' ) }
+											<span className="screen-reader-text">{ __( 'Remove rule', 'altis-analytics' ) }</span>
+											&times;
 										</Button>
 									) }
-								</div>
+								</Rule>
 							);
 						} ) }
+
 						<Button
+							className="audience-editor__rule-add"
 							isLarge={ true }
 							onClick={ () => updateGroup( groupId, { rules: group.rules.concat( [ defaultRule ] ) } ) }
 						>
@@ -130,7 +130,9 @@ const Edit = () => {
 
 						{ audience.groups.length > 1 && (
 							<Button
-								isLarge={ true }
+								className="audience-editor__group-remove"
+								isDestructive={ true }
+								isLink={ true }
 								onClick={ () => {
 									const newGroups = audience.groups.slice();
 									newGroups.splice( groupId, 1 );
@@ -140,17 +142,18 @@ const Edit = () => {
 								{ __( 'Remove group', 'altis-analytics' ) }
 							</Button>
 						) }
-					</div>
+					</Group>
 				);
 			} ) }
 			<Button
+				className="audience-editor__group-add"
 				isLarge={ true }
 				isPrimary={ true }
 				onClick={ () => updateAudience( { groups: audience.groups.concat( [ defaultGroup ] ) } ) }
 			>
 				{ __( 'Add a group', 'altis-analytics' ) }
 			</Button>
-		</div>
+		</Editor>
 	);
 }
 

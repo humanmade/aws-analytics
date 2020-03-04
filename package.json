@@ -24,6 +24,7 @@
     "@babel/runtime": "^7.8.4",
     "@wordpress/babel-preset-default": "^4.10.0",
     "babel-loader": "^8.0.6",
+    "styled-components": "^5.0.1",
     "ua-parser-js": "^0.7.21",
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.6.0",
@@ -31,7 +32,9 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
+    "dynamic-public-path-webpack-plugin": "^1.0.4",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.10.0"
+    "eslint-config-prettier": "^6.10.0",
+    "webpack-subresource-integrity": "^1.4.0"
   }
 }

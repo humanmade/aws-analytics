@@ -1,7 +1,10 @@
-const path = require("path");
+const path = require( "path" );
+const webpack = require( 'webpack' );
 const mode = process.env.NODE_ENV || "production";
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
   .BundleAnalyzerPlugin;
+const DynamicPublicPathPlugin = require( 'dynamic-public-path-webpack-plugin' );
+const SriPlugin = require( 'webpack-subresource-integrity' );
 
 const sharedConfig = {
   mode: mode,
@@ -14,7 +17,8 @@ const sharedConfig = {
     filename: "[name].js",
     publicPath: ".",
     libraryTarget: "this",
-    jsonpFunction: "HManalyticsJSONP",
+    jsonpFunction: "AltisAnalyticsJSONP",
+    crossOriginLoading: 'anonymous',
   },
   module: {
     rules: [
@@ -30,7 +34,7 @@ const sharedConfig = {
             ],
             plugins: [
               require("@babel/plugin-transform-runtime"),
-              require('@wordpress/babel-plugin-import-jsx-pragma'),
+              require( '@wordpress/babel-plugin-import-jsx-pragma' ),
             ],
           },
         },
@@ -40,7 +44,11 @@ const sharedConfig = {
   optimization: {
     noEmitOnErrors: true,
   },
-  plugins: [],
+  plugins: [
+    new webpack.EnvironmentPlugin( {
+      SC_ATTR: 'data-styled-components-altis-analytics',
+    } ),
+  ],
   externals: {
     "Altis": "Altis",
     "wp": "wp",
@@ -49,13 +57,24 @@ const sharedConfig = {
   },
 };
 
+if ( mode === "production" ) {
+  sharedConfig.plugins.push( new DynamicPublicPathPlugin( {
+    externalGlobal: 'window.Altis.Analytics.BuildURL',
+    chunkName: 'audiences',
+  } ) );
+  sharedConfig.plugins.push( new SriPlugin( {
+    hashFuncNames: [ 'sha384' ],
+    enabled: true,
+  } ) );
+}
+
 if ( mode !== "production" ) {
   sharedConfig.devtool = "cheap-module-eval-source-map";
 }
 
 if (process.env.ANALYSE_BUNDLE) {
   // Add bundle analyser.
-  sharedConfig.plugins.push(new BundleAnalyzerPlugin());
+  sharedConfig.plugins.push( new BundleAnalyzerPlugin() );
 }
 
 module.exports = sharedConfig;
