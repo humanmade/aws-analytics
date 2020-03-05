@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Editor from './components/editor';
 import Group from './components/group';
@@ -10,15 +10,29 @@ import {
 	defaultGroup,
 	defaultRule,
 } from './data/defaults';
+import { getFields } from './data';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
 
+// Check for standard post edit page options meta box.
 const AudienceOptionsUI = document.getElementById( 'altis-analytics-audience-options' );
 
 const Edit = () => {
 	// Collect the audience state.
 	const [ audience, setAudience ] = useState( defaultAudience );
+	const [ fields, setFields ] = useState( [] );
+
+	// Fetch fields data.
+	useEffect( () => {
+		if ( fields.length ) {
+			return;
+		}
+		( async () => {
+			const fieldsResponse = await getFields();
+			setFields( fieldsResponse );
+		} )();
+	}, [ fields ] );
 
 	const updateAudience = ( newAudience ) => {
 		setAudience( audienceToUpdate => {
@@ -55,7 +69,7 @@ const Edit = () => {
 
 			{ audience.groups.map( ( group, groupId ) => {
 				return (
-					<Group>
+					<Group key={ groupId }>
 						<div className="audience-editor__group-header">
 							<h3>{ __( 'Group', 'altis-analytics' ) } { groupId + 1 }</h3>
 							<SelectInclude
@@ -67,15 +81,16 @@ const Edit = () => {
 						</div>
 						{ group.rules.map( ( rule, ruleId ) => {
 							return (
-								<Rule>
+								<Rule key={ ruleId }>
 									<select
 										className="audience-editor__rule-field"
 										onChange={ e => updateRule( groupId, ruleId, { field: e.target.value } ) }
 										value={ rule.field }
 										name={`audience_group[${groupId}][rules][${ruleId}][field]`}
 									>
-										{ Altis.Analytics.Audiences.DataMaps.map( map => (
-											<option value={ map.field }>{ map.label }</option>
+										<option value="" className="placeholder">{ __( 'Select a field', 'altis-analytics' ) }</option>
+										{ fields.map( field => (
+											<option key={ field.name } value={ field.name }>{ field.label }</option>
 										) ) }
 									</select>
 									<select
@@ -86,7 +101,7 @@ const Edit = () => {
 									>
 										<option value="=">is</option>
 										<option value="!=">is not</option>
-										<option value="*">contains</option>
+										<option value="*=">contains</option>
 										<option value="!*">does not contain</option>
 									</select>
 									<select
@@ -96,9 +111,9 @@ const Edit = () => {
 										name={`audience_group[${groupId}][rules][${ruleId}][value]`}
 									>
 										<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-										{ ( Altis.Analytics.Audiences.Data[ rule.field ] || { buckets: [] } ).buckets.map( bucket => bucket.key && (
-											<option value={ bucket.key }>{ bucket.key }</option>
-										) ) }
+										{ fields.filter( field => field.name === rule.field ).map( field => field.data && field.data.map( ( datum, index ) => (
+											<option key={ index } value={ datum.value }>{ datum.value }</option>
+										) ) ) }
 									</select>
 
 									{ group.rules.length > 1 && (
@@ -145,6 +160,7 @@ const Edit = () => {
 					</Group>
 				);
 			} ) }
+
 			<Button
 				className="audience-editor__group-add"
 				isLarge={ true }

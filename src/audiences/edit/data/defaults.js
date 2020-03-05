@@ -1,5 +1,5 @@
 export const defaultRule = {
-	field: Altis.Analytics.Audiences.DataMaps[ 0 ].field,
+	field: '',
 	operator: '=', // =, !=, *, !*
 	value: '', // mixed
 	type: 'string', // data type, string or number

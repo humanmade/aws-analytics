@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { defaultAudience } from '../data/defaults';
+import { getEstimate } from '../data';
 
 const { Button } = wp.components;
 const { __ } = wp.i18n;
@@ -16,10 +17,29 @@ const Options = props => {
 		audience,
 	} = props;
 
+	const [ estimate, setEstimate ] = useState( { count: 0, histogram: [] } );
+	const fetchEstimate = () => {
+		( async () => {
+			const estimateResponse = await getEstimate( audience );
+			setEstimate( estimateResponse );
+		} )();
+	}
+
+	// Get initial estimate.
+	useEffect( fetchEstimate, [ audience ] );
+
 	return (
 		<StyledOptions>
-			<h3>{ __( 'Estimated audience size', 'altis-analytics' ) }</h3>
-			<p>120</p>
+			<div className="audience-estimate">
+				<h4>{ __( 'Audience Estimate', 'altis-analytics' ) }</h4>
+				<p><strong>{ estimate.count }</strong> { __( 'last week' ) }</p>
+				<Button
+					isLink={ true }
+					onClick={ fetchEstimate }
+				>
+					{ __( 'Refresh', 'altis-analytics' ) }
+				</Button>
+			</div>
 
 			<Button
 				isLarge={ true }
