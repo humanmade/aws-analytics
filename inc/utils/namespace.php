@@ -128,6 +128,16 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 		return null;
 	}
 
+	// Enable logging for analytics queries.
+	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		trigger_error( sprintf(
+			"Analytics: elasticsearch query:\n%s\n%s\n%s",
+			$url,
+			json_encode( $query ),
+			wp_remote_retrieve_body( $response )
+		), E_USER_NOTICE );
+	}
+
 	return $result;
 }
 
@@ -231,4 +241,54 @@ function merge_aggregates( array $current, array $new, string $bucket_type = '' 
 	}
 
 	return $merged;
+}
+
+/**
+ * Check type of field.
+ *
+ * @param string $field The full field name.
+ * @param string $type One of 'string', 'number' or 'date'.
+ * @return bool True if type matches field name.
+ */
+function field_type_is( string $field, string $type ) : bool {
+	return $type === get_field_type( $field );
+}
+
+/**
+ * Determine type of Elasticsearch field by name.
+ *
+ * @param string $field The full field name.
+ * @return string|null $type One of 'string', 'number' or 'date'.
+ */
+function get_field_type( string $field ) : ?string {
+	if ( empty( $field ) ) {
+		return null;
+	}
+
+	$numeric_fields = [
+		'event_timestamp',
+		'arrival_timestamp',
+		'session.start_timestamp',
+		'session.stop_timestamp',
+	];
+
+	$is_numeric = (
+		in_array( $field, $numeric_fields, true ) ||
+		stripos( $field, 'metrics' ) !== false
+	);
+
+	if ( $is_numeric ) {
+		return 'number';
+	}
+
+	$date_fields = [
+		'endpoint.CreationDate',
+		'endpoint.EffectiveDate',
+	];
+
+	if ( in_array( $field, $date_fields, true ) ) {
+		return 'date';
+	}
+
+	return 'string';
 }

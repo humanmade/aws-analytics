@@ -24,7 +24,6 @@ const SelectInclude = ( { value, onChange, label = '', name } ) => {
 		>
 			<option value="any">{ __( 'Match any of the following', 'altis-analytics' ) } { label }</option>
 			<option value="all">{ __( 'Match all of the following', 'altis-analytics' ) } { label }</option>
-			<option value="none">{ __( 'Match none of the following', 'altis-analytics' ) } { label }</option>
 		</StyledSelect>
 	)
 }

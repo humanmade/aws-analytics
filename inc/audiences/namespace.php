@@ -7,6 +7,8 @@
 
 namespace Altis\Analytics\Audiences;
 
+use function Altis\Analytics\Utils\field_type_is;
+use function Altis\Analytics\Utils\get_field_type;
 use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
 use WP_Post;
@@ -132,9 +134,7 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_style( 'wp-components' );
 
-	$data = [
-		'Fields' => get_field_data() ?? (object) [],
-	];
+	$data = (object) [];
 
 	wp_add_inline_script(
 		'altis-analytics-audience-ui',
@@ -156,7 +156,99 @@ function admin_enqueue_scripts() {
  * @param array $audience
  * @return void
  */
-function get_estimate( array $audience ) {
+function get_estimate( array $audience ) : ?array {
+	$query = [
+		'query' => [
+			'bool' => [
+				'filter' => [
+					// Set current site.
+					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					// Last 7 days.
+					[ 'range' => [ 'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					// Limit event type to pageView.
+					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+				],
+			],
+		],
+		'aggs' => [
+			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.User.UserId.keyword' ] ],
+			'histogram' => [
+				'histogram' => [
+					'field' => 'event_timestamp',
+					'interval' => 4 * 60 * 60 * 1000, // 4 hour chunks
+					'extended_bounds' => [
+						'min' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ),
+						'max' => milliseconds(),
+					],
+				],
+			],
+		],
+		'size' => 0,
+		'sort' => [ 'event_timestamp' => 'desc' ],
+	];
+
+	// Append the groups query.
+	$query['query']['bool']['filter'][] = build_audience_query( $audience );
+
+	// TODO: caching.
+
+	$result = query( $query );
+
+	if ( ! $result ) {
+		return $result;
+	}
+
+	$histogram = array_map( function ( array $bucket ) {
+		return [
+			'index' => $bucket['key'],
+			'count' => $bucket['doc_count'],
+		];
+	}, $result['aggregations']['histogram']['buckets'] );
+
+	$estimate = [
+		'count' => $result['aggregations']['estimate']['value'],
+		'histogram' => array_values( $histogram ),
+		'total' => get_unique_enpoint_count(),
+	];
+
+	return $estimate;
+}
+
+/**
+ * Get total unique endpoints for the past 7 days.
+ *
+ * @return integer|null
+ */
+function get_unique_enpoint_count() : ?int {
+	$query = [
+		'query' => [
+			'bool' => [
+				'filter' => [
+					// Set current site.
+					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					// Last 7 days.
+					[ 'range' => [ 'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					// Limit event type to pageView.
+					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+				],
+			],
+		],
+		'aggs' => [
+			'count' => [ 'cardinality' => [ 'field' => 'endpoint.User.UserId.keyword' ] ],
+		],
+		'size' => 0,
+		'sort' => [ 'event_timestamp' => 'desc' ],
+	];
+
+	$result = query( $query );
+
+	if ( ! $result ) {
+		return $result;
+	}
+
+	// TODO: caching.
+
+	return $result['aggregations']['count']['value'];
 }
 
 /**
@@ -211,37 +303,24 @@ function get_field_data() : ?array {
 		'sort' => [ 'event_timestamp' => 'desc' ],
 	];
 
-	// Possible numeric fields.
-	$numeric_fields = [
-		'event_timestamp',
-		'session.start_timestamp',
-		'session.stop_timestamp',
-	];
-
 	foreach ( $maps as $map ) {
-		// Check if this is a known numeric value.
-		$is_numeric = (
-			in_array( $map['name'], $numeric_fields, true ) ||
-			stripos( $map['name'], 'metrics' ) !== false
-		);
-
 		// For numeric fields get a simple stats aggregation.
-		if ( $is_numeric ) {
+		if ( field_type_is( $map['name'], 'number' ) ) {
 			$query['aggs'][ $map['name'] ] = [
 				'stats' => [
 					'field' => $map['name'],
 				],
 			];
-			continue;
 		}
-
 		// Default to terms aggregations for top 100 different values available for each field.
-		$query['aggs'][ $map['name'] ] = [
-			'terms' => [
-				'field' => "{$map['name']}.keyword",
-				'size' => 100,
-			],
-		];
+		if ( field_type_is( $map['name'], 'string' ) ) {
+			$query['aggs'][ $map['name'] ] = [
+				'terms' => [
+					'field' => "{$map['name']}.keyword",
+					'size' => 100,
+				],
+			];
+		}
 	}
 
 	$result = query( $query );
@@ -276,4 +355,98 @@ function get_field_data() : ?array {
 	wp_cache_set( $key, $fields, 'altis-audiences', time() + HOUR_IN_SECONDS );
 
 	return $fields;
+}
+
+/**
+ * Convert an audience config array to an Elasticsearch query.
+ * The response is designed to be used within a bool filter query eg:
+ *
+ * $query = [
+ *   'query' => [
+ *     'bool' => [
+ *       'filter' => [
+ *         get_filter_query( $audience ),
+ *       ]
+ *     ]
+ *   ]
+ * ];
+ *
+ * @param array $audience
+ * @return array
+ */
+function build_audience_query( array $audience ) : array {
+	// Map the include values to elasticsearch query filters.
+	$include_map = [
+		'any' => 'should',
+		'all' => 'filter',
+		'none' => 'must_not',
+	];
+
+	$group_queries = [];
+
+	foreach ( $audience['groups'] as $group ) {
+		$group_include = $include_map[ $group['include'] ];
+		$group_query = [
+			'bool' => [
+				$group_include => [],
+			],
+		];
+
+		foreach ( $group['rules'] as $rule ) {
+			$rule_query = [
+				'bool' => [
+					'filter' => [],
+					'must_not' => [],
+				],
+			];
+
+			// Handle string comparisons.
+			if ( field_type_is( $rule['field'], 'string' ) ) {
+				switch ( $rule['operator'] ) {
+					case '=':
+						$rule_query['bool']['filter'][] = [
+							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+						];
+						break;
+					case '!=':
+						$rule_query['bool']['must_not'][] = [
+							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+						];
+						break;
+					case '*=':
+						$rule_query['bool']['filter'][] = [
+							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+						];
+						break;
+					case '!*':
+						$rule_query['bool']['must_not'][] = [
+							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+						];
+						break;
+				}
+			}
+
+			// Handle numeric field comparisons.
+			if ( field_type_is( $rule['field'], 'number' ) ) {
+				$rule_query['bool']['filter'][] = [
+					'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
+				];
+			}
+
+			// Add the rule query to the group.
+			$group_query['bool'][ $group_include ][] = $rule_query;
+		}
+
+		// Add the group query to the list of group queries.
+		$group_queries[] = $group_query;
+	}
+
+	$groups_include = $include_map[ $audience['include'] ];
+	$groups_query = [
+		'bool' => [
+			$groups_include => $group_queries,
+		],
+	];
+
+	return $groups_query;
 }

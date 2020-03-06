@@ -8,8 +8,7 @@
 namespace Altis\Analytics\Audiences\REST_API;
 
 use const Altis\Analytics\Audiences\POST_TYPE;
-use function Altis\Analytics\Utils\milliseconds;
-use function Altis\Analytics\Utils\query;
+use function Altis\Analytics\Audiences\get_estimate;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -70,16 +69,28 @@ function init() {
 	// Fetch an audience size estimate.
 	register_rest_route( 'analytics/v1', 'audiences/estimate', [
 		'methods' => WP_REST_Server::READABLE,
-		'callback' => __NAMESPACE__ . '\\get_estimate',
+		'callback' => __NAMESPACE__ . '\\estimate_handler',
 		'permissions_callback' => __NAMESPACE__ . '\\permissions',
 		'schema' => [
 			'type' => 'object',
-			// TODO: outline the estimate data shape
+			'properties' => [
+				'count' => [ 'type' => 'number' ],
+				'histogram' => [
+					'type' => 'array',
+					'items' => [
+						'type' => 'object',
+						'properties' => [
+							'index' => [ 'type' => 'string' ],
+							'count' => [ 'type' => 'number' ],
+						],
+					],
+				],
+			],
 		],
 		'args' => [
 			'audience' => [
 				'validate_callback' => function ( $param ) {
-					$audience = json_decode( urldecode( $param ) );
+					$audience = json_decode( urldecode( $param ), true );
 
 					if ( json_last_error() ) {
 						return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
@@ -97,7 +108,7 @@ function init() {
 					return true;
 				},
 				'sanitize_callback' => function ( $param ) {
-					$audience = json_decode( urldecode( $param ) );
+					$audience = json_decode( urldecode( $param ), true );
 
 					if ( json_last_error() ) {
 						return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
@@ -156,45 +167,15 @@ function init() {
 }
 
 /**
- * Undocumented function
+ * Return an audience estimate.
  *
- * @param WP_REST_Request $request
+ * @param WP_REST_Request $request The audience rest request.
  * @return WP_REST_Response
  */
-function get_estimate( WP_REST_Request $request ) : WP_REST_Response {
+function estimate_handler( WP_REST_Request $request ) : WP_REST_Response {
 	$audience = $request->get_param( 'audience' );
-
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Set current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
-					// Last 7 days.
-					[ 'range' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ],
-				],
-			],
-		],
-		'aggs' => [
-			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.User.UserId.keyword' ] ],
-			'histogram' => [
-				'histogram' => [
-					'field' => 'event_timestamp',
-					'interval' => 60 * 60 * 1000,
-				],
-			],
-		],
-		'size' => 0,
-		'sort' => [ 'event_timestamp' => 'desc' ],
-	];
-
-	// TODO: parse out audience data.
-
-	// TODO: caching.
-
-	$result = query( $query );
-
-	return rest_ensure_response( $result );
+	$estimate = get_estimate( $audience );
+	return rest_ensure_response( $estimate );
 }
 
 /**
