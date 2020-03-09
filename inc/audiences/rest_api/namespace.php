@@ -25,9 +25,11 @@ function setup() {
 function init() {
 	// Fetch data for available fields and possible values.
 	register_rest_route( 'analytics/v1', 'audiences/fields', [
-		'methods' => WP_REST_Server::READABLE,
-		'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
-		'permissions_callback' => __NAMESPACE__ . '\\permissions',
+		[
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
+			'permissions_callback' => __NAMESPACE__ . '\\permissions',
+		],
 		'schema' => [
 			'type' => 'array',
 			'items' => [
@@ -38,6 +40,10 @@ function init() {
 						'required' => true,
 					],
 					'label' => [
+						'type' => 'string',
+						'required' => true,
+					],
+					'type' => [
 						'type' => 'string',
 						'required' => true,
 					],
@@ -68,13 +74,46 @@ function init() {
 
 	// Fetch an audience size estimate.
 	register_rest_route( 'analytics/v1', 'audiences/estimate', [
-		'methods' => WP_REST_Server::READABLE,
-		'callback' => __NAMESPACE__ . '\\estimate_handler',
-		'permissions_callback' => __NAMESPACE__ . '\\permissions',
+		[
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => function ( WP_REST_Request $request ) : WP_REST_Response {
+				$audience = $request->get_param( 'audience' );
+				$estimate = get_estimate( $audience );
+				return rest_ensure_response( $estimate );
+			},
+			'permissions_callback' => __NAMESPACE__ . '\\permissions',
+			'args' => [
+				'audience' => [
+					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
+					'required' => true,
+					'type' => 'string',
+					'validate_callback' => function ( $param ) {
+						$audience = json_decode( urldecode( $param ), true );
+
+						if ( json_last_error() ) {
+							return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
+						}
+
+						// Validate against the audience schema after decoding.
+						return rest_validate_value_from_schema( $audience, get_audience_schema(), 'audience' );
+					},
+					'sanitize_callback' => function ( $param ) {
+						$audience = json_decode( urldecode( $param ), true );
+
+						if ( json_last_error() ) {
+							return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
+						}
+
+						return $audience;
+					},
+				],
+			],
+		],
 		'schema' => [
 			'type' => 'object',
 			'properties' => [
 				'count' => [ 'type' => 'number' ],
+				'total' => [ 'type' => 'number' ],
 				'histogram' => [
 					'type' => 'array',
 					'items' => [
@@ -87,74 +126,56 @@ function init() {
 				],
 			],
 		],
-		'args' => [
-			'audience' => [
-				'validate_callback' => function ( $param ) {
-					$audience = json_decode( urldecode( $param ), true );
-
-					if ( json_last_error() ) {
-						return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
-					}
-
-					// TODO: validate audience JSON.
-					if ( ! isset( $audience['include'] ) ) {
-
-					}
-
-					if ( ! isset( $audience['groups'] ) ) {
-
-					}
-
-					return true;
-				},
-				'sanitize_callback' => function ( $param ) {
-					$audience = json_decode( urldecode( $param ), true );
-
-					if ( json_last_error() ) {
-						return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
-					}
-
-					return $audience;
-				},
-			],
-		],
 	] );
 
 	// Handle the audience configuration data retrieval and saving via the REST API.
 	register_rest_field( POST_TYPE, 'audience', [
-		'get_callback' => __NAMESPACE__ . '\\get_audience',
-		'update_callback' => __NAMESPACE__ . '\\update_audience',
-		'schema' => [
-			'type'  => 'object',
-			'properties' => [
-				'include' => [
-					'type' => 'string',
-					'enum' => [ 'any', 'all', 'none' ],
-				],
-				'groups' => [
-					'type' => 'array',
-					'items' => [
-						'type' => 'object',
-						'properties' => [
-							'include' => [
-								'type' => 'string',
-								'enum' => [ 'any', 'all', 'none' ],
-							],
-							'rules' => [
-								'type' => 'array',
-								'items' => [
-									'type' => 'object',
-									'properties' => [
-										'field' => [
-											'type' => 'string',
-										],
-										'operator' => [
-											'type' => 'string',
-											'enum' => [ '=', '!=', '*=', '!*', 'gte', 'lte', 'gt', 'lt' ],
-										],
-										'value' => [
-											'type' => [ 'string', 'number' ],
-										],
+		'get_callback' => function ( array $post ) {
+			return get_estimate( $post['id'] );
+		},
+		'update_callback' => function ( $value, WP_Post $post ) {
+			return update_post_meta( $post->ID, 'audience', $value );
+		},
+		'schema' => get_audience_schema(),
+	] );
+}
+
+/**
+ * Returns the audience configuration JSON schema.
+ *
+ * @return array
+ */
+function get_audience_schema() : array {
+	return [
+		'type'  => 'object',
+		'properties' => [
+			'include' => [
+				'type' => 'string',
+				'enum' => [ 'any', 'all', 'none' ],
+			],
+			'groups' => [
+				'type' => 'array',
+				'items' => [
+					'type' => 'object',
+					'properties' => [
+						'include' => [
+							'type' => 'string',
+							'enum' => [ 'any', 'all', 'none' ],
+						],
+						'rules' => [
+							'type' => 'array',
+							'items' => [
+								'type' => 'object',
+								'properties' => [
+									'field' => [
+										'type' => 'string',
+									],
+									'operator' => [
+										'type' => 'string',
+										'enum' => [ '=', '!=', '*=', '!*', '^=', 'gte', 'lte', 'gt', 'lt' ],
+									],
+									'value' => [
+										'type' => [ 'string', 'number' ],
 									],
 								],
 							],
@@ -163,41 +184,7 @@ function init() {
 				],
 			],
 		],
-	] );
-}
-
-/**
- * Return an audience estimate.
- *
- * @param WP_REST_Request $request The audience rest request.
- * @return WP_REST_Response
- */
-function estimate_handler( WP_REST_Request $request ) : WP_REST_Response {
-	$audience = $request->get_param( 'audience' );
-	$estimate = get_estimate( $audience );
-	return rest_ensure_response( $estimate );
-}
-
-/**
- * Get the audience configuration data.
- *
- * @param WP_Post|array $post
- * @return WP_REST_Response
- */
-function get_audience( array $post ) : array {
-
-	return [];
-}
-
-/**
- * Update audience configuration data.
- *
- * @param array $value
- * @param WP_Post $post
- * @return void
- */
-function update_audience( $value, WP_Post $post ) {
-
+	];
 }
 
 /**

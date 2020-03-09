@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { defaultAudience } from '../data/defaults';
 import { getEstimate } from '../data';
 import { Sparklines, SparklinesLine } from 'react-sparklines';
 
@@ -20,7 +19,7 @@ const Options = props => {
 		audience,
 	} = props;
 
-	const [ estimate, setEstimate ] = useState( { count: 0, histogram: [] } );
+	const [ estimate, setEstimate ] = useState( { count: 0, histogram: [], total: 0 } );
 	const fetchEstimate = () => {
 		( async () => {
 			const estimateResponse = await getEstimate( audience );
@@ -37,19 +36,13 @@ const Options = props => {
 				<h4>{ __( 'Audience Estimate', 'altis-analytics' ) }</h4>
 				{ estimate.error && <div className="error msg">{ estimate.error.message }</div> }
 				<p><strong>{ estimate.count }</strong> { __( 'in the last 7 days' ) }</p>
-				<p><strong>{ Math.round( ( estimate.count / estimate.total ) * 100 ) }%</strong> { __( 'of total traffic', 'altis-analytics' ) }</p>
+				{ estimate.total > 0 && <p><strong>{ Math.round( ( estimate.count / estimate.total ) * 100 ) }%</strong> { __( 'of total traffic', 'altis-analytics' ) }</p> }
 				<Sparklines
 					data={ estimate.histogram.map( item => item.count ) }
 					preserveAspectRatio="xMidYMid meet"
 				>
   					<SparklinesLine color="#4667de" />
 				</Sparklines>
-				<Button
-					isLink={ true }
-					onClick={ fetchEstimate }
-				>
-					{ __( 'Refresh', 'altis-analytics' ) }
-				</Button>
 			</div>
 
 			<Button
@@ -57,7 +50,7 @@ const Options = props => {
 				isPrimary={ true }
 				type="submit"
 				onClick={ e => {
-					e.preventDefault();
+					// e.preventDefault();
 				} }
 			>
 				{ __( 'Save changes' ) }
@@ -65,9 +58,5 @@ const Options = props => {
 		</StyledOptions>
 	);
 }
-
-Options.defaultProps = {
-	audience: defaultAudience,
-};
 
 export default Options;

@@ -24,3 +24,14 @@ export const getFields = async () => {
 		return { error };
 	}
 };
+
+export const getAudience = async id => {
+	try {
+		const data = await apiFetch( {
+			path: `wp/v2/audiences/${ id }`,
+		} );
+		return data;
+	} catch ( error ) {
+		return { error };
+	}
+}

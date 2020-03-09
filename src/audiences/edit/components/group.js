@@ -21,7 +21,7 @@ const Group = styled.div.attrs( () => ( {
 		font-variant: small-caps;
 	}
 
-	.components-button {
+	> .components-button {
 		margin-right: 10px;
 	}
 `;

@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\Audiences;
 
+use function Altis\Analytics\Audiences\REST_API\get_audience_schema;
 use function Altis\Analytics\Utils\field_type_is;
 use function Altis\Analytics\Utils\get_field_type;
 use function Altis\Analytics\Utils\milliseconds;
@@ -21,6 +22,8 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'edit_form_after_title', __NAMESPACE__ . '\\audience_ui' );
 	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
+	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
+	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\default_post_settings', 10, 2 );
 
 	// Setup Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
@@ -39,6 +42,9 @@ function register_post_type() {
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
 			'show_in_rest' => true,
+			'rest_base' => 'audiences',
+			'capability_type' => [ POST_TYPE, POST_TYPE . 's' ],
+			'capabilities' => [ 'edit_posts' ],
 		],
 		[
 			'singular' => __( 'Audience', 'altis-analytics' ),
@@ -82,9 +88,64 @@ function audience_ui( WP_Post $post ) {
 	}
 
 	echo sprintf(
-		'<div id="altis-analytics-audience-ui">%s</div>',
+		'<div id="altis-analytics-audience-ui" data-audience="%s" data-fields="%s">' .
+		'<p><span class="spinner is-active"></span> %s</p>' .
+		'</div>',
+		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
+		esc_attr( wp_json_encode( get_field_data() ) ),
 		esc_html__( 'Loading...', 'altis-analytics' )
 	);
+}
+
+/**
+ * Support saving the audience configuration the old school way.
+ *
+ * @param int $post_id The current audience post ID.
+ */
+function save_post( $post_id ) {
+	if ( ! isset( $_POST['audience'] ) ) {
+		return;
+	}
+
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Clear errors.
+	delete_post_meta( $post_id, 'audience_error' );
+
+	// Validate using audience schema.
+	$valid = rest_validate_value_from_schema( $_POST['audience'], get_audience_schema(), 'audience' );
+
+	if ( is_wp_error( $valid ) ) {
+		update_post_meta( $post_id, 'audience_error', $valid->get_error_message() );
+		return;
+	}
+
+	// Save the audience configuration.
+	update_post_meta( $post_id, 'audience', $_POST['audience'] );
+}
+
+/**
+ * Ensure audience posts have some default settings on save.
+ *
+ * @param array $data
+ * @return array
+ */
+function default_post_settings( array $data ) : array {
+	// Status is always publish.
+	$data['post_status'] = 'publish';
+	return $data;
+}
+
+/**
+ * Get the audience configuration data.
+ *
+ * @param int $post_id
+ * @return array|null
+ */
+function get_audience( int $post_id ) : ?array {
+	return get_post_meta( $post_id, 'audience', true ) ?: null;
 }
 
 /**
@@ -102,20 +163,26 @@ function get_event_data_maps() : array {
  *
  * @param string $field The elasticsearch field name.
  * @param string $label A human readable label for the field.
- * @param array $args Additional meta data for the field mapping.
  */
-function register_event_data_map( string $field, string $label, array $args = [] ) {
+function register_event_data_map( string $field, string $label ) {
 	global $altis_analytics_event_data_maps;
 	$altis_analytics_event_data_maps = $altis_analytics_event_data_maps ?: [];
 	$altis_analytics_event_data_maps[ $field ] = [
 		'name' => $field,
 		'label' => $label,
-		'args' => $args,
+		'type' => get_field_type( $field ),
 	];
 	ksort( $altis_analytics_event_data_maps );
 }
 
+/**
+ * Queue up the audience admin UI scripts.
+ */
 function admin_enqueue_scripts() {
+	if ( get_current_screen()->post_type !== POST_TYPE ) {
+		return;
+	}
+
 	wp_enqueue_script(
 		'altis-analytics-audience-ui',
 		plugins_url( 'build/audiences.js', dirname( __FILE__, 2 ) ),
@@ -134,7 +201,7 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_style( 'wp-components' );
 
-	$data = (object) [];
+	$data = [];
 
 	wp_add_inline_script(
 		'altis-analytics-audience-ui',
@@ -144,7 +211,7 @@ function admin_enqueue_scripts() {
 			'window.Altis.Analytics.BuildURL = %s;' .
 			'window.Altis.Analytics.Audiences = %s;',
 			wp_json_encode( plugins_url( 'build/', dirname( __FILE__, 2 ) ) ),
-			wp_json_encode( $data )
+			wp_json_encode( (object) $data )
 		),
 		'before'
 	);
@@ -190,7 +257,11 @@ function get_estimate( array $audience ) : ?array {
 	// Append the groups query.
 	$query['query']['bool']['filter'][] = build_audience_query( $audience );
 
-	// TODO: caching.
+	$key = sprintf( 'estimate:%s', sha1( serialize( $audience ) ) );
+	$cache = wp_cache_get( $key, 'altis-audiences' );
+	if ( $cache ) {
+		return $cache;
+	}
 
 	$result = query( $query );
 
@@ -207,9 +278,11 @@ function get_estimate( array $audience ) : ?array {
 
 	$estimate = [
 		'count' => $result['aggregations']['estimate']['value'],
-		'histogram' => array_values( $histogram ),
 		'total' => get_unique_enpoint_count(),
+		'histogram' => array_values( $histogram ),
 	];
+
+	wp_cache_set( $key, $estimate, 'altis-audiences', milliseconds() + ( 60 * 60 * 1000 ) );
 
 	return $estimate;
 }
@@ -240,15 +313,22 @@ function get_unique_enpoint_count() : ?int {
 		'sort' => [ 'event_timestamp' => 'desc' ],
 	];
 
+	$cache = wp_cache_get( 'total-uniques', 'altis-audiences' );
+	if ( $cache ) {
+		return $cache;
+	}
+
 	$result = query( $query );
 
 	if ( ! $result ) {
 		return $result;
 	}
 
-	// TODO: caching.
+	$count = intval( $result['aggregations']['count']['value'] );
 
-	return $result['aggregations']['count']['value'];
+	wp_cache_set( 'total-uniques', $count, 'altis-audiences', milliseconds() + ( 60 * 60 * 1000 ) );
+
+	return $count;
 }
 
 /**
@@ -258,15 +338,19 @@ function get_unique_enpoint_count() : ?int {
  * Example results:
  *
  * [
- *   'endpoint.Location.Country' => [
+ *   [
+ *     'name' => 'endpoint.Location.Country',
  *     'label' => 'Country',
+ *     'type' => 'string',
  *     'data' => [
  *       [ 'key' => 'GB', 'doc_count' => 281 ],
  *       [ 'key' => 'US', 'doc_count' => 127 ]
  *     ]
  *   ],
- *   'metrics.UserSpend' => [
+ *   [
+ *     'name' => 'metrics.UserSpend',
  *     'label' => 'Total User Spend',
+ *     'type' => 'number',
  *     'stats' => [
  *        'sum' => 560,
  *        'min' => 10,
@@ -281,7 +365,7 @@ function get_unique_enpoint_count() : ?int {
 function get_field_data() : ?array {
 	$maps = get_event_data_maps();
 
-	$key = sprintf( 'field_data_%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
+	$key = sprintf( 'fields:%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
 		return $cache;
@@ -343,9 +427,6 @@ function get_field_data() : ?array {
 		} else {
 			$field['stats'] = $aggregations[ $field['name'] ];
 		}
-
-		unset( $field['args'] );
-
 		return $field;
 	}, $maps );
 
@@ -421,6 +502,11 @@ function build_audience_query( array $audience ) : array {
 					case '!*':
 						$rule_query['bool']['must_not'][] = [
 							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+						];
+						break;
+					case '^=':
+						$rule_query['bool']['filter'][] = [
+							'wildcard' => [ "{$rule['field']}.keyword" => "{$rule['value']}*" ],
 						];
 						break;
 				}

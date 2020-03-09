@@ -6,14 +6,14 @@ export const defaultRule = {
 };
 
 export const defaultGroup = {
-	include: 'all', // ANY, ALL, NONE
+	include: 'any', // ANY, ALL, NONE
 	rules: [
 		defaultRule
 	],
 };
 
 export const defaultAudience = {
-	include: 'any', // ANY, ALL, NONE
+	include: 'all', // ANY, ALL, NONE
 	groups: [
 		defaultGroup,
 	],

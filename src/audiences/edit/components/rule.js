@@ -6,12 +6,16 @@ const Rule = styled.div.attrs( () => ( {
 	margin: 0 0 15px;
 	display: flex;
 
-	select {
+	select, input {
 		flex: 1;
-		margin-right: 5px;
 	}
 
-	.audience-editor__rule-operator {
+	&& > * + * {
+		margin-left: 5px;
+	}
+
+	.audience-editor__rule-operator,
+	button {
 		flex 0;
 	}
 `;
