@@ -84,8 +84,14 @@ const StyledEstimate = styled(Estimate)`
 		margin: 0;
 	}
 
+	.audience-estimate__totals p:last-child {
+		margin-bottom: 0;
+	}
+
 	.audience-estimate__totals strong {
-		font-size: 150%;
+		font-size: 135%;
+		font-weight: normal;
+		margin-right: 2px;
 	}
 
 	.audience-estimate__totals {
