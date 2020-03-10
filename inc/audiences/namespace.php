@@ -70,13 +70,13 @@ function register_post_type() {
  * Set up default event data mappings.
  */
 function register_default_event_data_maps() {
-	register_event_data_map( 'attributes.referer', __( 'Referrer', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Demographic.ModelVersion', __( 'Browser version', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Demographic.Locale', __( 'Browser Locale', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
-	register_event_data_map( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
+	register_field( 'attributes.referer', __( 'Referrer', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.ModelVersion', __( 'Browser version', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.Locale', __( 'Browser Locale', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
+	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 }
 
 function meta_boxes() {
@@ -211,7 +211,7 @@ function get_audience( int $post_id ) : ?array {
  *
  * @return array
  */
-function get_event_data_maps() : array {
+function get_fields() : array {
 	global $altis_analytics_event_data_maps;
 	return array_values( $altis_analytics_event_data_maps ?: [] );
 }
@@ -222,7 +222,7 @@ function get_event_data_maps() : array {
  * @param string $field The elasticsearch field name.
  * @param string $label A human readable label for the field.
  */
-function register_event_data_map( string $field, string $label ) {
+function register_field( string $field, string $label ) {
 	global $altis_analytics_event_data_maps;
 	$altis_analytics_event_data_maps = $altis_analytics_event_data_maps ?: [];
 	$altis_analytics_event_data_maps[ $field ] = [
@@ -428,7 +428,7 @@ function get_unique_enpoint_count() : ?int {
  * @return ?array
  */
 function get_field_data() : ?array {
-	$maps = get_event_data_maps();
+	$maps = get_fields();
 
 	$key = sprintf( 'fields:%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );

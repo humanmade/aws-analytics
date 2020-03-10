@@ -224,6 +224,14 @@ The output will look something like the following:
 
 You can further trim the size of the returned response using the `filter_path` query parameter. For example if we're only interested in the stats aggregation we can set `filter_path=-aggregations.sessions` to remove it from the response.
 
+## Audiences
+
+Audiences allow for the creation of conditions to narrow down event queries or endpoints but also can be used for determining effects on the client side.
+
+### Mapping Event Data
+
+To enable the use of event record data in the audience editor it needs to be mapped to a human readable label using the `Altis\Analytics\Audiences\register_`
+
 ## Required Infrastructure
 
 A specific infrastructure set up is required to use this plugin:
