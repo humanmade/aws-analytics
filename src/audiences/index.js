@@ -24,6 +24,7 @@ for ( let i = 0; i < AudienceEstimates.length; i++ ) {
 	const element = AudienceEstimates[ i ];
 	// Mount audience react app.
 	ReactDOM.render( <Estimate
+		horizontal
 		audience={ JSON.parse( element.dataset.audience || null ) }
 	/>, element );
 }

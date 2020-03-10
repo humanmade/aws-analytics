@@ -5,18 +5,6 @@ import { Sparklines, SparklinesLine } from 'react-sparklines';
 
 const { __ } = wp.i18n;
 
-const StyledEstimate = styled.div.attrs( () => ( {
-	className: "audience-estimate"
-} ) )`
-	h4 {
-		font-variant: small-caps;
-		text-transform: lowercase;
-	}
-	strong {
-		font-size: 150%;
-	}
-`;
-
 const Estimate = props => {
 	const {
 		audience,
@@ -49,7 +37,7 @@ const Estimate = props => {
 	}
 
 	return (
-		<StyledEstimate>
+		<div className={ `audience-estimate ${ props.className || '' }` }>
 			{ title && <h4>{ title }</h4> }
 
 			{ estimate.error && (
@@ -81,8 +69,32 @@ const Estimate = props => {
 					<SparklinesLine color="#4667de" />
 				</Sparklines>
 			) }
-		</StyledEstimate>
+		</div>
 	);
 }
 
-export default Estimate;
+const StyledEstimate = styled(Estimate)`
+	display: ${ props => props.horizontal ? 'flex' : 'block' };
+
+	h4 {
+		font-variant: small-caps;
+		text-transform: lowercase;
+		flex: 0;
+		width: 100%;
+	}
+
+	.audience-estimate__totals strong {
+		font-size: 150%;
+	}
+
+	.audience-estimate__totals {
+		flex: 1;
+	}
+
+	svg {
+		flex: 0 0 ${ props => props.horizontal ? '200px' : '100%' };
+		width: ${ props => props.horizontal ? '200px' : '100%' };
+	}
+`;
+
+export default StyledEstimate;

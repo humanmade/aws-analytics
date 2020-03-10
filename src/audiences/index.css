@@ -5,16 +5,3 @@
 th#last_modified {
 	width: 10em;
 }
-
-.column-estimate .audience-estimate {
-	display: flex;
-}
-
-.column-estimate .audience-estimate__totals {
-	flex: 1;
-}
-
-.column-estimate .audience-estimate svg {
-	flex: 0 1 200px;
-	width: 200px;
-}
