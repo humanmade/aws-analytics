@@ -131,6 +131,9 @@ A user session covers every event recorded between opening the website and closi
     - `ModelVersion`: Browser version.
     - `Platform`: The device operating system.
     - `PlatformVersion`: The operating system version.
+  - `Location`
+    - `Country`: The endpoint's country if known / available.
+    - `City`: The endpoint's city if known or available.
   - `User`
     - `UserAttributes`
       - Any custom attributes associated with the user if known.
@@ -230,7 +233,19 @@ Audiences allow for the creation of conditions to narrow down event queries or e
 
 ### Mapping Event Data
 
-To enable the use of event record data in the audience editor it needs to be mapped to a human readable label using the `Altis\Analytics\Audiences\register_`
+To enable the use of any event record data in the audience editor it needs to be mapped to a human readable label using the `Altis\Analytics\Audiences\register_field()` function:
+
+```php
+use function Altis\Analytics\Audiences\register_field;
+
+add_action( 'init', function () {
+  register_field( 'endpoint.Location.City', __( 'City' ) );
+} );
+```
+
+In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+
+The 2nd parameter is a human readable label for the audience field.
 
 ## Required Infrastructure
 
