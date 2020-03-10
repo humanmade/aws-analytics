@@ -43,8 +43,18 @@ function register_post_type() {
 			'menu_position' => 151,
 			'show_in_rest' => true,
 			'rest_base' => 'audiences',
-			'capability_type' => [ POST_TYPE, POST_TYPE . 's' ],
-			'capabilities' => [ 'edit_posts' ],
+			'admin_cols' => [
+				'estimate' => [
+					'title' => __( 'Estimate', 'altis-analytics' ),
+					'function' => function () {
+						estimate_ui( $GLOBALS['post'] );
+					},
+				],
+				'last_modified' => [
+					'title' => __( 'Last Modified', 'altis-analytics' ),
+					'post_field' => 'post_modified',
+				],
+			],
 		],
 		[
 			'singular' => __( 'Audience', 'altis-analytics' ),
@@ -80,7 +90,6 @@ function meta_boxes() {
  * Add Audience UI placeholder.
  *
  * @param WP_Post $post
- * @return void
  */
 function audience_ui( WP_Post $post ) {
 	if ( $post->post_type !== POST_TYPE ) {
@@ -93,6 +102,25 @@ function audience_ui( WP_Post $post ) {
 		'</div>',
 		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
 		esc_attr( wp_json_encode( get_field_data() ) ),
+		esc_html__( 'Loading...', 'altis-analytics' )
+	);
+}
+
+/**
+ * Add estimate UI placeholder.
+ *
+ * @param WP_Post $post
+ */
+function estimate_ui( WP_Post $post ) {
+	if ( $post->post_type !== POST_TYPE ) {
+		return;
+	}
+
+	echo sprintf(
+		'<div class="altis-analytics-audience-estimate" data-audience="%s">' .
+		'<p><span class="spinner is-active"></span> %s</p>' .
+		'</div>',
+		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
 		esc_html__( 'Loading...', 'altis-analytics' )
 	);
 }
@@ -214,6 +242,13 @@ function admin_enqueue_scripts() {
 			wp_json_encode( (object) $data )
 		),
 		'before'
+	);
+
+	wp_enqueue_style(
+		'altis-analytics-audience-ui',
+		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
+		[],
+		'__AUDIENCE_STYLE_HASH__'
 	);
 }
 
