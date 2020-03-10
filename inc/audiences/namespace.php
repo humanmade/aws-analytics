@@ -24,6 +24,8 @@ function setup() {
 	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\default_post_settings', 10, 2 );
+	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
+	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
 
 	// Setup Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
@@ -43,6 +45,7 @@ function register_post_type() {
 			'menu_position' => 151,
 			'show_in_rest' => true,
 			'rest_base' => 'audiences',
+			'hierarchical' => false,
 			'admin_cols' => [
 				'estimate' => [
 					'title' => __( 'Estimate', 'altis-analytics' ),
@@ -164,6 +167,33 @@ function default_post_settings( array $data ) : array {
 	// Status is always publish.
 	$data['post_status'] = 'publish';
 	return $data;
+}
+
+/**
+ * Remove quick edit inline action.
+ *
+ * @param array $actions Inline actions array.
+ * @param WP_Post $post The current post.
+ * @return array
+ */
+function remove_quick_edit( array $actions, WP_Post $post ) : array {
+	if ( $post->post_type !== POST_TYPE ) {
+		return $actions;
+	}
+
+	unset( $actions['inline hide-if-no-js'] );
+	return $actions;
+}
+
+/**
+ * Removes the quick edit bulk action.
+ *
+ * @param array $actions Bulk actions array.
+ * @return array
+ */
+function remove_bulk_actions( array $actions ) : array {
+	unset( $actions['edit'] );
+	return $actions;
 }
 
 /**
