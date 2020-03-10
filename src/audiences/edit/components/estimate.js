@@ -77,8 +77,6 @@ const StyledEstimate = styled(Estimate)`
 	display: ${ props => props.horizontal ? 'flex' : 'block' };
 
 	h4 {
-		font-variant: small-caps;
-		text-transform: lowercase;
 		flex: 0;
 		width: 100%;
 		margin: 0;
