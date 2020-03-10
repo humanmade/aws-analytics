@@ -81,6 +81,7 @@ const StyledEstimate = styled(Estimate)`
 		text-transform: lowercase;
 		flex: 0;
 		width: 100%;
+		margin: 0;
 	}
 
 	.audience-estimate__totals strong {
