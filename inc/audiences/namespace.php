@@ -347,7 +347,7 @@ function get_estimate( array $audience ) : ?array {
 		'histogram' => array_values( $histogram ),
 	];
 
-	wp_cache_set( $key, $estimate, 'altis-audiences', milliseconds() + ( 60 * 60 * 1000 ) );
+	wp_cache_set( $key, $estimate, 'altis-audiences', HOUR_IN_SECONDS );
 
 	return $estimate;
 }
@@ -391,7 +391,7 @@ function get_unique_enpoint_count() : ?int {
 
 	$count = intval( $result['aggregations']['count']['value'] );
 
-	wp_cache_set( 'total-uniques', $count, 'altis-audiences', milliseconds() + ( 60 * 60 * 1000 ) );
+	wp_cache_set( 'total-uniques', $count, 'altis-audiences', HOUR_IN_SECONDS );
 
 	return $count;
 }
@@ -498,7 +498,7 @@ function get_field_data() : ?array {
 	$fields = array_values( $fields );
 
 	// Cache the data.
-	wp_cache_set( $key, $fields, 'altis-audiences', time() + HOUR_IN_SECONDS );
+	wp_cache_set( $key, $fields, 'altis-audiences', HOUR_IN_SECONDS );
 
 	return $fields;
 }
