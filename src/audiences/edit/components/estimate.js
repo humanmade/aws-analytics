@@ -60,7 +60,7 @@ const Estimate = props => {
 				) }
 			</div>
 
-			{ sparkline && estimate.histogram.length > 0 && (
+			{ sparkline && estimate.histogram && estimate.histogram.length > 0 && (
 				<Sparklines
 					className="audience-estimate__sparkline"
 					data={ estimate.histogram.map( item => item.count ) }
