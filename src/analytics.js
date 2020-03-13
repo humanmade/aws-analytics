@@ -122,6 +122,7 @@ const getMetrics = (extra = {}) =>
 		...carry,
 		[name]: Number(typeof value === 'function' ? value() : value),
 	}), {});
+const overwriteMerge = (destinationArray, sourceArray) => sourceArray;
 
 /**
  * Initialise cognito services.
@@ -273,7 +274,9 @@ const Analytics = {
 		}
 
 		// Merge new endpoint data with defaults.
-		endpoint = merge.all([EndpointData, Existing, endpoint]);
+		endpoint = merge.all([EndpointData, Existing, endpoint], {
+			arrayMerge: overwriteMerge
+		});
 
 		// Store the endpoint data.
 		Analytics.setEndpoint(endpoint);
