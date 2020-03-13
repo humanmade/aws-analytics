@@ -174,6 +174,7 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
+					'Beacon' => get_rest_url( null, 'analytics/v1/beacon' ),
 					'Data' => (object) get_client_side_data(),
 					'_attributes' => (object) [],
 					'_metrics' => (object) [],

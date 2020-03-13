@@ -16,6 +16,7 @@ const {
 	_metrics,
 	Config,
 	Data,
+	Beacon,
 } = Altis.Analytics;
 
 if ( ! Config.PinpointId || ! Config.CognitoId ) {
@@ -135,7 +136,7 @@ const Analytics = {
 	getUserCredentials: () => {
 		try {
 			const ParsedCredentials = JSON.parse(localStorage.getItem(Analytics.keys.UserCredentials));
-			if (new Date(ParsedCredentials.Credentials.Expiration).getTime() > Date.now()) {
+			if (!ParsedCredentials.Credentials.Expiration || new Date(ParsedCredentials.Credentials.Expiration).getTime() > Date.now()) {
 				return ParsedCredentials;
 			}
 		} catch (error) {}
@@ -338,20 +339,11 @@ const Analytics = {
 		// Flush new events after 5 seconds.
 		Analytics.timer = setTimeout(Analytics.flushEvents, 5000);
 	},
-	flushEvents: async () => {
-		// Check we have events.
-		if (!Analytics.events.length) {
-			return;
-		}
-
-		// Get the client.
-		const client = await Analytics.getClient();
-
+	getEventsRequest: () => {
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();
 		if (!UserId) {
-			console.error("No User ID found. Make sure to call Analytics.authenticate() first.");
-			return;
+			throw new Error("No User ID found. Make sure to call Analytics.authenticate() first.");
 		}
 
 		const Events = Analytics.events.reduce((carry, event) => ({ ...event, ...carry }), {});
@@ -365,12 +357,22 @@ const Analytics = {
 			}
 		};
 
+		return EventsRequest;
+	},
+	flushEvents: async () => {
+		// Check we have events.
+		if (!Analytics.events.length) {
+			return;
+		}
+
 		try {
-			const command = new PutEventsCommand({
+			// Get the client.
+			const client = await Analytics.getClient();
+			const command = new PutEventsCommand( {
 				ApplicationId: Config.PinpointId,
-				EventsRequest: EventsRequest
-			});
-			const result = await client.send(command);
+				EventsRequest: Analytics.getEventsRequest()
+			} );
+			const result = await client.send( command );
 
 			// Clear events on success.
 			Analytics.events = [];
@@ -431,8 +433,23 @@ window.addEventListener("beforeunload", async () => {
 	Analytics.record("_session.stop", {
 		attributes: getAttributes({}),
 		metrics: getMetrics({})
-	});
-	await Analytics.flushEvents();
+	} );
+	if ( !navigator.sendBeacon ) {
+		await Analytics.flushEvents();
+	}
+});
+window.addEventListener("unload", () => {
+	if (!navigator.sendBeacon) {
+		return;
+	}
+	try {
+		const formData = new FormData();
+		formData.set( 'credentials', JSON.stringify( Analytics.getUserCredentials().Credentials ) );
+		formData.set( 'events', JSON.stringify( Analytics.getEventsRequest() ) );
+		navigator.sendBeacon( Beacon, formData );
+	} catch (error) {
+		console.error(error);
+	}
 });
 
 // Expose userland API.
