@@ -28,6 +28,7 @@
     "react-select": "^3.0.8",
     "react-sparklines": "^1.7.0",
     "styled-components": "^5.0.1",
+    "deepmerge": "^4.2.2",
     "ua-parser-js": "^0.7.21",
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.6.0",
