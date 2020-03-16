@@ -15,6 +15,9 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+/**
+ * Hooks up the audience REST API endpoints.
+ */
 function setup() {
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\init' );
 }
@@ -90,8 +93,11 @@ function init() {
 					'validate_callback' => function ( $param ) {
 						$audience = json_decode( urldecode( $param ), true );
 
-						if ( json_last_error() ) {
-							return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
+						if ( json_last_error() !== JSON_ERROR_NONE ) {
+							return new WP_Error(
+								'altis_audience_estimate_json_invalid',
+								'Could not decode JSON: ' . json_last_error_msg()
+							);
 						}
 
 						// Validate against the audience schema after decoding.
@@ -100,8 +106,11 @@ function init() {
 					'sanitize_callback' => function ( $param ) {
 						$audience = json_decode( urldecode( $param ), true );
 
-						if ( json_last_error() ) {
-							return new WP_Error( 'altis_audience_estimate_json_invalid', json_last_error_msg() );
+						if ( json_last_error() !== JSON_ERROR_NONE ) {
+							return new WP_Error(
+								'altis_audience_estimate_json_invalid',
+								'Could not decode JSON: ' . json_last_error_msg()
+							);
 						}
 
 						return $audience;

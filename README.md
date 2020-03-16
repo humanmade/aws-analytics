@@ -229,6 +229,8 @@ You can further trim the size of the returned response using the `filter_path` q
 
 ## Audiences
 
+Audiences are user-defined categories of users, based on conditions related to their analytics data.
+
 Audiences allow for the creation of conditions to narrow down event queries or endpoints but also can be used for determining effects on the client side.
 
 ### Mapping Event Data
