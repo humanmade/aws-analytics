@@ -34,7 +34,7 @@ const Estimate = props => {
 	if ( loading ) {
 		return (
 			<p><span className="spinner is-active"></span> { __( 'Loading...', 'altis-analytics' ) }</p>
-		)
+		);
 	}
 
 	return (
@@ -72,9 +72,9 @@ const Estimate = props => {
 			) }
 		</div>
 	);
-}
+};
 
-const StyledEstimate = styled(Estimate)`
+const StyledEstimate = styled( Estimate )`
 	display: ${ props => props.horizontal ? 'flex' : 'block' };
 
 	h4 {

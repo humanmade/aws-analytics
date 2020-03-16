@@ -7,7 +7,7 @@ const { Button } = wp.components;
 const { __ } = wp.i18n;
 
 const StyledOptions = styled.div.attrs( () => ( {
-	className: "audience-options"
+	className: 'audience-options',
 } ) )`
 	.audience-estimate {
 		margin: 0 0 30px;
@@ -29,6 +29,6 @@ const Options = props => {
 			</Button>
 		</StyledOptions>
 	);
-}
+};
 
 export default Options;

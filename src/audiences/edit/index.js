@@ -36,21 +36,24 @@ const Edit = props => {
 		}
 		( async () => {
 			const fieldsResponse = await getFields();
-			if ( ! fieldsResponse instanceof Array && fieldsResponse.error ) {
-				setError( fieldsResponse.error );
-			} else {
+			if ( fieldsResponse instanceof Array && ! fieldsResponse.error ) {
 				if ( error ) {
 					setError( null );
 				}
 				setFields( fieldsResponse );
+			} else {
+				setError( fieldsResponse.error );
 			}
 		} )();
 	}, [ fields, error ] );
 
 	// Audience update helpers.
-	const updateAudience = ( newAudience ) => {
+	const updateAudience = newAudience => {
 		setAudience( audienceToUpdate => {
-			return { ...audienceToUpdate, ...newAudience };
+			return {
+				...audienceToUpdate,
+				...newAudience,
+			};
 		} );
 	};
 
@@ -88,137 +91,136 @@ const Edit = props => {
 			</div>
 
 			{ audience.groups.map( ( group, groupId ) => (
-					<Group key={ groupId }>
-						<div className="audience-editor__group-header">
-							<h3>{ __( 'Group', 'altis-analytics' ) } { groupId + 1 }</h3>
-							<SelectInclude
-								label={ __( 'rules', 'altis-analytics' ) }
-								name={ `audience[groups][${ groupId }][include]` }
-								value={ group.include }
-								onChange={ e => updateGroup( groupId, { include: e.target.value } ) }
-							/>
-						</div>
-						{ group.rules.map( ( rule, ruleId ) => {
-							const currentField = fields.filter( fieldData => fieldData.name === rule.field )[0] ?? {};
+				<Group key={ groupId }>
+					<div className="audience-editor__group-header">
+						<h3>{ __( 'Group', 'altis-analytics' ) } { groupId + 1 }</h3>
+						<SelectInclude
+							label={ __( 'rules', 'altis-analytics' ) }
+							name={ `audience[groups][${ groupId }][include]` }
+							value={ group.include }
+							onChange={ e => updateGroup( groupId, { include: e.target.value } ) }
+						/>
+					</div>
+					{ group.rules.map( ( rule, ruleId ) => {
+						const currentField = fields.filter( fieldData => fieldData.name === rule.field )[0] ?? {};
 
-							return (
-								<Rule key={ ruleId }>
-									<select
-										className="audience-editor__rule-field"
-										name={`audience[groups][${groupId}][rules][${ruleId}][field]`}
-										value={ rule.field }
-										onChange={ e => updateRule( groupId, ruleId, { field: e.target.value } ) }
-									>
-										<option value="" className="placeholder">{ __( 'Select a field', 'altis-analytics' ) }</option>
-										{ fields.map( field => (
-											<option key={ field.name } value={ field.name }>{ field.label }</option>
-										) ) }
-									</select>
-									<select
-										className="audience-editor__rule-operator"
-										name={`audience[groups][${groupId}][rules][${ruleId}][operator]`}
-										value={ rule.operator }
-										onChange={ e => updateRule( groupId, ruleId, { operator: e.target.value } ) }
-									>
-										{ ! currentField.type || currentField.type === 'string' && (
-											<Fragment>
-												<option value="=">{ __( 'equals', 'altis-analytics' ) }</option>
-												<option value="!=">{ __( 'does not equal', 'altis-analytics' ) }</option>
-												<option value="*=">{ __( 'contains', 'altis-analytics' ) }</option>
-												<option value="!*">{ __( 'does not contain', 'altis-analytics' ) }</option>
-												<option value="^=">{ __( 'begins with', 'altis-analytics' ) }</option>
-											</Fragment>
-										) }
-										{ currentField.type === 'number' && (
-											<Fragment>
-												<option value="gt">{ __( 'is greater than', 'altis-analytics' ) }</option>
-												<option value="lt">{ __( 'is less than', 'altis-analytics' ) }</option>
-												<option value="gte">{ __( 'is greater than or equal to', 'altis-analytics' ) }</option>
-												<option value="lte">{ __( 'is less than or equal to', 'altis-analytics' ) }</option>
-											</Fragment>
-										) }
-									</select>
-									{ ! currentField.type || currentField.type === 'string' && (
+						return (
+							<Rule key={ ruleId }>
+								<select
+									className="audience-editor__rule-field"
+									name={ `audience[groups][${groupId}][rules][${ruleId}][field]` }
+									value={ rule.field }
+									onChange={ e => updateRule( groupId, ruleId, { field: e.target.value } ) }
+								>
+									<option value="" className="placeholder">{ __( 'Select a field', 'altis-analytics' ) }</option>
+									{ fields.map( field => (
+										<option key={ field.name } value={ field.name }>{ field.label }</option>
+									) ) }
+								</select>
+								<select
+									className="audience-editor__rule-operator"
+									name={ `audience[groups][${groupId}][rules][${ruleId}][operator]` }
+									value={ rule.operator }
+									onChange={ e => updateRule( groupId, ruleId, { operator: e.target.value } ) }
+								>
+									{ ( ! currentField.type || currentField.type === 'string' ) && (
 										<Fragment>
-											{ [ '=', '!=' ].indexOf( rule.operator ) >= 0 && (
-												<select
-													className="audience-editor__rule-value"
-													name={`audience[groups][${groupId}][rules][${ruleId}][value]`}
-													value={ rule.value }
-													onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
-												>
-													<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-													{ fields.filter( field => field.name === rule.field ).map( field => field.data && field.data.map( ( datum, index ) => (
-														<option key={ index } value={ datum.value }>{ datum.value }</option>
-													) ) ) }
-												</select>
-											) }
-											{ [ '*=', '!*', '^=' ].indexOf( rule.operator ) >= 0 && (
-												<input
-													className="regular-text"
-													name={`audience[groups][${groupId}][rules][${ruleId}][value]`}
-													type="text"
-													value={ rule.value }
-													onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
-												/>
-											) }
+											<option value="=">{ __( 'equals', 'altis-analytics' ) }</option>
+											<option value="!=">{ __( 'does not equal', 'altis-analytics' ) }</option>
+											<option value="*=">{ __( 'contains', 'altis-analytics' ) }</option>
+											<option value="!*">{ __( 'does not contain', 'altis-analytics' ) }</option>
+											<option value="^=">{ __( 'begins with', 'altis-analytics' ) }</option>
 										</Fragment>
 									) }
 									{ currentField.type === 'number' && (
-										<input
-											className="regular-text"
-											name={`audience[groups][${groupId}][rules][${ruleId}][value]`}
-											placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg }` }
-											type="number"
-											value={ rule.value }
-											onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
-										/>
+										<Fragment>
+											<option value="gt">{ __( 'is greater than', 'altis-analytics' ) }</option>
+											<option value="lt">{ __( 'is less than', 'altis-analytics' ) }</option>
+											<option value="gte">{ __( 'is greater than or equal to', 'altis-analytics' ) }</option>
+											<option value="lte">{ __( 'is less than or equal to', 'altis-analytics' ) }</option>
+										</Fragment>
 									) }
+								</select>
+								{ ( ! currentField.type || currentField.type === 'string' ) && (
+									<Fragment>
+										{ [ '=', '!=' ].indexOf( rule.operator ) >= 0 && (
+											<select
+												className="audience-editor__rule-value"
+												name={ `audience[groups][${groupId}][rules][${ruleId}][value]` }
+												value={ rule.value }
+												onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
+											>
+												<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+												{ fields.filter( field => field.name === rule.field ).map( field => field.data && field.data.map( ( datum, index ) => (
+													<option key={ index } value={ datum.value }>{ datum.value }</option>
+												) ) ) }
+											</select>
+										) }
+										{ [ '*=', '!*', '^=' ].indexOf( rule.operator ) >= 0 && (
+											<input
+												className="regular-text"
+												name={ `audience[groups][${groupId}][rules][${ruleId}][value]` }
+												type="text"
+												value={ rule.value }
+												onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
+											/>
+										) }
+									</Fragment>
+								) }
+								{ currentField.type === 'number' && (
+									<input
+										className="regular-text"
+										name={ `audience[groups][${groupId}][rules][${ruleId}][value]` }
+										placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg }` }
+										type="number"
+										value={ rule.value }
+										onChange={ e => updateRule( groupId, ruleId, { value: e.target.value } ) }
+									/>
+								) }
 
-									{ group.rules.length > 1 && (
-										<Button
-											className="audience-editor__rule-remove"
-											isDestructive
-											isLink
-											onClick={ () => {
-												const newRules = group.rules.slice();
-												newRules.splice( ruleId, 1 );
-												updateGroup( groupId, { rules: newRules } );
-											} }
-										>
-											<span className="screen-reader-text">{ __( 'Remove rule', 'altis-analytics' ) }</span>
-											&times;
-										</Button>
-									) }
-								</Rule>
-							);
-						} ) }
+								{ group.rules.length > 1 && (
+									<Button
+										className="audience-editor__rule-remove"
+										isDestructive
+										isLink
+										onClick={ () => {
+											const newRules = group.rules.slice();
+											newRules.splice( ruleId, 1 );
+											updateGroup( groupId, { rules: newRules } );
+										} }
+									>
+										<span className="screen-reader-text">{ __( 'Remove rule', 'altis-analytics' ) }</span>
+										&times;
+									</Button>
+								) }
+							</Rule>
+						);
+					} ) }
 
+					<Button
+						className="audience-editor__rule-add"
+						isLarge
+						onClick={ () => updateGroup( groupId, { rules: group.rules.concat( [ defaultRule ] ) } ) }
+					>
+						{ __( 'Add a rule', 'altis-analytics' ) }
+					</Button>
+
+					{ audience.groups.length > 1 && (
 						<Button
-							className="audience-editor__rule-add"
-							isLarge
-							onClick={ () => updateGroup( groupId, { rules: group.rules.concat( [ defaultRule ] ) } ) }
+							className="audience-editor__group-remove"
+							isDestructive
+							isLink
+							onClick={ () => {
+								const newGroups = audience.groups.slice();
+								newGroups.splice( groupId, 1 );
+								updateAudience( { groups: newGroups } );
+							} }
 						>
-							{ __( 'Add a rule', 'altis-analytics' ) }
+							{ __( 'Remove group', 'altis-analytics' ) }
 						</Button>
-
-						{ audience.groups.length > 1 && (
-							<Button
-								className="audience-editor__group-remove"
-								isDestructive
-								isLink
-								onClick={ () => {
-									const newGroups = audience.groups.slice();
-									newGroups.splice( groupId, 1 );
-									updateAudience( { groups: newGroups } );
-								} }
-							>
-								{ __( 'Remove group', 'altis-analytics' ) }
-							</Button>
-						) }
-					</Group>
-				);
-			} ) }
+					) }
+				</Group>
+			) ) }
 
 			<Button
 				className="audience-editor__group-add"
@@ -230,6 +232,6 @@ const Edit = props => {
 			</Button>
 		</Editor>
 	);
-}
+};
 
 export default Edit;

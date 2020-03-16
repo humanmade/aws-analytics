@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 const Rule = styled.div.attrs( () => ( {
-	className: "audience-editor__rule",
+	className: 'audience-editor__rule',
 } ) )`
 	margin: 0 0 15px;
 	display: flex;

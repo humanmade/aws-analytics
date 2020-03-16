@@ -8,7 +8,7 @@ export const defaultRule = {
 export const defaultGroup = {
 	include: 'any', // ANY, ALL, NONE
 	rules: [
-		defaultRule
+		defaultRule,
 	],
 };
 

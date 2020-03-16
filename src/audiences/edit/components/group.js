@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 const Group = styled.div.attrs( () => ( {
-	className: "audience-editor__group",
+	className: 'audience-editor__group',
 } ) )`
 	background: rgba(0, 0, 0, 0.02);
 	border-radius: 3px;

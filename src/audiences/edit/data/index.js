@@ -1,6 +1,6 @@
 const { apiFetch } = wp;
 
-export const getEstimate = async ( audience ) => {
+export const getEstimate = async audience => {
 	try {
 		const audienceQuery = encodeURIComponent( JSON.stringify( audience ) );
 		// Get audience estimate data.
@@ -34,4 +34,4 @@ export const getAudience = async id => {
 	} catch ( error ) {
 		return { error };
 	}
-}
+};

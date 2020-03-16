@@ -33,4 +33,4 @@ AudienceEstimates.forEach( element => {
 		/>,
 		element
 	);
-}
+} );
