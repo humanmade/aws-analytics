@@ -14,10 +14,8 @@ const StyledSelect = styled.select`
 `;
 
 const SelectInclude = ( { value, onChange, label = '', name } ) => {
-	const id = name.replace( /\W+/g, '-' ).replace( /^\W+.*?\W+$/, '' );
 	return (
 		<StyledSelect
-			id={ id }
 			onChange={ onChange }
 			value={ value }
 			name={ name }
