@@ -1,15 +1,16 @@
+/*  */
 // Utils.
-import "./utils/polyfills";
-import { uuid, getLanguage } from "./utils";
-import UAParser from "ua-parser-js";
+import './utils/polyfills';
+import { uuid, getLanguage } from './utils';
+import UAParser from 'ua-parser-js';
 import merge from 'deepmerge';
 
 // AWS SDK.
-import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient";
-import { GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand";
-import { GetIdCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand";
-import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient";
-import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
+import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
+import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand';
+import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
+import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
+import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
 
 const {
 	_attributes,
@@ -52,7 +53,7 @@ let elapsed = 0;
  */
 let scrollDepthMax = 0;
 let scrollDepthNow = 0;
-window.addEventListener( "scroll", () => {
+window.addEventListener( 'scroll', () => {
 	const percent = ( window.scrollY / document.body.clientHeight ) * 100;
 	scrollDepthMax = percent > scrollDepthMax ? percent : scrollDepthMax;
 	scrollDepthNow = percent;
@@ -63,21 +64,21 @@ window.addEventListener( "scroll", () => {
  */
 const params = new URLSearchParams( window.location.search );
 const utm = {
-	utm_source: params.get( "utm_source" ) || "",
-	utm_medium: params.get( "utm_medium" ) || "",
-	utm_campaign: params.get( "utm_campaign" ) || ""
+	utm_source: params.get( 'utm_source' ) || '',
+	utm_medium: params.get( 'utm_medium' ) || '',
+	utm_campaign: params.get( 'utm_campaign' ) || ''
 };
 
 /**
  * Attributes helper.
  */
 const getSessionID = () => {
-	if ( typeof window.sessionStorage === "undefined" ) {
+	if ( typeof window.sessionStorage === 'undefined' ) {
 		return null;
 	}
 
 	// Get stored session.
-	const sessionID = window.sessionStorage.getItem( "_hm_uuid" );
+	const sessionID = window.sessionStorage.getItem( '_hm_uuid' );
 
 	if ( sessionID ) {
 		return sessionID;
@@ -85,7 +86,7 @@ const getSessionID = () => {
 
 	// Create and set a UUID.
 	const newSessionID = uuid();
-	window.sessionStorage.setItem( "_hm_uuid", newSessionID );
+	window.sessionStorage.setItem( '_hm_uuid', newSessionID );
 	return newSessionID;
 };
 const getSearchParams = () =>
@@ -196,7 +197,7 @@ const Analytics = {
 			// Get user credentials for pinpoint client.
 			const Credentials = await Analytics.authenticate();
 			if ( !Credentials ) {
-				console.error( "Credentials not found.", error );
+				console.error( 'Credentials not found.', error );
 				return;
 			}
 
@@ -238,7 +239,7 @@ const Analytics = {
 		const EndpointData = {
 			Attributes: {},
 			Demographic: {
-				AppVersion: Data.AppVersion || "",
+				AppVersion: Data.AppVersion || '',
 				Locale: getLanguage(),
 			},
 			Location: {},
@@ -301,9 +302,9 @@ const Analytics = {
 			[ EventId ]: {
 				EventType: type /* required */,
 				Timestamp: new Date().toISOString(),
-				AppPackageName: Data.AppPackageName || "",
-				AppTitle: Data.SiteName || "",
-				AppVersionCode: Data.AppVersion || "",
+				AppPackageName: Data.AppPackageName || '',
+				AppTitle: Data.SiteName || '',
+				AppVersionCode: Data.AppVersion || '',
 				Attributes: Object.assign( {}, data.attributes || {} ),
 				Metrics: Object.assign( {}, data.metrics || {} ),
 				Session: {
@@ -314,7 +315,7 @@ const Analytics = {
 		};
 
 		// Add session stop parameters.
-		if ( type === "_session.stop" ) {
+		if ( type === '_session.stop' ) {
 			Event[ EventId ].Session.Duration = Date.now() - subSessionStart;
 			Event[ EventId ].Session.StopTimestamp = new Date().toISOString();
 		}
@@ -342,7 +343,7 @@ const Analytics = {
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();
 		if ( !UserId ) {
-			console.error( "No User ID found. Make sure to call Analytics.authenticate() first." );
+			console.error( 'No User ID found. Make sure to call Analytics.authenticate() first.' );
 			return;
 		}
 
@@ -359,7 +360,7 @@ const Analytics = {
 		const Events = Analytics.events.reduce( ( carry, event ) => ( { ...event, ...carry } ), {} );
 
 		// Build events request object.
-		const BatchUserId = UserId.replace( `${ Config.CognitoRegion }:`, "" );
+		const BatchUserId = UserId.replace( `${ Config.CognitoRegion }:`, '' );
 		const EventsRequest = {
 			BatchItem: {
 				[ BatchUserId ]: {
@@ -390,12 +391,12 @@ const Analytics = {
 Analytics.mergeEndpointData( Data.Endpoint || {} );
 
 // Track sessions.
-document.addEventListener( "visibilitychange", () => {
+document.addEventListener( 'visibilitychange', () => {
 	if ( document.hidden ) {
 		// On hide increment elapsed time.
 		elapsed += Date.now() - start;
 		// Fire session stop event.
-		Analytics.record( "_session.stop", {
+		Analytics.record( '_session.stop', {
 			attributes: getAttributes( {} ),
 			metrics: getMetrics( {} )
 		} );
@@ -406,21 +407,21 @@ document.addEventListener( "visibilitychange", () => {
 		subSessionId = uuid();
 		subSessionStart = Date.now();
 		// Fire session start event.
-		Analytics.record( "_session.start", {
+		Analytics.record( '_session.start', {
 			attributes: getAttributes( {} )
 		} );
 	}
 } );
 
 // Start recording after document loaded and tests applied.
-window.addEventListener( "DOMContentLoaded", () => {
+window.addEventListener( 'DOMContentLoaded', () => {
 	// Session start.
-	Analytics.record( "_session.start", {
+	Analytics.record( '_session.start', {
 		attributes: getAttributes()
 	} );
 	// Record page view event & create/update endpoint immediately.
 	Analytics.record(
-		"pageView",
+		'pageView',
 		{
 			attributes: getAttributes()
 		},
@@ -430,8 +431,8 @@ window.addEventListener( "DOMContentLoaded", () => {
 } );
 
 // Flush remaining events.
-window.addEventListener( "beforeunload", async () => {
-	Analytics.record( "_session.stop", {
+window.addEventListener( 'beforeunload', async () => {
+	Analytics.record( '_session.stop', {
 		attributes: getAttributes( {} ),
 		metrics: getMetrics( {} )
 	} );
