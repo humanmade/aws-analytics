@@ -23,7 +23,6 @@ function setup() {
 	add_action( 'edit_form_after_title', __NAMESPACE__ . '\\audience_ui' );
 	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
-	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\default_post_settings', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
 	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
 
@@ -154,19 +153,7 @@ function save_post( $post_id ) {
 	}
 
 	// Save the audience configuration.
-	update_post_meta( $post_id, 'audience', $_POST['audience'] );
-}
-
-/**
- * Ensure audience posts have some default settings on save.
- *
- * @param array $data
- * @return array
- */
-function default_post_settings( array $data ) : array {
-	// Status is always publish.
-	$data['post_status'] = 'publish';
-	return $data;
+	update_post_meta( $post_id, 'audience', wp_slash( $_POST['audience'] ) );
 }
 
 /**
@@ -203,7 +190,7 @@ function remove_bulk_actions( array $actions ) : array {
  * @return array|null
  */
 function get_audience( int $post_id ) : ?array {
-	return get_post_meta( $post_id, 'audience', true ) ?: null;
+	return wp_unslash( get_post_meta( $post_id, 'audience', true ) ?: null );
 }
 
 /**
@@ -454,7 +441,7 @@ function get_field_data() : ?array {
 
 	foreach ( $maps as $map ) {
 		// For numeric fields get a simple stats aggregation.
-		if ( field_type_is( $map['name'], 'number' ) ) {
+		if ( get_field_type( $map['name'] ) === 'number' ) {
 			$query['aggs'][ $map['name'] ] = [
 				'stats' => [
 					'field' => $map['name'],
@@ -462,7 +449,7 @@ function get_field_data() : ?array {
 			];
 		}
 		// Default to terms aggregations for top 100 different values available for each field.
-		if ( field_type_is( $map['name'], 'string' ) ) {
+		if ( get_field_type( $map['name'] ) === 'string' ) {
 			$query['aggs'][ $map['name'] ] = [
 				'terms' => [
 					'field' => "{$map['name']}.keyword",
@@ -547,7 +534,7 @@ function build_audience_query( array $audience ) : array {
 			];
 
 			// Handle string comparisons.
-			if ( field_type_is( $rule['field'], 'string' ) ) {
+			if ( get_field_type( $rule['field'] ) === 'string' ) {
 				switch ( $rule['operator'] ) {
 					case '=':
 						$rule_query['bool']['filter'][] = [
@@ -578,7 +565,7 @@ function build_audience_query( array $audience ) : array {
 			}
 
 			// Handle numeric field comparisons.
-			if ( field_type_is( $rule['field'], 'number' ) ) {
+			if ( get_field_type( $rule['field'] ) === 'number' ) {
 				$rule_query['bool']['filter'][] = [
 					'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
 				];

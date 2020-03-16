@@ -8,6 +8,8 @@
 namespace Altis\Analytics\Audiences\REST_API;
 
 use const Altis\Analytics\Audiences\POST_TYPE;
+
+use function Altis\Analytics\Audiences\get_audience;
 use function Altis\Analytics\Audiences\get_estimate;
 use WP_Error;
 use WP_Post;
@@ -79,42 +81,15 @@ function init() {
 	register_rest_route( 'analytics/v1', 'audiences/estimate', [
 		[
 			'methods' => WP_REST_Server::READABLE,
-			'callback' => function ( WP_REST_Request $request ) : WP_REST_Response {
-				$audience = $request->get_param( 'audience' );
-				$estimate = get_estimate( $audience );
-				return rest_ensure_response( $estimate );
-			},
+			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
 			'permissions_callback' => __NAMESPACE__ . '\\permissions',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
 					'required' => true,
 					'type' => 'string',
-					'validate_callback' => function ( $param ) {
-						$audience = json_decode( urldecode( $param ), true );
-
-						if ( json_last_error() !== JSON_ERROR_NONE ) {
-							return new WP_Error(
-								'altis_audience_estimate_json_invalid',
-								'Could not decode JSON: ' . json_last_error_msg()
-							);
-						}
-
-						// Validate against the audience schema after decoding.
-						return rest_validate_value_from_schema( $audience, get_audience_schema(), 'audience' );
-					},
-					'sanitize_callback' => function ( $param ) {
-						$audience = json_decode( urldecode( $param ), true );
-
-						if ( json_last_error() !== JSON_ERROR_NONE ) {
-							return new WP_Error(
-								'altis_audience_estimate_json_invalid',
-								'Could not decode JSON: ' . json_last_error_msg()
-							);
-						}
-
-						return $audience;
-					},
+					'validate_callback' => __NAMESPACE__ . '\\validate_estimate_audience',
+					'sanitize_callback' => __NAMESPACE__ . '\\sanitize_estimate_audience',
 				],
 			],
 		],
@@ -140,10 +115,10 @@ function init() {
 	// Handle the audience configuration data retrieval and saving via the REST API.
 	register_rest_field( POST_TYPE, 'audience', [
 		'get_callback' => function ( array $post ) {
-			return get_estimate( $post['id'] );
+			return get_audience( $post['id'] );
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
-			return update_post_meta( $post->ID, 'audience', $value );
+			return update_post_meta( $post->ID, 'audience', wp_slash( $value ) );
 		},
 		'schema' => get_audience_schema(),
 	] );
@@ -156,7 +131,7 @@ function init() {
  */
 function get_audience_schema() : array {
 	return [
-		'type'  => 'object',
+		'type' => 'object',
 		'properties' => [
 			'include' => [
 				'type' => 'string',
@@ -194,6 +169,57 @@ function get_audience_schema() : array {
 			],
 		],
 	];
+}
+
+/**
+ * Retrieve the estimate response.
+ *
+ * @param WP_REST_Request $request
+ * @return WP_REST_Response
+ */
+function handle_estimate_request( WP_REST_Request $request ) : WP_REST_Response {
+	$audience = $request->get_param( 'audience' );
+	$estimate = get_estimate( $audience );
+	return rest_ensure_response( $estimate );
+}
+
+/**
+ * Validate the estimate audience configuration parameter.
+ *
+ * @param string $param The audience configuration JSON string.
+ * @return bool
+ */
+function validate_estimate_audience( $param ) {
+	$audience = json_decode( $param, true );
+
+	if ( json_last_error() !== JSON_ERROR_NONE ) {
+		return new WP_Error(
+			'altis_audience_estimate_json_invalid',
+			'Could not decode JSON: ' . json_last_error_msg()
+		);
+	}
+
+	// Validate against the audience schema after decoding.
+	return rest_validate_value_from_schema( $audience, get_audience_schema(), 'audience' );
+}
+
+/**
+ * Sanitize the estimate audience value.
+ *
+ * @param string $param The audience configuration JSON string.
+ * @return array|WP_Error
+ */
+function sanitize_estimate_audience( $param ) {
+	$audience = json_decode( $param, true );
+
+	if ( json_last_error() !== JSON_ERROR_NONE ) {
+		return new WP_Error(
+			'altis_audience_estimate_json_invalid',
+			'Could not decode JSON: ' . json_last_error_msg()
+		);
+	}
+
+	return $audience;
 }
 
 /**

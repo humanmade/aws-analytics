@@ -92,7 +92,7 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 	// Get URL.
 	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/' . $path );
 
-	// Ensure URL is legit.
+	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
 	$response = wp_remote_post( $url, [
@@ -241,17 +241,6 @@ function merge_aggregates( array $current, array $new, string $bucket_type = '' 
 	}
 
 	return $merged;
-}
-
-/**
- * Check type of field.
- *
- * @param string $field The full field name.
- * @param string $type One of 'string', 'number' or 'date'.
- * @return bool True if type matches field name.
- */
-function field_type_is( string $field, string $type ) : bool {
-	return $type === get_field_type( $field );
 }
 
 /**
