@@ -1,4 +1,3 @@
-/*  */
 // Utils.
 import './utils/polyfills';
 import { uuid, getLanguage } from './utils';
@@ -19,7 +18,8 @@ const {
 	Data,
 } = Altis.Analytics;
 
-if ( !Config.PinpointId || !Config.CognitoId ) {
+if ( ! Config.PinpointId || ! Config.CognitoId ) {
+	/* eslint-disable quotes */
 	console.warn(
 		"Altis Analytics: Missing configuration. \
 	You must define the following constants in PHP:\n \
@@ -29,6 +29,7 @@ if ( !Config.PinpointId || !Config.CognitoId ) {
 	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' ); \
 	"
 	);
+	/* eslint-enable quotes */
 }
 
 /**
@@ -66,7 +67,7 @@ const params = new URLSearchParams( window.location.search );
 const utm = {
 	utm_source: params.get( 'utm_source' ) || '',
 	utm_medium: params.get( 'utm_medium' ) || '',
-	utm_campaign: params.get( 'utm_campaign' ) || ''
+	utm_campaign: params.get( 'utm_campaign' ) || '',
 };
 
 /**
@@ -91,7 +92,10 @@ const getSessionID = () => {
 };
 const getSearchParams = () =>
 	Array.from( new URLSearchParams( window.location.search ).entries() ).reduce(
-		( carry, [ name, value ] ) => ( { [ `qv_${ name }` ]: value, ...carry } ),
+		( carry, [ name, value ] ) => ( {
+			[ `qv_${ name }` ]: value,
+			...carry,
+		} ),
 		{}
 	);
 const getAttributes = ( extra = {} ) =>
@@ -131,7 +135,7 @@ const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
 const Analytics = {
 	keys: {
 		UserId: `aws.cognito.identity-id.${ Config.CognitoId }`,
-		UserCredentials: `aws.cognito.identity-credentials.${ Config.CognitoId }`
+		UserCredentials: `aws.cognito.identity-credentials.${ Config.CognitoId }`,
 	},
 	getUserId: () => localStorage.getItem( Analytics.keys.UserId ),
 	getUserCredentials: () => {
@@ -140,8 +144,10 @@ const Analytics = {
 			if ( new Date( ParsedCredentials.Credentials.Expiration ).getTime() > Date.now() ) {
 				return ParsedCredentials;
 			}
-		} catch ( error ) { }
-		return false;
+			return false;
+		} catch ( error ) {
+			return false;
+		}
 	},
 	setUserId: id => localStorage.setItem( Analytics.keys.UserId, id ),
 	setUserCredentials: credentials => localStorage.setItem( Analytics.keys.UserCredentials, JSON.stringify( credentials ) ),
@@ -156,7 +162,7 @@ const Analytics = {
 		// Configure Cognito client.
 		const params = {
 			region: Config.CognitoRegion,
-			credentials: {}
+			credentials: {},
 		};
 		if ( Config.CognitoEndpoint ) {
 			params.endpoint = Config.CognitoEndpoint;
@@ -164,7 +170,7 @@ const Analytics = {
 		const client = new CognitoIdentityClient( params );
 
 		// Get unique ID if not set.
-		if ( !UserId ) {
+		if ( ! UserId ) {
 			try {
 				const getIdCommand = new GetIdCommand( { IdentityPoolId: Config.CognitoId } );
 				const result = await client.send( getIdCommand );
@@ -196,8 +202,8 @@ const Analytics = {
 		Analytics.client = ( async () => {
 			// Get user credentials for pinpoint client.
 			const Credentials = await Analytics.authenticate();
-			if ( !Credentials ) {
-				console.error( 'Credentials not found.', error );
+			if ( ! Credentials ) {
+				console.error( 'Credentials not found.' );
 				return;
 			}
 
@@ -208,8 +214,8 @@ const Analytics = {
 					accessKeyId: Credentials.AccessKeyId,
 					secretAccessKey: Credentials.SecretKey,
 					expiration: Credentials.Expiration,
-					sessionToken: Credentials.SessionToken
-				}
+					sessionToken: Credentials.SessionToken,
+				},
 			};
 			if ( Config.PinpointEndpoint ) {
 				params.endpoint = Config.PinpointEndpoint;
@@ -226,13 +232,13 @@ const Analytics = {
 	},
 	getEndpoint: () => {
 		try {
-			const ParsedEndpoint = JSON.parse( localStorage.getItem( `aws.pinpoint.endpoint` ) );
+			const ParsedEndpoint = JSON.parse( localStorage.getItem( 'aws.pinpoint.endpoint' ) );
 			return ParsedEndpoint || {};
 		} catch ( error ) {
 			return {};
-		};
+		}
 	},
-	setEndpoint: ( endpoint ) => localStorage.setItem( `aws.pinpoint.endpoint`, JSON.stringify( endpoint ) ),
+	setEndpoint: endpoint => localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) ),
 	mergeEndpointData: ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
@@ -276,7 +282,7 @@ const Analytics = {
 
 		// Merge new endpoint data with defaults.
 		endpoint = merge.all( [ EndpointData, Existing, endpoint ], {
-			arrayMerge: overwriteMerge
+			arrayMerge: overwriteMerge,
 		} );
 
 		// Store the endpoint data.
@@ -309,9 +315,9 @@ const Analytics = {
 				Metrics: Object.assign( {}, data.metrics || {} ),
 				Session: {
 					Id: subSessionId /* required */,
-					StartTimestamp: new Date( subSessionStart ).toISOString() /* required */
-				}
-			}
+					StartTimestamp: new Date( subSessionStart ).toISOString(), /* required */
+				},
+			},
 		};
 
 		// Add session stop parameters.
@@ -324,7 +330,7 @@ const Analytics = {
 		Analytics.events.push( Event );
 
 		// Flush the events if we don't want to queue.
-		if ( !queue ) {
+		if ( ! queue ) {
 			Analytics.flushEvents();
 			return;
 		}
@@ -342,7 +348,7 @@ const Analytics = {
 
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();
-		if ( !UserId ) {
+		if ( ! UserId ) {
 			console.error( 'No User ID found. Make sure to call Analytics.authenticate() first.' );
 			return;
 		}
@@ -357,7 +363,10 @@ const Analytics = {
 		Endpoint.RequestId = uuid();
 
 		// Reduce events to an object keyed by event ID.
-		const Events = Analytics.events.reduce( ( carry, event ) => ( { ...event, ...carry } ), {} );
+		const Events = Analytics.events.reduce( ( carry, event ) => ( {
+			...event,
+			...carry,
+		} ), {} );
 
 		// Build events request object.
 		const BatchUserId = UserId.replace( `${ Config.CognitoRegion }:`, '' );
@@ -365,15 +374,15 @@ const Analytics = {
 			BatchItem: {
 				[ BatchUserId ]: {
 					Endpoint: Endpoint,
-					Events: Events
-				}
-			}
+					Events: Events,
+				},
+			},
 		};
 
 		try {
 			const command = new PutEventsCommand( {
 				ApplicationId: Config.PinpointId,
-				EventsRequest: EventsRequest
+				EventsRequest: EventsRequest,
 			} );
 			const result = await client.send( command );
 
@@ -384,7 +393,7 @@ const Analytics = {
 		} catch ( error ) {
 			console.error( error );
 		}
-	}
+	},
 };
 
 // Set initial endpoint data.
@@ -398,7 +407,7 @@ document.addEventListener( 'visibilitychange', () => {
 		// Fire session stop event.
 		Analytics.record( '_session.stop', {
 			attributes: getAttributes( {} ),
-			metrics: getMetrics( {} )
+			metrics: getMetrics( {} ),
 		} );
 	} else {
 		// On show reset start time.
@@ -408,7 +417,7 @@ document.addEventListener( 'visibilitychange', () => {
 		subSessionStart = Date.now();
 		// Fire session start event.
 		Analytics.record( '_session.start', {
-			attributes: getAttributes( {} )
+			attributes: getAttributes( {} ),
 		} );
 	}
 } );
@@ -417,13 +426,13 @@ document.addEventListener( 'visibilitychange', () => {
 window.addEventListener( 'DOMContentLoaded', () => {
 	// Session start.
 	Analytics.record( '_session.start', {
-		attributes: getAttributes()
+		attributes: getAttributes(),
 	} );
 	// Record page view event & create/update endpoint immediately.
 	Analytics.record(
 		'pageView',
 		{
-			attributes: getAttributes()
+			attributes: getAttributes(),
 		},
 		{},
 		false
@@ -434,7 +443,7 @@ window.addEventListener( 'DOMContentLoaded', () => {
 window.addEventListener( 'beforeunload', async () => {
 	Analytics.record( '_session.stop', {
 		attributes: getAttributes( {} ),
-		metrics: getMetrics( {} )
+		metrics: getMetrics( {} ),
 	} );
 	await Analytics.flushEvents();
 } );
@@ -446,7 +455,7 @@ window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
 		type,
 		{
 			attributes: getAttributes( data.attributes || {} ),
-			metrics: getMetrics( data.metrics || {} )
+			metrics: getMetrics( data.metrics || {} ),
 		},
 		endpoint
 	);

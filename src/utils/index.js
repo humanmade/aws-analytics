@@ -19,16 +19,16 @@ export const uuid = placeholder =>
 export const throttle = ( delay, fn ) => {
 	let lastCall = 0;
 	return function ( ...args ) {
-		const now = ( new Date ).getTime();
+		const now = ( new Date() ).getTime();
 		if ( now - lastCall < delay ) {
 			return;
 		}
 		lastCall = now;
 		return fn( ...args );
-	}
-}
+	};
+};
 
 /**
  * Get browser locale / language.
  */
-export const getLanguage = () => ( navigator.language || navigator.browserLanguage || ( navigator.languages || [ "en-US" ] )[ 0 ] ).toLowerCase();
+export const getLanguage = () => ( navigator.language || navigator.browserLanguage || ( navigator.languages || [ 'en-US' ] )[ 0 ] ).toLowerCase();
