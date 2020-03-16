@@ -1,3 +1,10 @@
 {
-	"parser": "babel-eslint"
+	"extends": "humanmade",
+	"globals": {
+		"Altis": "readonly"
+	},
+	"rules": {
+		"no-multi-str": "off",
+		"no-console": "off"
+	}
 }
