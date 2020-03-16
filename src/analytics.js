@@ -10,6 +10,7 @@ import { GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identi
 import { GetIdCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand";
 import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient";
 import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
+import { parseQueryString } from '@aws-sdk/querystring-parser';
 
 const {
 	_attributes,
@@ -61,11 +62,11 @@ window.addEventListener("scroll", () => {
 /**
  * Campaign.
  */
-const params = new URLSearchParams(window.location.search);
+const params = parseQueryString(window.location.search);
 const utm = {
-	utm_source: params.get("utm_source") || "",
-	utm_medium: params.get("utm_medium") || "",
-	utm_campaign: params.get("utm_campaign") || ""
+	utm_source: params.utm_source || "",
+	utm_medium: params.utm_medium || "",
+	utm_campaign: params.utm_campaign || ""
 };
 
 /**
@@ -88,13 +89,16 @@ const getSessionID = () => {
 	window.sessionStorage.setItem("_hm_uuid", newSessionID);
 	return newSessionID;
 };
-const getSearchParams = () =>
-	Array.from(new URLSearchParams(window.location.search).entries()).reduce(
-		(carry, [name, value]) => ({ [`qv_${name}`]: value, ...carry }),
-		{}
-	);
-const getAttributes = (extra = {}) =>
-	Object.entries({
+const getSearchParams = () => parseObject( parseQueryString( window.location.search ), 'qv_' );
+const parseObject = ( obj, prefix = '' ) => {
+	let newObject = {};
+	for ( const key in obj ) {
+		newObject[ `${prefix}${key}` ] = ( typeof obj[ key ] === 'function' ? obj[ key ]() : obj[ key ] ).toString();
+	}
+	return newObject;
+}
+const getAttributes = ( extra = {} ) => parseObject( merge.all( [
+	{
 		session: getSessionID(),
 		pageSession: pageSession,
 		url: window.location.origin + window.location.pathname,
@@ -102,26 +106,22 @@ const getAttributes = (extra = {}) =>
 		search: window.location.search,
 		hash: window.location.hash,
 		referer: document.referrer,
-		...getSearchParams(),
-		...utm,
-		...(Data.Attributes || {}),
-		...extra,
-		...(_attributes || {}),
-	}).reduce( (carry, [name, value]) => ({
-		...carry,
-		[name]: (typeof value === 'function' ? value() : value).toString(),
-	}), {});
-const getMetrics = (extra = {}) =>
-	Object.entries({
+	},
+	getSearchParams(),
+	utm,
+	( Data.Attributes || {} ),
+	extra,
+	(_attributes || {})
+] ) );
+const getMetrics = ( extra = {} ) => parseObject( merge.all( [
+	{
 		elapsed: elapsed + (Date.now() - start),
 		scrollDepthMax,
 		scrollDepthNow,
-		...extra,
-		...(_metrics || {}),
-	}).reduce( (carry, [name, value]) => ({
-		...carry,
-		[name]: Number(typeof value === 'function' ? value() : value),
-	}), {});
+	},
+	extra,
+	(_metrics || {})
+] ) );
 const overwriteMerge = (destinationArray, sourceArray) => sourceArray;
 
 /**
@@ -214,6 +214,7 @@ const Analytics = {
 				params.endpoint = Config.PinpointEndpoint;
 			}
 			const client = new PinpointClient(params);
+
 			Analytics.client = client;
 			return client;
 		})();
