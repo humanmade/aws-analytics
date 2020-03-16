@@ -5,11 +5,11 @@ import UAParser from 'ua-parser-js';
 import merge from 'deepmerge';
 
 // AWS SDK.
-import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient";
-import { GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand";
-import { GetIdCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand";
-import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient";
-import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
+import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
+import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand';
+import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
+import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
+import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
 import { parseQueryString } from '@aws-sdk/querystring-parser';
 
 const {
@@ -64,11 +64,11 @@ window.addEventListener( 'scroll', () => {
 /**
  * Campaign.
  */
-const params = parseQueryString(window.location.search);
+const params = parseQueryString( window.location.search );
 const utm = {
-	utm_source: params.utm_source || "",
-	utm_medium: params.utm_medium || "",
-	utm_campaign: params.utm_campaign || ""
+	utm_source: params.utm_source || '',
+	utm_medium: params.utm_medium || '',
+	utm_campaign: params.utm_campaign || '',
 };
 
 /**
@@ -98,7 +98,7 @@ const parseObject = ( obj, prefix = '' ) => {
 		newObject[ `${prefix}${key}` ] = ( typeof obj[ key ] === 'function' ? obj[ key ]() : obj[ key ] ).toString();
 	}
 	return newObject;
-}
+};
 const getAttributes = ( extra = {} ) => parseObject( merge.all( [
 	{
 		session: getSessionID(),
@@ -113,16 +113,16 @@ const getAttributes = ( extra = {} ) => parseObject( merge.all( [
 	utm,
 	( Data.Attributes || {} ),
 	extra,
-	(_attributes || {})
+	( _attributes || {} ),
 ] ) );
 const getMetrics = ( extra = {} ) => parseObject( merge.all( [
 	{
-		elapsed: elapsed + (Date.now() - start),
+		elapsed: elapsed + ( Date.now() - start ),
 		scrollDepthMax,
 		scrollDepthNow,
 	},
 	extra,
-	(_metrics || {})
+	( _metrics || {} ),
 ] ) );
 const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
 
