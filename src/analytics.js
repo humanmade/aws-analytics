@@ -2,6 +2,7 @@
 import "./utils/polyfills";
 import { uuid, getLanguage } from "./utils";
 import UAParser from "ua-parser-js";
+import merge from 'deepmerge';
 
 // AWS SDK.
 import { CognitoIdentityClient } from "@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient";
@@ -9,7 +10,6 @@ import { GetCredentialsForIdentityCommand } from "@aws-sdk/client-cognito-identi
 import { GetIdCommand } from "@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand";
 import { PinpointClient } from "@aws-sdk/client-pinpoint-browser/PinpointClient";
 import { PutEventsCommand } from "@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand";
-import { UpdateEndpointCommand } from "@aws-sdk/client-pinpoint-browser/commands/UpdateEndpointCommand";
 
 const {
 	_attributes,
@@ -122,6 +122,7 @@ const getMetrics = (extra = {}) =>
 		...carry,
 		[name]: Number(typeof value === 'function' ? value() : value),
 	}), {});
+const overwriteMerge = (destinationArray, sourceArray) => sourceArray;
 
 /**
  * Initialise cognito services.
@@ -220,85 +221,81 @@ const Analytics = {
 		return await Analytics.client;
 	},
 	updateEndpoint: async (endpoint = {}) => {
-		// Get client & authenticate.
-		const client = await Analytics.getClient();
-		// Get endpoint ID.
-		const UserId = Analytics.getUserId();
-		if (!UserId) {
-			console.error("No User ID found. Make sure to call Analytics.authenticate() first.");
-			return;
-		}
-
-		const EndpointId = UserId.replace(`${Config.CognitoRegion}:`, "");
+		return await Analytics.flushEvents(endpoint);
+	},
+	getEndpoint: () => {
+		try {
+			const ParsedEndpoint = JSON.parse(localStorage.getItem(`aws.pinpoint.endpoint`));
+			return ParsedEndpoint || {};
+		} catch ( error ) {
+			return {};
+		};
+	},
+	setEndpoint: (endpoint) => localStorage.setItem(`aws.pinpoint.endpoint`, JSON.stringify(endpoint)),
+	mergeEndpointData: (endpoint = {}) => {
+		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser(navigator.userAgent);
 		const EndpointData = {
-			Address: "", // Destination for push notifications / campaigns.
-			Attributes: {
-				DeviceMake: [UAData.device.vendor || ""],
-				DeviceModel: [UAData.device.model || ""],
-				DeviceType: [UAData.device.type || ""]
-			},
-			ChannelType: "CUSTOM", // GCM | APNS | APNS_SANDBOX | APNS_VOIP | APNS_VOIP_SANDBOX | ADM | SMS | VOICE | EMAIL | BAIDU | CUSTOM,
+			Attributes: {},
 			Demographic: {
 				AppVersion: Data.AppVersion || "",
 				Locale: getLanguage(),
-				Make: UAData.engine.name || "",
-				Model: UAData.browser.name || "",
-				ModelVersion: UAData.browser.version || "",
-				Platform: UAData.os.name || "",
-				PlatformVersion: UAData.os.version || ""
 			},
 			Location: {},
-			EffectiveDate: new Date().toISOString(),
 			Metrics: {},
-			OptOut: "ALL",
-			RequestId: uuid(),
-			User: {
-				UserAttributes: {},
-				UserId: UserId
-			}
 		};
 
+		// Add device attributes.
+		if (UAData.device && UAData.device.vendor) {
+			EndpointData.Attributes.DeviceMake = [ UAData.device.vendor ];
+		}
+		if (UAData.device && UAData.device.model) {
+			EndpointData.Attributes.DeviceModel = [ UAData.device.model ];
+		}
+		if (UAData.device && UAData.device.type) {
+			EndpointData.Attributes.DeviceType = [ UAData.device.type ];
+		}
+
+		// Add demographic data.
+		if (UAData.engine && UAData.engine.name) {
+			EndpointData.Demographic.Make = UAData.engine.name;
+		}
+		if (UAData.browser && UAData.browser.name) {
+			EndpointData.Demographic.Model = UAData.browser.name;
+		}
+		if (UAData.browser && UAData.browser.version) {
+			EndpointData.Demographic.ModelVersion = UAData.browser.version;
+		}
+		if (UAData.os && UAData.os.name) {
+			EndpointData.Demographic.Platform = UAData.os.name;
+		}
+		if (UAData.os && UAData.os.version) {
+			EndpointData.Demographic.PlatformVersion = UAData.os.version;
+		}
+
 		// Merge new endpoint data with defaults.
-		const EndpointRequest = Object.entries(EndpointData).reduce((carry, [key, value]) => {
-			if (typeof value === "object") {
-				carry[key] = Object.assign(value, endpoint[key] || {});
-			} else {
-				carry[key] = endpoint[key] || value;
-			}
-			return carry;
-		}, {});
+		endpoint = merge.all([EndpointData, Existing, endpoint], {
+			arrayMerge: overwriteMerge
+		});
 
-		const PrevEndpoint = Analytics.getEndpoint(UserId);
-		if (PrevEndpoint && JSON.stringify(PrevEndpoint) === JSON.stringify(EndpointRequest)) {
-			return EndpointRequest;
-		}
+		// Store the endpoint data.
+		Analytics.setEndpoint(endpoint);
 
-		try {
-			const command = new UpdateEndpointCommand({
-				ApplicationId: Config.PinpointId,
-				EndpointId: EndpointId,
-				EndpointRequest: EndpointRequest
-			});
-			await client.send(command);
-			Analytics.setEndpoint(UserId, EndpointRequest);
-			return EndpointRequest;
-		} catch (error) {
-			console.error(error);
-		}
+		return endpoint;
 	},
-	getEndpoint: id => {
-		try {
-			const ParsedEndpoint = JSON.parse(localStorage.getItem(`aws.pinpoint.endpoint.${id}`));
-			if (ParsedEndpoint.User.UserId === id) {
-				return ParsedEndpoint;
-			}
-		} catch (error) {}
-		return false;
-	},
-	setEndpoint: (id, endpoint) => localStorage.setItem(`aws.pinpoint.endpoint.${id}`, JSON.stringify(endpoint)),
 	events: [],
-	record: (type, data = {}, queue = true) => {
+	record: (type, data = {}, endpoint = {}, queue = true) => {
+		// Back compat, if endpoint is a boolean it is expected to be the value for queue.
+		if (typeof endpoint === 'boolean') {
+			queue = endpoint;
+			endpoint = {};
+		}
+
+		// Merge endpoint data.
+		if ( Object.entries(endpoint).length ) {
+			Analytics.mergeEndpointData(endpoint);
+		}
+
 		const EventId = uuid();
 		const Event = {
 			[EventId]: {
@@ -338,12 +335,7 @@ const Analytics = {
 		// Flush new events after 5 seconds.
 		Analytics.timer = setTimeout(Analytics.flushEvents, 5000);
 	},
-	flushEvents: async () => {
-		// Check we have events.
-		if (!Analytics.events.length) {
-			return;
-		}
-
+	flushEvents: async (endpoint = {}) => {
 		// Get the client.
 		const client = await Analytics.getClient();
 
@@ -354,12 +346,24 @@ const Analytics = {
 			return;
 		}
 
+		// Update endpoint data if provided.
+		if ( Object.entries(endpoint).length ) {
+			Analytics.mergeEndpointData(endpoint);
+		}
+
+		// Build endpoint data.
+		const Endpoint = Analytics.getEndpoint();
+		Endpoint.RequestId = uuid();
+
+		// Reduce events to an object keyed by event ID.
 		const Events = Analytics.events.reduce((carry, event) => ({ ...event, ...carry }), {});
+
+		// Build events request object.
 		const BatchUserId = UserId.replace(`${Config.CognitoRegion}:`, "");
 		const EventsRequest = {
 			BatchItem: {
 				[BatchUserId]: {
-					Endpoint: {},
+					Endpoint: Endpoint,
 					Events: Events
 				}
 			}
@@ -382,10 +386,8 @@ const Analytics = {
 	}
 };
 
-/**
- * Set endpoint data.
- */
-Analytics.updateEndpoint(Data.Endpoint || {});
+// Set initial endpoint data.
+Analytics.mergeEndpointData(Data.Endpoint || {});
 
 // Track sessions.
 document.addEventListener("visibilitychange", () => {
@@ -416,12 +418,13 @@ window.addEventListener("DOMContentLoaded", () => {
 	Analytics.record("_session.start", {
 		attributes: getAttributes()
 	});
-	// Record page view event immediately.
+	// Record page view event & create/update endpoint immediately.
 	Analytics.record(
 		"pageView",
 		{
 			attributes: getAttributes()
 		},
+		{},
 		false
 	);
 });
@@ -437,11 +440,12 @@ window.addEventListener("beforeunload", async () => {
 
 // Expose userland API.
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
-window.Altis.Analytics.record = (type, data = {}) =>
+window.Altis.Analytics.record = (type, data = {}, endpoint = {}) =>
 	Analytics.record(
 		type,
 		{
 			attributes: getAttributes(data.attributes || {}),
 			metrics: getMetrics(data.metrics || {})
-		}
+		},
+		endpoint
 	);
