@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { getEstimate } from '../data';
 import { Sparklines, SparklinesLine } from 'react-sparklines';
+import styled from 'styled-components';
+
+import { getEstimate } from '../data';
 
 const { __ } = wp.i18n;
 

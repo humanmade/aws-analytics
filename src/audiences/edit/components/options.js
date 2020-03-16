@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+
 import Estimate from './estimate';
 
 const { Button } = wp.components;
@@ -20,8 +21,8 @@ const Options = props => {
 		<StyledOptions>
 			<Estimate title={ __( 'Audience Estimate', 'altis-analytics' ) } audience={ audience } />
 			<Button
-				isLarge={ true }
-				isPrimary={ true }
+				isLarge
+				isPrimary
 				type="submit"
 			>
 				{ __( 'Save changes' ) }
