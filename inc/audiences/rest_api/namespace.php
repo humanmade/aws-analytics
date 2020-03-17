@@ -11,6 +11,8 @@ use const Altis\Analytics\Audiences\POST_TYPE;
 
 use function Altis\Analytics\Audiences\get_audience;
 use function Altis\Analytics\Audiences\get_estimate;
+use function Altis\Analytics\Audiences\save_audience;
+
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -118,7 +120,7 @@ function init() {
 			return get_audience( $post['id'] );
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
-			return update_post_meta( $post->ID, 'audience', wp_slash( $value ) );
+			return save_audience( $post->ID, (array) $value );
 		},
 		'schema' => get_audience_schema(),
 	] );

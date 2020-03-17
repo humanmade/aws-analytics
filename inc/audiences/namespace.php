@@ -164,19 +164,34 @@ function save_post( $post_id ) {
 		return;
 	}
 
+	if ( ! is_array( $_POST['audiencce'] ) ) {
+		return;
+	}
+
+	save_audience( $post_id, $_POST['audience'] );
+}
+
+/**
+ * Saves an audience config to the given post ID.
+ *
+ * @param integer $post_id The post ID to save the audience to.
+ * @param array $audience The audience configuration.
+ * @return bool True on successful update or false on failure.
+ */
+function save_audience( int $post_id, array $audience ) : bool {
 	// Clear errors.
 	delete_post_meta( $post_id, 'audience_error' );
 
 	// Validate using audience schema.
-	$valid = rest_validate_value_from_schema( $_POST['audience'], get_audience_schema(), 'audience' );
+	$valid = rest_validate_value_from_schema( $audience, get_audience_schema(), 'audience' );
 
 	if ( is_wp_error( $valid ) ) {
 		update_post_meta( $post_id, 'audience_error', $valid->get_error_message() );
-		return;
+		return false;
 	}
 
 	// Save the audience configuration.
-	update_post_meta( $post_id, 'audience', wp_slash( $_POST['audience'] ) );
+	return (bool) update_post_meta( $post_id, 'audience', wp_slash( $audience ) );
 }
 
 /**
