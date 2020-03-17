@@ -62,7 +62,11 @@ class Edit extends Component {
 	}
 
 	render() {
-		const { audience, fields, error } = this.state;
+		const {
+			audience,
+			fields,
+			error,
+		} = this.state;
 
 		return (
 			<div className="audience-ui">
@@ -90,6 +94,6 @@ class Edit extends Component {
 			</div>
 		);
 	}
-};
+}
 
 export default Edit;

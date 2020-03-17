@@ -23,7 +23,7 @@ class AudienceEditor extends Component {
 		const newGroup = Object.assign( {}, groups[ groupId ], group );
 		groups.splice( groupId, 1, newGroup );
 		this.updateAudience( { groups } );
-	};
+	}
 
 	render() {
 		const {
@@ -88,7 +88,7 @@ AudienceEditor.defaultProps = {
 	onChange: () => {},
 };
 
-const StyledAudienceEditor = styled(AudienceEditor)`
+const StyledAudienceEditor = styled( AudienceEditor )`
 	margin: 0 0 40px;
 
 	.audience-editor__include {

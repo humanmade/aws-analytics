@@ -54,7 +54,7 @@ class Options extends Component {
 					active: post.status === 'publish',
 					post,
 					title: post.title.raw,
-					canSave: post.title.raw.length > 0
+					canSave: post.title.raw.length > 0,
 				} );
 			} catch ( error ) {
 				this.setState( { error } );
@@ -166,6 +166,6 @@ class Options extends Component {
 			</StyledOptions>
 		);
 	}
-};
+}
 
 export default Options;

@@ -80,8 +80,7 @@ const Group = props => {
 	);
 };
 
-
-const StyledGroup = styled(Group)`
+const StyledGroup = styled( Group )`
 	background: rgba(0, 0, 0, 0.02);
 	border-radius: 3px;
 	border: 1px solid rgba(0, 0, 0, .1);

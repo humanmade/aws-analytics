@@ -84,7 +84,7 @@ const Rule = props => {
 	);
 };
 
-const StyledRule = styled(Rule)`
+const StyledRule = styled( Rule )`
 	margin: 0 0 15px;
 	display: flex;
 
