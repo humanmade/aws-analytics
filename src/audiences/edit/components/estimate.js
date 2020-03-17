@@ -9,7 +9,6 @@ const { __ } = wp.i18n;
 const Estimate = props => {
 	const {
 		audience,
-		title,
 		sparkline = true,
 	} = props;
 
@@ -39,8 +38,6 @@ const Estimate = props => {
 
 	return (
 		<div className={ `audience-estimate ${ props.className || '' }` }>
-			{ title && <h4>{ title }</h4> }
-
 			{ estimate.error && (
 				<div className="audience-estimate__error error msg">{ estimate.error.message }</div>
 			) }
@@ -76,12 +73,6 @@ const Estimate = props => {
 
 const StyledEstimate = styled( Estimate )`
 	display: ${ props => props.horizontal ? 'flex' : 'block' };
-
-	h4 {
-		flex: 0;
-		width: 100%;
-		margin: 0;
-	}
 
 	.audience-estimate__totals p:last-child {
 		margin-bottom: 0;

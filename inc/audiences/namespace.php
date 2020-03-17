@@ -83,9 +83,24 @@ function meta_boxes() {
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
 
 	// Add our replaced submitdiv meta box.
-	add_meta_box( 'audience-options', __( 'Options', 'altis-analytics' ), function () {
-		echo '<div id="altis-analytics-audience-options"></div>';
-	}, POST_TYPE, 'side', 'high' );
+	add_meta_box(
+		'audience-options',
+		__( 'Audience Options', 'altis-analytics' ),
+		__NAMESPACE__ . '\\audience_options_ui',
+		POST_TYPE,
+		'side',
+		'high'
+	);
+}
+
+function audience_options_ui( WP_Post $post ) {
+	echo sprintf(
+		'<div id="altis-analytics-audience-options" data-post-id="%d">' .
+		'<noscript><div class="error msg">%s</div></noscript>' .
+		'</div>',
+		$post->ID,
+		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
+	);
 }
 
 /**
@@ -99,12 +114,15 @@ function audience_ui( WP_Post $post ) {
 	}
 
 	echo sprintf(
-		'<div id="altis-analytics-audience-ui" data-audience="%s" data-fields="%s">' .
-		'<p><span class="spinner is-active"></span> %s</p>' .
+		'<div id="altis-analytics-audience-ui" data-post-id="%d" data-audience="%s" data-fields="%s">' .
+		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
+		'<noscript><div class="error msg">%s</div></noscript>' .
 		'</div>',
+		$post->ID,
 		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
 		esc_attr( wp_json_encode( get_field_data() ) ),
-		esc_html__( 'Loading...', 'altis-analytics' )
+		esc_html__( 'Loading...', 'altis-analytics' ),
+		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
 	);
 }
 
@@ -118,12 +136,17 @@ function estimate_ui( WP_Post $post ) {
 		return;
 	}
 
+	$audience = get_audience( $post->ID );
+
 	echo sprintf(
 		'<div class="altis-analytics-audience-estimate" data-audience="%s">' .
-		'<p><span class="spinner is-active"></span> %s</p>' .
+		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
+		'<noscript>%s</noscript>' .
 		'</div>',
-		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
-		esc_html__( 'Loading...', 'altis-analytics' )
+		esc_attr( wp_json_encode( $audience ) ),
+		esc_html__( 'Loading...', 'altis-analytics' ),
+		// translators: %d is the number of visitors matching the audience
+		sprintf( esc_html__( '%d visitors in the last 7 days', 'altis-analytics' ), $audience['count'] ?? 0 )
 	);
 }
 

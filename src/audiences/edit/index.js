@@ -79,7 +79,15 @@ const Edit = props => {
 				</div>
 			) }
 
-			{ AudienceOptionsUI && ReactDOM.createPortal( <Options audience={ audience } />, AudienceOptionsUI ) }
+			{ /* A portal is used here to support the legacy post edit screen publish meta boxes and to
+				pass the actively edited audience through to the Options */ }
+			{ AudienceOptionsUI && ReactDOM.createPortal(
+				<Options
+					audience={ audience }
+					postId={ props.postId }
+				/>,
+				AudienceOptionsUI
+			) }
 
 			<div className="audience-editor__include">
 				<SelectInclude
@@ -125,8 +133,8 @@ const Edit = props => {
 								>
 									{ ( ! currentField.type || currentField.type === 'string' ) && (
 										<Fragment>
-											<option value="=">{ __( 'equals', 'altis-analytics' ) }</option>
-											<option value="!=">{ __( 'does not equal', 'altis-analytics' ) }</option>
+											<option value="=">{ __( 'is', 'altis-analytics' ) }</option>
+											<option value="!=">{ __( 'is not', 'altis-analytics' ) }</option>
 											<option value="*=">{ __( 'contains', 'altis-analytics' ) }</option>
 											<option value="!*">{ __( 'does not contain', 'altis-analytics' ) }</option>
 											<option value="^=">{ __( 'begins with', 'altis-analytics' ) }</option>

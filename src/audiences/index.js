@@ -13,6 +13,7 @@ if ( AudienceUI ) {
 	// Mount audience react app.
 	ReactDOM.render(
 		<Edit
+			postId={ AudienceUI.dataset.postId }
 			audience={ JSON.parse( AudienceUI.dataset.audience || null ) }
 			fields={ JSON.parse( AudienceUI.dataset.fields || [] ) }
 		/>,
