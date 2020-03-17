@@ -18,7 +18,8 @@ const Group = props => {
 		include,
 		rules,
 		fields,
-		children,
+		canRemove,
+		onRemove,
 	} = props;
 
 	const updateRule = ( ruleId, rule ) => {
@@ -46,23 +47,14 @@ const Group = props => {
 					onChange={ value => updateRule( ruleId, value ) }
 					fields={ fields }
 					namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
+					canRemove={ rules.length > 1 }
+					onRemove={ () => {
+						const newRules = rules.slice();
+						newRules.splice( ruleId, 1 );
+						onChange( { rules: newRules } );
+					} }
 					{ ...rule }
-				>
-					{ rules.length > 1 && (
-						<Button
-							className="audience-editor__rule-remove"
-							isDestructive
-							isLink
-							onClick={ () => {
-								const newRules = rules.slice();
-								newRules.splice( ruleId, 1 );
-								onChange( { rules: newRules } );
-							} }
-						>
-							{ __( 'Remove', 'altis-analytics' ) }
-						</Button>
-					) }
-				</Rule>
+				/>
 			) ) }
 
 			<div className="audience-editor__group-footer">
@@ -74,7 +66,16 @@ const Group = props => {
 					{ __( 'Add a rule', 'altis-analytics' ) }
 				</Button>
 
-				{ children }
+				{ canRemove && (
+					<Button
+						className="audience-editor__group-remove"
+						isDestructive
+						isLink
+						onClick={ onRemove }
+					>
+						{ __( 'Remove group', 'altis-analytics' ) }
+					</Button>
+				) }
 			</div>
 		</div>
 	);

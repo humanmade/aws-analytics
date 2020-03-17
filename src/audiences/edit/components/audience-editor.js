@@ -50,23 +50,14 @@ class AudienceEditor extends Component {
 						onChange={ value => this.updateGroup( groupId, value ) }
 						namePrefix={ `audience[groups][${ groupId }]` }
 						fields={ fields }
+						canRemove={ audience.groups.length > 1 }
+						onRemove={ () => {
+							const newGroups = audience.groups.slice();
+							newGroups.splice( groupId, 1 );
+							this.updateAudience( { groups: newGroups } );
+						} }
 						{ ...group }
-					>
-						{ audience.groups.length > 1 && (
-							<Button
-								className="audience-editor__group-remove"
-								isDestructive
-								isLink
-								onClick={ () => {
-									const newGroups = audience.groups.slice();
-									newGroups.splice( groupId, 1 );
-									this.updateAudience( { groups: newGroups } );
-								} }
-							>
-								{ __( 'Remove group', 'altis-analytics' ) }
-							</Button>
-						) }
-					</Group>
+					/>
 				) ) }
 
 				<Button

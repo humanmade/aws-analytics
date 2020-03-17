@@ -14,7 +14,8 @@ const Rule = props => {
 		operator,
 		onChange,
 		value,
-		children = null,
+		canRemove,
+		onRemove,
 	} = props;
 
 	const currentField = fields.filter( fieldData => fieldData.name === field )[0] || {};
@@ -79,7 +80,16 @@ const Rule = props => {
 				/>
 			) }
 
-			{ children }
+			{ canRemove && (
+				<Button
+					className="audience-editor__rule-remove"
+					isDestructive
+					isLink
+					onClick={ onRemove }
+				>
+					{ __( 'Remove', 'altis-analytics' ) }
+				</Button>
+			) }
 		</div>
 	);
 };
