@@ -6,11 +6,39 @@ import { getEstimate } from '../data';
 
 const { __ } = wp.i18n;
 
+const StyledEstimate = styled.div`
+	display: ${ props => props.horizontal ? 'flex' : 'block' };
+	margin: 0 0 ${ props => props.horizontal ? 0 : '20px' };
+
+	.audience-estimate__totals p:last-child {
+		margin-bottom: 0;
+	}
+
+	.audience-estimate__totals strong {
+		font-size: 135%;
+		font-weight: normal;
+		margin-right: 2px;
+	}
+
+	.audience-estimate__totals {
+		flex: 1;
+	}
+
+	svg {
+		flex: 0 0 ${ props => props.horizontal ? '200px' : '100%' };
+		width: ${ props => props.horizontal ? '200px' : '100%' };
+	}
+`;
+
 const Estimate = props => {
 	const {
 		audience,
 		sparkline = true,
 	} = props;
+
+	if ( ! audience ) {
+		return null;
+	}
 
 	const [ loading, setLoading ] = useState( true );
 
@@ -37,7 +65,7 @@ const Estimate = props => {
 	}
 
 	return (
-		<div className={ `audience-estimate ${ props.className || '' }` }>
+		<StyledEstimate className="audience-estimate">
 			{ estimate.error && (
 				<div className="audience-estimate__error error msg">{ estimate.error.message }</div>
 			) }
@@ -67,31 +95,8 @@ const Estimate = props => {
 					<SparklinesLine color="#4667de" />
 				</Sparklines>
 			) }
-		</div>
+		</StyledEstimate>
 	);
 };
 
-const StyledEstimate = styled( Estimate )`
-	display: ${ props => props.horizontal ? 'flex' : 'block' };
-
-	.audience-estimate__totals p:last-child {
-		margin-bottom: 0;
-	}
-
-	.audience-estimate__totals strong {
-		font-size: 135%;
-		font-weight: normal;
-		margin-right: 2px;
-	}
-
-	.audience-estimate__totals {
-		flex: 1;
-	}
-
-	svg {
-		flex: 0 0 ${ props => props.horizontal ? '200px' : '100%' };
-		width: ${ props => props.horizontal ? '200px' : '100%' };
-	}
-`;
-
-export default StyledEstimate;
+export default Estimate;

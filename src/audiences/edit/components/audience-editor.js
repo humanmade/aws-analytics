@@ -11,6 +11,14 @@ import {
 const { __ } = wp.i18n;
 const { Button } = wp.components;
 
+const StyledAudienceEditor = styled.div`
+	margin: 0 0 40px;
+
+	.audience-editor__include {
+		margin: 20px 0;
+	}
+`;
+
 class AudienceEditor extends Component {
 
 	updateAudience( audience ) {
@@ -26,14 +34,10 @@ class AudienceEditor extends Component {
 	}
 
 	render() {
-		const {
-			audience,
-			fields,
-			className,
-		} = this.props;
+		const { audience } = this.props;
 
 		return (
-			<div className={ `audience-editor ${ className }` }>
+			<StyledAudienceEditor className="audience-editor">
 				<div className="audience-editor__include">
 					<SelectInclude
 						name="audience[include]"
@@ -49,7 +53,6 @@ class AudienceEditor extends Component {
 						key={ groupId }
 						onChange={ value => this.updateGroup( groupId, value ) }
 						namePrefix={ `audience[groups][${ groupId }]` }
-						fields={ fields }
 						canRemove={ audience.groups.length > 1 }
 						onRemove={ () => {
 							const newGroups = audience.groups.slice();
@@ -68,7 +71,7 @@ class AudienceEditor extends Component {
 				>
 					{ __( 'Add a group', 'altis-analytics' ) }
 				</Button>
-			</div>
+			</StyledAudienceEditor>
 		);
 	}
 }
@@ -79,12 +82,4 @@ AudienceEditor.defaultProps = {
 	onChange: () => {},
 };
 
-const StyledAudienceEditor = styled( AudienceEditor )`
-	margin: 0 0 40px;
-
-	.audience-editor__include {
-		margin: 20px 0;
-	}
-`;
-
-export default StyledAudienceEditor;
+export default AudienceEditor;

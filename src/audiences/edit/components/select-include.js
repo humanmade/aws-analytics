@@ -13,17 +13,17 @@ const StyledSelect = styled.select`
 	}
 `;
 
-const SelectInclude = ( { value, onChange, label = '', name } ) => {
+const SelectInclude = props => {
 	return (
-		<StyledSelect
-			onChange={ onChange }
-			value={ value }
-			name={ name }
-		>
-			<option value="any">{ __( 'Match any of the following', 'altis-analytics' ) } { label }</option>
-			<option value="all">{ __( 'Match all of the following', 'altis-analytics' ) } { label }</option>
+		<StyledSelect { ...props }>
+			<option value="any">{ __( 'Match any of the following', 'altis-analytics' ) } { props.label }</option>
+			<option value="all">{ __( 'Match all of the following', 'altis-analytics' ) } { props.label }</option>
 		</StyledSelect>
 	);
 };
+
+SelectInclude.defaultProps = {
+	label: '',
+}
 
 export default SelectInclude;

@@ -18,3 +18,9 @@ export const defaultAudience = {
 		defaultGroup,
 	],
 };
+
+export const defaultPost = {
+	title: { rendered: '' },
+	audience: defaultAudience,
+	status: 'draft'
+};

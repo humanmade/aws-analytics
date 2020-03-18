@@ -9,10 +9,33 @@ import { defaultRule } from '../data/defaults';
 const { __ } = wp.i18n;
 const { Button } = wp.components;
 
+const StyledGroup = styled.div`
+	background: rgba(0, 0, 0, 0.02);
+	border-radius: 3px;
+	border: 1px solid rgba(0, 0, 0, .1);
+	padding: 20px;
+	margin: 0 0 20px;
+
+	.audience-editor__group-header {
+		margin: 0 0 15px;
+		display: flex;
+		align-items: baseline;
+	}
+
+	h3 {
+		margin: 0 20px 0 0;
+		text-transform: lowercase;
+		font-variant: small-caps;
+	}
+
+	.audience-editor__group-footer .components-button {
+		margin-right: 10px;
+	}
+`;
+
 const Group = props => {
 	const {
 		title,
-		className,
 		onChange,
 		namePrefix,
 		include,
@@ -30,7 +53,7 @@ const Group = props => {
 	};
 
 	return (
-		<div className={ `audience-editor__group ${ className }` }>
+		<StyledGroup className="audience-editor__group">
 			<div className="audience-editor__group-header">
 				{ title && <h3>{ title }</h3> }
 				<SelectInclude
@@ -77,32 +100,8 @@ const Group = props => {
 					</Button>
 				) }
 			</div>
-		</div>
+		</StyledGroup>
 	);
 };
 
-const StyledGroup = styled( Group )`
-	background: rgba(0, 0, 0, 0.02);
-	border-radius: 3px;
-	border: 1px solid rgba(0, 0, 0, .1);
-	padding: 20px;
-	margin: 0 0 20px;
-
-	.audience-editor__group-header {
-		margin: 0 0 15px;
-		display: flex;
-		align-items: baseline;
-	}
-
-	h3 {
-		margin: 0 20px 0 0;
-		text-transform: lowercase;
-		font-variant: small-caps;
-	}
-
-	.audience-editor__group-footer .components-button {
-		margin-right: 10px;
-	}
-`;
-
-export default StyledGroup;
+export default Group;

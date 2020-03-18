@@ -8,11 +8,12 @@
 namespace Altis\Analytics\Audiences;
 
 use function Altis\Analytics\Audiences\REST_API\get_audience_schema;
-use function Altis\Analytics\Utils\field_type_is;
 use function Altis\Analytics\Utils\get_field_type;
 use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
 use WP_Post;
+use WP_REST_Request;
+use WP_REST_Server;
 
 const POST_TYPE = 'audience';
 
@@ -20,7 +21,7 @@ function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
-	add_action( 'edit_form_after_title', __NAMESPACE__ . '\\audience_ui' );
+	add_action( 'edit_form_top', __NAMESPACE__ . '\\audience_ui' );
 	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
@@ -39,7 +40,7 @@ function register_post_type() {
 		[
 			'public' => false,
 			'show_ui' => true,
-			'supports' => [ 'title' ],
+			'supports' => false,
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
 			'show_in_rest' => true,
@@ -81,26 +82,6 @@ function register_default_event_data_maps() {
 function meta_boxes() {
 	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
-
-	// Add our replaced submitdiv meta box.
-	add_meta_box(
-		'audience-options',
-		__( 'Audience Options', 'altis-analytics' ),
-		__NAMESPACE__ . '\\audience_options_ui',
-		POST_TYPE,
-		'side',
-		'high'
-	);
-}
-
-function audience_options_ui( WP_Post $post ) {
-	echo sprintf(
-		'<div id="altis-analytics-audience-options" data-post-id="%d">' .
-		'<noscript><div class="error msg">%s</div></noscript>' .
-		'</div>',
-		$post->ID,
-		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
-	);
 }
 
 /**
@@ -164,7 +145,7 @@ function save_post( $post_id ) {
 		return;
 	}
 
-	if ( ! is_array( $_POST['audiencce'] ) ) {
+	if ( ! is_array( $_POST['audience'] ) ) {
 		return;
 	}
 
@@ -266,6 +247,8 @@ function admin_enqueue_scripts() {
 		return;
 	}
 
+	wp_dequeue_script( 'post' );
+
 	wp_enqueue_script(
 		'altis-analytics-audience-ui',
 		plugins_url( 'build/audiences.js', dirname( __FILE__, 2 ) ),
@@ -284,7 +267,16 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_style( 'wp-components' );
 
-	$data = [];
+	$data = [
+		'Fields' => get_field_data(),
+	];
+
+	// Add post data server side to load front end quickly on legacy edit screens.
+	if ( isset( $_GET['post'] ) ) {
+		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
+		$data['Current'] = $response->get_data();
+		remove_post_type_support( POST_TYPE, 'title' );
+	}
 
 	wp_add_inline_script(
 		'altis-analytics-audience-ui',
