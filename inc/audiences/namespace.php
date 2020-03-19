@@ -48,6 +48,17 @@ function register_post_type() {
 			'rest_base' => 'audiences',
 			'hierarchical' => false,
 			'admin_cols' => [
+				'active' => [
+					'title' => __( 'Status' ),
+					'function' => function () {
+						$post = $GLOBALS['post'];
+						if ( $post->post_status === 'publish' ) {
+							esc_html_e( 'Active', 'altis-analytics' );
+						} else {
+							esc_html_e( 'Inactive', 'altis-analytics' );
+						}
+					},
+				],
 				'estimate' => [
 					'title' => __( 'Estimate', 'altis-analytics' ),
 					'function' => function () {

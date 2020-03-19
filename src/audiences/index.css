@@ -13,7 +13,3 @@
 .post-type-audience .wp-list-table .audience-estimate .audience-estimate__totals svg {
 	max-width: 120px;
 }
-
-.post-type-audience .wp-list-table .audience-estimate .audience-estimate__totals svg polyline:last-child {
-	stroke-width: 4 !important;
-}

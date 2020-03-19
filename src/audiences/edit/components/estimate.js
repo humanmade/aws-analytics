@@ -22,26 +22,28 @@ const StyledEstimate = styled.div`
 
 	.audience-estimate__totals {
 		flex: 2;
-		padding: 5px 0;
 	}
 
 	.audience-estimate__totals svg {
 		max-width: 220px;
+		margin-top: 5px;
+		margin-bottom: 10px;
 	}
 
 	.audience-estimate__totals p {
-		margin: 10px 0 0;
+		margin: 0;
 	}
 
 	.audience-estimate__totals strong {
-		font-size: 135%;
-		font-weight: normal;
 		margin-right: 2px;
 	}
 `;
 
 const Estimate = props => {
-	const { audience } = props;
+	const {
+		audience,
+		sparkline = false,
+	} = props;
 
 	if ( ! audience ) {
 		return null;
@@ -57,17 +59,19 @@ const Estimate = props => {
 				percent={ percent }
 			/>
 			<div className="audience-estimate__totals">
-				<Sparklines
-					className="audience-estimate__sparkline"
-					data={ estimate.histogram.map( item => item.count ) }
-					preserveAspectRatio="xMidYMid meet"
-				>
-					<SparklinesLine color="rgb(0, 124, 186)" />
-				</Sparklines>
+				{ sparkline && (
+					<Sparklines
+						className="audience-estimate__sparkline"
+						data={ estimate.histogram.map( item => item.count ) }
+						preserveAspectRatio="xMidYMid meet"
+					>
+						<SparklinesLine color="rgb(0, 124, 186)" style={{ strokeWidth: 5 }} />
+					</Sparklines>
+				) }
 				<p className="audience-estimate__count">
 					<strong>{ estimate.count }</strong>
 					{ ' ' }
-					<span>{ __( 'in the last 7 days' ) }</span>
+					<span>{ __( 'uniques in the last 7 days' ) }</span>
 				</p>
 			</div>
 		</StyledEstimate>

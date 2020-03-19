@@ -5,10 +5,11 @@ const StyledPie = styled.svg`
 	circle {
 		fill: transparent;
 		stroke: ${ props => props.stroke || 'rgb(0, 124, 186)' };
-		stroke-width: 3;
+		stroke-linecap: round;
 		stroke-opacity: 0.2;
 		stroke-dasharray: 101 100;
 		stroke-dashoffset: 0;
+		stroke-width: 3;
 		transform: rotate(-90deg);
 		transform-origin: center;
 		transition: stroke-dasharray 0.3s ease-in-out;

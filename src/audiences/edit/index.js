@@ -163,7 +163,7 @@ class Edit extends Component {
 					/>
 
 					<div className="audience-options">
-						<Estimate audience={ post.audience } />
+						<Estimate audience={ post.audience } sparkline />
 						<ToggleControl
 							label={ __( 'Active', 'altis-analytics' ) }
 							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
