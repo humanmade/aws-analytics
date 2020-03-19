@@ -267,6 +267,7 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_style( 'wp-components' );
 
+	// Hydrate with data to speed up the front end.
 	$data = [
 		'Fields' => get_field_data(),
 	];
@@ -275,6 +276,9 @@ function admin_enqueue_scripts() {
 	if ( isset( $_GET['post'] ) ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
+		// Calling the rest function triggers the `rest_api_init` action
+		// where we reinstate title support. It's removed to provide a clean
+		// legacy postedit screen.
 		remove_post_type_support( POST_TYPE, 'title' );
 	}
 
@@ -320,11 +324,11 @@ function get_estimate( array $audience ) : ?array {
 			],
 		],
 		'aggs' => [
-			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.User.UserId.keyword' ] ],
+			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
 			'histogram' => [
 				'histogram' => [
 					'field' => 'event_timestamp',
-					'interval' => 4 * 60 * 60 * 1000, // 4 hour chunks
+					'interval' => 6 * 60 * 60 * 1000, // 6 hour chunks.
 					'extended_bounds' => [
 						'min' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ),
 						'max' => milliseconds(),
@@ -389,7 +393,7 @@ function get_unique_enpoint_count() : ?int {
 			],
 		],
 		'aggs' => [
-			'count' => [ 'cardinality' => [ 'field' => 'endpoint.User.UserId.keyword' ] ],
+			'count' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
 		],
 		'size' => 0,
 		'sort' => [ 'event_timestamp' => 'desc' ],

@@ -7,19 +7,19 @@ import {
 
 const SelectOperator = props => {
 	const {
-		fieldType = 'string',
+		type = 'string'
 	} = props;
 
 	let options = STRING_OPERATIONS;
 
-	if ( fieldType === 'number' ) {
+	if ( type === 'number' ) {
 		options = NUMERIC_OPERATIONS;
 	}
 
 	return (
 		<select { ...props }>
 			{ Object.entries( options ).map( ( [ value, label ] ) => (
-				<option value={ value }>{ label }</option>
+				<option key={ value } value={ value }>{ label }</option>
 			) ) }
 		</select>
 	);

@@ -1,17 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Sparklines, SparklinesLine } from 'react-sparklines';
 import styled from 'styled-components';
 
-import { getEstimate } from '../data';
+import PieChart from './pie-chart';
 
+const { useSelect } = wp.data;
 const { __ } = wp.i18n;
 
 const StyledEstimate = styled.div`
-	display: ${ props => props.horizontal ? 'flex' : 'block' };
-	margin: 0 0 ${ props => props.horizontal ? 0 : '20px' };
+	display: flex;
+	margin: 0;
 
-	.audience-estimate__totals p:last-child {
-		margin-bottom: 0;
+	.audience-estimate__error {
+		flex: 0 0 100%;
+	}
+
+	.audience-estimate__percentage {
+		flex: 0 1 100px;
+		margin-right: 20px;
+	}
+
+	.audience-estimate__totals {
+		flex: 2;
+		padding: 5px 0;
+	}
+
+	.audience-estimate__totals svg {
+		max-width: 220px;
+	}
+
+	.audience-estimate__totals p {
+		margin: 10px 0 0;
 	}
 
 	.audience-estimate__totals strong {
@@ -19,82 +38,38 @@ const StyledEstimate = styled.div`
 		font-weight: normal;
 		margin-right: 2px;
 	}
-
-	.audience-estimate__totals {
-		flex: 1;
-	}
-
-	svg {
-		flex: 0 0 ${ props => props.horizontal ? '200px' : '100%' };
-		width: ${ props => props.horizontal ? '200px' : '100%' };
-	}
 `;
 
 const Estimate = props => {
-	const {
-		audience,
-		sparkline = true,
-	} = props;
+	const { audience } = props;
 
 	if ( ! audience ) {
 		return null;
 	}
 
-	const [ loading, setLoading ] = useState( true );
-
-	const [ estimate, setEstimate ] = useState( {
-		count: 0,
-		total: 0,
-		histogram: [],
-	} );
-
-	const fetchEstimate = () => {
-		( async () => {
-			const estimateResponse = await getEstimate( audience );
-			setEstimate( estimateResponse );
-			setLoading( false );
-		} )();
-	};
-
-	useEffect( fetchEstimate, [ audience ] );
-
-	if ( loading ) {
-		return (
-			<p><span className="spinner is-active"></span> { __( 'Loading...', 'altis-analytics' ) }</p>
-		);
-	}
+	const estimate = useSelect( select => select( 'audience' ).getEstimate( audience ), [ audience ] );
+	const percent = estimate.total ? Math.round( ( estimate.count / estimate.total ) * 100 ) : 0;
 
 	return (
-		<StyledEstimate className="audience-estimate">
-			{ estimate.error && (
-				<div className="audience-estimate__error error msg">{ estimate.error.message }</div>
-			) }
-
+		<StyledEstimate className="audience-estimate" { ...props }>
+			<PieChart
+				className="audience-estimate__percentage"
+				percent={ percent }
+			/>
 			<div className="audience-estimate__totals">
-				<p className="audience-estimate__count">
-					<strong>{ estimate.count }</strong>
-					{ ' ' }
-					<span>{ __( 'in the last 7 days' ) }</span>
-				</p>
-
-				{ estimate.total > 0 && (
-					<p className="audience-estimate__percentage">
-						<strong>{ Math.round( ( estimate.count / estimate.total ) * 100 ) }%</strong>
-						{ ' ' }
-						<span>{ __( 'of total traffic', 'altis-analytics' ) }</span>
-					</p>
-				) }
-			</div>
-
-			{ sparkline && estimate.histogram && estimate.histogram.length > 0 && (
 				<Sparklines
 					className="audience-estimate__sparkline"
 					data={ estimate.histogram.map( item => item.count ) }
 					preserveAspectRatio="xMidYMid meet"
 				>
-					<SparklinesLine color="#4667de" />
+					<SparklinesLine color="rgb(0, 124, 186)" />
 				</Sparklines>
-			) }
+				<p className="audience-estimate__count">
+					<strong>{ estimate.count }</strong>
+					{ ' ' }
+					<span>{ __( 'in the last 7 days' ) }</span>
+				</p>
+			</div>
 		</StyledEstimate>
 	);
 };

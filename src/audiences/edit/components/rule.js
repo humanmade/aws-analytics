@@ -59,7 +59,7 @@ const Rule = props => {
 				name={ `${ namePrefix }[operator]` }
 				value={ operator }
 				onChange={ e => onChange( { operator: e.target.value } ) }
-				fieldType={ currentField.type || 'string' }
+				type={ currentField.type || 'string' }
 				disabled={ fields.length === 0 }
 			/>
 

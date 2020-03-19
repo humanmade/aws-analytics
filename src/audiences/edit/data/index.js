@@ -10,7 +10,7 @@ const INITIAL_STATE = {
 	posts: [],
 	pagination: {},
 	fields: [],
-	estimates: [],
+	estimates: {},
 	post: defaultPost,
 };
 
@@ -36,9 +36,10 @@ const actions = {
 			posts,
 		};
 	},
-	addEstimate( estimate ) {
+	addEstimate( audience, estimate ) {
 		return {
 			type: 'ADD_ESTIMATE',
+			audience,
 			estimate,
 		};
 	},
@@ -66,14 +67,15 @@ export const store = registerStore( 'audience', {
 					fields: action.fields,
 				}
 			case 'ADD_ESTIMATE':
-				if ( state.estimates[ action.key ] ) {
+				const key = JSON.stringify( action.audience );
+				if ( state.estimates[ key ] ) {
 					return state;
 				}
 				return {
 					...state,
 					estimates: {
 						...state.estimates,
-						[ action.key ]: action.estimate,
+						[ key ]: action.estimate,
 					},
 				};
 			case 'ADD_POSTS':
@@ -122,7 +124,7 @@ export const store = registerStore( 'audience', {
 			return state.estimates[ key ] || {
 				count: 0,
 				total: 0,
-				histogram: [],
+				histogram: [].fill( { count: 0 }, 0, 27 ), // Build empty histrogram data.
 			};
 		},
 		getPost( state ) {
@@ -149,7 +151,7 @@ export const store = registerStore( 'audience', {
 			const estimate = yield actions.fetch( {
 				path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
 			} );
-			return actions.addEstimate( estimate );
+			return actions.addEstimate( audience, estimate );
 		},
 		* getPost( id ) {
 			const post = yield actions.fetch( {
@@ -172,13 +174,3 @@ export const store = registerStore( 'audience', {
 		},
 	},
 } );
-
-export const getEstimate = async audience => {
-	const audienceQuery = encodeURIComponent( JSON.stringify( audience ) );
-	// Get audience estimate data.
-	const data = await apiFetch( {
-		path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
-	} );
-
-	return data;
-};

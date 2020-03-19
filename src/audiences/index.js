@@ -5,6 +5,9 @@ import ReactDOM from 'react-dom';
 import Edit from './edit';
 import Estimate from './edit/components/estimate';
 
+// Import the data store file directly.
+import './edit/data';
+
 // Get the audience UI placeholder.
 const AudienceUI = document.getElementById( 'altis-analytics-audience-ui' );
 
@@ -14,8 +17,6 @@ if ( AudienceUI ) {
 	ReactDOM.render(
 		<Edit
 			postId={ AudienceUI.dataset.postId }
-			audience={ JSON.parse( AudienceUI.dataset.audience || null ) }
-			fields={ JSON.parse( AudienceUI.dataset.fields || [] ) }
 		/>,
 		AudienceUI
 	);

@@ -39,6 +39,10 @@ const StyledEdit = styled.div`
 		flex: 0 1 320px;
 		margin: 20px 0 20px 40px;
 	}
+
+	.audience-estimate {
+		margin-bottom: 40px;
+	}
 `;
 
 class Edit extends Component {
@@ -121,7 +125,7 @@ class Edit extends Component {
 		} = this.props;
 
 		return (
-			<StyledEdit className="audience-ui" loading={ loading }>
+			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
 				{ error && (
 					<Notice
 						status="error"
