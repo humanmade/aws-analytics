@@ -229,7 +229,7 @@ const EditWithDispatch = withDispatch( dispatch => {
 			store.setPost( { audience: value } );
 		},
 		setStatus: value => {
-			store.setPost( { status: value ? 'publish' : 'draft' } );
+			store.setPost( { status: value } );
 		},
 	};
 } )( EditWithSelect );
