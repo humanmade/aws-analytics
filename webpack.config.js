@@ -5,6 +5,8 @@ const BundleAnalyzerPlugin = require( 'webpack-bundle-analyzer' )
 	.BundleAnalyzerPlugin;
 const DynamicPublicPathPlugin = require( 'dynamic-public-path-webpack-plugin' );
 const SriPlugin = require( 'webpack-subresource-integrity' );
+const ManifestPlugin = require( 'webpack-manifest-plugin' );
+const { CleanWebpackPlugin } = require( 'clean-webpack-plugin' );
 
 const sharedConfig = {
 	mode: mode,
@@ -14,8 +16,9 @@ const sharedConfig = {
 	},
 	output: {
 		path: path.resolve( __dirname, 'build' ),
-		filename: '[name].js',
-		publicPath: '.',
+		filename: '[name].[hash:8].js',
+		chunkFilename: 'chunk.[id].[chunkhash:8].js',
+		publicPath: '/',
 		libraryTarget: 'this',
 		jsonpFunction: 'AltisAnalyticsJSONP',
 		crossOriginLoading: 'anonymous',
@@ -48,6 +51,10 @@ const sharedConfig = {
 		new webpack.EnvironmentPlugin( {
 			SC_ATTR: 'data-styled-components-altis-analytics',
 		} ),
+		new ManifestPlugin( {
+			writeToFileEmit: true,
+		} ),
+		new CleanWebpackPlugin(),
 	],
 	externals: {
 		'Altis': 'Altis',

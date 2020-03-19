@@ -8,6 +8,7 @@
 namespace Altis\Analytics\Audiences;
 
 use function Altis\Analytics\Audiences\REST_API\get_audience_schema;
+use function Altis\Analytics\Utils\get_asset_url;
 use function Altis\Analytics\Utils\get_field_type;
 use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
@@ -251,7 +252,7 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_script(
 		'altis-analytics-audience-ui',
-		plugins_url( 'build/audiences.js', dirname( __FILE__, 2 ) ),
+		get_asset_url( 'audiences.js' ),
 		[
 			'react',
 			'react-dom',
@@ -261,7 +262,7 @@ function admin_enqueue_scripts() {
 			'wp-components',
 			'wp-api-fetch',
 		],
-		'__AUDIENCE_SCRIPT_HASH__',
+		null,
 		true
 	);
 
@@ -289,7 +290,7 @@ function admin_enqueue_scripts() {
 			'window.Altis.Analytics = window.Altis.Analytics || {};' .
 			'window.Altis.Analytics.BuildURL = %s;' .
 			'window.Altis.Analytics.Audiences = %s;',
-			wp_json_encode( plugins_url( 'build/', dirname( __FILE__, 2 ) ) ),
+			wp_json_encode( plugins_url( 'build', dirname( __FILE__, 2 ) ) ),
 			wp_json_encode( (object) $data )
 		),
 		'before'
@@ -299,7 +300,7 @@ function admin_enqueue_scripts() {
 		'altis-analytics-audience-ui',
 		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
 		[],
-		'__AUDIENCE_STYLE_HASH__'
+		'2020-03-19-1'
 	);
 }
 
