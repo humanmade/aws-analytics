@@ -2,6 +2,18 @@
  * Audiences admin listing styles.
  */
 
-th#last_modified {
+.post-type-audience .wp-list-table th#last_modified {
 	width: 10em;
+}
+
+.post-type-audience .wp-list-table .audience-estimate__percentage {
+	max-width: 60px;
+}
+
+.post-type-audience .wp-list-table .audience-estimate .audience-estimate__totals svg {
+	max-width: 120px;
+}
+
+.post-type-audience .wp-list-table .audience-estimate .audience-estimate__totals svg polyline:last-child {
+	stroke-width: 4 !important;
 }
