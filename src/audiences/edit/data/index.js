@@ -46,7 +46,7 @@ const actions = {
 	setPost( post ) {
 		return {
 			type: 'SET_POST',
-			post
+			post,
 		};
 	},
 	fetch( options ) {
@@ -54,19 +54,20 @@ const actions = {
 			type: 'FETCH_FROM_API',
 			options,
 		};
-	}
+	},
 };
 
 export const store = registerStore( 'audience', {
 	initialState: INITIAL_STATE,
 	reducer( state, action ) {
 		switch ( action.type ) {
-			case 'SET_FIELDS':
+			case 'SET_FIELDS': {
 				return {
 					...state,
 					fields: action.fields,
-				}
-			case 'ADD_ESTIMATE':
+				};
+			}
+			case 'ADD_ESTIMATE': {
 				const key = JSON.stringify( action.audience );
 				if ( state.estimates[ key ] ) {
 					return state;
@@ -78,7 +79,8 @@ export const store = registerStore( 'audience', {
 						[ key ]: action.estimate,
 					},
 				};
-			case 'ADD_POSTS':
+			}
+			case 'ADD_POSTS': {
 				const posts = state.posts.slice();
 				action.posts.forEach( post => {
 					if ( ! posts.filter( existing => post.id === existing.id ).length ) {
@@ -92,27 +94,33 @@ export const store = registerStore( 'audience', {
 					...state,
 					posts,
 				};
-			case 'SET_POST':
-				let updatedPosts;
-				const existingPosts = state.posts.slice();
+			}
+			case 'SET_POST': {
+				let posts = state.posts.slice();
 				if ( action.post.id ) {
-					updatedPosts = existingPosts.map( post => {
+					posts = posts.map( post => {
 						if ( post.id === action.post.id ) {
-							post = { ...post, ...action.post };
+							post = {
+								...post,
+								...action.post,
+							};
 						}
 						return post;
 					} );
 				}
 				return {
 					...state,
-					posts: action.post.id ? updatedPosts : state.posts,
+					posts: action.post.id ? posts : state.posts,
 					post: {
 						...state.post,
 						...action.post,
-					}
+					},
 				};
+			}
+			default: {
+				return state;
+			}
 		}
-		return state;
 	},
 	actions,
 	selectors: {
@@ -132,7 +140,7 @@ export const store = registerStore( 'audience', {
 		},
 		getPosts( state ) {
 			return state.posts;
-		}
+		},
 	},
 	controls: {
 		FETCH_FROM_API( action ) {

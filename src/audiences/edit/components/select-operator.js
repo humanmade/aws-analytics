@@ -7,7 +7,7 @@ import {
 
 const SelectOperator = props => {
 	const {
-		type = 'string'
+		type = 'string',
 	} = props;
 
 	let options = STRING_OPERATIONS;

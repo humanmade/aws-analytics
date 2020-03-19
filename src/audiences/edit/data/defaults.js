@@ -22,5 +22,5 @@ export const defaultAudience = {
 export const defaultPost = {
 	title: { rendered: '' },
 	audience: defaultAudience,
-	status: 'draft'
+	status: 'draft',
 };

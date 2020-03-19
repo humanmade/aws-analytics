@@ -24,6 +24,6 @@ const SelectInclude = props => {
 
 SelectInclude.defaultProps = {
 	label: '',
-}
+};
 
 export default SelectInclude;
