@@ -49,7 +49,7 @@ function register_post_type() {
 			'hierarchical' => false,
 			'admin_cols' => [
 				'active' => [
-					'title' => __( 'Status' ),
+					'title' => __( 'Status', 'altis-analytics' ),
 					'function' => function () {
 						$post = $GLOBALS['post'];
 						if ( $post->post_status === 'publish' ) {
@@ -60,7 +60,7 @@ function register_post_type() {
 					},
 				],
 				'estimate' => [
-					'title' => __( 'Estimate', 'altis-analytics' ),
+					'title' => __( 'Size', 'altis-analytics' ),
 					'function' => function () {
 						estimate_ui( $GLOBALS['post'] );
 					},

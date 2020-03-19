@@ -9,10 +9,12 @@ const { __ } = wp.i18n;
 
 const StyledEstimate = styled.div`
 	display: flex;
+	flex-wrap: wrap;
 	margin: 0;
 
-	.audience-estimate__error {
+	.audience-estimate__title {
 		flex: 0 0 100%;
+		margin: 0 0 20px;
 	}
 
 	.audience-estimate__percentage {
@@ -42,7 +44,8 @@ const StyledEstimate = styled.div`
 const Estimate = props => {
 	const {
 		audience,
-		sparkline = false,
+		sparkline,
+		title,
 	} = props;
 
 	if ( ! audience ) {
@@ -54,6 +57,7 @@ const Estimate = props => {
 
 	return (
 		<StyledEstimate className="audience-estimate" { ...props }>
+			{ title && <h3 className="audience-estimate__title">{ title }</h3> }
 			<PieChart
 				className="audience-estimate__percentage"
 				percent={ percent }
@@ -76,6 +80,12 @@ const Estimate = props => {
 			</div>
 		</StyledEstimate>
 	);
+};
+
+Estimate.defaultProps = {
+	audience: null,
+	sparkline: false,
+	title: '',
 };
 
 export default Estimate;

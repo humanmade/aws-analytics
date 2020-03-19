@@ -132,7 +132,7 @@ export const store = registerStore( 'audience', {
 			return state.estimates[ key ] || {
 				count: 0,
 				total: 0,
-				histogram: [].fill( { count: 0 }, 0, 27 ), // Build empty histrogram data.
+				histogram: new Array( 28 ).fill( { count: 1 } ), // Build empty histrogram data.
 			};
 		},
 		getPost( state ) {
