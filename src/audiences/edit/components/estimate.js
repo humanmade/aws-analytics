@@ -69,7 +69,7 @@ const Estimate = props => {
 						data={ estimate.histogram.map( item => item.count ) }
 						preserveAspectRatio="xMidYMid meet"
 					>
-						<SparklinesLine color="rgb(0, 124, 186)" style={{ strokeWidth: 5 }} />
+						<SparklinesLine color="rgb(0, 124, 186)" style={ { strokeWidth: 5 } } />
 					</Sparklines>
 				) }
 				<p className="audience-estimate__count">
