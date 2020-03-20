@@ -13,8 +13,6 @@ use function Altis\Analytics\Utils\get_field_type;
 use function Altis\Analytics\Utils\milliseconds;
 use function Altis\Analytics\Utils\query;
 use WP_Post;
-use WP_REST_Request;
-use WP_REST_Server;
 
 const POST_TYPE = 'audience';
 
