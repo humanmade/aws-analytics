@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
 
-import { defaultPost } from './data/defaults';
+import { defaultPost, defaultAudience } from './data/defaults';
 
 const {
 	withSelect,
@@ -158,7 +158,7 @@ class Edit extends Component {
 
 				<div className="audience-settings">
 					<AudienceEditor
-						audience={ post.audience }
+						audience={ post.audience || defaultAudience }
 						onChange={ value => setAudience( value ) }
 					/>
 
