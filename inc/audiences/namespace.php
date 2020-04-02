@@ -100,7 +100,7 @@ function audience_ui( WP_Post $post ) {
 		return;
 	}
 
-	echo sprintf(
+	printf(
 		'<div id="altis-analytics-audience-ui" data-post-id="%d" data-audience="%s" data-fields="%s">' .
 		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 		'<noscript><div class="error msg">%s</div></noscript>' .
@@ -125,7 +125,7 @@ function estimate_ui( WP_Post $post ) {
 
 	$audience = get_audience( $post->ID );
 
-	echo sprintf(
+	printf(
 		'<div class="altis-analytics-audience-estimate" data-audience="%s">' .
 		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 		'<noscript>%s</noscript>' .
