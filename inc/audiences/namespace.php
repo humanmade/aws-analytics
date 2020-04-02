@@ -323,7 +323,7 @@ function get_estimate( array $audience ) : ?array {
 					// Set current site.
 					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
 					// Limit event type to pageView.
 					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
 				],
@@ -334,9 +334,9 @@ function get_estimate( array $audience ) : ?array {
 			'histogram' => [
 				'histogram' => [
 					'field' => 'event_timestamp',
-					'interval' => 6 * 60 * 60 * 1000, // 6 hour chunks.
+					'interval' => 6 * HOUR_IN_SECONDS * 1000, // 6 hour chunks.
 					'extended_bounds' => [
-						'min' => Utils\milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ),
+						'min' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
 						'max' => Utils\milliseconds(),
 					],
 				],
@@ -392,7 +392,7 @@ function get_unique_enpoint_count() : ?int {
 					// Set current site.
 					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
 					// Limit event type to pageView.
 					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
 				],
@@ -470,7 +470,7 @@ function get_field_data() : ?array {
 					// Query for current site.
 					[ 'term' => [ 'attributes.blogId.keyword' => (string) get_current_blog_id() ] ],
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
 				],
 			],
 		],
