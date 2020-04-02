@@ -302,12 +302,10 @@ function get_field_type( string $field ) : ?string {
 		'session.stop_timestamp',
 	];
 
-	$is_numeric = (
-		in_array( $field, $numeric_fields, true ) ||
-		stripos( $field, 'metrics' ) !== false
-	);
+	$is_numeric_field = in_array( $field, $numeric_fields, true );
+	$is_metric = stripos( $field, 'metrics' ) !== false;
 
-	if ( $is_numeric ) {
+	if ( $is_numeric_field || $is_metric ) {
 		return 'number';
 	}
 
