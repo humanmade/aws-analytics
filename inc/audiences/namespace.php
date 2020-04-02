@@ -370,7 +370,7 @@ function get_estimate( array $audience ) : ?array {
 
 	$estimate = [
 		'count' => $result['aggregations']['estimate']['value'],
-		'total' => get_unique_enpoint_count(),
+		'total' => get_unique_endpoint_count(),
 		'histogram' => array_values( $histogram ),
 	];
 
@@ -384,7 +384,7 @@ function get_estimate( array $audience ) : ?array {
  *
  * @return integer|null
  */
-function get_unique_enpoint_count() : ?int {
+function get_unique_endpoint_count() : ?int {
 	$query = [
 		'query' => [
 			'bool' => [
