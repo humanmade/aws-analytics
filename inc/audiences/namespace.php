@@ -236,7 +236,10 @@ function get_fields() : array {
  */
 function register_field( string $field, string $label ) {
 	global $altis_analytics_event_data_maps;
-	$altis_analytics_event_data_maps = $altis_analytics_event_data_maps ?: [];
+	if ( empty( $altis_analytics_event_data_maps ) ) {
+		$altis_analytics_event_data_maps = [];
+	}
+
 	$altis_analytics_event_data_maps[ $field ] = [
 		'name' => $field,
 		'label' => $label,
