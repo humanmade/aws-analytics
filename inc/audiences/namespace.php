@@ -324,16 +324,36 @@ function get_estimate( array $audience ) : ?array {
 			'bool' => [
 				'filter' => [
 					// Set current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
+
 					// Limit event type to pageView.
-					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+					[
+						'term' => [
+							'event_type.keyword' => 'pageView',
+						],
+					],
 				],
 			],
 		],
 		'aggs' => [
-			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
+			'estimate' => [
+				'cardinality' => [
+					'field' => 'endpoint.Id.keyword',
+				],
+			],
 			'histogram' => [
 				'histogram' => [
 					'field' => 'event_timestamp',
@@ -346,7 +366,9 @@ function get_estimate( array $audience ) : ?array {
 			],
 		],
 		'size' => 0,
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	// Append the groups query.
@@ -393,19 +415,41 @@ function get_unique_endpoint_count() : ?int {
 			'bool' => [
 				'filter' => [
 					// Set current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
+
 					// Limit event type to pageView.
-					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+					[
+						'term' => [
+							'event_type.keyword' => 'pageView',
+						],
+					],
 				],
 			],
 		],
 		'aggs' => [
-			'count' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
+			'count' => [
+				'cardinality' => [
+					'field' => 'endpoint.Id.keyword',
+				],
+			],
 		],
 		'size' => 0,
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	$cache = wp_cache_get( 'total-uniques', 'altis-audiences' );
@@ -471,15 +515,28 @@ function get_field_data() : ?array {
 			'bool' => [
 				'filter' => [
 					// Query for current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => (string) get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => (string) get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
 				],
 			],
 		],
 		'size' => 0,
 		'aggs' => [],
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	foreach ( $maps as $map ) {
@@ -581,27 +638,37 @@ function build_audience_query( array $audience ) : array {
 				switch ( $rule['operator'] ) {
 					case '=':
 						$rule_query['bool']['filter'][] = [
-							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+							'term' => [
+								"{$rule['field']}.keyword" => $rule['value'],
+							],
 						];
 						break;
 					case '!=':
 						$rule_query['bool']['must_not'][] = [
-							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+							'term' => [
+								"{$rule['field']}.keyword" => $rule['value'],
+							],
 						];
 						break;
 					case '*=':
 						$rule_query['bool']['filter'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "*{$rule['value']}*",
+							],
 						];
 						break;
 					case '!*':
 						$rule_query['bool']['must_not'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "*{$rule['value']}*",
+							],
 						];
 						break;
 					case '^=':
 						$rule_query['bool']['filter'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "{$rule['value']}*",
+							],
 						];
 						break;
 				}
