@@ -7,11 +7,7 @@
 
 namespace Altis\Analytics\Audiences;
 
-use function Altis\Analytics\Audiences\REST_API\get_audience_schema;
-use function Altis\Analytics\Utils\get_asset_url;
-use function Altis\Analytics\Utils\get_field_type;
-use function Altis\Analytics\Utils\milliseconds;
-use function Altis\Analytics\Utils\query;
+use Altis\Analytics\Utils;
 use WP_Post;
 
 const POST_TYPE = 'audience';
@@ -104,7 +100,7 @@ function audience_ui( WP_Post $post ) {
 		return;
 	}
 
-	echo sprintf(
+	printf(
 		'<div id="altis-analytics-audience-ui" data-post-id="%d" data-audience="%s" data-fields="%s">' .
 		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 		'<noscript><div class="error msg">%s</div></noscript>' .
@@ -129,7 +125,7 @@ function estimate_ui( WP_Post $post ) {
 
 	$audience = get_audience( $post->ID );
 
-	echo sprintf(
+	printf(
 		'<div class="altis-analytics-audience-estimate" data-audience="%s">' .
 		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 		'<noscript>%s</noscript>' .
@@ -174,7 +170,7 @@ function save_audience( int $post_id, array $audience ) : bool {
 	delete_post_meta( $post_id, 'audience_error' );
 
 	// Validate using audience schema.
-	$valid = rest_validate_value_from_schema( $audience, get_audience_schema(), 'audience' );
+	$valid = rest_validate_value_from_schema( $audience, REST_API\get_audience_schema(), 'audience' );
 
 	if ( is_wp_error( $valid ) ) {
 		update_post_meta( $post_id, 'audience_error', $valid->get_error_message() );
@@ -240,11 +236,14 @@ function get_fields() : array {
  */
 function register_field( string $field, string $label ) {
 	global $altis_analytics_event_data_maps;
-	$altis_analytics_event_data_maps = $altis_analytics_event_data_maps ?: [];
+	if ( empty( $altis_analytics_event_data_maps ) ) {
+		$altis_analytics_event_data_maps = [];
+	}
+
 	$altis_analytics_event_data_maps[ $field ] = [
 		'name' => $field,
 		'label' => $label,
-		'type' => get_field_type( $field ),
+		'type' => Utils\get_field_type( $field ),
 	];
 	ksort( $altis_analytics_event_data_maps );
 }
@@ -261,7 +260,7 @@ function admin_enqueue_scripts() {
 
 	wp_enqueue_script(
 		'altis-analytics-audience-ui',
-		get_asset_url( 'audiences.js' ),
+		Utils\get_asset_url( 'audiences.js' ),
 		[
 			'react',
 			'react-dom',
@@ -325,29 +324,51 @@ function get_estimate( array $audience ) : ?array {
 			'bool' => [
 				'filter' => [
 					// Set current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
+
 					// Limit event type to pageView.
-					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+					[
+						'term' => [
+							'event_type.keyword' => 'pageView',
+						],
+					],
 				],
 			],
 		],
 		'aggs' => [
-			'estimate' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
+			'estimate' => [
+				'cardinality' => [
+					'field' => 'endpoint.Id.keyword',
+				],
+			],
 			'histogram' => [
 				'histogram' => [
 					'field' => 'event_timestamp',
-					'interval' => 6 * 60 * 60 * 1000, // 6 hour chunks.
+					'interval' => 6 * HOUR_IN_SECONDS * 1000, // 6 hour chunks.
 					'extended_bounds' => [
-						'min' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ),
-						'max' => milliseconds(),
+						'min' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+						'max' => Utils\milliseconds(),
 					],
 				],
 			],
 		],
 		'size' => 0,
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	// Append the groups query.
@@ -359,7 +380,7 @@ function get_estimate( array $audience ) : ?array {
 		return $cache;
 	}
 
-	$result = query( $query );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		return $result;
@@ -374,7 +395,7 @@ function get_estimate( array $audience ) : ?array {
 
 	$estimate = [
 		'count' => $result['aggregations']['estimate']['value'],
-		'total' => get_unique_enpoint_count(),
+		'total' => get_unique_endpoint_count(),
 		'histogram' => array_values( $histogram ),
 	];
 
@@ -388,25 +409,47 @@ function get_estimate( array $audience ) : ?array {
  *
  * @return integer|null
  */
-function get_unique_enpoint_count() : ?int {
+function get_unique_endpoint_count() : ?int {
 	$query = [
 		'query' => [
 			'bool' => [
 				'filter' => [
 					// Set current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
+
 					// Limit event type to pageView.
-					[ 'term' => [ 'event_type.keyword' => 'pageView' ] ],
+					[
+						'term' => [
+							'event_type.keyword' => 'pageView',
+						],
+					],
 				],
 			],
 		],
 		'aggs' => [
-			'count' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
+			'count' => [
+				'cardinality' => [
+					'field' => 'endpoint.Id.keyword',
+				],
+			],
 		],
 		'size' => 0,
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	$cache = wp_cache_get( 'total-uniques', 'altis-audiences' );
@@ -414,7 +457,7 @@ function get_unique_enpoint_count() : ?int {
 		return $cache;
 	}
 
-	$result = query( $query );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		return $result;
@@ -472,20 +515,33 @@ function get_field_data() : ?array {
 			'bool' => [
 				'filter' => [
 					// Query for current site.
-					[ 'term' => [ 'attributes.blogId.keyword' => (string) get_current_blog_id() ] ],
+					[
+						'term' => [
+							'attributes.blogId.keyword' => (string) get_current_blog_id(),
+						],
+					],
+
 					// Last 7 days.
-					[ 'range' => [ 'event_timestamp' => [ 'gte' => milliseconds() - ( 7 * 24 * 60 * 60 * 1000 ) ] ] ],
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+							],
+						],
+					],
 				],
 			],
 		],
 		'size' => 0,
 		'aggs' => [],
-		'sort' => [ 'event_timestamp' => 'desc' ],
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	foreach ( $maps as $map ) {
 		// For numeric fields get a simple stats aggregation.
-		if ( get_field_type( $map['name'] ) === 'number' ) {
+		if ( Utils\get_field_type( $map['name'] ) === 'number' ) {
 			$query['aggs'][ $map['name'] ] = [
 				'stats' => [
 					'field' => $map['name'],
@@ -493,7 +549,7 @@ function get_field_data() : ?array {
 			];
 		}
 		// Default to terms aggregations for top 100 different values available for each field.
-		if ( get_field_type( $map['name'] ) === 'string' ) {
+		if ( Utils\get_field_type( $map['name'] ) === 'string' ) {
 			$query['aggs'][ $map['name'] ] = [
 				'terms' => [
 					'field' => "{$map['name']}.keyword",
@@ -503,7 +559,7 @@ function get_field_data() : ?array {
 		}
 	}
 
-	$result = query( $query );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		return $result;
@@ -578,38 +634,48 @@ function build_audience_query( array $audience ) : array {
 			];
 
 			// Handle string comparisons.
-			if ( get_field_type( $rule['field'] ) === 'string' ) {
+			if ( Utils\get_field_type( $rule['field'] ) === 'string' ) {
 				switch ( $rule['operator'] ) {
 					case '=':
 						$rule_query['bool']['filter'][] = [
-							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+							'term' => [
+								"{$rule['field']}.keyword" => $rule['value'],
+							],
 						];
 						break;
 					case '!=':
 						$rule_query['bool']['must_not'][] = [
-							'term' => [ "{$rule['field']}.keyword" => $rule['value'] ],
+							'term' => [
+								"{$rule['field']}.keyword" => $rule['value'],
+							],
 						];
 						break;
 					case '*=':
 						$rule_query['bool']['filter'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "*{$rule['value']}*",
+							],
 						];
 						break;
 					case '!*':
 						$rule_query['bool']['must_not'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "*{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "*{$rule['value']}*",
+							],
 						];
 						break;
 					case '^=':
 						$rule_query['bool']['filter'][] = [
-							'wildcard' => [ "{$rule['field']}.keyword" => "{$rule['value']}*" ],
+							'wildcard' => [
+								"{$rule['field']}.keyword" => "{$rule['value']}*",
+							],
 						];
 						break;
 				}
 			}
 
 			// Handle numeric field comparisons.
-			if ( get_field_type( $rule['field'] ) === 'number' ) {
+			if ( Utils\get_field_type( $rule['field'] ) === 'number' ) {
 				$rule_query['bool']['filter'][] = [
 					'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
 				];

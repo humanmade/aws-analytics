@@ -7,12 +7,7 @@
 
 namespace Altis\Analytics\Audiences\REST_API;
 
-use const Altis\Analytics\Audiences\POST_TYPE;
-
-use function Altis\Analytics\Audiences\get_audience;
-use function Altis\Analytics\Audiences\get_estimate;
-use function Altis\Analytics\Audiences\save_audience;
-
+use Altis\Analytics\Audiences;
 use WP_Error;
 use WP_Post;
 use WP_REST_Request;
@@ -31,15 +26,15 @@ function setup() {
  */
 function init() {
 	// Add post type support for title in the API only.
-	add_post_type_support( POST_TYPE, 'title' );
-	add_post_type_support( POST_TYPE, 'excerpt' );
+	add_post_type_support( Audiences\POST_TYPE, 'title' );
+	add_post_type_support( Audiences\POST_TYPE, 'excerpt' );
 
 	// Fetch data for available fields and possible values.
 	register_rest_route( 'analytics/v1', 'audiences/fields', [
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
-			'permissions_callback' => __NAMESPACE__ . '\\permissions',
+			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
 		],
 		'schema' => [
 			'type' => 'array',
@@ -88,7 +83,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
-			'permissions_callback' => __NAMESPACE__ . '\\permissions',
+			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
@@ -119,12 +114,12 @@ function init() {
 	] );
 
 	// Handle the audience configuration data retrieval and saving via the REST API.
-	register_rest_field( POST_TYPE, 'audience', [
+	register_rest_field( Audiences\POST_TYPE, 'audience', [
 		'get_callback' => function ( array $post ) {
-			return get_audience( $post['id'] );
+			return Audiences\get_audience( $post['id'] );
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
-			return save_audience( $post->ID, (array) $value );
+			return Audiences\save_audience( $post->ID, (array) $value );
 		},
 		'schema' => get_audience_schema(),
 	] );
@@ -185,7 +180,7 @@ function get_audience_schema() : array {
  */
 function handle_estimate_request( WP_REST_Request $request ) : WP_REST_Response {
 	$audience = $request->get_param( 'audience' );
-	$estimate = get_estimate( $audience );
+	$estimate = Audiences\get_estimate( $audience );
 	return rest_ensure_response( $estimate );
 }
 
@@ -233,6 +228,6 @@ function sanitize_estimate_audience( $param ) {
  *
  * @return bool
  */
-function permissions() : bool {
+function check_edit_permission() : bool {
 	return current_user_can( 'edit_audience' );
 }

@@ -136,18 +136,24 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
 		if ( is_wp_error( $response ) ) {
-			trigger_error( sprintf(
-				"Analytics: elasticsearch query failed:\n%s\n%s",
-				$url,
-				$response->get_error_message()
-			), E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					"Analytics: elasticsearch query failed:\n%s\n%s",
+					$url,
+					$response->get_error_message()
+				),
+				E_USER_WARNING
+			);
 		} else {
-			trigger_error( sprintf(
-				"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
-				$url,
-				json_encode( $query ),
-				wp_remote_retrieve_body( $response )
-			), E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
+					$url,
+					json_encode( $query ),
+					wp_remote_retrieve_body( $response )
+				),
+				E_USER_WARNING
+			);
 		}
 		return null;
 	}
@@ -162,12 +168,15 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 
 	// Enable logging for analytics queries.
 	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		trigger_error( sprintf(
-			"Analytics: elasticsearch query:\n%s\n%s\n%s",
-			$url,
-			json_encode( $query ),
-			wp_remote_retrieve_body( $response )
-		), E_USER_NOTICE );
+		trigger_error(
+			sprintf(
+				"Analytics: elasticsearch query:\n%s\n%s\n%s",
+				$url,
+				json_encode( $query ),
+				wp_remote_retrieve_body( $response )
+			),
+			E_USER_NOTICE
+		);
 	}
 
 	return $result;
@@ -293,12 +302,10 @@ function get_field_type( string $field ) : ?string {
 		'session.stop_timestamp',
 	];
 
-	$is_numeric = (
-		in_array( $field, $numeric_fields, true ) ||
-		stripos( $field, 'metrics' ) !== false
-	);
+	$is_numeric_field = in_array( $field, $numeric_fields, true );
+	$is_metric = stripos( $field, 'metrics' ) !== false;
 
-	if ( $is_numeric ) {
+	if ( $is_numeric_field || $is_metric ) {
 		return 'number';
 	}
 
