@@ -74,9 +74,7 @@ if ( mode === 'production' ) {
 		hashFuncNames: [ 'sha384' ],
 		enabled: true,
 	} ) );
-}
-
-if ( mode !== 'production' ) {
+} else {
 	sharedConfig.devtool = 'cheap-module-eval-source-map';
 }
 
