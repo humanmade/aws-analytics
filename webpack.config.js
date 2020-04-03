@@ -37,6 +37,7 @@ const sharedConfig = {
 						],
 						plugins: [
 							require( '@babel/plugin-transform-runtime' ),
+							require( '@babel/plugin-proposal-class-properties' ),
 							require( '@wordpress/babel-plugin-import-jsx-pragma' ),
 						],
 					},
