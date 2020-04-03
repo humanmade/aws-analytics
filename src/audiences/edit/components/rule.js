@@ -40,12 +40,12 @@ const RuleInput = props => {
 			return (
 				<input
 					className="regular-text"
+					disabled={ disabled }
 					name={ name }
 					placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg || __( 'unknown', 'altis-analytics' ) }` }
 					type="number"
 					value={ value }
 					onChange={ onChange }
-					disabled={ disabled }
 				/>
 			);
 
@@ -57,14 +57,20 @@ const RuleInput = props => {
 					return (
 						<select
 							className="audience-editor__rule-value"
+							disabled={ disabled }
 							name={ name }
 							value={ value }
 							onChange={ onChange }
-							disabled={ disabled }
 						>
 							<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+
 							{ currentField.data && currentField.data.map( datum => (
-								<option key={ datum.value } value={ datum.value }>{ datum.value }</option>
+								<option
+									key={ datum.value }
+									value={ datum.value }
+								>
+									{ datum.value }
+								</option>
 							) ) }
 						</select>
 					);
@@ -75,11 +81,11 @@ const RuleInput = props => {
 					return (
 						<input
 							className="regular-text"
+							disabled={ disabled }
 							name={ name }
 							type="text"
 							value={ value }
 							onChange={ onChange }
-							disabled={ disabled }
 						/>
 					);
 
@@ -112,9 +118,20 @@ const Rule = props => {
 				onChange={ e => onChange( { field: e.target.value } ) }
 				disabled={ fields.length === 0 }
 			>
-				<option value="" className="placeholder">{ __( 'Select a field', 'altis-analytics' ) }</option>
+				<option
+					className="placeholder"
+					value=""
+				>
+					{ __( 'Select a field', 'altis-analytics' ) }
+				</option>
+
 				{ fields.map( fieldData => (
-					<option key={ fieldData.name } value={ fieldData.name }>{ fieldData.label }</option>
+					<option
+						key={ fieldData.name }
+						value={ fieldData.name }
+					>
+						{ fieldData.label }
+					</option>
 				) ) }
 			</select>
 
