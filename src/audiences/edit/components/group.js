@@ -87,7 +87,9 @@ class Group extends Component {
 		return (
 			<StyledGroup className="audience-editor__group">
 				<div className="audience-editor__group-header">
-					{ title && <h3>{ title }</h3> }
+					{ title && (
+						<h3>{ title }</h3>
+					) }
 					<SelectInclude
 						label={ __( 'rules', 'altis-analytics' ) }
 						name={ `${ namePrefix }[include]` }

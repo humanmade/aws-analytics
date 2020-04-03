@@ -57,7 +57,9 @@ const Estimate = props => {
 
 	return (
 		<StyledEstimate className="audience-estimate" { ...props }>
-			{ title && <h3 className="audience-estimate__title">{ title }</h3> }
+			{ title && (
+				<h3 className="audience-estimate__title">{ title }</h3>
+			) }
 			<PieChart
 				className="audience-estimate__percentage"
 				percent={ percent }
