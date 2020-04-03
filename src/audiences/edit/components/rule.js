@@ -95,7 +95,7 @@ const RuleInput = props => {
 	}
 };
 
-const Rule = props => {
+export default function Rule( props ) {
 	const {
 		canRemove,
 		field,
@@ -165,6 +165,4 @@ const Rule = props => {
 			) }
 		</StyledRule>
 	);
-};
-
-export default Rule;
+}

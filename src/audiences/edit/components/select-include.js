@@ -13,17 +13,15 @@ const StyledSelect = styled.select`
 	}
 `;
 
-const SelectInclude = props => {
+export default function SelectInclude( props ) {
 	return (
 		<StyledSelect { ...props }>
 			<option value="any">{ __( 'Match any of the following', 'altis-analytics' ) } { props.label }</option>
 			<option value="all">{ __( 'Match all of the following', 'altis-analytics' ) } { props.label }</option>
 		</StyledSelect>
 	);
-};
+}
 
 SelectInclude.defaultProps = {
 	label: '',
 };
-
-export default SelectInclude;

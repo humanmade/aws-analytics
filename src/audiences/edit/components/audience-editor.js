@@ -19,7 +19,7 @@ const StyledAudienceEditor = styled.div`
 	}
 `;
 
-class AudienceEditor extends Component {
+export default class AudienceEditor extends Component {
 	onChangeInclude = e => {
 		this.props.onChange( {
 			...this.props.audience,
@@ -107,5 +107,3 @@ AudienceEditor.defaultProps = {
 	fields: [],
 	onChange: () => {},
 };
-
-export default AudienceEditor;

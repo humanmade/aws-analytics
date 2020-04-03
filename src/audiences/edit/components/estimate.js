@@ -41,7 +41,7 @@ const StyledEstimate = styled.div`
 	}
 `;
 
-const Estimate = props => {
+export default function Estimate( props ) {
 	const {
 		audience,
 		sparkline,
@@ -82,12 +82,10 @@ const Estimate = props => {
 			</div>
 		</StyledEstimate>
 	);
-};
+}
 
 Estimate.defaultProps = {
 	audience: null,
 	sparkline: false,
 	title: '',
 };
-
-export default Estimate;

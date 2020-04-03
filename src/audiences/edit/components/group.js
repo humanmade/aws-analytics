@@ -32,7 +32,7 @@ const StyledGroup = styled.div`
 	}
 `;
 
-class Group extends Component {
+export default class Group extends Component {
 	onAddRule = () => {
 		this.props.onChange( {
 			rules: [
@@ -133,5 +133,3 @@ class Group extends Component {
 		);
 	}
 }
-
-export default Group;
