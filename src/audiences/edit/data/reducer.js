@@ -35,7 +35,7 @@ export default function reducer( state, action ) {
 			};
 		}
 		case 'SET_POST': {
-			let posts = state.posts.slice();
+			let posts = state.posts;
 			if ( action.post.id ) {
 				posts = posts.map( post => {
 					if ( post.id === action.post.id ) {
