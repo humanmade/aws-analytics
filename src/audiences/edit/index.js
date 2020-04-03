@@ -5,6 +5,7 @@ import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
 import { defaultPost, defaultAudience } from './data/defaults';
 
+const { compose } = wp.compose;
 const {
 	withSelect,
 	withDispatch,
@@ -206,7 +207,7 @@ Edit.defaultProps = {
 	setStatus: () => { },
 };
 
-const EditWithSelect = withSelect( ( select, props ) => {
+const applyWithSelect = withSelect( ( select, props ) => {
 	let post = props.post;
 
 	if ( props.postId ) {
@@ -220,9 +221,9 @@ const EditWithSelect = withSelect( ( select, props ) => {
 		post,
 		loading,
 	};
-} )( Edit );
+} );
 
-const EditWithDispatch = withDispatch( dispatch => {
+const applyWithDispatch = withDispatch( dispatch => {
 	const store = dispatch( 'audience' );
 
 	return {
@@ -236,6 +237,9 @@ const EditWithDispatch = withDispatch( dispatch => {
 			store.setPost( { status: value } );
 		},
 	};
-} )( EditWithSelect );
+} );
 
-export default EditWithDispatch;
+export default compose(
+	applyWithDispatch,
+	applyWithSelect,
+)( Edit );
