@@ -3,7 +3,6 @@ import styled from 'styled-components';
 
 import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
-
 import { defaultPost, defaultAudience } from './data/defaults';
 
 const {
