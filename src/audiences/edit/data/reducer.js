@@ -8,6 +8,7 @@ export default function reducer( state, action ) {
 				fields: action.fields,
 			};
 		}
+
 		case 'ADD_ESTIMATE': {
 			const key = JSON.stringify( action.audience );
 			if ( state.estimates[ key ] ) {
@@ -21,12 +22,14 @@ export default function reducer( state, action ) {
 				},
 			};
 		}
+
 		case 'ADD_POSTS': {
 			return {
 				...state,
 				posts: unionBy( [ state.posts, action.posts ], post => post.id ),
 			};
 		}
+
 		case 'SET_POST': {
 			if ( ! action.post.id ) {
 				return {
@@ -58,6 +61,7 @@ export default function reducer( state, action ) {
 				},
 			};
 		}
+
 		default: {
 			return state;
 		}
