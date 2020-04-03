@@ -112,17 +112,17 @@ class Edit extends Component {
 
 	render() {
 		const {
-			error,
-			notice,
-		} = this.state;
-
-		const {
 			loading,
 			post,
 			onSetTitle,
 			onSetAudience,
 			onSetStatus,
 		} = this.props;
+
+		const {
+			error,
+			notice,
+		} = this.state;
 
 		return (
 			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
