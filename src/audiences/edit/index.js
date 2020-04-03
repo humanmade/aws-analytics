@@ -117,11 +117,11 @@ class Edit extends Component {
 		} = this.state;
 
 		const {
-			post,
-			setTitle,
-			setAudience,
-			setStatus,
 			loading,
+			post,
+			onSetTitle,
+			onSetAudience,
+			onSetStatus,
 		} = this.props;
 
 		return (
@@ -149,7 +149,7 @@ class Edit extends Component {
 						type="text"
 						name="post_title"
 						value={ post.title.rendered }
-						onChange={ e => setTitle( e.target.value ) }
+						onChange={ e => onSetTitle( e.target.value ) }
 						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						ref={ this.titleRef }
 						disabled={ loading }
@@ -159,7 +159,7 @@ class Edit extends Component {
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ value => setAudience( value ) }
+						onChange={ value => onSetAudience( value ) }
 					/>
 
 					<div className="audience-options">
@@ -173,7 +173,7 @@ class Edit extends Component {
 							label={ __( 'Active', 'altis-analytics' ) }
 							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
 							checked={ post.status === 'publish' }
-							onChange={ () => setStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
+							onChange={ () => onSetStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 							disabled={ loading }
 						/>
 						<input type="hidden" name="post_status" value={ post.status } />
@@ -202,9 +202,9 @@ Edit.defaultProps = {
 	post: defaultPost,
 	loading: false,
 	onCreate: () => { },
-	setTitle: () => { },
-	setAudience: () => { },
-	setStatus: () => { },
+	onSetTitle: () => { },
+	onSetAudience: () => { },
+	onSetStatus: () => { },
 };
 
 const applyWithSelect = withSelect( ( select, props ) => {
@@ -227,13 +227,13 @@ const applyWithDispatch = withDispatch( dispatch => {
 	const store = dispatch( 'audience' );
 
 	return {
-		setTitle: value => {
+		onSetTitle: value => {
 			store.setPost( { title: { rendered: value } } );
 		},
-		setAudience: value => {
+		onSetAudience: value => {
 			store.setPost( { audience: value } );
 		},
-		setStatus: value => {
+		onSetStatus: value => {
 			store.setPost( { status: value } );
 		},
 	};
