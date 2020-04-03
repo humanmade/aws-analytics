@@ -7,21 +7,21 @@ import reducer from './reducer';
 const { apiFetch } = wp;
 const { registerStore } = wp.data;
 
-const INITIAL_STATE = {
-	posts: [],
-	pagination: {},
-	fields: [],
+const initialState = {
 	estimates: {},
+	fields: [],
+	pagination: {},
 	post: defaultPost,
+	posts: [],
 };
 
 // Hydrate from server side.
 if ( window.Altis.Analytics.Audiences.Fields ) {
-	INITIAL_STATE.fields = window.Altis.Analytics.Audiences.Fields;
+	initialState.fields = window.Altis.Analytics.Audiences.Fields;
 }
 if ( window.Altis.Analytics.Audiences.Current ) {
-	INITIAL_STATE.posts.push( window.Altis.Analytics.Audiences.Current );
-	INITIAL_STATE.post = window.Altis.Analytics.Audiences.Current;
+	initialState.posts.push( window.Altis.Analytics.Audiences.Current );
+	initialState.post = window.Altis.Analytics.Audiences.Current;
 }
 
 const controls = {
@@ -122,7 +122,7 @@ const resolvers = {
 export const store = registerStore( 'audience', {
 	actions,
 	controls,
-	initialState: INITIAL_STATE,
+	initialState,
 	reducer,
 	resolvers,
 	selectors,
