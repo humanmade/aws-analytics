@@ -50,23 +50,12 @@ class Edit extends Component {
 		notice: null,
 		error: null,
 	};
-	titleRef = createRef();
 
 	componentDidMount() {
 		// Get the form element if there is one. This is for back compat with
 		// the legacy post edit screen.
 		if ( formElement ) {
 			formElement.addEventListener( 'submit', this.onSubmit );
-		}
-
-		// Focus the title.
-		this.titleRef.current.focus();
-	}
-
-	componentDidUpdate( prevProps ) {
-		// Focus the title after loading.
-		if ( prevProps.loading && ! this.props.loading ) {
-			this.titleRef.current.focus();
 		}
 	}
 
@@ -139,6 +128,7 @@ class Edit extends Component {
 				<div id="titlediv">
 					<input
 						ref={ this.titleRef }
+						autoFocus
 						disabled={ loading }
 						id="title"
 						name="post_title"
