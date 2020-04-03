@@ -142,7 +142,7 @@ class Edit extends Component {
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ value => onSetAudience( value ) }
+						onChange={ onSetAudience }
 					/>
 
 					<div className="audience-options">
