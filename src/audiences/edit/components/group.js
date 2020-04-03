@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
 
 import Rule from './rule';
@@ -33,35 +33,25 @@ const StyledGroup = styled.div`
 	}
 `;
 
-const Group = props => {
-	const {
-		title,
-		onChange,
-		namePrefix,
-		include,
-		rules,
-		fields,
-		canRemove,
-		onRemove,
-	} = props;
-
-	const onAddRule = () => {
-		onChange( {
+class Group extends Component {
+	onAddRule = () => {
+		this.props.onChange( {
 			rules: [
-				...rules,
+				...this.props.rules,
 				defaultRule,
 			],
 		} );
 	};
 
-	const onChangeRule = e => {
-		onChange( {
+	onChangeRule = e => {
+		this.props.onChange( {
 			include: e.target.value,
 		} );
 	};
 
-	const onRemoveRule = id => {
-		onChange( {
+	onRemoveRule = id => {
+		const { rules } = this.props;
+		this.props.onChange( {
 			rules: [
 				...rules.slice( 0, id ),
 				...rules.slice( id + 1 ),
@@ -69,8 +59,9 @@ const Group = props => {
 		} );
 	};
 
-	const updateRule = ( ruleId, rule ) => {
-		onChange( {
+	updateRule = ( ruleId, rule ) => {
+		const { rules } = this.props;
+		this.props.onChange( {
 			rules: [
 				...rules.slice( 0, ruleId ),
 				{
@@ -82,52 +73,65 @@ const Group = props => {
 		} );
 	};
 
-	return (
-		<StyledGroup className="audience-editor__group">
-			<div className="audience-editor__group-header">
-				{ title && <h3>{ title }</h3> }
-				<SelectInclude
-					label={ __( 'rules', 'altis-analytics' ) }
-					name={ `${ namePrefix }[include]` }
-					value={ include }
-					onChange={ onChangeRule }
-				/>
-			</div>
+	render() {
+		const {
+			title,
+			onChange,
+			namePrefix,
+			include,
+			rules,
+			fields,
+			canRemove,
+			onRemove,
+		} = this.props;
 
-			{ rules.map( ( rule, ruleId ) => (
-				<Rule
-					key={ ruleId }
-					onChange={ value => updateRule( ruleId, value ) }
-					fields={ fields }
-					namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
-					canRemove={ rules.length > 1 }
-					onRemove={ () => onRemoveRule( ruleId ) }
-					{ ...rule }
-				/>
-			) ) }
+		return (
+			<StyledGroup className="audience-editor__group">
+				<div className="audience-editor__group-header">
+					{ title && <h3>{ title }</h3> }
+					<SelectInclude
+						label={ __( 'rules', 'altis-analytics' ) }
+						name={ `${ namePrefix }[include]` }
+						value={ include }
+						onChange={ this.onChangeRule }
+					/>
+				</div>
 
-			<div className="audience-editor__group-footer">
-				<Button
-					className="audience-editor__group-rule-add"
-					isLarge
-					onClick={ onAddRule }
-				>
-					{ __( 'Add a rule', 'altis-analytics' ) }
-				</Button>
+				{ rules.map( ( rule, ruleId ) => (
+					<Rule
+						key={ ruleId }
+						onChange={ value => this.updateRule( ruleId, value ) }
+						fields={ fields }
+						namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
+						canRemove={ rules.length > 1 }
+						onRemove={ () => this.onRemoveRule( ruleId ) }
+						{ ...rule }
+					/>
+				) ) }
 
-				{ canRemove && (
+				<div className="audience-editor__group-footer">
 					<Button
-						className="audience-editor__group-remove"
-						isDestructive
-						isLink
-						onClick={ onRemove }
+						className="audience-editor__group-rule-add"
+						isLarge
+						onClick={ this.onAddRule }
 					>
-						{ __( 'Remove group', 'altis-analytics' ) }
+						{ __( 'Add a rule', 'altis-analytics' ) }
 					</Button>
-				) }
-			</div>
-		</StyledGroup>
-	);
-};
+
+					{ canRemove && (
+						<Button
+							className="audience-editor__group-remove"
+							isDestructive
+							isLink
+							onClick={ onRemove }
+						>
+							{ __( 'Remove group', 'altis-analytics' ) }
+						</Button>
+					) }
+				</div>
+			</StyledGroup>
+		);
+	}
+}
 
 export default Group;
