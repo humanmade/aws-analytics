@@ -45,11 +45,41 @@ const Group = props => {
 		onRemove,
 	} = props;
 
+	const onAddRule = () => {
+		onChange( {
+			rules: [
+				...rules,
+				defaultRule,
+			],
+		} );
+	};
+
+	const onChangeRule = e => {
+		onChange( {
+			include: e.target.value,
+		} );
+	};
+
+	const onRemoveRule = id => {
+		onChange( {
+			rules: [
+				...rules.slice( 0, id ),
+				...rules.slice( id + 1 ),
+			],
+		} );
+	};
+
 	const updateRule = ( ruleId, rule ) => {
-		const newRules = rules.slice();
-		const newRule = Object.assign( {}, rules[ ruleId ], rule );
-		newRules.splice( ruleId, 1, newRule );
-		onChange( { rules: newRules } );
+		onChange( {
+			rules: [
+				...rules.slice( 0, ruleId ),
+				{
+					...rules[ ruleId ],
+					...rule,
+				},
+				...rules.slice( ruleId + 1 ),
+			],
+		} );
 	};
 
 	return (
@@ -60,7 +90,7 @@ const Group = props => {
 					label={ __( 'rules', 'altis-analytics' ) }
 					name={ `${ namePrefix }[include]` }
 					value={ include }
-					onChange={ e => onChange( { include: e.target.value } ) }
+					onChange={ onChangeRule }
 				/>
 			</div>
 
@@ -71,11 +101,7 @@ const Group = props => {
 					fields={ fields }
 					namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
 					canRemove={ rules.length > 1 }
-					onRemove={ () => {
-						const newRules = rules.slice();
-						newRules.splice( ruleId, 1 );
-						onChange( { rules: newRules } );
-					} }
+					onRemove={ () => onRemoveRule( ruleId ) }
 					{ ...rule }
 				/>
 			) ) }
@@ -84,7 +110,7 @@ const Group = props => {
 				<Button
 					className="audience-editor__group-rule-add"
 					isLarge
-					onClick={ () => onChange( { rules: rules.concat( [ defaultRule ] ) } ) }
+					onClick={ onAddRule }
 				>
 					{ __( 'Add a rule', 'altis-analytics' ) }
 				</Button>

@@ -20,17 +20,47 @@ const StyledAudienceEditor = styled.div`
 `;
 
 class AudienceEditor extends Component {
-
-	updateAudience( audience ) {
-		const updatedAudience = Object.assign( {}, this.props.audience, audience );
-		this.props.onChange( updatedAudience );
+	onChangeInclude = e => {
+		this.props.onChange( {
+			...this.props.audience,
+			include: e.target.value,
+		} );
 	}
 
-	updateGroup( groupId, group = {} ) {
-		const groups = this.props.audience.groups.slice();
-		const newGroup = Object.assign( {}, groups[ groupId ], group );
-		groups.splice( groupId, 1, newGroup );
-		this.updateAudience( { groups } );
+	onAddGroup = () => {
+		this.props.onChange( {
+			...this.props.audience,
+			groups: [
+				...this.props.audience.groups,
+				defaultGroup,
+			],
+		} );
+	}
+
+	onUpdateGroup = ( id, group = {} ) => {
+		const { audience } = this.props;
+		this.props.onChange( {
+			...audience,
+			groups: [
+				...audience.groups.slice( 0, id ),
+				{
+					...audience.groups[ id ],
+					...group,
+				},
+				...audience.groups.slice( id + 1 ),
+			],
+		} );
+	}
+
+	onRemoveGroup = id => {
+		const { audience } = this.props;
+		this.props.onChange( {
+			...audience,
+			groups: [
+				...audience.groups.slice( 0, id ),
+				...audience.groups.slice( id + 1 ),
+			],
+		} );
 	}
 
 	render() {
@@ -43,7 +73,7 @@ class AudienceEditor extends Component {
 						name="audience[include]"
 						label={ __( 'groups', 'altis-analytics' ) }
 						value={ audience.include }
-						onChange={ e => this.updateAudience( { include: e.target.value } ) }
+						onChange={ this.onChangeInclude }
 					/>
 				</div>
 
@@ -51,14 +81,10 @@ class AudienceEditor extends Component {
 					<Group
 						title={ `${ __( 'Group' ) } ${ groupId + 1 }` }
 						key={ groupId }
-						onChange={ value => this.updateGroup( groupId, value ) }
+						onChange={ value => this.onUpdateGroup( groupId, value ) }
 						namePrefix={ `audience[groups][${ groupId }]` }
 						canRemove={ audience.groups.length > 1 }
-						onRemove={ () => {
-							const newGroups = audience.groups.slice();
-							newGroups.splice( groupId, 1 );
-							this.updateAudience( { groups: newGroups } );
-						} }
+						onRemove={ () => this.onRemoveGroup( groupId ) }
 						{ ...group }
 					/>
 				) ) }
@@ -67,7 +93,7 @@ class AudienceEditor extends Component {
 					className="audience-editor__group-add"
 					isLarge
 					isPrimary
-					onClick={ () => this.updateAudience( { groups: audience.groups.concat( [ defaultGroup ] ) } ) }
+					onClick={ this.onAddGroup }
 				>
 					{ __( 'Add a group', 'altis-analytics' ) }
 				</Button>
