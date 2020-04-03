@@ -46,16 +46,11 @@ const StyledEdit = styled.div`
 `;
 
 class Edit extends Component {
-	constructor( props ) {
-		super( props );
-
-		this.state = {
-			notice: null,
-			error: null,
-		};
-
-		this.titleRef = createRef();
-	}
+	state = {
+		notice: null,
+		error: null,
+	};
+	titleRef = createRef();
 
 	componentDidMount() {
 		// Get the form element if there is one. This is for back compat with
