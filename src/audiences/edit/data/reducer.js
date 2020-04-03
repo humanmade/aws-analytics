@@ -1,3 +1,5 @@
+import { unionBy } from 'lodash';
+
 export default function reducer( state, action ) {
 	switch ( action.type ) {
 		case 'SET_FIELDS': {
@@ -20,36 +22,36 @@ export default function reducer( state, action ) {
 			};
 		}
 		case 'ADD_POSTS': {
-			const posts = state.posts.slice();
-			action.posts.forEach( post => {
-				if ( ! posts.filter( existing => post.id === existing.id ).length ) {
-					posts.push( post );
-				}
-			} );
-			if ( state.posts.length === posts.length ) {
-				return state;
-			}
 			return {
 				...state,
-				posts,
+				posts: unionBy( [ state.posts, action.posts ], post => post.id ),
 			};
 		}
 		case 'SET_POST': {
-			let posts = state.posts;
-			if ( action.post.id ) {
-				posts = posts.map( post => {
-					if ( post.id === action.post.id ) {
-						post = {
-							...post,
-							...action.post,
-						};
-					}
-					return post;
-				} );
+			if ( ! action.post.id ) {
+				return {
+					...state,
+					post: {
+						...state.post,
+						...action.post,
+					},
+				};
 			}
+
+			const posts = state.posts.map( post => {
+				if ( post.id !== action.post.id ) {
+					return post;
+				}
+
+				return {
+					...post,
+					...action.post,
+				};
+			} );
+
 			return {
 				...state,
-				posts: action.post.id ? posts : state.posts,
+				posts,
 				post: {
 					...state.post,
 					...action.post,
