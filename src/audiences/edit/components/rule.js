@@ -27,12 +27,12 @@ const StyledRule = styled.div`
 
 const Rule = props => {
 	const {
-		namePrefix,
-		field,
-		operator,
-		onChange,
-		value,
 		canRemove,
+		field,
+		namePrefix,
+		operator,
+		value,
+		onChange,
 		onRemove,
 	} = props;
 

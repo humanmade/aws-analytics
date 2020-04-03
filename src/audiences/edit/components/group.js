@@ -75,13 +75,12 @@ class Group extends Component {
 
 	render() {
 		const {
-			title,
-			onChange,
-			namePrefix,
-			include,
-			rules,
-			fields,
 			canRemove,
+			include,
+			fields,
+			namePrefix,
+			rules,
+			title,
 			onRemove,
 		} = this.props;
 
@@ -100,10 +99,10 @@ class Group extends Component {
 				{ rules.map( ( rule, ruleId ) => (
 					<Rule
 						key={ ruleId }
-						onChange={ value => this.updateRule( ruleId, value ) }
+						canRemove={ rules.length > 1 }
 						fields={ fields }
 						namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
-						canRemove={ rules.length > 1 }
+						onChange={ value => this.updateRule( ruleId, value ) }
 						onRemove={ () => this.onRemoveRule( ruleId ) }
 						{ ...rule }
 					/>

@@ -70,8 +70,8 @@ class AudienceEditor extends Component {
 			<StyledAudienceEditor className="audience-editor">
 				<div className="audience-editor__include">
 					<SelectInclude
-						name="audience[include]"
 						label={ __( 'groups', 'altis-analytics' ) }
+						name="audience[include]"
 						value={ audience.include }
 						onChange={ this.onChangeInclude }
 					/>
@@ -79,11 +79,11 @@ class AudienceEditor extends Component {
 
 				{ audience.groups.map( ( group, groupId ) => (
 					<Group
-						title={ `${ __( 'Group' ) } ${ groupId + 1 }` }
 						key={ groupId }
-						onChange={ value => this.onUpdateGroup( groupId, value ) }
-						namePrefix={ `audience[groups][${ groupId }]` }
 						canRemove={ audience.groups.length > 1 }
+						namePrefix={ `audience[groups][${ groupId }]` }
+						title={ `${ __( 'Group' ) } ${ groupId + 1 }` }
+						onChange={ value => this.onUpdateGroup( groupId, value ) }
 						onRemove={ () => this.onRemoveGroup( groupId ) }
 						{ ...group }
 					/>
