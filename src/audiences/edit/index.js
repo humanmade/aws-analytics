@@ -128,8 +128,8 @@ class Edit extends Component {
 			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
 				{ error && (
 					<Notice
-						status="error"
 						isDismissable
+						status="error"
 						onRemove={ () => this.setState( { error: null } ) }
 					>
 						{ error.toString() }
@@ -145,14 +145,14 @@ class Edit extends Component {
 
 				<div id="titlediv">
 					<input
-						id="title"
-						type="text"
-						name="post_title"
-						value={ post.title.rendered }
-						onChange={ e => onSetTitle( e.target.value ) }
-						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						ref={ this.titleRef }
 						disabled={ loading }
+						id="title"
+						name="post_title"
+						placeholder={ __( 'Add title', 'altis-analytics' ) }
+						type="text"
+						value={ post.title.rendered }
+						onChange={ e => onSetTitle( e.target.value ) }
 					/>
 				</div>
 
@@ -164,20 +164,25 @@ class Edit extends Component {
 
 					<div className="audience-options">
 						<Estimate
-							title={ __( 'Audience size', 'altis-analytics' ) }
 							audience={ post.audience }
+							title={ __( 'Audience size', 'altis-analytics' ) }
 							sparkline
 						/>
 						<h3>{ __( 'Audience options', 'altis-analytics' ) }</h3>
 						<ToggleControl
-							label={ __( 'Active', 'altis-analytics' ) }
-							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
 							checked={ post.status === 'publish' }
-							onChange={ () => onSetStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 							disabled={ loading }
+							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
+							label={ __( 'Active', 'altis-analytics' ) }
+							onChange={ () => onSetStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 						/>
-						<input type="hidden" name="post_status" value={ post.status } />
+						<input
+							name="post_status"
+							type="hidden"
+							value={ post.status }
+						/>
 						<Button
+							disabled={ loading }
 							isLarge
 							isPrimary
 							type="submit"
@@ -186,7 +191,6 @@ class Edit extends Component {
 									this.onSubmit( e );
 								}
 							} }
-							disabled={ loading }
 						>
 							{ __( 'Save changes', 'altis-analytics' ) }
 						</Button>
