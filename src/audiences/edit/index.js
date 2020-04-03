@@ -55,8 +55,6 @@ class Edit extends Component {
 		};
 
 		this.titleRef = createRef();
-
-		this.onSubmit = this.onSubmit.bind( this );
 	}
 
 	componentDidMount() {
@@ -91,7 +89,7 @@ class Edit extends Component {
 		console.error( error, errorInfo );
 	}
 
-	onSubmit( event ) {
+	onSubmit = event => {
 		// Clear errors.
 		this.setState( { error: null } );
 
