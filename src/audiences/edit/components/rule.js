@@ -29,8 +29,6 @@ const RuleInput = props => {
 	const {
 		disabled,
 		currentField,
-		field,
-		fields,
 		name,
 		operator,
 		value,
@@ -65,9 +63,9 @@ const RuleInput = props => {
 							disabled={ disabled }
 						>
 							<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-							{ fields.filter( fieldData => fieldData.name === field ).map( fieldData => fieldData.data && fieldData.data.map( datum => (
+							{ currentField.data && currentField.data.map( datum => (
 								<option key={ datum.value } value={ datum.value }>{ datum.value }</option>
-							) ) ) }
+							) ) }
 						</select>
 					);
 
@@ -132,8 +130,6 @@ const Rule = props => {
 			<RuleInput
 				disabled={ fields.length === 0 }
 				currentField={ currentField }
-				field={ field }
-				fields={ fields }
 				name={ `${ namePrefix }[value]` }
 				operator={ operator }
 				value={ value }
