@@ -103,7 +103,7 @@ const Rule = props => {
 	} = props;
 
 	const fields = useSelect( select => select( 'audience' ).getFields(), [] );
-	const currentField = fields.filter( fieldData => fieldData.name === field )[0] || {};
+	const currentField = fields.find( fieldData => fieldData.name === field ) || {};
 
 	return (
 		<StyledRule className="audience-editor__rule">
