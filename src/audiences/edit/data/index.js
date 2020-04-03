@@ -85,20 +85,20 @@ const selectors = {
 };
 
 const resolvers = {
-	* getFields() {
+	*getFields() {
 		const fields = yield actions.fetch( {
 			path: 'analytics/v1/audiences/fields',
 		} );
 		return actions.setFields( fields );
 	},
-	* getEstimate( audience ) {
+	*getEstimate( audience ) {
 		const audienceQuery = encodeURIComponent( JSON.stringify( audience ) );
 		const estimate = yield actions.fetch( {
 			path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
 		} );
 		return actions.addEstimate( audience, estimate );
 	},
-	* getPost( id ) {
+	*getPost( id ) {
 		const post = yield actions.fetch( {
 			path: `wp/v2/audiences/${ id }?context=edit`,
 		} );
@@ -111,7 +111,7 @@ const resolvers = {
 		yield actions.addPosts( [ post ] );
 		return actions.setPost( post );
 	},
-	* getPosts( page = 1, search = '' ) {
+	*getPosts( page = 1, search = '' ) {
 		const posts = yield actions.fetch( {
 			path: `wp/v2/audiences?context=edit&page=${ page }&search=${ search }`,
 		} );
