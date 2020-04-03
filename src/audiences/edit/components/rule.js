@@ -25,6 +25,72 @@ const StyledRule = styled.div`
 	}
 `;
 
+const RuleInput = props => {
+	const {
+		disabled,
+		currentField,
+		field,
+		fields,
+		name,
+		operator,
+		value,
+		onChange,
+	} = props;
+
+	switch ( currentField.type ) {
+		case 'number':
+			return (
+				<input
+					className="regular-text"
+					name={ name }
+					placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg || __( 'unknown', 'altis-analytics' ) }` }
+					type="number"
+					value={ value }
+					onChange={ onChange }
+					disabled={ disabled }
+				/>
+			);
+
+		case 'string':
+		default:
+			switch ( operator ) {
+				case '=':
+				case '!=':
+					return (
+						<select
+							className="audience-editor__rule-value"
+							name={ name }
+							value={ value }
+							onChange={ onChange }
+							disabled={ disabled }
+						>
+							<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+							{ fields.filter( fieldData => fieldData.name === field ).map( fieldData => fieldData.data && fieldData.data.map( datum => (
+								<option key={ datum.value } value={ datum.value }>{ datum.value }</option>
+							) ) ) }
+						</select>
+					);
+
+				case '*=':
+				case '!*':
+				case '^=':
+					return (
+						<input
+							className="regular-text"
+							name={ name }
+							type="text"
+							value={ value }
+							onChange={ onChange }
+							disabled={ disabled }
+						/>
+					);
+
+				default:
+					return null;
+			}
+	}
+};
+
 const Rule = props => {
 	const {
 		canRemove,
@@ -63,46 +129,16 @@ const Rule = props => {
 				disabled={ fields.length === 0 }
 			/>
 
-			{ ( ! currentField.type || currentField.type === 'string' ) && (
-				<Fragment>
-					{ [ '=', '!=' ].indexOf( operator ) >= 0 && (
-						<select
-							className="audience-editor__rule-value"
-							name={ `${ namePrefix }[value]` }
-							value={ value }
-							onChange={ e => onChange( { value: e.target.value } ) }
-							disabled={ fields.length === 0 }
-						>
-							<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-							{ fields.filter( fieldData => fieldData.name === field ).map( fieldData => fieldData.data && fieldData.data.map( datum => (
-								<option key={ datum.value } value={ datum.value }>{ datum.value }</option>
-							) ) ) }
-						</select>
-					) }
-					{ [ '*=', '!*', '^=' ].indexOf( operator ) >= 0 && (
-						<input
-							className="regular-text"
-							name={ `${ namePrefix }[value]` }
-							type="text"
-							value={ value }
-							onChange={ e => onChange( { value: e.target.value } ) }
-							disabled={ fields.length === 0 }
-						/>
-					) }
-				</Fragment>
-			) }
-
-			{ currentField.type === 'number' && (
-				<input
-					className="regular-text"
-					name={ `${ namePrefix }[value]` }
-					placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg || __( 'unknown', 'altis-analytics' ) }` }
-					type="number"
-					value={ value }
-					onChange={ e => onChange( { value: e.target.value } ) }
-					disabled={ fields.length === 0 }
-				/>
-			) }
+			<RuleInput
+				disabled={ fields.length === 0 }
+				currentField={ currentField }
+				field={ field }
+				fields={ fields }
+				name={ `${ namePrefix }[value]` }
+				operator={ operator }
+				value={ value }
+				onChange={ e => onChange( { value: e.target.value } ) }
+			/>
 
 			{ canRemove && (
 				<Button
