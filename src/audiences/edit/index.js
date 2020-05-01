@@ -1,11 +1,11 @@
-import React, { Component, createRef } from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
 
 import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
-
 import { defaultPost, defaultAudience } from './data/defaults';
 
+const { compose } = wp.compose;
 const {
 	withSelect,
 	withDispatch,
@@ -46,34 +46,16 @@ const StyledEdit = styled.div`
 `;
 
 class Edit extends Component {
-	constructor( props ) {
-		super( props );
-
-		this.state = {
-			notice: null,
-			error: null,
-		};
-
-		this.titleRef = createRef();
-
-		this.onSubmit = this.onSubmit.bind( this );
-	}
+	state = {
+		notice: null,
+		error: null,
+	};
 
 	componentDidMount() {
 		// Get the form element if there is one. This is for back compat with
 		// the legacy post edit screen.
 		if ( formElement ) {
 			formElement.addEventListener( 'submit', this.onSubmit );
-		}
-
-		// Focus the title.
-		this.titleRef.current.focus();
-	}
-
-	componentDidUpdate( prevProps ) {
-		// Focus the title after loading.
-		if ( prevProps.loading && ! this.props.loading ) {
-			this.titleRef.current.focus();
 		}
 	}
 
@@ -91,7 +73,7 @@ class Edit extends Component {
 		console.error( error, errorInfo );
 	}
 
-	onSubmit( event ) {
+	onSubmit = event => {
 		// Clear errors.
 		this.setState( { error: null } );
 
@@ -112,24 +94,24 @@ class Edit extends Component {
 
 	render() {
 		const {
+			loading,
+			post,
+			onSetTitle,
+			onSetAudience,
+			onSetStatus,
+		} = this.props;
+
+		const {
 			error,
 			notice,
 		} = this.state;
-
-		const {
-			post,
-			setTitle,
-			setAudience,
-			setStatus,
-			loading,
-		} = this.props;
 
 		return (
 			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
 				{ error && (
 					<Notice
-						status="error"
 						isDismissable
+						status="error"
 						onRemove={ () => this.setState( { error: null } ) }
 					>
 						{ error.toString() }
@@ -145,39 +127,45 @@ class Edit extends Component {
 
 				<div id="titlediv">
 					<input
-						id="title"
-						type="text"
-						name="post_title"
-						value={ post.title.rendered }
-						onChange={ e => setTitle( e.target.value ) }
-						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						ref={ this.titleRef }
+						autoFocus
 						disabled={ loading }
+						id="title"
+						name="post_title"
+						placeholder={ __( 'Add title', 'altis-analytics' ) }
+						type="text"
+						value={ post.title.rendered }
+						onChange={ e => onSetTitle( e.target.value ) }
 					/>
 				</div>
 
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ value => setAudience( value ) }
+						onChange={ onSetAudience }
 					/>
 
 					<div className="audience-options">
 						<Estimate
-							title={ __( 'Audience size', 'altis-analytics' ) }
 							audience={ post.audience }
+							title={ __( 'Audience size', 'altis-analytics' ) }
 							sparkline
 						/>
 						<h3>{ __( 'Audience options', 'altis-analytics' ) }</h3>
 						<ToggleControl
-							label={ __( 'Active', 'altis-analytics' ) }
-							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
 							checked={ post.status === 'publish' }
-							onChange={ () => setStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 							disabled={ loading }
+							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
+							label={ __( 'Active', 'altis-analytics' ) }
+							onChange={ () => onSetStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 						/>
-						<input type="hidden" name="post_status" value={ post.status } />
+						<input
+							name="post_status"
+							type="hidden"
+							value={ post.status }
+						/>
 						<Button
+							disabled={ loading }
 							isLarge
 							isPrimary
 							type="submit"
@@ -186,7 +174,6 @@ class Edit extends Component {
 									this.onSubmit( e );
 								}
 							} }
-							disabled={ loading }
 						>
 							{ __( 'Save changes', 'altis-analytics' ) }
 						</Button>
@@ -202,12 +189,12 @@ Edit.defaultProps = {
 	post: defaultPost,
 	loading: false,
 	onCreate: () => { },
-	setTitle: () => { },
-	setAudience: () => { },
-	setStatus: () => { },
+	onSetTitle: () => { },
+	onSetAudience: () => { },
+	onSetStatus: () => { },
 };
 
-const EditWithSelect = withSelect( ( select, props ) => {
+const applyWithSelect = withSelect( ( select, props ) => {
 	let post = props.post;
 
 	if ( props.postId ) {
@@ -221,22 +208,25 @@ const EditWithSelect = withSelect( ( select, props ) => {
 		post,
 		loading,
 	};
-} )( Edit );
+} );
 
-const EditWithDispatch = withDispatch( dispatch => {
+const applyWithDispatch = withDispatch( dispatch => {
 	const store = dispatch( 'audience' );
 
 	return {
-		setTitle: value => {
+		onSetTitle: value => {
 			store.setPost( { title: { rendered: value } } );
 		},
-		setAudience: value => {
+		onSetAudience: value => {
 			store.setPost( { audience: value } );
 		},
-		setStatus: value => {
+		onSetStatus: value => {
 			store.setPost( { status: value } );
 		},
 	};
-} )( EditWithSelect );
+} );
 
-export default EditWithDispatch;
+export default compose(
+	applyWithDispatch,
+	applyWithSelect,
+)( Edit );

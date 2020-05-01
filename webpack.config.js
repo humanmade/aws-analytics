@@ -37,6 +37,7 @@ const sharedConfig = {
 						],
 						plugins: [
 							require( '@babel/plugin-transform-runtime' ),
+							require( '@babel/plugin-proposal-class-properties' ),
 							require( '@wordpress/babel-plugin-import-jsx-pragma' ),
 						],
 					},
@@ -73,9 +74,7 @@ if ( mode === 'production' ) {
 		hashFuncNames: [ 'sha384' ],
 		enabled: true,
 	} ) );
-}
-
-if ( mode !== 'production' ) {
+} else {
 	sharedConfig.devtool = 'cheap-module-eval-source-map';
 }
 

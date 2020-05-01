@@ -262,6 +262,7 @@ function admin_enqueue_scripts() {
 		'altis-analytics-audience-ui',
 		Utils\get_asset_url( 'audiences.js' ),
 		[
+			'lodash',
 			'react',
 			'react-dom',
 			'wp-i18n',

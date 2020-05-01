@@ -41,7 +41,7 @@ const StyledEstimate = styled.div`
 	}
 `;
 
-const Estimate = props => {
+export default function Estimate( props ) {
 	const {
 		audience,
 		sparkline,
@@ -57,7 +57,9 @@ const Estimate = props => {
 
 	return (
 		<StyledEstimate className="audience-estimate" { ...props }>
-			{ title && <h3 className="audience-estimate__title">{ title }</h3> }
+			{ title && (
+				<h3 className="audience-estimate__title">{ title }</h3>
+			) }
 			<PieChart
 				className="audience-estimate__percentage"
 				percent={ percent }
@@ -80,12 +82,10 @@ const Estimate = props => {
 			</div>
 		</StyledEstimate>
 	);
-};
+}
 
 Estimate.defaultProps = {
 	audience: null,
 	sparkline: false,
 	title: '',
 };
-
-export default Estimate;

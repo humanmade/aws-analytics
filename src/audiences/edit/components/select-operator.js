@@ -5,7 +5,7 @@ import {
 	STRING_OPERATIONS,
 } from '../data/constants';
 
-const SelectOperator = props => {
+export default function SelectOperator( props ) {
 	const {
 		type = 'string',
 	} = props;
@@ -23,6 +23,4 @@ const SelectOperator = props => {
 			) ) }
 		</select>
 	);
-};
-
-export default SelectOperator;
+}

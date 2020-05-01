@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { Component } from 'react';
 import styled from 'styled-components';
 
 import Rule from './rule';
 import SelectInclude from './select-include';
-
 import { defaultRule } from '../data/defaults';
 
 const { __ } = wp.i18n;
@@ -33,75 +32,104 @@ const StyledGroup = styled.div`
 	}
 `;
 
-const Group = props => {
-	const {
-		title,
-		onChange,
-		namePrefix,
-		include,
-		rules,
-		fields,
-		canRemove,
-		onRemove,
-	} = props;
-
-	const updateRule = ( ruleId, rule ) => {
-		const newRules = rules.slice();
-		const newRule = Object.assign( {}, rules[ ruleId ], rule );
-		newRules.splice( ruleId, 1, newRule );
-		onChange( { rules: newRules } );
+export default class Group extends Component {
+	onAddRule = () => {
+		this.props.onChange( {
+			rules: [
+				...this.props.rules,
+				defaultRule,
+			],
+		} );
 	};
 
-	return (
-		<StyledGroup className="audience-editor__group">
-			<div className="audience-editor__group-header">
-				{ title && <h3>{ title }</h3> }
-				<SelectInclude
-					label={ __( 'rules', 'altis-analytics' ) }
-					name={ `${ namePrefix }[include]` }
-					value={ include }
-					onChange={ e => onChange( { include: e.target.value } ) }
-				/>
-			</div>
+	onChangeRule = e => {
+		this.props.onChange( {
+			include: e.target.value,
+		} );
+	};
 
-			{ rules.map( ( rule, ruleId ) => (
-				<Rule
-					key={ ruleId }
-					onChange={ value => updateRule( ruleId, value ) }
-					fields={ fields }
-					namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
-					canRemove={ rules.length > 1 }
-					onRemove={ () => {
-						const newRules = rules.slice();
-						newRules.splice( ruleId, 1 );
-						onChange( { rules: newRules } );
-					} }
-					{ ...rule }
-				/>
-			) ) }
+	onRemoveRule = id => {
+		const { rules } = this.props;
+		this.props.onChange( {
+			rules: [
+				...rules.slice( 0, id ),
+				...rules.slice( id + 1 ),
+			],
+		} );
+	};
 
-			<div className="audience-editor__group-footer">
-				<Button
-					className="audience-editor__group-rule-add"
-					isLarge
-					onClick={ () => onChange( { rules: rules.concat( [ defaultRule ] ) } ) }
-				>
-					{ __( 'Add a rule', 'altis-analytics' ) }
-				</Button>
+	updateRule = ( ruleId, rule ) => {
+		const { rules } = this.props;
+		this.props.onChange( {
+			rules: [
+				...rules.slice( 0, ruleId ),
+				{
+					...rules[ ruleId ],
+					...rule,
+				},
+				...rules.slice( ruleId + 1 ),
+			],
+		} );
+	};
 
-				{ canRemove && (
+	render() {
+		const {
+			canRemove,
+			include,
+			fields,
+			namePrefix,
+			rules,
+			title,
+			onRemove,
+		} = this.props;
+
+		return (
+			<StyledGroup className="audience-editor__group">
+				<div className="audience-editor__group-header">
+					{ title && (
+						<h3>{ title }</h3>
+					) }
+					<SelectInclude
+						label={ __( 'rules', 'altis-analytics' ) }
+						name={ `${ namePrefix }[include]` }
+						value={ include }
+						onChange={ this.onChangeRule }
+					/>
+				</div>
+
+				{ rules.map( ( rule, ruleId ) => (
+					<Rule
+						key={ ruleId }
+						canRemove={ rules.length > 1 }
+						fields={ fields }
+						namePrefix={ `${ namePrefix }[rules][${ ruleId }]` }
+						onChange={ value => this.updateRule( ruleId, value ) }
+						onRemove={ () => this.onRemoveRule( ruleId ) }
+						{ ...rule }
+					/>
+				) ) }
+
+				<div className="audience-editor__group-footer">
 					<Button
-						className="audience-editor__group-remove"
-						isDestructive
-						isLink
-						onClick={ onRemove }
+						className="audience-editor__group-rule-add"
+						isLarge
+						onClick={ this.onAddRule }
 					>
-						{ __( 'Remove group', 'altis-analytics' ) }
+						{ __( 'Add a rule', 'altis-analytics' ) }
 					</Button>
-				) }
-			</div>
-		</StyledGroup>
-	);
-};
 
-export default Group;
+					{ canRemove && (
+						<Button
+							className="audience-editor__group-remove"
+							isDestructive
+							isLink
+							onClick={ onRemove }
+						>
+							{ __( 'Remove group', 'altis-analytics' ) }
+						</Button>
+					) }
+				</div>
+			</StyledGroup>
+		);
+	}
+}
