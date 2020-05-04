@@ -33,7 +33,7 @@ function setup() {
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
 	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
 
-	// Setup Audience REST API.
+	// Set up Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
 }
 
