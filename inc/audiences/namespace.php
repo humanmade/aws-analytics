@@ -180,7 +180,7 @@ function save_audience( int $post_id, array $audience ) : bool {
 	$valid = rest_validate_value_from_schema( $audience, REST_API\get_audience_schema(), 'audience' );
 
 	if ( is_wp_error( $valid ) ) {
-		update_post_meta( $post_id, 'audience_error', $valid->get_error_message() );
+		update_post_meta( $post_id, 'audience_error', wp_slash( $valid->get_error_message() ) );
 		return false;
 	}
 
