@@ -155,6 +155,8 @@ function audience_ui( WP_Post $post ) {
 		esc_html__( 'Loading...', 'altis-analytics' ),
 		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
 	);
+
+	wp_nonce_field( 'altis-analytics', 'altis_analytics_nonce' );
 }
 
 /**
@@ -192,6 +194,14 @@ function estimate_ui( WP_Post $post = null ) {
  * @param int $post_id The current audience post ID.
  */
 function save_post( $post_id ) {
+	if ( ! isset( $_POST['altis_analytics_nonce'] ) ) {
+		return;
+	}
+
+	if ( ! wp_verify_nonce( $_POST['altis_analytics_nonce'], 'altis-analytics' ) ) {
+		return;
+	}
+
 	if ( ! isset( $_POST['audience'] ) ) {
 		return;
 	}
