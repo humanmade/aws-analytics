@@ -616,15 +616,16 @@ function get_field_data() : ?array {
 	// Normalise aggregations to useful just the useful data.
 	$fields = [];
 	foreach ( $maps as $field ) {
-		if ( isset( $aggregations[ $field['name'] ]['buckets'] ) ) {
+		$field_name = $field['name'];
+		if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
 			$field['data'] = array_map( function ( $bucket ) {
 				return [
 					'value' => $bucket['key'],
 					'count' => $bucket['doc_count'],
 				];
-			}, $aggregations[ $field['name'] ]['buckets'] );
+			}, $aggregations[ $field_name ]['buckets'] );
 		} else {
-			$field['stats'] = $aggregations[ $field['name'] ];
+			$field['stats'] = $aggregations[ $field_name ];
 		}
 
 		$fields[] = $field;
