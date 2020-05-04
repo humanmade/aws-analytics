@@ -485,29 +485,29 @@ function get_unique_endpoint_count() : ?int {
  * Example results:
  *
  * [
- *   [
- *     'name' => 'endpoint.Location.Country',
- *     'label' => 'Country',
- *     'type' => 'string',
- *     'data' => [
- *       [ 'key' => 'GB', 'doc_count' => 281 ],
- *       [ 'key' => 'US', 'doc_count' => 127 ]
+ *     [
+ *         'name' => 'endpoint.Location.Country',
+ *         'label' => 'Country',
+ *         'type' => 'string',
+ *         'data' => [
+ *             [ 'key' => 'GB', 'doc_count' => 281 ],
+ *             [ 'key' => 'US', 'doc_count' => 127 ]
+ *         ]
+ *     ],
+ *     [
+ *         'name' => 'metrics.UserSpend',
+ *         'label' => 'Total User Spend',
+ *         'type' => 'number',
+ *         'stats' => [
+ *             'sum' => 560,
+ *             'min' => 10,
+ *             'max' => 210,
+ *             'avg' => 35
+ *         ]
  *     ]
- *   ],
- *   [
- *     'name' => 'metrics.UserSpend',
- *     'label' => 'Total User Spend',
- *     'type' => 'number',
- *     'stats' => [
- *        'sum' => 560,
- *        'min' => 10,
- *        'max' => 210,
- *        'avg' => 35
- *     ]
- *   ]
  * ]
  *
- * @return ?array
+ * @return array|null
  */
 function get_field_data() : ?array {
 	$maps = get_fields();
@@ -603,13 +603,13 @@ function get_field_data() : ?array {
  * The response is designed to be used within a bool filter query eg:
  *
  * $query = [
- *   'query' => [
- *     'bool' => [
- *       'filter' => [
- *         get_filter_query( $audience ),
- *       ]
- *     ]
- *   ]
+ *     'query' => [
+ *         'bool' => [
+ *             'filter' => [
+ *                 get_filter_query( $audience ),
+ *             ],
+ *         ],
+ *     ],
  * ];
  *
  * @param array $audience
