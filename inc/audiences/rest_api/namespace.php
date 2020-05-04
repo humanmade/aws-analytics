@@ -157,7 +157,7 @@ function get_audience_schema() : array {
 									],
 									'operator' => [
 										'type' => 'string',
-										'enum' => [ '=', '!=', '*=', '!*', '^=', 'gte', 'lte', 'gt', 'lt' ],
+										'enum' => Audiences\COMPARISON_OPERATORS,
 									],
 									'value' => [
 										'type' => [ 'string', 'number' ],

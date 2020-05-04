@@ -10,6 +10,17 @@ namespace Altis\Analytics\Audiences;
 use Altis\Analytics\Utils;
 use WP_Post;
 
+const COMPARISON_OPERATORS = [
+	'=',
+	'!=',
+	'*=',
+	'!*',
+	'^=',
+	'gte',
+	'lte',
+	'gt',
+	'lt',
+];
 const POST_TYPE = 'audience';
 
 function setup() {
