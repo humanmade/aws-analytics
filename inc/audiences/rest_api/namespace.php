@@ -122,7 +122,58 @@ function init() {
 }
 
 /**
- * Returns the audience configuration JSON schema.
+ * Get the JSON schema for the rule object.
+ *
+ * @return array
+ */
+function get_rule_schema() : array {
+	return [
+		'type' => 'object',
+		'properties' => [
+			'field' => [
+				'type' => 'string',
+			],
+			'operator' => [
+				'type' => 'string',
+				'enum' => Audiences\COMPARISON_OPERATORS,
+			],
+			'value' => [
+				'type' => [
+					'string',
+					'number',
+				],
+			],
+		],
+	];
+}
+
+/**
+ * Get the JSON schema for the group object.
+ *
+ * @return array
+ */
+function get_group_schema() : array {
+	return [
+		'type' => 'object',
+		'properties' => [
+			'include' => [
+				'type' => 'string',
+				'enum' => [
+					'any',
+					'all',
+					'none',
+				],
+			],
+			'rules' => [
+				'type' => 'array',
+				'items' => get_rule_schema(),
+			],
+		],
+	];
+}
+
+/**
+ * Get the JSON schema for the audience configuration object.
  *
  * @return array
  */
@@ -140,40 +191,7 @@ function get_audience_schema() : array {
 			],
 			'groups' => [
 				'type' => 'array',
-				'items' => [
-					'type' => 'object',
-					'properties' => [
-						'include' => [
-							'type' => 'string',
-							'enum' => [
-								'any',
-								'all',
-								'none',
-							],
-						],
-						'rules' => [
-							'type' => 'array',
-							'items' => [
-								'type' => 'object',
-								'properties' => [
-									'field' => [
-										'type' => 'string',
-									],
-									'operator' => [
-										'type' => 'string',
-										'enum' => Audiences\COMPARISON_OPERATORS,
-									],
-									'value' => [
-										'type' => [
-											'string',
-											'number',
-										],
-									],
-								],
-							],
-						],
-					],
-				],
+				'items' => get_group_schema(),
 			],
 		],
 	];
