@@ -45,8 +45,7 @@ function register_post_type() {
 				'active' => [
 					'title' => __( 'Status', 'altis-analytics' ),
 					'function' => function () {
-						$post = $GLOBALS['post'];
-						if ( $post->post_status === 'publish' ) {
+						if ( get_post_status() === 'publish' ) {
 							esc_html_e( 'Active', 'altis-analytics' );
 						} else {
 							esc_html_e( 'Inactive', 'altis-analytics' );
@@ -56,7 +55,7 @@ function register_post_type() {
 				'estimate' => [
 					'title' => __( 'Size', 'altis-analytics' ),
 					'function' => function () {
-						estimate_ui( $GLOBALS['post'] );
+						estimate_ui( get_post() );
 					},
 				],
 				'last_modified' => [
