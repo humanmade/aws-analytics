@@ -3,12 +3,15 @@
  * Altis Analytics.
  *
  * @package altis-analytics
- *
  */
 
 namespace Altis\Analytics;
 
+use function Altis\Analytics\Utils\get_asset_url;
+
 function setup() {
+	// Setup audiences.
+	Audiences\setup();
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
@@ -157,7 +160,7 @@ function async_scripts( string $tag, string $handle ) : string {
 function enqueue_scripts() {
 	global $wp_scripts;
 
-	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], '__SCRIPT_HASH__', false );
+	wp_enqueue_script( 'altis-analytics', get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(

@@ -46,6 +46,10 @@ Similar to `registerAttribute()` above but for metrics.
 
 Allows you to define the Elasticsearch server URL directly.
 
+**`ALTIS_ANALYTICS_LOG_QUERIES`**
+
+Define as true to enable logging queries to the error log.
+
 ### Filters
 
 The plugin provides a few hooks for you to control the default endpoint data and attributes recorded with events.
@@ -131,6 +135,9 @@ A user session covers every event recorded between opening the website and closi
     - `ModelVersion`: Browser version.
     - `Platform`: The device operating system.
     - `PlatformVersion`: The operating system version.
+  - `Location`
+    - `Country`: The endpoint's country if known / available.
+    - `City`: The endpoint's city if known or available.
   - `User`
     - `UserAttributes`
       - Any custom attributes associated with the user if known.
@@ -223,6 +230,28 @@ The output will look something like the following:
 ```
 
 You can further trim the size of the returned response using the `filter_path` query parameter. For example if we're only interested in the stats aggregation we can set `filter_path=-aggregations.sessions` to remove it from the response.
+
+## Audiences
+
+Audiences are user-defined categories of users, based on conditions related to their analytics data.
+
+Audiences allow for the creation of conditions to narrow down event queries or endpoints but also can be used for determining effects on the client side.
+
+### Mapping Event Data
+
+To enable the use of any event record data in the audience editor it needs to be mapped to a human readable label using the `Altis\Analytics\Audiences\register_field()` function:
+
+```php
+use function Altis\Analytics\Audiences\register_field;
+
+add_action( 'init', function () {
+  register_field( 'endpoint.Location.City', __( 'City' ) );
+} );
+```
+
+In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+
+The 2nd parameter is a human readable label for the audience field.
 
 ## Required Infrastructure
 
