@@ -25,10 +25,6 @@ function setup() {
  * Register audience API endpoints.
  */
 function init() {
-	// Add post type support for title in the API only.
-	add_post_type_support( Audiences\POST_TYPE, 'title' );
-	add_post_type_support( Audiences\POST_TYPE, 'excerpt' );
-
 	// Fetch data for available fields and possible values.
 	register_rest_route( 'analytics/v1', 'audiences/fields', [
 		[

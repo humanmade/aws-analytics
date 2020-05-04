@@ -28,10 +28,11 @@ function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'edit_form_top', __NAMESPACE__ . '\\audience_ui' );
-	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
+	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\adjust_meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
 	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
+	add_action( 'edit_form_top', __NAMESPACE__ . '\\hide_title_field' );
 
 	// Set up Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
@@ -46,7 +47,10 @@ function register_post_type() {
 		[
 			'public' => false,
 			'show_ui' => true,
-			'supports' => false,
+			'supports' => [
+				'title',
+				'excerpt',
+			],
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
 			'show_in_rest' => true,
@@ -87,9 +91,30 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 }
 
-function meta_boxes() {
+function adjust_meta_boxes() {
 	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
+	remove_meta_box( 'postexcerpt', POST_TYPE, 'normal' );
+}
+
+/**
+ * Temporarily hide the title field.
+ *
+ * Removes post type support on the edit screen temporarily, then readds as
+ * soon as the UI no longer cares.
+ */
+function hide_title_field( WP_Post $post ) {
+	if ( $post->post_type !== POST_TYPE ) {
+		return;
+	}
+
+	remove_post_type_support( POST_TYPE, 'title' );
+
+	$callback = function () use ( &$callback ) {
+		add_post_type_support( POST_TYPE, 'title' );
+		remove_action( 'edit_form_after_title', $callback );
+	};
+	add_action( 'edit_form_after_title', $callback );
 }
 
 /**
@@ -304,10 +329,6 @@ function admin_enqueue_scripts() {
 	if ( isset( $_GET['post'] ) ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
-		// Calling the rest function triggers the `rest_api_init` action
-		// where we reinstate title support. It's removed to provide a clean
-		// legacy postedit screen.
-		remove_post_type_support( POST_TYPE, 'title' );
 	}
 
 	wp_add_inline_script(
