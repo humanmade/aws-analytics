@@ -44,19 +44,11 @@ function register_post_type() {
 			'admin_cols' => [
 				'active' => [
 					'title' => __( 'Status', 'altis-analytics' ),
-					'function' => function () {
-						if ( get_post_status() === 'publish' ) {
-							esc_html_e( 'Active', 'altis-analytics' );
-						} else {
-							esc_html_e( 'Inactive', 'altis-analytics' );
-						}
-					},
+					'function' => __NAMESPACE__ . '\\render_status_column',
 				],
 				'estimate' => [
 					'title' => __( 'Size', 'altis-analytics' ),
-					'function' => function () {
-						estimate_ui( get_post() );
-					},
+					'function' => __NAMESPACE__ . '\\estimate_ui',
 				],
 				'last_modified' => [
 					'title' => __( 'Last Modified', 'altis-analytics' ),
@@ -90,6 +82,17 @@ function meta_boxes() {
 }
 
 /**
+ * Render the "Status" column for an audience.
+ */
+function render_status_column() : void {
+	if ( get_post_status() === 'publish' ) {
+		esc_html_e( 'Active', 'altis-analytics' );
+	} else {
+		esc_html_e( 'Inactive', 'altis-analytics' );
+	}
+}
+
+/**
  * Add Audience UI placeholder.
  *
  * @param WP_Post $post
@@ -117,7 +120,12 @@ function audience_ui( WP_Post $post ) {
  *
  * @param WP_Post $post
  */
-function estimate_ui( WP_Post $post ) {
+function estimate_ui( WP_Post $post = null ) {
+	// Use current post if none passed.
+	if ( ! $post ) {
+		$post = get_post();
+	}
+
 	if ( $post->post_type !== POST_TYPE ) {
 		return;
 	}
