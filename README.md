@@ -46,6 +46,10 @@ Similar to `registerAttribute()` above but for metrics.
 
 Allows you to define the Elasticsearch server URL directly.
 
+**`ALTIS_ANALYTICS_LOG_QUERIES`**
+
+Define as true to enable logging queries to the error log.
+
 ### Filters
 
 The plugin provides a few hooks for you to control the default endpoint data and attributes recorded with events.

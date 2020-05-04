@@ -167,15 +167,14 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 	}
 
 	// Enable logging for analytics queries.
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-		trigger_error(
+	if ( defined( 'ALTIS_ANALYTICS_LOG_QUERIES' ) && ALTIS_ANALYTICS_LOG_QUERIES ) {
+		error_log(
 			sprintf(
 				"Analytics: elasticsearch query:\n%s\n%s\n%s",
 				$url,
 				json_encode( $query ),
 				wp_remote_retrieve_body( $response )
-			),
-			E_USER_NOTICE
+			)
 		);
 	}
 

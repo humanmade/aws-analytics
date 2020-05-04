@@ -10,24 +10,39 @@ namespace Altis\Analytics\Audiences;
 use Altis\Analytics\Utils;
 use WP_Post;
 
+const COMPARISON_OPERATORS = [
+	'=',
+	'!=',
+	'*=',
+	'!*',
+	'^=',
+	'gte',
+	'lte',
+	'gt',
+	'lt',
+];
 const POST_TYPE = 'audience';
 
+/**
+ * Set up the Audiences UI and backend.
+ */
 function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'edit_form_top', __NAMESPACE__ . '\\audience_ui' );
-	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\meta_boxes' );
+	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\adjust_meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
 	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
+	add_action( 'edit_form_top', __NAMESPACE__ . '\\hide_title_field' );
 
-	// Setup Audience REST API.
+	// Set up Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
 }
 
 /**
- * Setup the audiences data store.
+ * Set up the audiences data store.
  */
 function register_post_type() {
 	register_extended_post_type(
@@ -35,7 +50,10 @@ function register_post_type() {
 		[
 			'public' => false,
 			'show_ui' => true,
-			'supports' => false,
+			'supports' => [
+				'title',
+				'excerpt',
+			],
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
 			'show_in_rest' => true,
@@ -44,20 +62,11 @@ function register_post_type() {
 			'admin_cols' => [
 				'active' => [
 					'title' => __( 'Status', 'altis-analytics' ),
-					'function' => function () {
-						$post = $GLOBALS['post'];
-						if ( $post->post_status === 'publish' ) {
-							esc_html_e( 'Active', 'altis-analytics' );
-						} else {
-							esc_html_e( 'Inactive', 'altis-analytics' );
-						}
-					},
+					'function' => __NAMESPACE__ . '\\render_status_column',
 				],
 				'estimate' => [
 					'title' => __( 'Size', 'altis-analytics' ),
-					'function' => function () {
-						estimate_ui( $GLOBALS['post'] );
-					},
+					'function' => __NAMESPACE__ . '\\estimate_ui',
 				],
 				'last_modified' => [
 					'title' => __( 'Last Modified', 'altis-analytics' ),
@@ -85,9 +94,44 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 }
 
-function meta_boxes() {
+/**
+ * Remove built-in metaboxes from the Audiences edit page.
+ */
+function adjust_meta_boxes() {
 	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
+	remove_meta_box( 'postexcerpt', POST_TYPE, 'normal' );
+}
+
+/**
+ * Temporarily hide the title field.
+ *
+ * Removes post type support on the edit screen temporarily, then readds as
+ * soon as the UI no longer cares.
+ */
+function hide_title_field( WP_Post $post ) {
+	if ( $post->post_type !== POST_TYPE ) {
+		return;
+	}
+
+	remove_post_type_support( POST_TYPE, 'title' );
+
+	$callback = function () use ( &$callback ) {
+		add_post_type_support( POST_TYPE, 'title' );
+		remove_action( 'edit_form_after_title', $callback );
+	};
+	add_action( 'edit_form_after_title', $callback );
+}
+
+/**
+ * Render the "Status" column for an audience.
+ */
+function render_status_column() : void {
+	if ( get_post_status() === 'publish' ) {
+		esc_html_e( 'Active', 'altis-analytics' );
+	} else {
+		esc_html_e( 'Inactive', 'altis-analytics' );
+	}
 }
 
 /**
@@ -111,6 +155,8 @@ function audience_ui( WP_Post $post ) {
 		esc_html__( 'Loading...', 'altis-analytics' ),
 		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
 	);
+
+	wp_nonce_field( 'altis-analytics', 'altis_analytics_nonce' );
 }
 
 /**
@@ -118,7 +164,12 @@ function audience_ui( WP_Post $post ) {
  *
  * @param WP_Post $post
  */
-function estimate_ui( WP_Post $post ) {
+function estimate_ui( WP_Post $post = null ) {
+	// Use current post if none passed.
+	if ( ! $post ) {
+		$post = get_post();
+	}
+
 	if ( $post->post_type !== POST_TYPE ) {
 		return;
 	}
@@ -143,6 +194,14 @@ function estimate_ui( WP_Post $post ) {
  * @param int $post_id The current audience post ID.
  */
 function save_post( $post_id ) {
+	if ( ! isset( $_POST['altis_analytics_nonce'] ) ) {
+		return;
+	}
+
+	if ( ! wp_verify_nonce( $_POST['altis_analytics_nonce'], 'altis-analytics' ) ) {
+		return;
+	}
+
 	if ( ! isset( $_POST['audience'] ) ) {
 		return;
 	}
@@ -173,7 +232,7 @@ function save_audience( int $post_id, array $audience ) : bool {
 	$valid = rest_validate_value_from_schema( $audience, REST_API\get_audience_schema(), 'audience' );
 
 	if ( is_wp_error( $valid ) ) {
-		update_post_meta( $post_id, 'audience_error', $valid->get_error_message() );
+		update_post_meta( $post_id, 'audience_error', wp_slash( $valid->get_error_message() ) );
 		return false;
 	}
 
@@ -286,10 +345,6 @@ function admin_enqueue_scripts() {
 	if ( isset( $_GET['post'] ) ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
-		// Calling the rest function triggers the `rest_api_init` action
-		// where we reinstate title support. It's removed to provide a clean
-		// legacy postedit screen.
-		remove_post_type_support( POST_TYPE, 'title' );
 	}
 
 	wp_add_inline_script(
@@ -478,29 +533,29 @@ function get_unique_endpoint_count() : ?int {
  * Example results:
  *
  * [
- *   [
- *     'name' => 'endpoint.Location.Country',
- *     'label' => 'Country',
- *     'type' => 'string',
- *     'data' => [
- *       [ 'key' => 'GB', 'doc_count' => 281 ],
- *       [ 'key' => 'US', 'doc_count' => 127 ]
+ *     [
+ *         'name' => 'endpoint.Location.Country',
+ *         'label' => 'Country',
+ *         'type' => 'string',
+ *         'data' => [
+ *             [ 'key' => 'GB', 'doc_count' => 281 ],
+ *             [ 'key' => 'US', 'doc_count' => 127 ]
+ *         ]
+ *     ],
+ *     [
+ *         'name' => 'metrics.UserSpend',
+ *         'label' => 'Total User Spend',
+ *         'type' => 'number',
+ *         'stats' => [
+ *             'sum' => 560,
+ *             'min' => 10,
+ *             'max' => 210,
+ *             'avg' => 35
+ *         ]
  *     ]
- *   ],
- *   [
- *     'name' => 'metrics.UserSpend',
- *     'label' => 'Total User Spend',
- *     'type' => 'number',
- *     'stats' => [
- *        'sum' => 560,
- *        'min' => 10,
- *        'max' => 210,
- *        'avg' => 35
- *     ]
- *   ]
  * ]
  *
- * @return ?array
+ * @return array|null
  */
 function get_field_data() : ?array {
 	$maps = get_fields();
@@ -569,21 +624,22 @@ function get_field_data() : ?array {
 	$aggregations = $result['aggregations'];
 
 	// Normalise aggregations to useful just the useful data.
-	$fields = array_map( function ( array $field ) use ( $aggregations ) {
-		if ( isset( $aggregations[ $field['name'] ]['buckets'] ) ) {
+	$fields = [];
+	foreach ( $maps as $field ) {
+		$field_name = $field['name'];
+		if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
 			$field['data'] = array_map( function ( $bucket ) {
 				return [
 					'value' => $bucket['key'],
 					'count' => $bucket['doc_count'],
 				];
-			}, $aggregations[ $field['name'] ]['buckets'] );
+			}, $aggregations[ $field_name ]['buckets'] );
 		} else {
-			$field['stats'] = $aggregations[ $field['name'] ];
+			$field['stats'] = $aggregations[ $field_name ];
 		}
-		return $field;
-	}, $maps );
 
-	$fields = array_values( $fields );
+		$fields[] = $field;
+	}
 
 	// Cache the data.
 	wp_cache_set( $key, $fields, 'altis-audiences', HOUR_IN_SECONDS );
@@ -596,13 +652,13 @@ function get_field_data() : ?array {
  * The response is designed to be used within a bool filter query eg:
  *
  * $query = [
- *   'query' => [
- *     'bool' => [
- *       'filter' => [
- *         get_filter_query( $audience ),
- *       ]
- *     ]
- *   ]
+ *     'query' => [
+ *         'bool' => [
+ *             'filter' => [
+ *                 get_filter_query( $audience ),
+ *             ],
+ *         ],
+ *     ],
  * ];
  *
  * @param array $audience

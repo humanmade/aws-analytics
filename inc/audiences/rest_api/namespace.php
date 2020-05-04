@@ -25,16 +25,12 @@ function setup() {
  * Register audience API endpoints.
  */
 function init() {
-	// Add post type support for title in the API only.
-	add_post_type_support( Audiences\POST_TYPE, 'title' );
-	add_post_type_support( Audiences\POST_TYPE, 'excerpt' );
-
 	// Fetch data for available fields and possible values.
 	register_rest_route( 'analytics/v1', 'audiences/fields', [
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
-			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
 		],
 		'schema' => [
 			'type' => 'array',
@@ -83,7 +79,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
-			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
@@ -126,7 +122,58 @@ function init() {
 }
 
 /**
- * Returns the audience configuration JSON schema.
+ * Get the JSON schema for the rule object.
+ *
+ * @return array
+ */
+function get_rule_schema() : array {
+	return [
+		'type' => 'object',
+		'properties' => [
+			'field' => [
+				'type' => 'string',
+			],
+			'operator' => [
+				'type' => 'string',
+				'enum' => Audiences\COMPARISON_OPERATORS,
+			],
+			'value' => [
+				'type' => [
+					'string',
+					'number',
+				],
+			],
+		],
+	];
+}
+
+/**
+ * Get the JSON schema for the group object.
+ *
+ * @return array
+ */
+function get_group_schema() : array {
+	return [
+		'type' => 'object',
+		'properties' => [
+			'include' => [
+				'type' => 'string',
+				'enum' => [
+					'any',
+					'all',
+					'none',
+				],
+			],
+			'rules' => [
+				'type' => 'array',
+				'items' => get_rule_schema(),
+			],
+		],
+	];
+}
+
+/**
+ * Get the JSON schema for the audience configuration object.
  *
  * @return array
  */
@@ -136,37 +183,15 @@ function get_audience_schema() : array {
 		'properties' => [
 			'include' => [
 				'type' => 'string',
-				'enum' => [ 'any', 'all', 'none' ],
+				'enum' => [
+					'any',
+					'all',
+					'none',
+				],
 			],
 			'groups' => [
 				'type' => 'array',
-				'items' => [
-					'type' => 'object',
-					'properties' => [
-						'include' => [
-							'type' => 'string',
-							'enum' => [ 'any', 'all', 'none' ],
-						],
-						'rules' => [
-							'type' => 'array',
-							'items' => [
-								'type' => 'object',
-								'properties' => [
-									'field' => [
-										'type' => 'string',
-									],
-									'operator' => [
-										'type' => 'string',
-										'enum' => [ '=', '!=', '*=', '!*', '^=', 'gte', 'lte', 'gt', 'lt' ],
-									],
-									'value' => [
-										'type' => [ 'string', 'number' ],
-									],
-								],
-							],
-						],
-					],
-				],
+				'items' => get_group_schema(),
 			],
 		],
 	];
@@ -196,7 +221,11 @@ function validate_estimate_audience( $param ) {
 	if ( json_last_error() !== JSON_ERROR_NONE ) {
 		return new WP_Error(
 			'altis_audience_estimate_json_invalid',
-			'Could not decode JSON: ' . json_last_error_msg()
+			sprintf(
+				/* translators: %s: JSON error message */
+				__( 'Could not decode JSON: %s', 'altis-analytics' ),
+				json_last_error_msg()
+			)
 		);
 	}
 
@@ -216,7 +245,11 @@ function sanitize_estimate_audience( $param ) {
 	if ( json_last_error() !== JSON_ERROR_NONE ) {
 		return new WP_Error(
 			'altis_audience_estimate_json_invalid',
-			'Could not decode JSON: ' . json_last_error_msg()
+			sprintf(
+				/* translators: %s: JSON error message */
+				__( 'Could not decode JSON: %s', 'altis-analytics' ),
+				json_last_error_msg()
+			)
 		);
 	}
 
@@ -229,5 +262,6 @@ function sanitize_estimate_audience( $param ) {
  * @return bool
  */
 function check_edit_permission() : bool {
-	return current_user_can( 'edit_audience' );
+	$type = get_post_type_object( Audiences\POST_TYPE );
+	return current_user_can( $type->cap->edit_posts );
 }
