@@ -136,7 +136,11 @@ function get_audience_schema() : array {
 		'properties' => [
 			'include' => [
 				'type' => 'string',
-				'enum' => [ 'any', 'all', 'none' ],
+				'enum' => [
+					'any',
+					'all',
+					'none',
+				],
 			],
 			'groups' => [
 				'type' => 'array',
@@ -145,7 +149,11 @@ function get_audience_schema() : array {
 					'properties' => [
 						'include' => [
 							'type' => 'string',
-							'enum' => [ 'any', 'all', 'none' ],
+							'enum' => [
+								'any',
+								'all',
+								'none',
+							],
 						],
 						'rules' => [
 							'type' => 'array',
@@ -160,7 +168,10 @@ function get_audience_schema() : array {
 										'enum' => Audiences\COMPARISON_OPERATORS,
 									],
 									'value' => [
-										'type' => [ 'string', 'number' ],
+										'type' => [
+											'string',
+											'number',
+										],
 									],
 								],
 							],
