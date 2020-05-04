@@ -30,7 +30,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
-			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
 		],
 		'schema' => [
 			'type' => 'array',
@@ -79,7 +79,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
-			'permissions_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
@@ -260,5 +260,6 @@ function sanitize_estimate_audience( $param ) {
  * @return bool
  */
 function check_edit_permission() : bool {
-	return current_user_can( 'edit_audience' );
+	$type = get_post_type_object( Audiences\POST_TYPE );
+	return current_user_can( $type->cap->edit_posts );
 }
