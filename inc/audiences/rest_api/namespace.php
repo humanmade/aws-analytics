@@ -222,6 +222,7 @@ function validate_estimate_audience( $param ) {
 		return new WP_Error(
 			'altis_audience_estimate_json_invalid',
 			sprintf(
+				/* translators: %s: JSON error message */
 				__( 'Could not decode JSON: %s', 'altis-analytics' ),
 				json_last_error_msg()
 			)
@@ -245,6 +246,7 @@ function sanitize_estimate_audience( $param ) {
 		return new WP_Error(
 			'altis_audience_estimate_json_invalid',
 			sprintf(
+				/* translators: %s: JSON error message */
 				__( 'Could not decode JSON: %s', 'altis-analytics' ),
 				json_last_error_msg()
 			)
