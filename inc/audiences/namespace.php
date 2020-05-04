@@ -23,6 +23,9 @@ const COMPARISON_OPERATORS = [
 ];
 const POST_TYPE = 'audience';
 
+/**
+ * Set up the Audiences UI and backend.
+ */
 function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
@@ -39,7 +42,7 @@ function setup() {
 }
 
 /**
- * Setup the audiences data store.
+ * Set up the audiences data store.
  */
 function register_post_type() {
 	register_extended_post_type(
@@ -91,6 +94,9 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 }
 
+/**
+ * Remove built-in metaboxes from the Audiences edit page.
+ */
 function adjust_meta_boxes() {
 	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
