@@ -587,7 +587,8 @@ function get_field_data() : ?array {
 	$aggregations = $result['aggregations'];
 
 	// Normalise aggregations to useful just the useful data.
-	$fields = array_map( function ( array $field ) use ( $aggregations ) {
+	$fields = [];
+	foreach ( $maps as $field ) {
 		if ( isset( $aggregations[ $field['name'] ]['buckets'] ) ) {
 			$field['data'] = array_map( function ( $bucket ) {
 				return [
@@ -598,10 +599,9 @@ function get_field_data() : ?array {
 		} else {
 			$field['stats'] = $aggregations[ $field['name'] ];
 		}
-		return $field;
-	}, $maps );
 
-	$fields = array_values( $fields );
+		$fields[] = $field;
+	}
 
 	// Cache the data.
 	wp_cache_set( $key, $fields, 'altis-audiences', HOUR_IN_SECONDS );
