@@ -238,7 +238,15 @@ const Analytics = {
 			return {};
 		}
 	},
-	setEndpoint: endpoint => localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) ),
+	setEndpoint: endpoint => {
+		localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) );
+	},
+	on: ( event, callback ) => {
+		return window.addEventListener( `altis.analytics.${event}`, event => callback( event.detail ) );
+	},
+	off: listener => {
+		window.removeEventListener( listener );
+	},
 	mergeEndpointData: ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
@@ -288,6 +296,12 @@ const Analytics = {
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
 
+		// Trigger endpoint update event.
+		const updateEndpointEvent = new CustomEvent( 'altis.analytics.updateEndpoint', {
+			detail: endpoint,
+		} );
+		window.dispatchEvent( updateEndpointEvent );
+
 		return endpoint;
 	},
 	events: [],
@@ -328,6 +342,12 @@ const Analytics = {
 
 		// Store sent events.
 		Analytics.events.push( Event );
+
+		// Trigger event recorded event.
+		const recordEvent = new CustomEvent( 'altis.analytics.record', {
+			detail: Event,
+		} );
+		window.dispatchEvent( recordEvent );
 
 		// Flush the events if we don't want to queue.
 		if ( ! queue ) {
@@ -450,6 +470,9 @@ window.addEventListener( 'beforeunload', async () => {
 
 // Expose userland API.
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
+window.Altis.Analytics.on = Analytics.on;
+window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
 	Analytics.record(
 		type,
