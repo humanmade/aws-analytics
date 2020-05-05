@@ -186,6 +186,14 @@ function enqueue_scripts() {
 		'before'
 	);
 
+	wp_add_inline_script(
+		'altis-analytics',
+		'Altis.Analytics.registerAttribute( "cheese", ["gruyere", "brie"] );' .
+		'Altis.Analytics.registerAttribute( "biscuits", function () { return ["digestives", "hobnobs", "wafers"] } );' .
+		'Altis.Analytics.registerMetric( "ratings", [ 2.0, 3.5, 7.11 ] );',
+		'after'
+	);
+
 	// Load async for performance.
 	$wp_scripts->add_data( 'altis-analytics', 'async', true );
 

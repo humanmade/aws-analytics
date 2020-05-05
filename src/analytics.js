@@ -98,35 +98,50 @@ const getSearchParams = () =>
 		} ),
 		{}
 	);
-const getAttributes = ( extra = {} ) =>
-	Object.entries( {
-		session: getSessionID(),
-		pageSession: pageSession,
-		url: window.location.origin + window.location.pathname,
-		host: window.location.hostname,
-		search: window.location.search,
-		hash: window.location.hash,
-		referer: document.referrer,
-		...getSearchParams(),
-		...utm,
-		...( Data.Attributes || {} ),
-		...extra,
-		...( _attributes || {} ),
-	} ).reduce( ( carry, [ name, value ] ) => ( {
-		...carry,
-		[ name ]: ( typeof value === 'function' ? value() : value ).toString(),
-	} ), {} );
-const getMetrics = ( extra = {} ) =>
-	Object.entries( {
-		elapsed: elapsed + ( Date.now() - start ),
-		scrollDepthMax,
-		scrollDepthNow,
-		...extra,
-		...( _metrics || {} ),
-	} ).reduce( ( carry, [ name, value ] ) => ( {
-		...carry,
-		[ name ]: Number( typeof value === 'function' ? value() : value ),
-	} ), {} );
+const prepareData = async ( value, sanitiseCallback ) => {
+	if ( typeof value === 'function' ) {
+		value = await value();
+	}
+	if ( ! ( value instanceof Array ) ) {
+		value = [ value ];
+	}
+	return value.map( val => sanitiseCallback( val ) );
+};
+const sanitiseAttribute = value => value.toString();
+const sanitiseMetric = value => parseFloat( Number( value ) );
+const prepareAttributes = async ( attributes ) => {
+	for ( const name in attributes ) {
+		attributes[ name ] = await prepareData( attributes[ name ], sanitiseAttribute );
+	}
+	return attributes;
+};
+const prepareMetrics = async ( metrics ) => {
+	for ( const name in metrics ) {
+		metrics[ name ] = await prepareData( metrics[ name ], sanitiseMetric );
+	}
+	return metrics;
+};
+const getAttributes = ( extra = {} ) => ( {
+	session: getSessionID(),
+	pageSession: pageSession,
+	url: window.location.origin + window.location.pathname,
+	host: window.location.hostname,
+	search: window.location.search,
+	hash: window.location.hash,
+	referer: document.referrer,
+	...getSearchParams(),
+	...utm,
+	...( Data.Attributes || {} ),
+	...extra,
+	...( _attributes || {} ),
+} );
+const getMetrics = ( extra = {} ) => ( {
+	elapsed: elapsed + ( Date.now() - start ),
+	scrollDepthMax,
+	scrollDepthNow,
+	...extra,
+	...( _metrics || {} ),
+} );
 const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
 
 /**
@@ -239,7 +254,7 @@ const Analytics = {
 		}
 	},
 	setEndpoint: endpoint => localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) ),
-	mergeEndpointData: ( endpoint = {} ) => {
+	mergeEndpointData: async ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
 		const EndpointData = {
@@ -285,14 +300,25 @@ const Analytics = {
 			arrayMerge: overwriteMerge,
 		} );
 
+		// Sanitise attributes and metrics.
+		if ( endpoint.User && endpoint.User.UserAttributes ) {
+			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes )
+		}
+		endpoint.Attributes = await prepareAttributes( endpoint.Attributes );
+		endpoint.Metrics = await prepareMetrics( endpoint.Metrics );
+
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
 
 		return endpoint;
 	},
 	events: [],
-	record: ( type, data = {}, endpoint = {}, queue = true ) => {
-		// Back compat, if endpoint is a boolean it is expected to be the value for queue.
+	record: async ( type, data = {}, endpoint = {}, queue = true ) => {
+		// Back compat, if data or endpoint is a boolean it is expected to be the value for queue.
+		if ( typeof data === 'boolean' ) {
+			queue = data;
+			data = {};
+		}
 		if ( typeof endpoint === 'boolean' ) {
 			queue = endpoint;
 			endpoint = {};
@@ -300,8 +326,17 @@ const Analytics = {
 
 		// Merge endpoint data.
 		if ( Object.entries( endpoint ).length ) {
-			Analytics.mergeEndpointData( endpoint );
+			await Analytics.mergeEndpointData( endpoint );
 		}
+
+		// Merge in registered metrics and attributes.
+		const attributes = getAttributes( data.attributes || {} );
+		const metrics = getMetrics( data.metrics || {} );
+
+		const preparedData = {
+			attributes: await prepareAttributes( attributes ),
+			metrics: await prepareMetrics( metrics ),
+		};
 
 		const EventId = uuid();
 		const Event = {
@@ -311,8 +346,8 @@ const Analytics = {
 				AppPackageName: Data.AppPackageName || '',
 				AppTitle: Data.SiteName || '',
 				AppVersionCode: Data.AppVersion || '',
-				Attributes: Object.assign( {}, data.attributes || {} ),
-				Metrics: Object.assign( {}, data.metrics || {} ),
+				Attributes: preparedData.attributes,
+				Metrics: preparedData.metrics,
 				Session: {
 					Id: subSessionId /* required */,
 					StartTimestamp: new Date( subSessionStart ).toISOString(), /* required */
@@ -355,7 +390,7 @@ const Analytics = {
 
 		// Update endpoint data if provided.
 		if ( Object.entries( endpoint ).length ) {
-			Analytics.mergeEndpointData( endpoint );
+			await Analytics.mergeEndpointData( endpoint );
 		}
 
 		// Build endpoint data.
@@ -405,10 +440,7 @@ document.addEventListener( 'visibilitychange', () => {
 		// On hide increment elapsed time.
 		elapsed += Date.now() - start;
 		// Fire session stop event.
-		Analytics.record( '_session.stop', {
-			attributes: getAttributes( {} ),
-			metrics: getMetrics( {} ),
-		} );
+		Analytics.record( '_session.stop' );
 	} else {
 		// On show reset start time.
 		start = Date.now();
@@ -416,36 +448,21 @@ document.addEventListener( 'visibilitychange', () => {
 		subSessionId = uuid();
 		subSessionStart = Date.now();
 		// Fire session start event.
-		Analytics.record( '_session.start', {
-			attributes: getAttributes( {} ),
-		} );
+		Analytics.record( '_session.start' );
 	}
 } );
 
 // Start recording after document loaded and tests applied.
 window.addEventListener( 'DOMContentLoaded', () => {
 	// Session start.
-	Analytics.record( '_session.start', {
-		attributes: getAttributes(),
-	} );
+	Analytics.record( '_session.start' );
 	// Record page view event & create/update endpoint immediately.
-	Analytics.record(
-		'pageView',
-		{
-			attributes: getAttributes(),
-		},
-		{},
-		false
-	);
+	Analytics.record( 'pageView', false );
 } );
 
 // Flush remaining events.
-window.addEventListener( 'beforeunload', async () => {
-	Analytics.record( '_session.stop', {
-		attributes: getAttributes( {} ),
-		metrics: getMetrics( {} ),
-	} );
-	await Analytics.flushEvents();
+window.addEventListener( 'beforeunload', () => {
+	Analytics.record( '_session.stop', false );
 } );
 
 // Expose userland API.
@@ -453,9 +470,6 @@ window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
 window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
 	Analytics.record(
 		type,
-		{
-			attributes: getAttributes( data.attributes || {} ),
-			metrics: getMetrics( data.metrics || {} ),
-		},
+		data,
 		endpoint
 	);
