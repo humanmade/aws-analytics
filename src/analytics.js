@@ -102,7 +102,7 @@ const prepareData = async ( value, sanitiseCallback ) => {
 	if ( typeof value === 'function' ) {
 		value = await value();
 	}
-	if ( ! ( value instanceof Array ) ) {
+	if ( ! Array.isArray( value ) ) {
 		value = [ value ];
 	}
 	return value.map( val => sanitiseCallback( val ) );
