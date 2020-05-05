@@ -109,13 +109,13 @@ const prepareData = async ( value, sanitiseCallback ) => {
 };
 const sanitiseAttribute = value => value.toString();
 const sanitiseMetric = value => parseFloat( Number( value ) );
-const prepareAttributes = async ( attributes ) => {
+const prepareAttributes = async attributes => {
 	for ( const name in attributes ) {
 		attributes[ name ] = await prepareData( attributes[ name ], sanitiseAttribute );
 	}
 	return attributes;
 };
-const prepareMetrics = async ( metrics ) => {
+const prepareMetrics = async metrics => {
 	for ( const name in metrics ) {
 		metrics[ name ] = await prepareData( metrics[ name ], sanitiseMetric );
 	}
