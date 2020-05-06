@@ -107,8 +107,8 @@ const prepareData = async ( value, sanitizeCallback ) => {
 	}
 	return value.map( sanitizeCallback );
 };
-const sanitiseAttribute = value => value.toString();
-const sanitiseMetric = value => parseFloat( Number( value ) );
+const sanitizeAttribute = value => value.toString();
+const sanitizeMetric = value => parseFloat( Number( value ) );
 const prepareAttributes = async attributes => {
 	for ( const name in attributes ) {
 		attributes[ name ] = await prepareData( attributes[ name ], sanitiseAttribute );
