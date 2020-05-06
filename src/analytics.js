@@ -98,7 +98,7 @@ const getSearchParams = () =>
 		} ),
 		{}
 	);
-const prepareData = async ( value, sanitiseCallback ) => {
+const prepareData = async ( value, sanitizeCallback ) => {
 	if ( typeof value === 'function' ) {
 		value = await value();
 	}
