@@ -110,16 +110,18 @@ const prepareData = async ( value, sanitizeCallback ) => {
 const sanitizeAttribute = value => value.toString();
 const sanitizeMetric = value => parseFloat( Number( value ) );
 const prepareAttributes = async attributes => {
+	const sanitized = {};
 	for ( const name in attributes ) {
-		attributes[ name ] = await prepareData( attributes[ name ], sanitizeAttribute );
+		sanitized[ name ] = await prepareData( attributes[ name ], sanitizeAttribute );
 	}
-	return attributes;
+	return sanitized;
 };
 const prepareMetrics = async metrics => {
+	const sanitized = {};
 	for ( const name in metrics ) {
-		metrics[ name ] = await prepareData( metrics[ name ], sanitizeMetric );
+		sanitized[ name ] = await prepareData( metrics[ name ], sanitizeMetric );
 	}
-	return metrics;
+	return sanitized;
 };
 const getAttributes = ( extra = {} ) => ( {
 	session: getSessionID(),
