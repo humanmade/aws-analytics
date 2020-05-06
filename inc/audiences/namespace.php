@@ -9,6 +9,7 @@ namespace Altis\Analytics\Audiences;
 
 use Altis\Analytics\Utils;
 use WP_Post;
+use WP_Query;
 
 const COMPARISON_OPERATORS = [
 	'=',
@@ -92,6 +93,11 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ) );
 	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
+
+	// UTM Campaign parameters.
+	register_field( 'attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
+	register_field( 'attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
+	register_field( 'attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
 }
 
 /**
@@ -235,6 +241,9 @@ function save_audience( int $post_id, array $audience ) : bool {
 		update_post_meta( $post_id, 'audience_error', wp_slash( $valid->get_error_message() ) );
 		return false;
 	}
+
+	// Clear the client side audience config cache returned by get_audience_config().
+	wp_cache_delete( 'audiences', 'altis.analytics' );
 
 	// Save the audience configuration.
 	return (bool) update_post_meta( $post_id, 'audience', wp_slash( $audience ) );
@@ -754,4 +763,50 @@ function build_audience_query( array $audience ) : array {
 	];
 
 	return $groups_query;
+}
+
+/**
+ * Output audience configuration data as JSON.
+ *
+ * @return array
+ */
+function get_audience_config() : array {
+	// Note this cache is cleared in save_audience().
+	$config = wp_cache_get( 'audiences', 'altis.analytics' );
+
+	if ( $config ) {
+		return $config;
+	}
+
+	/**
+	 * Limits the number of active audiences there can be in use at any one time
+	 * on the front end.
+	 *
+	 * @param int $limit The number of audiences to fetch for use client side.
+	 */
+	$limit = apply_filters( 'altis.analytics.audiences.limit', 20 );
+	$limit = absint( $limit );
+
+	$audiences = new WP_Query( [
+		'post_type' => POST_TYPE,
+		'posts_per_page' => $limit,
+		'post_status' => 'publish',
+		'fields' => 'ids',
+		'orderby' => 'menu_order',
+		'order' => 'ASC',
+	] );
+
+	$config = [];
+
+	// Extract the audience config from post meta.
+	foreach ( $audiences->posts as $audience_id ) {
+		$config[] = [
+			'id' => $audience_id,
+			'config' => get_audience( $audience_id ),
+		];
+	}
+
+	wp_cache_set( 'audiences', $config, 'altis.analytics' );
+
+	return $config;
 }
