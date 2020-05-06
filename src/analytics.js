@@ -111,7 +111,7 @@ const sanitizeAttribute = value => value.toString();
 const sanitizeMetric = value => parseFloat( Number( value ) );
 const prepareAttributes = async attributes => {
 	for ( const name in attributes ) {
-		attributes[ name ] = await prepareData( attributes[ name ], sanitiseAttribute );
+		attributes[ name ] = await prepareData( attributes[ name ], sanitizeAttribute );
 	}
 	return attributes;
 };
