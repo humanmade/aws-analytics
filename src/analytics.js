@@ -105,7 +105,7 @@ const prepareData = async ( value, sanitiseCallback ) => {
 	if ( ! Array.isArray( value ) ) {
 		value = [ value ];
 	}
-	return value.map( val => sanitiseCallback( val ) );
+	return value.map( sanitizeCallback );
 };
 const sanitiseAttribute = value => value.toString();
 const sanitiseMetric = value => parseFloat( Number( value ) );
