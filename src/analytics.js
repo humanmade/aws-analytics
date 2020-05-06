@@ -117,7 +117,7 @@ const prepareAttributes = async attributes => {
 };
 const prepareMetrics = async metrics => {
 	for ( const name in metrics ) {
-		metrics[ name ] = await prepareData( metrics[ name ], sanitiseMetric );
+		metrics[ name ] = await prepareData( metrics[ name ], sanitizeMetric );
 	}
 	return metrics;
 };
