@@ -16,6 +16,7 @@ const {
 	_metrics,
 	Config,
 	Data,
+	Audiences,
 } = Altis.Analytics;
 
 if ( ! Config.PinpointId || ! Config.CognitoId ) {
@@ -250,6 +251,155 @@ const Analytics = {
 
 		return await Analytics.client;
 	},
+	audiences: [],
+	updateAudiences: async () => {
+		// Take a clone of the current audiences to check if they changed later.
+		const oldAudienceIds = Analytics.audiences.slice().sort();
+
+		// Get attributes.
+		const attributes = await prepareAttributes( getAttributes() );
+		// Get metrics.
+		const metrics = await prepareMetrics( getMetrics() );
+		// Get endpoint.
+		const endpoint = Analytics.getEndpoint();
+
+		// Aggregate data into a queryable object.
+		const fieldData = {
+			attributes,
+			metrics,
+			endpoint,
+		};
+
+		// Store derived field values for quicker lookups.
+		const fieldValues = {};
+
+		// Audience ID store.
+		const audienceIds = [];
+
+		// Map audience configurations to IDs.
+		for ( const aid in Audiences ) {
+			const { id, config } = Audiences[ aid ];
+
+			// Set to true if we need match all groups.
+			// - If any rule fails we set this to false and break.
+			// Set to false if we want to match any group.
+			// - If any rule passes we set this to true and break.
+			let audienceMatched = config.include === 'all';
+
+			for ( const gid in config.groups ) {
+				const group = config.groups[ gid ];
+
+				// Set to true if we need match all rules.
+				// - If any rule fails we set this to false and break.
+				// Set to false if we want to match any rule.
+				// - If any rule passes we set this to true and break.
+				let groupMatched = group.include === 'all';
+
+				for ( const rid in group.rules ) {
+					const { field, operator, value } = group.rules[ rid ];
+
+					// Track whether the rule matches.
+					let ruleMatch = false;
+
+					// Find the field value via dot notation.
+					let currentValues = fieldValues[ field ] ||
+						field.split( '.' ).reduce( ( carry, prop ) => {
+							return carry[ prop ] ?? null;
+						}, fieldData );
+
+					// Compat for non array values like endpoint.Demographic properties.
+					if ( ! Array.isArray( currentValues ) ) {
+						currentValues = [ currentValues ];
+					}
+
+					fieldValues[ field ] = currentValues;
+
+					// Compare values.
+					for ( const vid in currentValues ) {
+						const currentValue = currentValues[ vid ];
+
+						if ( operator === '=' ) {
+							ruleMatch = currentValue === value;
+						}
+						if ( operator === '!=' ) {
+							ruleMatch = currentValue !== value;
+						}
+						if ( operator === '*=' ) {
+							ruleMatch = currentValue.indexOf( value ) > -1;
+						}
+						if ( operator === '!*' ) {
+							ruleMatch = currentValue.indexOf( value ) === -1;
+						}
+						if ( operator === '^=' ) {
+							ruleMatch = currentValue.indexOf( value ) === 0;
+						}
+
+						// Don't compare numeric values against `null`.
+						if ( value === null ) {
+							break;
+						}
+
+						if ( operator === 'gte' ) {
+							ruleMatch = Number( currentValue ) >= Number( value );
+						}
+						if ( operator === 'lte' ) {
+							ruleMatch = Number( currentValue ) <= Number( value );
+						}
+						if ( operator === 'gt' ) {
+							ruleMatch = Number( currentValue ) > Number( value );
+						}
+						if ( operator === 'lt' ) {
+							ruleMatch = Number( currentValue ) < Number( value );
+						}
+
+						// Elasticsearch will match any value stored against a key so if ruleMatch
+						// is already true we don't want to reset it.
+						if ( ruleMatch ) {
+							break;
+						}
+					}
+
+					// Determine if the group matched depending on the include rule.
+					if ( group.include === 'any' && ruleMatch ) {
+						groupMatched = true;
+						break;
+					}
+					if ( group.include === 'all' && ! ruleMatch ) {
+						groupMatched = false;
+						break;
+					}
+				}
+
+				// Determine if the audience matched depending on the group include rule.
+				if ( config.include === 'any' && groupMatched ) {
+					audienceMatched = true;
+					break;
+				}
+				if ( config.include === 'all' && ! groupMatched ) {
+					audienceMatched = false;
+					break;
+				}
+			}
+
+			if ( audienceMatched ) {
+				audienceIds.push( id );
+				break;
+			}
+		}
+
+		Analytics.audiences = audienceIds;
+
+		// Trigger an event when audiences are modified.
+		if ( audienceIds.sort().toString() !== oldAudienceIds.toString() ) {
+			const updateAudiencesEvent = new CustomEvent( 'altis.analytics.updateAudiences', {
+				detail: audienceIds,
+			} );
+			window.dispatchEvent( updateAudiencesEvent );
+		}
+	},
+	getAudiences: () => {
+		return Analytics.audiences;
+	},
 	updateEndpoint: async ( endpoint = {} ) => {
 		return await Analytics.flushEvents( endpoint );
 	},
@@ -261,7 +411,15 @@ const Analytics = {
 			return {};
 		}
 	},
-	setEndpoint: endpoint => localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) ),
+	setEndpoint: endpoint => {
+		localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) );
+	},
+	on: ( event, callback ) => {
+		return window.addEventListener( `altis.analytics.${event}`, event => callback( event.detail ) );
+	},
+	off: listener => {
+		window.removeEventListener( listener );
+	},
 	mergeEndpointData: async ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
@@ -318,6 +476,15 @@ const Analytics = {
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
 
+		// Trigger endpoint update event.
+		const updateEndpointEvent = new CustomEvent( 'altis.analytics.updateEndpoint', {
+			detail: endpoint,
+		} );
+		window.dispatchEvent( updateEndpointEvent );
+
+		// Update audience definitions.
+		await Analytics.updateAudiences();
+
 		return endpoint;
 	},
 	events: [],
@@ -371,6 +538,12 @@ const Analytics = {
 
 		// Store sent events.
 		Analytics.events.push( Event );
+
+		// Trigger event recorded event.
+		const recordEvent = new CustomEvent( 'altis.analytics.record', {
+			detail: Event,
+		} );
+		window.dispatchEvent( recordEvent );
 
 		// Flush the events if we don't want to queue.
 		if ( ! queue ) {
@@ -475,6 +648,11 @@ window.addEventListener( 'beforeunload', () => {
 
 // Expose userland API.
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
+window.Altis.Analytics.updateAudiences = Analytics.updateAudiences;
+window.Altis.Analytics.getAudiences = Analytics.getAudiences;
+window.Altis.Analytics.on = Analytics.on;
+window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
 	Analytics.record(
 		type,
