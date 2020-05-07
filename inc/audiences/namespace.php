@@ -716,6 +716,11 @@ function build_audience_query( array $audience ) : array {
 				],
 			];
 
+			// Ignore rules with an empty field.
+			if ( empty( $rule['field'] ) ) {
+				continue;
+			}
+
 			// Handle string comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'string' ) {
 				switch ( $rule['operator'] ) {
