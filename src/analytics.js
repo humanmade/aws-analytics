@@ -142,6 +142,10 @@ const getMetrics = ( extra = {} ) => ( {
 	elapsed: elapsed + ( Date.now() - start ),
 	scrollDepthMax,
 	scrollDepthNow,
+	hour: new Date().getHours(),
+	day: new Date().getDay() + 1,
+	month: new Date().getMonth() + 1,
+	year: new Date().getFullYear(),
 	...extra,
 	...( _metrics || {} ),
 } );

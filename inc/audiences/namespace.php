@@ -98,6 +98,12 @@ function register_default_event_data_maps() {
 	register_field( 'attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
 	register_field( 'attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
 	register_field( 'attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
+
+	// Time based parameters.
+	register_field( 'metrics.hour', __( 'Hour (0 - 23)', 'altis-analytics' ) );
+	register_field( 'metrics.day', __( 'Day (1 = Sunday, 7 = Saturday)', 'altis-analytics' ) );
+	register_field( 'metrics.month', __( 'Month (1 = January)', 'altis-analytics' ) );
+	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ) );
 }
 
 /**
