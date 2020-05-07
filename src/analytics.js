@@ -267,6 +267,11 @@ const Analytics = {
 				for ( const rid in group.rules ) {
 					const { field, operator, value } = group.rules[ rid ];
 
+					// Ignore rules with empty field names.
+					if ( field === '' ) {
+						continue;
+					}
+
 					// Track whether the rule matches.
 					let ruleMatch = false;
 
