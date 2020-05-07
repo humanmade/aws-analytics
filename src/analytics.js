@@ -477,8 +477,8 @@ const Analytics = {
 		if ( ! endpoint.Attributes.lastSession ) {
 			endpoint.Attributes.lastSession = [ getSessionID() ];
 			endpoint.Attributes.lastPageSession = [ pageSession ];
-			endpoint.Metrics.sessions = [1.0];
-			endpoint.Metrics.pageViews = [1.0];
+			endpoint.Metrics.sessions = [ 1.0 ];
+			endpoint.Metrics.pageViews = [ 1.0 ];
 		} else {
 			// Increment sessions.
 			if ( endpoint.Attributes.lastSession[0] !== getSessionID() ) {
