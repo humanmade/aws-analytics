@@ -86,13 +86,35 @@ function register_post_type() {
  * Set up default event data mappings.
  */
 function register_default_event_data_maps() {
+	// Traffic source data.
 	register_field( 'attributes.referer', __( 'Referrer', 'altis-analytics' ) );
+
+	// Device data.
 	register_field( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
 	register_field( 'endpoint.Demographic.ModelVersion', __( 'Browser version', 'altis-analytics' ) );
 	register_field( 'endpoint.Demographic.Locale', __( 'Browser Locale', 'altis-analytics' ) );
 	register_field( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ) );
 	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
+
+	// Location data.
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
+
+	// UTM Campaign parameters.
+	register_field( 'attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
+	register_field( 'attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
+	register_field( 'attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
+	register_field( 'attributes.utm_term', __( 'UTM Term', 'altis-analytics' ) );
+	register_field( 'attributes.utm_content', __( 'UTM Content', 'altis-analytics' ) );
+
+	// Time based parameters.
+	register_field( 'metrics.hour', __( 'Hour (0 - 23)', 'altis-analytics' ) );
+	register_field( 'metrics.day', __( 'Day (1 = Sunday, 7 = Saturday)', 'altis-analytics' ) );
+	register_field( 'metrics.month', __( 'Month (1 = January)', 'altis-analytics' ) );
+	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ) );
+
+	// Sessions & page view counts.
+	register_field( 'endpoint.Metrics.sessions', __( 'Sessions (total separate visits)', 'altis-analytics' ) );
+	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ) );
 }
 
 /**

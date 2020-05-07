@@ -69,6 +69,8 @@ const utm = {
 	utm_source: params.get( 'utm_source' ) || '',
 	utm_medium: params.get( 'utm_medium' ) || '',
 	utm_campaign: params.get( 'utm_campaign' ) || '',
+	utm_term: params.get( 'utm_term' ) || '',
+	utm_content: params.get( 'utm_content' ) || '',
 };
 
 /**
@@ -142,6 +144,10 @@ const getMetrics = ( extra = {} ) => ( {
 	elapsed: elapsed + ( Date.now() - start ),
 	scrollDepthMax,
 	scrollDepthNow,
+	hour: new Date().getHours(),
+	day: new Date().getDay() + 1,
+	month: new Date().getMonth() + 1,
+	year: new Date().getFullYear(),
 	...extra,
 	...( _metrics || {} ),
 } );
@@ -466,6 +472,25 @@ const Analytics = {
 		}
 		endpoint.Attributes = await prepareAttributes( endpoint.Attributes );
 		endpoint.Metrics = await prepareMetrics( endpoint.Metrics );
+
+		// Add session and page view counts to endpoint.
+		if ( ! endpoint.Attributes.lastSession ) {
+			endpoint.Attributes.lastSession = [ getSessionID() ];
+			endpoint.Attributes.lastPageSession = [ pageSession ];
+			endpoint.Metrics.sessions = [ 1.0 ];
+			endpoint.Metrics.pageViews = [ 1.0 ];
+		} else {
+			// Increment sessions.
+			if ( endpoint.Attributes.lastSession[0] !== getSessionID() ) {
+				endpoint.Attributes.lastSession = [ getSessionID() ];
+				endpoint.Metrics.sessions = [ endpoint.Metrics.sessions[0] + 1.0 ];
+			}
+			// Increment pageViews.
+			if ( endpoint.Attributes.lastPageSession[0] !== pageSession ) {
+				endpoint.Attributes.lastPageSession = [ pageSession ];
+				endpoint.Metrics.pageViews = [ endpoint.Metrics.pageViews[0] + 1.0 ];
+			}
+		}
 
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
