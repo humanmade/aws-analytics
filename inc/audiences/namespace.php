@@ -9,6 +9,7 @@ namespace Altis\Analytics\Audiences;
 
 use Altis\Analytics\Utils;
 use WP_Post;
+use WP_Query;
 
 const COMPARISON_OPERATORS = [
 	'=',
@@ -235,6 +236,9 @@ function save_audience( int $post_id, array $audience ) : bool {
 		update_post_meta( $post_id, 'audience_error', wp_slash( $valid->get_error_message() ) );
 		return false;
 	}
+
+	// Clear the client side audience config cache returned by get_audience_config().
+	wp_cache_delete( 'audiences', 'altis.analytics' );
 
 	// Save the audience configuration.
 	return (bool) update_post_meta( $post_id, 'audience', wp_slash( $audience ) );
@@ -754,4 +758,53 @@ function build_audience_query( array $audience ) : array {
 	];
 
 	return $groups_query;
+}
+
+/**
+ * Returns audience configuration data array for client side use.
+ *
+ * @return array
+ */
+function get_audience_config() : array {
+	// Note this cache is cleared in save_audience().
+	$config = wp_cache_get( 'audiences', 'altis.analytics' );
+
+	if ( $config ) {
+		return $config;
+	}
+
+	/**
+	 * Limits the number of active audiences there can be in use at any one time
+	 * on the front end.
+	 *
+	 * @param int $limit The number of audiences to fetch for use client side.
+	 */
+	$limit = apply_filters( 'altis.analytics.audiences.limit', 20 );
+
+	// Prevent negative values, -1 in this case means an unbounded query.
+	$limit = absint( $limit );
+
+	$audiences = new WP_Query( [
+		'fields' => 'ids',
+		'no_found_rows' => true,
+		'order' => 'ASC',
+		'orderby' => 'menu_order',
+		'post_status' => 'publish',
+		'post_type' => POST_TYPE,
+		'posts_per_page' => $limit,
+	] );
+
+	$config = [];
+
+	// Get the audience config from post meta for each post.
+	foreach ( $audiences->posts as $audience_id ) {
+		$config[] = [
+			'id' => $audience_id,
+			'config' => get_audience( $audience_id ),
+		];
+	}
+
+	wp_cache_set( 'audiences', $config, 'altis.analytics' );
+
+	return $config;
 }

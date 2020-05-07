@@ -165,8 +165,14 @@ function enqueue_scripts() {
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
-			'Altis.Analytics.registerAttribute = function (key, value) { Altis.Analytics._attributes[key] = value; };' .
-			'Altis.Analytics.registerMetric = function (key, value) { Altis.Analytics._metrics[key] = value; };',
+			'Altis.Analytics.registerAttribute = function (key, value) {' .
+				'Altis.Analytics._attributes[key] = value;' .
+				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
+			'};' .
+			'Altis.Analytics.registerMetric = function (key, value) {' .
+				'Altis.Analytics._metrics[key] = value;' .
+				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
+			'};',
 			wp_json_encode(
 				[
 					'Config' => [
@@ -178,6 +184,7 @@ function enqueue_scripts() {
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
 					'Data' => (object) get_client_side_data(),
+					'Audiences' => Audiences\get_audience_config(),
 					'_attributes' => (object) [],
 					'_metrics' => (object) [],
 				]

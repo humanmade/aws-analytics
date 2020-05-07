@@ -9,9 +9,15 @@ This plugin integrates WordPress with [AWS Pinpoint](#) and provides an extensib
 
 Once installed the plugin will queue up an analytics tracker script that provides a few client side functions you can use:
 
+#### Updating Data
+
 **`Altis.Analytics.updateEndpoint( data <object> )`**
 
 Updates the data associated with the current user. Use this to provide updated custom user attributes and metrics, a user ID, and demographic data.
+
+**`Altis.Analytics.getEndpoint()`**
+
+Returns the current endpoint data object.
 
 **`Altis.Analytics.record( eventName <string> [, data <object>] )`**
 
@@ -32,6 +38,16 @@ Records an event. The data passed in should be an object with either or both an 
 
 Those attributes and metrics can be later queried via elasticsearch.
 
+**`Altis.Analytics.updateAudiences()`**
+
+Synchronises the current audiences associated with the page session. You shouldn't ever need to call this manually but it is called any time `updateEndpoint()`, `registerAttribute()` or `registerMetric()` are called. You can hook into the `updateAudiences` event to respond to changes in this data.
+
+**`Altis.Analytics.getAudiences()`**
+
+Retrieves an array of the audience IDs for the current page session.
+
+#### Adding global attributes and metrics
+
 **`Altis.Analytics.registerAttribute( name <string>, value <string | callback> )`**
 
 Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` allows this. If a function is passed as the value will be evaluated at the time an event recorded.
@@ -39,6 +55,38 @@ Sometimes you may want to record a dynamic attribute value for all events on the
 **`Altis.Analytics.registerMetric( name <string>, value <string | callback> )`**
 
 Similar to `registerAttribute()` above but for metrics.
+
+#### Events
+
+**`Altis.Analytics.on( event <string>, callback <callback> ) : EventListener`**
+
+Attaches and returns an event listener. The available events and their callback arguments are:
+
+- `updateEndpoint`<br />
+  Called any time the current endpoint data is updated. The callback receives the endpoint object.<br />
+  ```
+  Altis.Analytics.on( 'updateEndpoint', function ( endpoint ) {
+    console.log( endpoint.Demographic ); // { Platform: 'Mac OS', .... }
+  } );
+  ```
+- `record`:
+  Called any time an event is recorded. The callback receives the pinpoint event object.<br />
+  ```
+  Altis.Analytics.on( 'record', function ( event ) {
+    console.log( event.Attributes, event.event_type ); // { referer: '', ... }, 'pageView'
+  } );
+  ```
+- `updateAudiences`<br />
+  Called any time the audiences are updated. The callback receives an array of audience IDs.<br />
+  ```
+  Altis.Analytics.on( 'updateAudiences', function ( audiences ) {
+    console.log( audiences ); // [ 1, 2, 3, ... ]
+  } );
+  ```
+
+**`Altis.Analytics.off( listener <EventListener> )`**
+
+Removes an event listener returned by `Altis.Analytics.on()`.
 
 ### Constants
 
