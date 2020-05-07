@@ -111,6 +111,10 @@ function register_default_event_data_maps() {
 	register_field( 'metrics.day', __( 'Day (1 = Sunday, 7 = Saturday)', 'altis-analytics' ) );
 	register_field( 'metrics.month', __( 'Month (1 = January)', 'altis-analytics' ) );
 	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ) );
+
+	// Sessions & page view counts.
+	register_field( 'endpoint.Metrics.sessions', __( 'Sessions (total separate visits)', 'altis-analytics' ) );
+	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ) );
 }
 
 /**
