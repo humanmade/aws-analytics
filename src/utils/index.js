@@ -32,3 +32,59 @@ export const throttle = ( delay, fn ) => {
  * Get browser locale / language.
  */
 export const getLanguage = () => ( navigator.language || navigator.browserLanguage || ( navigator.languages || [ 'en-US' ] )[ 0 ] ).toLowerCase();
+
+/**
+ * Array merge function for deepmerge.
+ *
+ * @param {Array} destinationArray
+ * @param {Array} sourceArray
+ */
+export const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
+
+/**
+ * Resolves an attribute or metric value and sanitize it.
+ *
+ * @param {mixed} value
+ * @param {Function} sanitizeCallback
+ */
+const prepareData = async ( value, sanitizeCallback ) => {
+	if ( typeof value === 'function' ) {
+		value = await value();
+	}
+	if ( ! Array.isArray( value ) ) {
+		value = [ value ];
+	}
+	return value.map( sanitizeCallback );
+};
+
+const sanitizeAttribute = value => value.toString();
+
+const sanitizeMetric = value => parseFloat( Number( value ) );
+
+/**
+ * Prepares an object for inclusion in endpoint data or event data.
+ *
+ * @param {Object} attributes
+ * @param {String} prefix Optional prefix to prepend to the object property name.
+ */
+export const prepareAttributes = async ( attributes, prefix = '' ) => {
+	const sanitized = {};
+	for ( const name in attributes ) {
+		sanitized[ `${prefix}${name}` ] = await prepareData( attributes[ name ], sanitizeAttribute );
+	}
+	return sanitized;
+};
+
+/**
+ * Prepares an object for inclusion in endpoint data or event data.
+ *
+ * @param {Object} attributes
+ * @param {String} prefix Optional prefix to prepend to the object property name.
+ */
+export const prepareMetrics = async ( metrics, prefix = '' ) => {
+	const sanitized = {};
+	for ( const name in metrics ) {
+		sanitized[ `${prefix}${name}` ] = await prepareData( metrics[ name ], sanitizeMetric );
+	}
+	return sanitized;
+};

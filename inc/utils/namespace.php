@@ -5,6 +5,38 @@
 
 namespace Altis\Analytics\Utils;
 
+use const Altis\Analytics\ROOT_DIR;
+
+/**
+ * Return asset file name based on generated manifest.json file.
+ *
+ * @param string $filename
+ * @return string|false
+ */
+function get_asset_url( string $filename ) {
+	$manifest_file = ROOT_DIR . '/build/manifest.json';
+
+	if ( ! file_exists( $manifest_file ) ) {
+		return false;
+	}
+
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+	$manifest = file_get_contents( $manifest_file );
+	$manifest = json_decode( $manifest, true );
+
+	if ( ! $manifest || ! isset( $manifest[ $filename ] ) ) {
+		return false;
+	}
+
+	$path = $manifest[ $filename ];
+
+	if ( strpos( $path, 'http' ) !== false ) {
+		return $path;
+	}
+
+	return plugins_url( $manifest[ $filename ], ROOT_DIR . '/build/assets' );
+}
+
 /**
  * Calculate the combined standard deviation for multiple groups of
  * averages, standard deviations and sizes.
@@ -81,12 +113,19 @@ function get_elasticsearch_url() : string {
  *
  * @param array $query A full elasticsearch Query DSL array.
  * @param array $params URL query parameters to append to request URL.
+ * @param string $path The endpoint to query against, defaults to _search.
  * @return array|null
  */
-function query( array $query, array $params = [] ) : ?array {
+function query( array $query, array $params = [], string $path = '_search' ) : ?array {
+
+	// Sanitize path.
+	$path = trim( $path, '/' );
 
 	// Get URL.
-	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/_search' );
+	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/' . $path );
+
+	// Escape the URL to ensure nothing strange was passed in via $path.
+	$url = esc_url_raw( $url );
 
 	$response = wp_remote_post( $url, [
 		'headers' => [
@@ -97,16 +136,24 @@ function query( array $query, array $params = [] ) : ?array {
 
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
 		if ( is_wp_error( $response ) ) {
-			trigger_error( sprintf(
-				'Analytics: elasticsearch query failed: %s',
-				$response->get_error_message()
-			), E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					"Analytics: elasticsearch query failed:\n%s\n%s",
+					$url,
+					$response->get_error_message()
+				),
+				E_USER_WARNING
+			);
 		} else {
-			trigger_error( sprintf(
-				"Analytics: elasticsearch query failed:\n%s\n%s",
-				json_encode( $query ),
-				wp_remote_retrieve_body( $response )
-			), E_USER_WARNING );
+			trigger_error(
+				sprintf(
+					"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
+					$url,
+					json_encode( $query ),
+					wp_remote_retrieve_body( $response )
+				),
+				E_USER_WARNING
+			);
 		}
 		return null;
 	}
@@ -117,6 +164,18 @@ function query( array $query, array $params = [] ) : ?array {
 	if ( json_last_error() ) {
 		trigger_error( 'Analytics: elasticsearch response could not be decoded.', E_USER_WARNING );
 		return null;
+	}
+
+	// Enable logging for analytics queries.
+	if ( defined( 'ALTIS_ANALYTICS_LOG_QUERIES' ) && ALTIS_ANALYTICS_LOG_QUERIES ) {
+		error_log(
+			sprintf(
+				"Analytics: elasticsearch query:\n%s\n%s\n%s",
+				$url,
+				json_encode( $query ),
+				wp_remote_retrieve_body( $response )
+			)
+		);
 	}
 
 	return $result;
@@ -222,4 +281,41 @@ function merge_aggregates( array $current, array $new, string $bucket_type = '' 
 	}
 
 	return $merged;
+}
+
+/**
+ * Determine type of Elasticsearch field by name.
+ *
+ * @param string $field The full field name.
+ * @return string|null $type One of 'string', 'number' or 'date'.
+ */
+function get_field_type( string $field ) : ?string {
+	if ( empty( $field ) ) {
+		return null;
+	}
+
+	$numeric_fields = [
+		'event_timestamp',
+		'arrival_timestamp',
+		'session.start_timestamp',
+		'session.stop_timestamp',
+	];
+
+	$is_numeric_field = in_array( $field, $numeric_fields, true );
+	$is_metric = stripos( $field, 'metrics' ) !== false;
+
+	if ( $is_numeric_field || $is_metric ) {
+		return 'number';
+	}
+
+	$date_fields = [
+		'endpoint.CreationDate',
+		'endpoint.EffectiveDate',
+	];
+
+	if ( in_array( $field, $date_fields, true ) ) {
+		return 'date';
+	}
+
+	return 'string';
 }

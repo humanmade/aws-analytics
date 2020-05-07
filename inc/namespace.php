@@ -3,12 +3,15 @@
  * Altis Analytics.
  *
  * @package altis-analytics
- *
  */
 
 namespace Altis\Analytics;
 
+use function Altis\Analytics\Utils\get_asset_url;
+
 function setup() {
+	// Setup audiences.
+	Audiences\setup();
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
@@ -157,13 +160,19 @@ function async_scripts( string $tag, string $handle ) : string {
 function enqueue_scripts() {
 	global $wp_scripts;
 
-	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], '__SCRIPT_HASH__', false );
+	wp_enqueue_script( 'altis-analytics', get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
-			'Altis.Analytics.registerAttribute = function (key, value) { Altis.Analytics._attributes[key] = value; };' .
-			'Altis.Analytics.registerMetric = function (key, value) { Altis.Analytics._metrics[key] = value; };',
+			'Altis.Analytics.registerAttribute = function (key, value) {' .
+				'Altis.Analytics._attributes[key] = value;' .
+				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
+			'};' .
+			'Altis.Analytics.registerMetric = function (key, value) {' .
+				'Altis.Analytics._metrics[key] = value;' .
+				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
+			'};',
 			wp_json_encode(
 				[
 					'Config' => [
@@ -175,6 +184,7 @@ function enqueue_scripts() {
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
 					'Data' => (object) get_client_side_data(),
+					'Audiences' => Audiences\get_audience_config(),
 					'_attributes' => (object) [],
 					'_metrics' => (object) [],
 				]

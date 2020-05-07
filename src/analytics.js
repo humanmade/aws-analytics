@@ -1,8 +1,14 @@
 // Utils.
 import './utils/polyfills';
-import { uuid, getLanguage } from './utils';
-import UAParser from 'ua-parser-js';
+import {
+	getLanguage,
+	overwriteMerge,
+	prepareAttributes,
+	prepareMetrics,
+	uuid,
+} from './utils';
 import merge from 'deepmerge';
+import UAParser from 'ua-parser-js';
 
 // AWS SDK.
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
@@ -17,6 +23,7 @@ const {
 	_metrics,
 	Config,
 	Data,
+	Audiences,
 } = Altis.Analytics;
 
 if ( ! Config.PinpointId || ! Config.CognitoId ) {
@@ -62,14 +69,13 @@ window.addEventListener( 'scroll', () => {
 } );
 
 /**
- * Campaign.
+ * Query string parameters.
  */
 const params = parseQueryString( window.location.search );
-const utm = {
-	utm_source: params.utm_source || '',
-	utm_medium: params.utm_medium || '',
-	utm_campaign: params.utm_campaign || '',
-};
+const qv_params = {};
+for ( const qv in params ) {
+	qv_params[ `qv_${ qv }` ] = params[ qv ] || '';
+}
 
 /**
  * Attributes helper.
@@ -91,40 +97,30 @@ const getSessionID = () => {
 	window.sessionStorage.setItem( '_hm_uuid', newSessionID );
 	return newSessionID;
 };
-const getSearchParams = () => parseObject( parseQueryString( window.location.search ), 'qv_' );
-const parseObject = ( obj, prefix = '' ) => {
-	let newObject = {};
-	for ( const key in obj ) {
-		newObject[ `${prefix}${key}` ] = ( typeof obj[ key ] === 'function' ? obj[ key ]() : obj[ key ] ).toString();
-	}
-	return newObject;
-};
-const getAttributes = ( extra = {} ) => parseObject( merge.all( [
-	{
-		session: getSessionID(),
-		pageSession: pageSession,
-		url: window.location.origin + window.location.pathname,
-		host: window.location.hostname,
-		search: window.location.search,
-		hash: window.location.hash,
-		referer: document.referrer,
-	},
-	getSearchParams(),
-	utm,
-	( Data.Attributes || {} ),
-	extra,
-	( _attributes || {} ),
-] ) );
-const getMetrics = ( extra = {} ) => parseObject( merge.all( [
-	{
-		elapsed: elapsed + ( Date.now() - start ),
-		scrollDepthMax,
-		scrollDepthNow,
-	},
-	extra,
-	( _metrics || {} ),
-] ) );
-const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
+const getAttributes = ( extra = {} ) => ( {
+	session: getSessionID(),
+	pageSession: pageSession,
+	url: window.location.origin + window.location.pathname,
+	host: window.location.hostname,
+	search: window.location.search,
+	hash: window.location.hash,
+	referer: document.referrer,
+	...qv_params,
+	...( Data.Attributes || {} ),
+	...extra,
+	...( _attributes || {} ),
+} );
+const getMetrics = ( extra = {} ) => ( {
+	elapsed: elapsed + ( Date.now() - start ),
+	scrollDepthMax,
+	scrollDepthNow,
+	hour: new Date().getHours(),
+	day: new Date().getDay() + 1,
+	month: new Date().getMonth() + 1,
+	year: new Date().getFullYear(),
+	...extra,
+	...( _metrics || {} ),
+} );
 
 /**
  * Initialise cognito services.
@@ -224,6 +220,155 @@ const Analytics = {
 
 		return await Analytics.client;
 	},
+	audiences: [],
+	updateAudiences: async () => {
+		// Take a clone of the current audiences to check if they changed later.
+		const oldAudienceIds = Analytics.audiences.slice().sort();
+
+		// Get attributes.
+		const attributes = await prepareAttributes( getAttributes() );
+		// Get metrics.
+		const metrics = await prepareMetrics( getMetrics() );
+		// Get endpoint.
+		const endpoint = Analytics.getEndpoint();
+
+		// Aggregate data into a queryable object.
+		const fieldData = {
+			attributes,
+			metrics,
+			endpoint,
+		};
+
+		// Store derived field values for quicker lookups.
+		const fieldValues = {};
+
+		// Audience ID store.
+		const audienceIds = [];
+
+		// Map audience configurations to IDs.
+		for ( const aid in Audiences ) {
+			const { id, config } = Audiences[ aid ];
+
+			// Set to true if we need match all groups.
+			// - If any rule fails we set this to false and break.
+			// Set to false if we want to match any group.
+			// - If any rule passes we set this to true and break.
+			let audienceMatched = config.include === 'all';
+
+			for ( const gid in config.groups ) {
+				const group = config.groups[ gid ];
+
+				// Set to true if we need match all rules.
+				// - If any rule fails we set this to false and break.
+				// Set to false if we want to match any rule.
+				// - If any rule passes we set this to true and break.
+				let groupMatched = group.include === 'all';
+
+				for ( const rid in group.rules ) {
+					const { field, operator, value } = group.rules[ rid ];
+
+					// Track whether the rule matches.
+					let ruleMatch = false;
+
+					// Find the field value via dot notation.
+					let currentValues = fieldValues[ field ] ||
+						field.split( '.' ).reduce( ( carry, prop ) => {
+							return carry[ prop ] ?? null;
+						}, fieldData );
+
+					// Compat for non array values like endpoint.Demographic properties.
+					if ( ! Array.isArray( currentValues ) ) {
+						currentValues = [ currentValues ];
+					}
+
+					fieldValues[ field ] = currentValues;
+
+					// Compare values.
+					for ( const vid in currentValues ) {
+						const currentValue = currentValues[ vid ];
+
+						if ( operator === '=' ) {
+							ruleMatch = currentValue === value;
+						}
+						if ( operator === '!=' ) {
+							ruleMatch = currentValue !== value;
+						}
+						if ( operator === '*=' ) {
+							ruleMatch = currentValue.indexOf( value ) > -1;
+						}
+						if ( operator === '!*' ) {
+							ruleMatch = currentValue.indexOf( value ) === -1;
+						}
+						if ( operator === '^=' ) {
+							ruleMatch = currentValue.indexOf( value ) === 0;
+						}
+
+						// Don't compare numeric values against `null`.
+						if ( value === null ) {
+							break;
+						}
+
+						if ( operator === 'gte' ) {
+							ruleMatch = Number( currentValue ) >= Number( value );
+						}
+						if ( operator === 'lte' ) {
+							ruleMatch = Number( currentValue ) <= Number( value );
+						}
+						if ( operator === 'gt' ) {
+							ruleMatch = Number( currentValue ) > Number( value );
+						}
+						if ( operator === 'lt' ) {
+							ruleMatch = Number( currentValue ) < Number( value );
+						}
+
+						// Elasticsearch will match any value stored against a key so if ruleMatch
+						// is already true we don't want to reset it.
+						if ( ruleMatch ) {
+							break;
+						}
+					}
+
+					// Determine if the group matched depending on the include rule.
+					if ( group.include === 'any' && ruleMatch ) {
+						groupMatched = true;
+						break;
+					}
+					if ( group.include === 'all' && ! ruleMatch ) {
+						groupMatched = false;
+						break;
+					}
+				}
+
+				// Determine if the audience matched depending on the group include rule.
+				if ( config.include === 'any' && groupMatched ) {
+					audienceMatched = true;
+					break;
+				}
+				if ( config.include === 'all' && ! groupMatched ) {
+					audienceMatched = false;
+					break;
+				}
+			}
+
+			if ( audienceMatched ) {
+				audienceIds.push( id );
+				break;
+			}
+		}
+
+		Analytics.audiences = audienceIds;
+
+		// Trigger an event when audiences are modified.
+		if ( audienceIds.sort().toString() !== oldAudienceIds.toString() ) {
+			const updateAudiencesEvent = new CustomEvent( 'altis.analytics.updateAudiences', {
+				detail: audienceIds,
+			} );
+			window.dispatchEvent( updateAudiencesEvent );
+		}
+	},
+	getAudiences: () => {
+		return Analytics.audiences;
+	},
 	updateEndpoint: async ( endpoint = {} ) => {
 		return await Analytics.flushEvents( endpoint );
 	},
@@ -235,8 +380,16 @@ const Analytics = {
 			return {};
 		}
 	},
-	setEndpoint: endpoint => localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) ),
-	mergeEndpointData: ( endpoint = {} ) => {
+	setEndpoint: endpoint => {
+		localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) );
+	},
+	on: ( event, callback ) => {
+		return window.addEventListener( `altis.analytics.${event}`, event => callback( event.detail ) );
+	},
+	off: listener => {
+		window.removeEventListener( listener );
+	},
+	mergeEndpointData: async ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
 		const EndpointData = {
@@ -282,14 +435,53 @@ const Analytics = {
 			arrayMerge: overwriteMerge,
 		} );
 
+		// Sanitise attributes and metrics.
+		if ( endpoint.User && endpoint.User.UserAttributes ) {
+			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes )
+		}
+		endpoint.Attributes = await prepareAttributes( endpoint.Attributes );
+		endpoint.Metrics = await prepareMetrics( endpoint.Metrics );
+
+		// Add session and page view counts to endpoint.
+		if ( ! endpoint.Attributes.lastSession ) {
+			endpoint.Attributes.lastSession = [ getSessionID() ];
+			endpoint.Attributes.lastPageSession = [ pageSession ];
+			endpoint.Metrics.sessions = [ 1.0 ];
+			endpoint.Metrics.pageViews = [ 1.0 ];
+		} else {
+			// Increment sessions.
+			if ( endpoint.Attributes.lastSession[0] !== getSessionID() ) {
+				endpoint.Attributes.lastSession = [ getSessionID() ];
+				endpoint.Metrics.sessions = [ endpoint.Metrics.sessions[0] + 1.0 ];
+			}
+			// Increment pageViews.
+			if ( endpoint.Attributes.lastPageSession[0] !== pageSession ) {
+				endpoint.Attributes.lastPageSession = [ pageSession ];
+				endpoint.Metrics.pageViews = [ endpoint.Metrics.pageViews[0] + 1.0 ];
+			}
+		}
+
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
+
+		// Trigger endpoint update event.
+		const updateEndpointEvent = new CustomEvent( 'altis.analytics.updateEndpoint', {
+			detail: endpoint,
+		} );
+		window.dispatchEvent( updateEndpointEvent );
+
+		// Update audience definitions.
+		await Analytics.updateAudiences();
 
 		return endpoint;
 	},
 	events: [],
-	record: ( type, data = {}, endpoint = {}, queue = true ) => {
-		// Back compat, if endpoint is a boolean it is expected to be the value for queue.
+	record: async ( type, data = {}, endpoint = {}, queue = true ) => {
+		// Back compat, if data or endpoint is a boolean it is expected to be the value for queue.
+		if ( typeof data === 'boolean' ) {
+			queue = data;
+			data = {};
+		}
 		if ( typeof endpoint === 'boolean' ) {
 			queue = endpoint;
 			endpoint = {};
@@ -297,8 +489,17 @@ const Analytics = {
 
 		// Merge endpoint data.
 		if ( Object.entries( endpoint ).length ) {
-			Analytics.mergeEndpointData( endpoint );
+			await Analytics.mergeEndpointData( endpoint );
 		}
+
+		// Merge in registered metrics and attributes.
+		const attributes = getAttributes( data.attributes || {} );
+		const metrics = getMetrics( data.metrics || {} );
+
+		const preparedData = {
+			attributes: await prepareAttributes( attributes ),
+			metrics: await prepareMetrics( metrics ),
+		};
 
 		const EventId = uuid();
 		const Event = {
@@ -308,8 +509,8 @@ const Analytics = {
 				AppPackageName: Data.AppPackageName || '',
 				AppTitle: Data.SiteName || '',
 				AppVersionCode: Data.AppVersion || '',
-				Attributes: Object.assign( {}, data.attributes || {} ),
-				Metrics: Object.assign( {}, data.metrics || {} ),
+				Attributes: preparedData.attributes,
+				Metrics: preparedData.metrics,
 				Session: {
 					Id: subSessionId /* required */,
 					StartTimestamp: new Date( subSessionStart ).toISOString(), /* required */
@@ -325,6 +526,12 @@ const Analytics = {
 
 		// Store sent events.
 		Analytics.events.push( Event );
+
+		// Trigger event recorded event.
+		const recordEvent = new CustomEvent( 'altis.analytics.record', {
+			detail: Event,
+		} );
+		window.dispatchEvent( recordEvent );
 
 		// Flush the events if we don't want to queue.
 		if ( ! queue ) {
@@ -352,7 +559,7 @@ const Analytics = {
 
 		// Update endpoint data if provided.
 		if ( Object.entries( endpoint ).length ) {
-			Analytics.mergeEndpointData( endpoint );
+			await Analytics.mergeEndpointData( endpoint );
 		}
 
 		// Build endpoint data.
@@ -402,10 +609,7 @@ document.addEventListener( 'visibilitychange', () => {
 		// On hide increment elapsed time.
 		elapsed += Date.now() - start;
 		// Fire session stop event.
-		Analytics.record( '_session.stop', {
-			attributes: getAttributes( {} ),
-			metrics: getMetrics( {} ),
-		} );
+		Analytics.record( '_session.stop' );
 	} else {
 		// On show reset start time.
 		start = Date.now();
@@ -413,46 +617,33 @@ document.addEventListener( 'visibilitychange', () => {
 		subSessionId = uuid();
 		subSessionStart = Date.now();
 		// Fire session start event.
-		Analytics.record( '_session.start', {
-			attributes: getAttributes( {} ),
-		} );
+		Analytics.record( '_session.start' );
 	}
 } );
 
 // Start recording after document loaded and tests applied.
 window.addEventListener( 'DOMContentLoaded', () => {
 	// Session start.
-	Analytics.record( '_session.start', {
-		attributes: getAttributes(),
-	} );
+	Analytics.record( '_session.start' );
 	// Record page view event & create/update endpoint immediately.
-	Analytics.record(
-		'pageView',
-		{
-			attributes: getAttributes(),
-		},
-		{},
-		false
-	);
+	Analytics.record( 'pageView', false );
 } );
 
 // Flush remaining events.
-window.addEventListener( 'beforeunload', async () => {
-	Analytics.record( '_session.stop', {
-		attributes: getAttributes( {} ),
-		metrics: getMetrics( {} ),
-	} );
-	await Analytics.flushEvents();
+window.addEventListener( 'beforeunload', () => {
+	Analytics.record( '_session.stop', false );
 } );
 
 // Expose userland API.
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
+window.Altis.Analytics.updateAudiences = Analytics.updateAudiences;
+window.Altis.Analytics.getAudiences = Analytics.getAudiences;
+window.Altis.Analytics.on = Analytics.on;
+window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
 	Analytics.record(
 		type,
-		{
-			attributes: getAttributes( data.attributes || {} ),
-			metrics: getMetrics( data.metrics || {} ),
-		},
+		data,
 		endpoint
 	);

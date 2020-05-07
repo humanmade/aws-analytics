@@ -9,9 +9,15 @@ This plugin integrates WordPress with [AWS Pinpoint](#) and provides an extensib
 
 Once installed the plugin will queue up an analytics tracker script that provides a few client side functions you can use:
 
+#### Updating Data
+
 **`Altis.Analytics.updateEndpoint( data <object> )`**
 
 Updates the data associated with the current user. Use this to provide updated custom user attributes and metrics, a user ID, and demographic data.
+
+**`Altis.Analytics.getEndpoint()`**
+
+Returns the current endpoint data object.
 
 **`Altis.Analytics.record( eventName <string> [, data <object>] )`**
 
@@ -32,6 +38,16 @@ Records an event. The data passed in should be an object with either or both an 
 
 Those attributes and metrics can be later queried via elasticsearch.
 
+**`Altis.Analytics.updateAudiences()`**
+
+Synchronises the current audiences associated with the page session. You shouldn't ever need to call this manually but it is called any time `updateEndpoint()`, `registerAttribute()` or `registerMetric()` are called. You can hook into the `updateAudiences` event to respond to changes in this data.
+
+**`Altis.Analytics.getAudiences()`**
+
+Retrieves an array of the audience IDs for the current page session.
+
+#### Adding global attributes and metrics
+
 **`Altis.Analytics.registerAttribute( name <string>, value <string | callback> )`**
 
 Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` allows this. If a function is passed as the value will be evaluated at the time an event recorded.
@@ -40,11 +56,47 @@ Sometimes you may want to record a dynamic attribute value for all events on the
 
 Similar to `registerAttribute()` above but for metrics.
 
+#### Events
+
+**`Altis.Analytics.on( event <string>, callback <callback> ) : EventListener`**
+
+Attaches and returns an event listener. The available events and their callback arguments are:
+
+- `updateEndpoint`<br />
+  Called any time the current endpoint data is updated. The callback receives the endpoint object.<br />
+  ```
+  Altis.Analytics.on( 'updateEndpoint', function ( endpoint ) {
+    console.log( endpoint.Demographic ); // { Platform: 'Mac OS', .... }
+  } );
+  ```
+- `record`:
+  Called any time an event is recorded. The callback receives the pinpoint event object.<br />
+  ```
+  Altis.Analytics.on( 'record', function ( event ) {
+    console.log( event.Attributes, event.event_type ); // { referer: '', ... }, 'pageView'
+  } );
+  ```
+- `updateAudiences`<br />
+  Called any time the audiences are updated. The callback receives an array of audience IDs.<br />
+  ```
+  Altis.Analytics.on( 'updateAudiences', function ( audiences ) {
+    console.log( audiences ); // [ 1, 2, 3, ... ]
+  } );
+  ```
+
+**`Altis.Analytics.off( listener <EventListener> )`**
+
+Removes an event listener returned by `Altis.Analytics.on()`.
+
 ### Constants
 
 **`ALTIS_ANALYTICS_ELASTICSEARCH_URL`**
 
 Allows you to define the Elasticsearch server URL directly.
+
+**`ALTIS_ANALYTICS_LOG_QUERIES`**
+
+Define as true to enable logging queries to the error log.
 
 ### Filters
 
@@ -131,6 +183,9 @@ A user session covers every event recorded between opening the website and closi
     - `ModelVersion`: Browser version.
     - `Platform`: The device operating system.
     - `PlatformVersion`: The operating system version.
+  - `Location`
+    - `Country`: The endpoint's country if known / available.
+    - `City`: The endpoint's city if known or available.
   - `User`
     - `UserAttributes`
       - Any custom attributes associated with the user if known.
@@ -223,6 +278,28 @@ The output will look something like the following:
 ```
 
 You can further trim the size of the returned response using the `filter_path` query parameter. For example if we're only interested in the stats aggregation we can set `filter_path=-aggregations.sessions` to remove it from the response.
+
+## Audiences
+
+Audiences are user-defined categories of users, based on conditions related to their analytics data.
+
+Audiences allow for the creation of conditions to narrow down event queries or endpoints but also can be used for determining effects on the client side.
+
+### Mapping Event Data
+
+To enable the use of any event record data in the audience editor it needs to be mapped to a human readable label using the `Altis\Analytics\Audiences\register_field()` function:
+
+```php
+use function Altis\Analytics\Audiences\register_field;
+
+add_action( 'init', function () {
+  register_field( 'endpoint.Location.City', __( 'City' ) );
+} );
+```
+
+In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+
+The 2nd parameter is a human readable label for the audience field.
 
 ## Required Infrastructure
 
