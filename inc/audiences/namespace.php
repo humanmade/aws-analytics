@@ -766,7 +766,7 @@ function build_audience_query( array $audience ) : array {
 }
 
 /**
- * Output audience configuration data as JSON.
+ * Returns audience configuration data array for client side use.
  *
  * @return array
  */
@@ -785,20 +785,23 @@ function get_audience_config() : array {
 	 * @param int $limit The number of audiences to fetch for use client side.
 	 */
 	$limit = apply_filters( 'altis.analytics.audiences.limit', 20 );
+
+	// Prevent negative values, -1 in this case means an unbounded query.
 	$limit = absint( $limit );
 
 	$audiences = new WP_Query( [
+		'fields' => 'ids',
+		'no_found_rows' => true,
+		'order' => 'ASC',
+		'orderby' => 'menu_order',
+		'post_status' => 'publish',
 		'post_type' => POST_TYPE,
 		'posts_per_page' => $limit,
-		'post_status' => 'publish',
-		'fields' => 'ids',
-		'orderby' => 'menu_order',
-		'order' => 'ASC',
 	] );
 
 	$config = [];
 
-	// Extract the audience config from post meta.
+	// Get the audience config from post meta for each post.
 	foreach ( $audiences->posts as $audience_id ) {
 		$config[] = [
 			'id' => $audience_id,
