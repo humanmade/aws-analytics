@@ -1,8 +1,14 @@
 // Utils.
 import './utils/polyfills';
-import { uuid, getLanguage } from './utils';
-import UAParser from 'ua-parser-js';
+import {
+	getLanguage,
+	overwriteMerge,
+	prepareAttributes,
+	prepareMetrics,
+	uuid,
+} from './utils';
 import merge from 'deepmerge';
+import UAParser from 'ua-parser-js';
 
 // AWS SDK.
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
@@ -10,6 +16,7 @@ import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identi
 import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
 import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
 import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
+import { parseQueryString } from '@aws-sdk/querystring-parser';
 
 const {
 	_attributes,
@@ -62,16 +69,13 @@ window.addEventListener( 'scroll', () => {
 } );
 
 /**
- * Campaign.
+ * Query string parameters.
  */
-const params = new URLSearchParams( window.location.search );
-const utm = {
-	utm_source: params.get( 'utm_source' ) || '',
-	utm_medium: params.get( 'utm_medium' ) || '',
-	utm_campaign: params.get( 'utm_campaign' ) || '',
-	utm_term: params.get( 'utm_term' ) || '',
-	utm_content: params.get( 'utm_content' ) || '',
-};
+const params = parseQueryString( window.location.search );
+const qvParams = {};
+for ( const qv in params ) {
+	qvParams[ `qv_${ qv }` ] = params[ qv ] || '';
+}
 
 /**
  * Attributes helper.
@@ -93,39 +97,6 @@ const getSessionID = () => {
 	window.sessionStorage.setItem( '_hm_uuid', newSessionID );
 	return newSessionID;
 };
-const getSearchParams = () =>
-	Array.from( new URLSearchParams( window.location.search ).entries() ).reduce(
-		( carry, [ name, value ] ) => ( {
-			[ `qv_${ name }` ]: value,
-			...carry,
-		} ),
-		{}
-	);
-const prepareData = async ( value, sanitizeCallback ) => {
-	if ( typeof value === 'function' ) {
-		value = await value();
-	}
-	if ( ! Array.isArray( value ) ) {
-		value = [ value ];
-	}
-	return value.map( sanitizeCallback );
-};
-const sanitizeAttribute = value => value.toString();
-const sanitizeMetric = value => parseFloat( Number( value ) );
-const prepareAttributes = async attributes => {
-	const sanitized = {};
-	for ( const name in attributes ) {
-		sanitized[ name ] = await prepareData( attributes[ name ], sanitizeAttribute );
-	}
-	return sanitized;
-};
-const prepareMetrics = async metrics => {
-	const sanitized = {};
-	for ( const name in metrics ) {
-		sanitized[ name ] = await prepareData( metrics[ name ], sanitizeMetric );
-	}
-	return sanitized;
-};
 const getAttributes = ( extra = {} ) => ( {
 	session: getSessionID(),
 	pageSession: pageSession,
@@ -134,8 +105,7 @@ const getAttributes = ( extra = {} ) => ( {
 	search: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
-	...getSearchParams(),
-	...utm,
+	...qvParams,
 	...( Data.Attributes || {} ),
 	...extra,
 	...( _attributes || {} ),
@@ -151,7 +121,6 @@ const getMetrics = ( extra = {} ) => ( {
 	...extra,
 	...( _metrics || {} ),
 } );
-const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
 
 /**
  * Initialise cognito services.

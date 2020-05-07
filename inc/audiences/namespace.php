@@ -100,11 +100,11 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 
 	// UTM Campaign parameters.
-	register_field( 'attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
-	register_field( 'attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
-	register_field( 'attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
-	register_field( 'attributes.utm_term', __( 'UTM Term', 'altis-analytics' ) );
-	register_field( 'attributes.utm_content', __( 'UTM Content', 'altis-analytics' ) );
+	register_field( 'attributes.qv_utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
+	register_field( 'attributes.qv_utm_source', __( 'UTM Source', 'altis-analytics' ) );
+	register_field( 'attributes.qv_utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
+	register_field( 'attributes.qv_utm_term', __( 'UTM Term', 'altis-analytics' ) );
+	register_field( 'attributes.qv_utm_content', __( 'UTM Content', 'altis-analytics' ) );
 
 	// Time based parameters.
 	register_field( 'metrics.hour', __( 'Hour (0 - 23)', 'altis-analytics' ) );
