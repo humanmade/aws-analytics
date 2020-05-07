@@ -57,8 +57,18 @@ const prepareData = async ( value, sanitizeCallback ) => {
 	return value.map( sanitizeCallback );
 };
 
+/**
+ * Ensure value is a string.
+ *
+ * @param {mixed} value
+ */
 const sanitizeAttribute = value => value.toString();
 
+/**
+ * Ensure value is a float.
+ *
+ * @param {mixed} value
+ */
 const sanitizeMetric = value => parseFloat( Number( value ) );
 
 /**

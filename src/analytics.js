@@ -72,9 +72,9 @@ window.addEventListener( 'scroll', () => {
  * Query string parameters.
  */
 const params = parseQueryString( window.location.search );
-const qv_params = {};
+const qvParams = {};
 for ( const qv in params ) {
-	qv_params[ `qv_${ qv }` ] = params[ qv ] || '';
+	qvParams[ `qv_${ qv }` ] = params[ qv ] || '';
 }
 
 /**
@@ -105,7 +105,7 @@ const getAttributes = ( extra = {} ) => ( {
 	search: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
-	...qv_params,
+	...qvParams,
 	...( Data.Attributes || {} ),
 	...extra,
 	...( _attributes || {} ),
