@@ -357,7 +357,6 @@ const Analytics = {
 
 			if ( audienceMatched ) {
 				audienceIds.push( id );
-				break;
 			}
 		}
 
