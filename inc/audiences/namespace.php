@@ -74,6 +74,12 @@ function register_post_type() {
 					'post_field' => 'post_modified',
 				],
 			],
+			'site_sortables' => [
+				'precedence' => [
+					'post_field' => 'menu_order',
+					'default' => 'ASC',
+				],
+			],
 		],
 		[
 			'singular' => __( 'Audience', 'altis-analytics' ),
