@@ -15,7 +15,7 @@ const {
 	Button,
 	ToggleControl,
 	Notice,
-	Snackbar,
+	Spinner,
 } = wp.components;
 
 const formElement = document.querySelector( '.post-type-audience #post' );
@@ -77,7 +77,7 @@ class Edit extends Component {
 		// Clear errors.
 		this.setState( { error: null } );
 
-		const { post } = this.props;
+		const { post, savePost } = this.props;
 
 		if ( post && post.title.rendered.length === 0 ) {
 			event.preventDefault();
@@ -87,14 +87,20 @@ class Edit extends Component {
 			return;
 		}
 
-		// Prevent the "Leave site?" warning popup showing.
-		window.onbeforeunload = null;
-		window.jQuery && window.jQuery( window ).off( 'beforeunload' );
+		if ( formElement ) {
+			// Prevent the "Leave site?" warning popup showing.
+			window.onbeforeunload = null;
+			window.jQuery && window.jQuery( window ).off( 'beforeunload' );
+			return;
+		}
+
+		savePost( post );
 	}
 
 	render() {
 		const {
 			loading,
+			saving,
 			post,
 			onSetTitle,
 			onSetAudience,
@@ -118,16 +124,17 @@ class Edit extends Component {
 					</Notice>
 				) }
 				{ notice && (
-					<Snackbar
+					<Notice
+						isDismissable
+						status="success"
 						onRemove={ () => this.setState( { notice: null } ) }
 					>
-						<p>{ notice }</p>
-					</Snackbar>
+						{ notice }
+					</Notice>
 				) }
 
 				<div id="titlediv">
 					<input
-						ref={ this.titleRef }
 						autoFocus
 						disabled={ loading }
 						id="title"
@@ -165,7 +172,7 @@ class Edit extends Component {
 							value={ post.status }
 						/>
 						<Button
-							disabled={ loading }
+							disabled={ loading || saving }
 							isLarge
 							isPrimary
 							type="submit"
@@ -175,7 +182,9 @@ class Edit extends Component {
 								}
 							} }
 						>
-							{ __( 'Save changes', 'altis-analytics' ) }
+							{ ! saving && __( 'Save changes', 'altis-analytics' ) }
+							{ saving && __( 'Saving changes', 'altis-analytics' ) }
+							{ saving && <Spinner /> }
 						</Button>
 					</div>
 				</div>
@@ -188,40 +197,55 @@ Edit.defaultProps = {
 	postId: null,
 	post: defaultPost,
 	loading: false,
+	saving: false,
 	onCreate: () => { },
 	onSetTitle: () => { },
 	onSetAudience: () => { },
 	onSetStatus: () => { },
+	savePost: () => { },
 };
 
 const applyWithSelect = withSelect( ( select, props ) => {
-	let post = props.post;
+	const {
+		getCurrentPost,
+		getIsLoading,
+		getIsUpdating,
+	} = select( 'audience' );
+
+	let post = getCurrentPost() || props.post;
 
 	if ( props.postId ) {
-		post = select( 'audience' ).getPost( props.postId );
+		post = getCurrentPost( props.postId );
 	}
 
 	// If we have a post ID but no post then we're loading.
-	const loading = props.postId && ! post.id;
+	const loading = getIsLoading();
+
+	// Determine if we're currently saving the post.
+	const saving = getIsUpdating();
 
 	return {
 		post,
 		loading,
+		saving,
 	};
 } );
 
 const applyWithDispatch = withDispatch( dispatch => {
-	const store = dispatch( 'audience' );
+	const { setCurrentPost, updatePost } = dispatch( 'audience' );
 
 	return {
 		onSetTitle: value => {
-			store.setPost( { title: { rendered: value } } );
+			setCurrentPost( { title: { rendered: value } } );
 		},
 		onSetAudience: value => {
-			store.setPost( { audience: value } );
+			setCurrentPost( { audience: value } );
 		},
 		onSetStatus: value => {
-			store.setPost( { status: value } );
+			setCurrentPost( { status: value } );
+		},
+		savePost: post => {
+			updatePost( post );
 		},
 	};
 } );

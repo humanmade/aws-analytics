@@ -37,6 +37,10 @@ function setup() {
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
 	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
 	add_action( 'edit_form_top', __NAMESPACE__ . '\\hide_title_field' );
+	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
+
+	// Default audience sorting query.
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\pre_get_posts' );
 
 	// Set up Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
@@ -54,6 +58,8 @@ function register_post_type() {
 			'supports' => [
 				'title',
 				'excerpt',
+				'page-attributes',
+				'revisions',
 			],
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
@@ -74,18 +80,29 @@ function register_post_type() {
 					'post_field' => 'post_modified',
 				],
 			],
-			'site_sortables' => [
-				'precedence' => [
-					'post_field' => 'menu_order',
-					'default' => 'ASC',
-				],
-			],
 		],
 		[
 			'singular' => __( 'Audience', 'altis-analytics' ),
 			'plural' => __( 'Audiences', 'altis-analytics' ),
 		]
 	);
+}
+
+/**
+ * Force audiences to be sorted according to menu order by default.
+ *
+ * @param WP_Query $query The current query object.
+ */
+function pre_get_posts( WP_Query $query ) {
+	// Must be an exact query for the audiences post type.
+	if ( $query->get( 'post_type' ) !== POST_TYPE ) {
+		return;
+	}
+
+	$query->set( 'orderby', [
+		'menu_order' => 'ASC',
+		'post_title' => 'ASC',
+	] );
 }
 
 /**
@@ -130,6 +147,7 @@ function adjust_meta_boxes() {
 	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
 	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
 	remove_meta_box( 'postexcerpt', POST_TYPE, 'normal' );
+	remove_meta_box( 'pageparentdiv', POST_TYPE, 'side' );
 }
 
 /**
@@ -215,6 +233,13 @@ function estimate_ui( WP_Post $post = null ) {
 		// translators: %d is the number of visitors matching the audience
 		sprintf( esc_html__( '%d visitors in the last 7 days', 'altis-analytics' ), $audience['count'] ?? 0 )
 	);
+}
+
+/**
+ * Output markup for the audience picker modal.
+ */
+function modal_portal() {
+	echo '<div id="altis-analytics-audience-modal"></div>';
 }
 
 /**
@@ -343,13 +368,8 @@ function register_field( string $field, string $label ) {
  * Queue up the audience admin UI scripts.
  */
 function admin_enqueue_scripts() {
-	if ( get_current_screen()->post_type !== POST_TYPE ) {
-		return;
-	}
 
-	wp_dequeue_script( 'post' );
-
-	wp_enqueue_script(
+	wp_register_script(
 		'altis-analytics-audience-ui',
 		Utils\get_asset_url( 'audiences.js' ),
 		[
@@ -361,12 +381,12 @@ function admin_enqueue_scripts() {
 			'wp-data',
 			'wp-components',
 			'wp-api-fetch',
+			'wp-url',
+			'wp-compose',
 		],
 		null,
 		true
 	);
-
-	wp_enqueue_style( 'wp-components' );
 
 	// Hydrate with data to speed up the front end.
 	$data = [
@@ -374,7 +394,7 @@ function admin_enqueue_scripts() {
 	];
 
 	// Add post data server side to load front end quickly on legacy edit screens.
-	if ( isset( $_GET['post'] ) ) {
+	if ( isset( $_GET['post'] ) && get_post_type( intval( $_GET['post'] ) ) === POST_TYPE ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
 	}
@@ -392,6 +412,15 @@ function admin_enqueue_scripts() {
 		'before'
 	);
 
+	// Only queue things up by default on the audience edit pages.
+	if ( get_current_screen()->post_type !== POST_TYPE ) {
+		return;
+	}
+
+	wp_dequeue_script( 'post' );
+	wp_enqueue_script( 'altis-analytics-audience-ui' );
+
+	wp_enqueue_style( 'wp-components' );
 	wp_enqueue_style(
 		'altis-analytics-audience-ui',
 		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),

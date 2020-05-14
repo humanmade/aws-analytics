@@ -441,7 +441,7 @@ const Analytics = {
 
 		// Sanitise attributes and metrics.
 		if ( endpoint.User && endpoint.User.UserAttributes ) {
-			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes )
+			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes );
 		}
 		endpoint.Attributes = await prepareAttributes( endpoint.Attributes );
 		endpoint.Metrics = await prepareMetrics( endpoint.Metrics );

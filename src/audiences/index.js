@@ -2,11 +2,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import Edit from './edit';
-import Estimate from './edit/components/estimate';
+import { Edit, Manager, Select } from './ui';
+import Estimate from './ui/components/estimate';
 
 // Import the data store file directly.
-import './edit/data';
+import './ui/data';
+
+// Export select component as an audience picker.
+window.Altis = window.Altis || {};
+window.Altis.Analytics = window.Altis.Analytics || {};
+window.Altis.Analytics.components = window.Altis.Analytics.components || {};
+window.Altis.Analytics.components.AudiencePicker = Select;
+
+// Get the audience manager placeholder.
+const AudienceManager = document.getElementById( 'altis-audience-manager' );
+
+// Is our audience UI placeholder present?
+if ( AudienceManager ) {
+	// Mount audience react app.
+	ReactDOM.render(
+		<Manager />,
+		AudienceManager
+	);
+}
 
 // Get the audience UI placeholder.
 const AudienceUI = document.getElementById( 'altis-analytics-audience-ui' );

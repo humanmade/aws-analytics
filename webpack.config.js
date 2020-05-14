@@ -62,6 +62,7 @@ const sharedConfig = {
 		'wp': 'wp',
 		'react': 'React',
 		'react-dom': 'ReactDOM',
+		'lodash': 'lodash',
 	},
 };
 
