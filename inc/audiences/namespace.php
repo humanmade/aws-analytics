@@ -8,7 +8,6 @@
 namespace Altis\Analytics\Audiences;
 
 use Altis\Analytics\Utils;
-use WP_Post;
 use WP_Query;
 
 const COMPARISON_OPERATORS = [
