@@ -115,6 +115,16 @@ export default function reducer( state, action ) {
 			};
 		}
 
+		case 'SET_PAGINATION': {
+			return {
+				...state,
+				pagination: {
+					total: action.total,
+					pages: action.pages,
+				},
+			};
+		}
+
 		default: {
 			return state;
 		}

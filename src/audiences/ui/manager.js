@@ -4,14 +4,17 @@ import Edit from './edit';
 import List from './list';
 import { defaultPost } from './data/defaults';
 
-const { withDispatch } = wp.data;
+const { withSelect, withDispatch } = wp.data;
 const { Button } = wp.components;
 const { compose } = wp.compose;
 const { __ } = wp.i18n;
 
 const StyledManager = styled.div`
+	margin-right: 20px;
+
 	.wp-heading-inline {
 		display: inline-block;
+		vertical-align: middle;
 	}
 	&& .page-title-action {
 		margin-left: 10px;
@@ -23,19 +26,20 @@ const StyledManager = styled.div`
 
 class Manager extends Component {
 
-	state = {
-		// Current view.
-		view: 'list',
-	};
+	constructor( props ) {
+		super( props );
 
-	constructor() {
-		super();
+		// Set default state.
+		this.state = {
+			view: 'list',
+		};
 
 		this.actionRef = createRef();
 	}
 
 	render() {
 		const {
+			canCreate,
 			createPost,
 			setCurrentPost,
 			onSelect,
@@ -46,7 +50,8 @@ class Manager extends Component {
 			list: {
 				title: __( 'Audiences', 'altis-analytics' ),
 				action: {
-					label: __( 'Add New', 'atlis-analytics' ),
+					permission: canCreate,
+					label: __( 'Add New', 'altis-analytics' ),
 					onClick: () => {
 						setCurrentPost( defaultPost );
 						createPost();
@@ -57,7 +62,7 @@ class Manager extends Component {
 					<List
 						onSelect={ onSelect }
 						onEdit={ post => {
-							setCurrentPost( post );
+							setCurrentPost( post || defaultPost );
 							this.setState( { view: 'edit' } );
 						} }
 					/>
@@ -66,7 +71,8 @@ class Manager extends Component {
 			edit: {
 				title: __( 'Edit Audience', 'altis-analytics' ),
 				action: {
-					label: __( 'Back to Audiences', 'atlis-analytics' ),
+					permission: true,
+					label: __( 'Back to Audiences', 'altis-analytics' ),
 					onClick: () => this.setState( { view: 'list' } ),
 				},
 				body: () => <Edit />,
@@ -81,17 +87,19 @@ class Manager extends Component {
 			<StyledManager className="altis-audience-manager">
 				<header className="altis-audience-manager__header">
 					<h1 className="wp-heading-inline">{ viewState.title }</h1>
-					<Button
-						ref={ this.actionRef }
-						className="page-title-action"
-						onClick={ () => {
-							viewState.action.onClick();
-							this.actionRef.current.blur();
-						} }
-						isPrimary
-					>
-						{ viewState.action.label }
-					</Button>
+					{ viewState.action.permission && (
+						<Button
+							ref={ this.actionRef }
+							className="page-title-action"
+							onClick={ () => {
+								viewState.action.onClick();
+								this.actionRef.current.blur();
+							} }
+							isPrimary
+						>
+							{ viewState.action.label }
+						</Button>
+					) }
 					<hr className="wp-header-end" />
 				</header>
 				<Body />
@@ -102,10 +110,20 @@ class Manager extends Component {
 }
 
 Manager.defaultProps = {
+	canCreate: false,
 	onSelect: null,
 };
 
-const applyWithDiapatch = withDispatch( dispatch => {
+const applyWithSelect = withSelect( select => {
+	const { canUser } = select( 'core' );
+	const canCreate = canUser( 'create', 'audiences' );
+
+	return {
+		canCreate,
+	};
+} );
+
+const applyWithDispatch = withDispatch( dispatch => {
 	const {
 		createPost,
 		setCurrentPost,
@@ -118,5 +136,6 @@ const applyWithDiapatch = withDispatch( dispatch => {
 } );
 
 export default compose(
-	applyWithDiapatch
+	applyWithSelect,
+	applyWithDispatch
 )( Manager );

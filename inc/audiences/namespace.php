@@ -31,13 +31,9 @@ function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
-	add_action( 'edit_form_top', __NAMESPACE__ . '\\audience_ui' );
-	add_action( 'add_meta_boxes_' . POST_TYPE, __NAMESPACE__ . '\\adjust_meta_boxes' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
-	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_quick_edit', 10, 2 );
-	add_filter( 'bulk_actions-edit-' . POST_TYPE, __NAMESPACE__ . '\\remove_bulk_actions' );
-	add_action( 'edit_form_top', __NAMESPACE__ . '\\hide_title_field' );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
 	// Default audience sorting query.
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\pre_get_posts' );
@@ -54,7 +50,7 @@ function register_post_type() {
 		POST_TYPE,
 		[
 			'public' => false,
-			'show_ui' => true,
+			'show_ui' => false,
 			'supports' => [
 				'title',
 				'excerpt',
@@ -66,20 +62,11 @@ function register_post_type() {
 			'show_in_rest' => true,
 			'rest_base' => 'audiences',
 			'hierarchical' => false,
-			'admin_cols' => [
-				'active' => [
-					'title' => __( 'Status', 'altis-analytics' ),
-					'function' => __NAMESPACE__ . '\\render_status_column',
-				],
-				'estimate' => [
-					'title' => __( 'Size', 'altis-analytics' ),
-					'function' => __NAMESPACE__ . '\\estimate_ui',
-				],
-				'last_modified' => [
-					'title' => __( 'Last Modified', 'altis-analytics' ),
-					'post_field' => 'post_modified',
-				],
+			'capability_type' => [
+				'audience',
+				'audiences',
 			],
+			'map_meta_cap' => true,
 		],
 		[
 			'singular' => __( 'Audience', 'altis-analytics' ),
@@ -141,97 +128,28 @@ function register_default_event_data_maps() {
 }
 
 /**
- * Remove built-in metaboxes from the Audiences edit page.
- */
-function adjust_meta_boxes() {
-	remove_meta_box( 'submitdiv', POST_TYPE, 'side' );
-	remove_meta_box( 'slugdiv', POST_TYPE, 'normal' );
-	remove_meta_box( 'postexcerpt', POST_TYPE, 'normal' );
-	remove_meta_box( 'pageparentdiv', POST_TYPE, 'side' );
-}
-
-/**
- * Temporarily hide the title field.
+ * Add audience management page.
  *
- * Removes post type support on the edit screen temporarily, then readds as
- * soon as the UI no longer cares.
+ * This is a React app placeholder.
  */
-function hide_title_field( WP_Post $post ) {
-	if ( $post->post_type !== POST_TYPE ) {
-		return;
-	}
-
-	remove_post_type_support( POST_TYPE, 'title' );
-
-	$callback = function () use ( &$callback ) {
-		add_post_type_support( POST_TYPE, 'title' );
-		remove_action( 'edit_form_after_title', $callback );
-	};
-	add_action( 'edit_form_after_title', $callback );
-}
-
-/**
- * Render the "Status" column for an audience.
- */
-function render_status_column() : void {
-	if ( get_post_status() === 'publish' ) {
-		esc_html_e( 'Active', 'altis-analytics' );
-	} else {
-		esc_html_e( 'Inactive', 'altis-analytics' );
-	}
-}
-
-/**
- * Add Audience UI placeholder.
- *
- * @param WP_Post $post
- */
-function audience_ui( WP_Post $post ) {
-	if ( $post->post_type !== POST_TYPE ) {
-		return;
-	}
-
-	printf(
-		'<div id="altis-analytics-audience-ui" data-post-id="%d" data-audience="%s" data-fields="%s">' .
-		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
-		'<noscript><div class="error msg">%s</div></noscript>' .
-		'</div>',
-		$post->ID,
-		esc_attr( wp_json_encode( get_audience( $post->ID ) ) ),
-		esc_attr( wp_json_encode( get_field_data() ) ),
-		esc_html__( 'Loading...', 'altis-analytics' ),
-		esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
-	);
-
-	wp_nonce_field( 'altis-analytics', 'altis_analytics_nonce' );
-}
-
-/**
- * Add estimate UI placeholder.
- *
- * @param WP_Post $post
- */
-function estimate_ui( WP_Post $post = null ) {
-	// Use current post if none passed.
-	if ( ! $post ) {
-		$post = get_post();
-	}
-
-	if ( $post->post_type !== POST_TYPE ) {
-		return;
-	}
-
-	$audience = get_audience( $post->ID );
-
-	printf(
-		'<div class="altis-analytics-audience-estimate" data-audience="%s">' .
-		'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
-		'<noscript>%s</noscript>' .
-		'</div>',
-		esc_attr( wp_json_encode( $audience ) ),
-		esc_html__( 'Loading...', 'altis-analytics' ),
-		// translators: %d is the number of visitors matching the audience
-		sprintf( esc_html__( '%d visitors in the last 7 days', 'altis-analytics' ), $audience['count'] ?? 0 )
+function admin_page() {
+	add_menu_page(
+		__( 'Manage Audiences' ),
+		__( 'Audiences' ),
+		'edit_audiences',
+		POST_TYPE,
+		function () {
+			printf(
+				'<div id="altis-audience-manager">' .
+				'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
+				'<noscript><div class="error msg">%s</div></noscript>' .
+				'</div>',
+				esc_html__( 'Loading...', 'altis-analytics' ),
+				esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
+			);
+		},
+		'dashicons-groups',
+		152
 	);
 }
 
@@ -298,33 +216,6 @@ function save_audience( int $post_id, array $audience ) : bool {
 }
 
 /**
- * Remove quick edit inline action.
- *
- * @param array $actions Inline actions array.
- * @param WP_Post $post The current post.
- * @return array
- */
-function remove_quick_edit( array $actions, WP_Post $post ) : array {
-	if ( $post->post_type !== POST_TYPE ) {
-		return $actions;
-	}
-
-	unset( $actions['inline hide-if-no-js'] );
-	return $actions;
-}
-
-/**
- * Removes the quick edit bulk action.
- *
- * @param array $actions Bulk actions array.
- * @return array
- */
-function remove_bulk_actions( array $actions ) : array {
-	unset( $actions['edit'] );
-	return $actions;
-}
-
-/**
  * Get the audience configuration data.
  *
  * @param int $post_id
@@ -376,6 +267,7 @@ function admin_enqueue_scripts() {
 			'lodash',
 			'react',
 			'react-dom',
+			'wp-core-data',
 			'wp-i18n',
 			'wp-hooks',
 			'wp-data',
@@ -394,7 +286,7 @@ function admin_enqueue_scripts() {
 	];
 
 	// Add post data server side to load front end quickly on legacy edit screens.
-	if ( isset( $_GET['post'] ) && get_post_type( intval( $_GET['post'] ) ) === POST_TYPE ) {
+	if ( isset( $_GET['edit'] ) && get_post_type( intval( $_GET['edit'] ) ) === POST_TYPE ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
 	}
@@ -413,7 +305,7 @@ function admin_enqueue_scripts() {
 	);
 
 	// Only queue things up by default on the audience edit pages.
-	if ( get_current_screen()->post_type !== POST_TYPE ) {
+	if ( get_current_screen()->id !== 'toplevel_page_' . POST_TYPE ) {
 		return;
 	}
 
@@ -500,7 +392,10 @@ function get_estimate( array $audience ) : ?array {
 	$result = Utils\query( $query );
 
 	if ( ! $result ) {
-		return $result;
+		return [
+			'count' => 0,
+			'total' => get_unique_endpoint_count(),
+		];
 	}
 
 	$histogram = array_map( function ( array $bucket ) {

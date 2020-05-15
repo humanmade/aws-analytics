@@ -27,6 +27,7 @@
     "clean-webpack-plugin": "^3.0.0",
     "deepmerge": "^4.2.2",
     "dynamic-public-path-webpack-plugin": "^1.0.4",
+    "fuse.js": "^6.0.0",
     "query-string": "^6.11.1",
     "react-content-loader": "^5.0.4",
     "react-select": "^3.0.8",

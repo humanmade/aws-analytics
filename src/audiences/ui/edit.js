@@ -99,6 +99,7 @@ class Edit extends Component {
 
 	render() {
 		const {
+			canEdit,
 			loading,
 			saving,
 			post,
@@ -111,6 +112,15 @@ class Edit extends Component {
 			error,
 			notice,
 		} = this.state;
+
+		// Check permissions.
+		if ( post && post.id && canEdit( post.id ) === false ) {
+			return (
+				<Notice status="error">
+					{ __( 'You do not have permission to edit audiences.' ) }
+				</Notice>
+			);
+		}
 
 		return (
 			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
@@ -224,7 +234,13 @@ const applyWithSelect = withSelect( ( select, props ) => {
 	// Determine if we're currently saving the post.
 	const saving = getIsUpdating();
 
+	// Permissions check.
+	const { canUser } = select( 'core' );
+	const canCreate = canUser( 'create', 'audiences' );
+
 	return {
+		canCreate,
+		canEdit: id => canUser( 'update', 'audiences', id ),
 		post,
 		loading,
 		saving,

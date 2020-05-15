@@ -21,9 +21,9 @@ const ListRowLoading = () => (
 			</ContentLoader>
 		</td>
 		<td>
-			<ContentLoader viewBox="0 0 160 40" width={ 160 } height={ 40 }>
-				<rect x="48" y="4" rx="3" ry="3" width="112" height="8" />
-				<circle cx="20" cy="20" r="20" />
+			<ContentLoader viewBox="0 0 160 58" width={ 180 } height={ 58 }>
+				<rect x="68" y="4" rx="3" ry="3" width="112" height="8" />
+				<circle cx="29" cy="29" r="29" />
 			</ContentLoader>
 		</td>
 	</tr>

@@ -32,6 +32,9 @@ const controls = {
 	FETCH_FROM_API( action ) {
 		return apiFetch( action.options );
 	},
+	RESPONSE_TO_JSON( action ) {
+		return action.response.json();
+	},
 };
 
 const actions = {
@@ -84,10 +87,23 @@ const actions = {
 			isDeleting,
 		};
 	},
+	setPagination( total, pages ) {
+		return {
+			type: 'SET_PAGINATION',
+			total,
+			pages,
+		};
+	},
 	fetch( options ) {
 		return {
 			type: 'FETCH_FROM_API',
 			options,
+		};
+	},
+	json( response ) {
+		return {
+			type: 'RESPONSE_TO_JSON',
+			response,
 		};
 	},
 };
@@ -102,6 +118,7 @@ const actionGenerators = {
 				status: 'draft',
 			},
 		} );
+		yield actions.addPosts( [ post ] );
 		yield actions.setCurrentPost( post );
 		return actions.setIsLoading( false );
 	},
@@ -154,6 +171,9 @@ const selectors = {
 	getPosts( state ) {
 		return state.posts;
 	},
+	getPagination( state ) {
+		return state.pagination;
+	},
 	getIsLoading( state ) {
 		return state.isLoading;
 	},
@@ -177,6 +197,7 @@ const resolvers = {
 		const estimate = yield actions.fetch( {
 			path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
 		} );
+		estimate.histogram = estimate.histogram || new Array( 28 ).fill( { count: 1 } );
 		return actions.addEstimate( audience, estimate );
 	},
 	*getPost( id ) {
@@ -216,15 +237,24 @@ const resolvers = {
 	},
 	*getPosts( page = 1, search = '', status = 'publish,draft' ) {
 		yield actions.setIsLoading( true );
-		const posts = yield actions.fetch( {
+		const response = yield actions.fetch( {
 			path: addQueryArgs( 'wp/v2/audiences', {
 				context: 'edit',
-				per_page: 30,
+				per_page: 6,
 				page,
 				search,
 				status,
 			} ),
+			headers: {
+				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
+			},
+			parse: false,
 		} );
+		yield actions.setPagination(
+			response.headers.get( 'x-wp-total' ),
+			response.headers.get( 'x-wp-totalpages' )
+		);
+		const posts = yield actions.json( response );
 		yield actions.addPosts( posts );
 		return actions.setIsLoading( false );
 	},
