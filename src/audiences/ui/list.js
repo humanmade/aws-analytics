@@ -328,12 +328,12 @@ class List extends Component {
 									<td>
 										{ ! canEditAudience && (
 											<span className="row-title">
-												<strong>{ post.title.rendered }</strong>
+												<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
 											</span>
 										) }
 										{ canEditAudience && (
 											<EditLink className="row-title" post={ post }>
-												<strong>{ post.title.rendered }</strong>
+												<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
 											</EditLink>
 										) }
 										{ canEditAudience && (
