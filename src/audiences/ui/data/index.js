@@ -240,7 +240,7 @@ const resolvers = {
 		const response = yield actions.fetch( {
 			path: addQueryArgs( 'wp/v2/audiences', {
 				context: 'edit',
-				per_page: 6,
+				per_page: 20,
 				page,
 				search,
 				status,
