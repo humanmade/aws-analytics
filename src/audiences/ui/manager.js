@@ -54,7 +54,6 @@ class Manager extends Component {
 					label: __( 'Add New', 'altis-analytics' ),
 					onClick: () => {
 						setCurrentPost( defaultPost );
-						createPost();
 						this.setState( { view: 'edit' } );
 					},
 				},

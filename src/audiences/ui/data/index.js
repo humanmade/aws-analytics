@@ -109,17 +109,15 @@ const actions = {
 };
 
 const actionGenerators = {
-	*createPost() {
+	*createPost( post ) {
 		yield actions.setIsLoading( true );
-		const post = yield actions.fetch( {
+		const newPost = yield actions.fetch( {
 			path: 'wp/v2/audiences',
 			method: 'POST',
-			data: {
-				status: 'draft',
-			},
+			data: post,
 		} );
-		yield actions.addPosts( [ post ] );
-		yield actions.setCurrentPost( post );
+		yield actions.addPosts( [ newPost ] );
+		yield actions.setCurrentPost( newPost );
 		return actions.setIsLoading( false );
 	},
 	*updatePost( post ) {

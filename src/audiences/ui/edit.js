@@ -77,7 +77,11 @@ class Edit extends Component {
 		// Clear errors.
 		this.setState( { error: null } );
 
-		const { post, savePost } = this.props;
+		const {
+			post,
+			createPost,
+			updatePost,
+		} = this.props;
 
 		if ( post && post.title.rendered.length === 0 ) {
 			event.preventDefault();
@@ -94,7 +98,12 @@ class Edit extends Component {
 			return;
 		}
 
-		savePost( post );
+		// Update if we have an ID, otherwise create a new one.
+		if ( post.id ) {
+			updatePost( post );
+		} else {
+			createPost( post );
+		}
 	}
 
 	render() {
@@ -248,7 +257,11 @@ const applyWithSelect = withSelect( ( select, props ) => {
 } );
 
 const applyWithDispatch = withDispatch( dispatch => {
-	const { setCurrentPost, updatePost } = dispatch( 'audience' );
+	const {
+		createPost,
+		setCurrentPost,
+		updatePost,
+	} = dispatch( 'audience' );
 
 	return {
 		onSetTitle: value => {
@@ -260,9 +273,8 @@ const applyWithDispatch = withDispatch( dispatch => {
 		onSetStatus: value => {
 			setCurrentPost( { status: value } );
 		},
-		savePost: post => {
-			updatePost( post );
-		},
+		updatePost,
+		createPost,
 	};
 } );
 
