@@ -34,6 +34,9 @@ function setup() {
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
+	// Set menu order to minimum value when creating an audience.
+	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\set_menu_order', 10, 2 );
+
 	// Default audience sorting query.
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\pre_get_posts' );
 
@@ -212,6 +215,38 @@ function save_audience( int $post_id, array $audience ) : bool {
 
 	// Save the audience configuration.
 	return (bool) update_post_meta( $post_id, 'audience', wp_slash( $audience ) );
+}
+
+/**
+ * Ensure the menu order value at the top when the audience is created.
+ *
+ * @param array $data The derived data so far before inserting the post.
+ * @param array $postarr The $_POST array data.
+ * @return array The modified data for creating the post.
+ */
+function set_menu_order( array $data, array $postarr ) : array {
+	global $wpdb;
+
+	// Don't do anything if this is an update.
+	if ( ! empty( $postarr['ID'] ) ) {
+		return $data;
+	}
+
+	// Check the post type we're creating.
+	if ( $data['post_type'] !== POST_TYPE ) {
+		return $data;
+	}
+
+	// Find the lowest sort order value for audiences.
+	$min_order = $wpdb->get_col( $wpdb->prepare(
+		"SELECT MIN(menu_order) FROM {$wpdb->posts} WHERE post_type = %s;",
+		POST_TYPE
+	) );
+
+	// Menu order is the lowest minus 1 so it comes up top.
+	$data['menu_order'] = intval( $min_order[0] ?? 0 ) - 1;
+
+	return $data;
 }
 
 /**
