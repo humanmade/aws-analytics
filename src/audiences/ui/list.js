@@ -202,7 +202,7 @@ class List extends Component {
 		const ColumnHeadings = () => (
 			<tr>
 				<th scope="col" className="manage-column column-order">
-					{ __( 'Order', 'altis-analytics' ) }
+					{ __( 'Priority', 'altis-analytics' ) }
 				</th>
 				<th scope="col" className="manage-column column-title column-primary">
 					{ __( 'Title', 'altis-analytics' ) }

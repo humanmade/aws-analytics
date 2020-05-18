@@ -103,7 +103,7 @@ class Edit extends Component {
 		if ( post && post.id && canEdit( post.id ) === false ) {
 			return (
 				<Notice status="error">
-					{ __( 'You do not have permission to edit audiences.' ) }
+					{ __( 'You do not have permission to edit this audience.' ) }
 				</Notice>
 			);
 		}
@@ -172,14 +172,11 @@ class Edit extends Component {
 							isLarge
 							isPrimary
 							type="submit"
-							onClick={ e => {
-								if ( ! this.formElement ) {
-									this.onSubmit( e );
-								}
-							} }
+							onClick={ this.onSubmit }
 						>
-							{ ! saving && __( 'Save changes', 'altis-analytics' ) }
-							{ saving && __( 'Saving changes', 'altis-analytics' ) }
+							{ post.status === 'publish' && ! post.id && __( 'Publish' ) }
+							{ post.status !== 'publish' && ! post.id && __( 'Save Draft' ) }
+							{ post.id && __( 'Update' ) }
 							{ saving && <Spinner /> }
 						</Button>
 					</div>
