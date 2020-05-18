@@ -298,6 +298,12 @@ const Analytics = {
 						if ( operator === '!=' ) {
 							ruleMatch = currentValue !== value;
 						}
+
+						// Null values in the endpoint not supported from this point.
+						if ( currentValue === null ) {
+							break;
+						}
+
 						if ( operator === '*=' ) {
 							ruleMatch = currentValue.indexOf( value ) > -1;
 						}
