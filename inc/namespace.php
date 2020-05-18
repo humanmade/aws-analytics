@@ -165,13 +165,12 @@ function enqueue_scripts() {
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
-			'Altis.Analytics.registerAttribute = function (key, value) {' .
-				'Altis.Analytics._attributes[key] = value;' .
-				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
-			'};' .
-			'Altis.Analytics.registerMetric = function (key, value) {' .
-				'Altis.Analytics._metrics[key] = value;' .
-				'Altis.Analytics.updateAudiences && Altis.Analytics.updateAudiences();' .
+			'Altis.Analytics.onReady = function ( callback ) {' .
+				'if ( Altis.Analytics.registerAttribute ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.ready\', callback );' .
+				'}' .
 			'};',
 			wp_json_encode(
 				[
@@ -185,8 +184,6 @@ function enqueue_scripts() {
 					],
 					'Data' => (object) get_client_side_data(),
 					'Audiences' => Audiences\get_audience_config(),
-					'_attributes' => (object) [],
-					'_metrics' => (object) [],
 				]
 			)
 		),

@@ -19,8 +19,6 @@ import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutE
 import { parseQueryString } from '@aws-sdk/querystring-parser';
 
 const {
-	_attributes,
-	_metrics,
 	Config,
 	Data,
 	Audiences,
@@ -39,6 +37,13 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	);
 	/* eslint-enable quotes */
 }
+
+/**
+ * Custom global attributes and metrics, extended by the
+ * registerAttribute and registerMetric functions.
+ */
+const _attributes = {};
+const _metrics = {};
 
 /**
  * Page view session.
@@ -647,13 +652,13 @@ window.addEventListener( 'beforeunload', () => {
 // Expose userland API.
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
 window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
-window.Altis.Analytics.updateAudiences = Analytics.updateAudiences;
 window.Altis.Analytics.getAudiences = Analytics.getAudiences;
 window.Altis.Analytics.on = Analytics.on;
 window.Altis.Analytics.off = Analytics.off;
-window.Altis.Analytics.record = ( type, data = {}, endpoint = {} ) =>
-	Analytics.record(
-		type,
-		data,
-		endpoint
-	);
+window.Altis.Analytics.record = Analytics.record;
+window.Altis.Analytics.registerAttribute = ( name, value ) => _attributes[ name ] = value;
+window.Altis.Analytics.registerMetric = ( name, value ) => _metrics[ name ] = value;
+
+// Fire a ready event once userland API has been exported.
+const readyEvent = new CustomEvent( 'altis.analytics.ready' );
+window.dispatchEvent( readyEvent );
