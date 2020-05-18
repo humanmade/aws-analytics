@@ -119,14 +119,14 @@ function register_default_event_data_maps() {
 	register_field( 'attributes.qv_utm_content', __( 'UTM Content', 'altis-analytics' ) );
 
 	// Time based parameters.
-	register_field( 'metrics.hour', __( 'Hour (0 - 23)', 'altis-analytics' ) );
-	register_field( 'metrics.day', __( 'Day (1 = Sunday, 7 = Saturday)', 'altis-analytics' ) );
-	register_field( 'metrics.month', __( 'Month (1 = January)', 'altis-analytics' ) );
+	register_field( 'metrics.hour', __( 'Hour', 'altis-analytics' ), __( '24 hour clock format. For example 0 = midnight and 18 = 6pm.', 'altis-analytics' ) );
+	register_field( 'metrics.day', __( 'Day', 'altis-analytics' ), __( 'Day of the week by number. 1 = Sunday, 2 = Monday and so on.' ) );
+	register_field( 'metrics.month', __( 'Month', 'altis-analytics' ), __( 'Month by number. 1 = January and 12 = December.', 'altis-analytics' ) );
 	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ) );
 
 	// Sessions & page view counts.
-	register_field( 'endpoint.Metrics.sessions', __( 'Sessions (total separate visits)', 'altis-analytics' ) );
-	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ) );
+	register_field( 'endpoint.Metrics.sessions', __( 'Sessions', 'altis-analytics' ), __( 'Total separate visits per endpoint.', 'altis-analytics' ) );
+	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ), __( 'Total page views across all sessions.', 'altis-analytics' ) );
 }
 
 /**
@@ -274,8 +274,9 @@ function get_fields() : array {
  *
  * @param string $field The elasticsearch field name.
  * @param string $label A human readable label for the field.
+ * @param string $description An optional long description for the field.
  */
-function register_field( string $field, string $label ) {
+function register_field( string $field, string $label, ?string $description = null ) {
 	global $altis_analytics_event_data_maps;
 	if ( empty( $altis_analytics_event_data_maps ) ) {
 		$altis_analytics_event_data_maps = [];
@@ -284,6 +285,7 @@ function register_field( string $field, string $label ) {
 	$altis_analytics_event_data_maps[ $field ] = [
 		'name' => $field,
 		'label' => $label,
+		'description' => $description,
 		'type' => Utils\get_field_type( $field ),
 	];
 	ksort( $altis_analytics_event_data_maps );

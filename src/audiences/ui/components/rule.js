@@ -5,11 +5,12 @@ import SelectOperator from './select-operator';
 
 const { Button } = wp.components;
 const { useSelect } = wp.data;
-const { __ } = wp.i18n;
+const { sprintf, __ } = wp.i18n;
 
 const StyledRule = styled.div`
 	margin: 0 0 15px;
 	display: flex;
+	flex-wrap: wrap;
 
 	select, input {
 		flex: 1;
@@ -22,6 +23,11 @@ const StyledRule = styled.div`
 	.audience-editor__rule-operator,
 	button {
 		flex 0;
+	}
+
+	p.description {
+		width: 100%;
+		margin: 8px 0 0;
 	}
 `;
 
@@ -42,7 +48,12 @@ const RuleInput = props => {
 					className="regular-text"
 					disabled={ disabled }
 					name={ name }
-					placeholder={ `${ __( 'Average value: ', 'altis-analytics' ) } ${ currentField.stats.avg || __( 'unknown', 'altis-analytics' ) }` }
+					placeholder={ `${ sprintf(
+						__( 'Avg: %d, Lowest: %d, Highest: %d', 'altis-analytics' ),
+						Number( currentField.stats.avg ).toFixed( 2 ),
+						Number( currentField.stats.min ).toFixed( 2 ),
+						Number( currentField.stats.max ).toFixed( 2 )
+					) }` }
 					type="number"
 					value={ value }
 					onChange={ onChange }
@@ -162,6 +173,12 @@ export default function Rule( props ) {
 				>
 					{ __( 'Remove', 'altis-analytics' ) }
 				</Button>
+			) }
+
+			{ currentField.description && (
+				<p className="description">
+					{ currentField.description }
+				</p>
 			) }
 		</StyledRule>
 	);

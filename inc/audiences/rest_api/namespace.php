@@ -45,6 +45,9 @@ function init() {
 						'type' => 'string',
 						'required' => true,
 					],
+					'description' => [
+						'type' => 'string',
+					],
 					'type' => [
 						'type' => 'string',
 						'required' => true,
