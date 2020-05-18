@@ -656,8 +656,14 @@ window.Altis.Analytics.getAudiences = Analytics.getAudiences;
 window.Altis.Analytics.on = Analytics.on;
 window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = Analytics.record;
-window.Altis.Analytics.registerAttribute = ( name, value ) => _attributes[ name ] = value;
-window.Altis.Analytics.registerMetric = ( name, value ) => _metrics[ name ] = value;
+window.Altis.Analytics.registerAttribute = ( name, value ) => {
+	_attributes[ name ] = value;
+	Analytics.updateAudiences();
+};
+window.Altis.Analytics.registerMetric = ( name, value ) => {
+	_metrics[ name ] = value;
+	Analytics.updateAudiences();
+};
 
 // Fire a ready event once userland API has been exported.
 const readyEvent = new CustomEvent( 'altis.analytics.ready' );
