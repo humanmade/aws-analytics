@@ -69,6 +69,12 @@ const actions = {
 			post,
 		};
 	},
+	updateCurrentPost( post ) {
+		return {
+			type: 'UPDATE_CURRENT_POST',
+			post,
+		};
+	},
 	setIsLoading( isLoading ) {
 		return {
 			type: 'SET_IS_LOADING',
@@ -110,15 +116,15 @@ const actions = {
 
 const actionGenerators = {
 	*createPost( post ) {
-		yield actions.setIsLoading( true );
+		yield actions.setIsUpdating( true );
 		const newPost = yield actions.fetch( {
 			path: 'wp/v2/audiences',
 			method: 'POST',
 			data: post,
 		} );
 		yield actions.addPosts( [ newPost ] );
-		yield actions.setCurrentPost( newPost );
-		return actions.setIsLoading( false );
+		yield actions.updateCurrentPost( newPost );
+		return actions.setIsUpdating( false );
 	},
 	*updatePost( post ) {
 		if ( ! post.id ) {
@@ -134,7 +140,7 @@ const actionGenerators = {
 			method: 'PATCH',
 			data: post,
 		} );
-		yield actions.setCurrentPost( updatedPost );
+		yield actions.updateCurrentPost( updatedPost );
 		return actions.setIsUpdating( false );
 	},
 	*deletePost( id ) {

@@ -66,6 +66,36 @@ export default function reducer( state, action ) {
 				return {
 					...state,
 					post: {
+						...action.post,
+					},
+				};
+			}
+
+			const posts = state.posts.map( post => {
+				if ( post.id !== action.post.id ) {
+					return post;
+				}
+
+				return {
+					...action.post,
+				};
+			} );
+			posts.sort( sortPosts );
+
+			return {
+				...state,
+				posts,
+				post: {
+					...action.post,
+				},
+			};
+		}
+
+		case 'UPDATE_CURRENT_POST': {
+			if ( ! action.post.id ) {
+				return {
+					...state,
+					post: {
 						...state.post,
 						...action.post,
 					},

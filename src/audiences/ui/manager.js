@@ -40,7 +40,6 @@ class Manager extends Component {
 	render() {
 		const {
 			canCreate,
-			createPost,
 			setCurrentPost,
 			onSelect,
 		} = this.props;
@@ -123,13 +122,9 @@ const applyWithSelect = withSelect( select => {
 } );
 
 const applyWithDispatch = withDispatch( dispatch => {
-	const {
-		createPost,
-		setCurrentPost,
-	} = dispatch( 'audience' );
+	const { setCurrentPost } = dispatch( 'audience' );
 
 	return {
-		createPost,
 		setCurrentPost,
 	};
 } );

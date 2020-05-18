@@ -18,8 +18,6 @@ const {
 	Spinner,
 } = wp.components;
 
-const formElement = document.querySelector( '.post-type-audience #post' );
-
 const StyledEdit = styled.div`
 	margin: 20px 0;
 
@@ -51,20 +49,6 @@ class Edit extends Component {
 		error: null,
 	};
 
-	componentDidMount() {
-		// Get the form element if there is one. This is for back compat with
-		// the legacy post edit screen.
-		if ( formElement ) {
-			formElement.addEventListener( 'submit', this.onSubmit );
-		}
-	}
-
-	componentWillUnmount() {
-		if ( formElement ) {
-			formElement.removeEventListener( 'submit', this.onSubmit );
-		}
-	}
-
 	static getDerivedStateFromError( error ) {
 		return { error };
 	}
@@ -91,13 +75,6 @@ class Edit extends Component {
 			return;
 		}
 
-		if ( formElement ) {
-			// Prevent the "Leave site?" warning popup showing.
-			window.onbeforeunload = null;
-			window.jQuery && window.jQuery( window ).off( 'beforeunload' );
-			return;
-		}
-
 		// Update if we have an ID, otherwise create a new one.
 		if ( post.id ) {
 			updatePost( post );
@@ -112,9 +89,9 @@ class Edit extends Component {
 			loading,
 			saving,
 			post,
-			onSetTitle,
-			onSetAudience,
-			onSetStatus,
+			setTitle,
+			setAudience,
+			setStatus,
 		} = this.props;
 
 		const {
@@ -161,14 +138,14 @@ class Edit extends Component {
 						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						type="text"
 						value={ post.title.rendered }
-						onChange={ e => onSetTitle( e.target.value ) }
+						onChange={ e => setTitle( e.target.value ) }
 					/>
 				</div>
 
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ onSetAudience }
+						onChange={ setAudience }
 					/>
 
 					<div className="audience-options">
@@ -183,7 +160,7 @@ class Edit extends Component {
 							disabled={ loading }
 							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
 							label={ __( 'Active', 'altis-analytics' ) }
-							onChange={ () => onSetStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
+							onChange={ () => setStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
 						/>
 						<input
 							name="post_status"
@@ -217,10 +194,9 @@ Edit.defaultProps = {
 	post: defaultPost,
 	loading: false,
 	saving: false,
-	onCreate: () => { },
-	onSetTitle: () => { },
-	onSetAudience: () => { },
-	onSetStatus: () => { },
+	setTitle: () => { },
+	setAudience: () => { },
+	setStatus: () => { },
 	savePost: () => { },
 };
 
@@ -259,20 +235,19 @@ const applyWithSelect = withSelect( ( select, props ) => {
 const applyWithDispatch = withDispatch( dispatch => {
 	const {
 		createPost,
-		setCurrentPost,
+		updateCurrentPost,
 		updatePost,
 	} = dispatch( 'audience' );
 
 	return {
-		onSetTitle: value => {
-			setCurrentPost( { title: { rendered: value } } );
-		},
-		onSetAudience: value => {
-			setCurrentPost( { audience: value } );
-		},
-		onSetStatus: value => {
-			setCurrentPost( { status: value } );
-		},
+		setTitle: value => updateCurrentPost( {
+			title: {
+				rendered: value,
+				raw: value,
+			},
+		} ),
+		setAudience: value => updateCurrentPost( { audience: value } ),
+		setStatus: value => updateCurrentPost( { status: value } ),
 		updatePost,
 		createPost,
 	};
