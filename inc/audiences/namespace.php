@@ -730,9 +730,26 @@ function build_audience_query( array $audience ) : array {
 
 			// Handle numeric field comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'number' ) {
-				$rule_query['bool']['filter'][] = [
-					'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
-				];
+				switch ( $rule['operator'] ) {
+					case '=':
+						$rule_query['bool']['filter'][] = [
+							'term' => [
+								"{$rule['field']}" => $rule['value'],
+							],
+						];
+						break;
+					case '!=':
+						$rule_query['bool']['must_not'][] = [
+							'term' => [
+								"{$rule['field']}" => $rule['value'],
+							],
+						];
+						break;
+					default:
+						$rule_query['bool']['filter'][] = [
+							'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
+						];
+				}
 			}
 
 			// Add the rule query to the group.
