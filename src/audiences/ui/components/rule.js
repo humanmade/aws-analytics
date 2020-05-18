@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import styled from 'styled-components';
 
 import SelectOperator from './select-operator';
@@ -65,39 +65,38 @@ const RuleInput = props => {
 			switch ( operator ) {
 				case '=':
 				case '!=':
-					return (
-						<select
-							className="audience-editor__rule-value"
-							disabled={ disabled }
-							name={ name }
-							value={ value }
-							onChange={ onChange }
-						>
-							<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-
-							{ currentField.data && currentField.data.map( datum => (
-								<option
-									key={ datum.value }
-									value={ datum.value }
-								>
-									{ datum.value }
-								</option>
-							) ) }
-						</select>
-					);
-
 				case '*=':
 				case '!*':
 				case '^=':
 					return (
-						<input
-							className="regular-text"
-							disabled={ disabled }
-							name={ name }
-							type="text"
-							value={ value }
-							onChange={ onChange }
-						/>
+						<Fragment>
+							<input
+								className="regular-text"
+								disabled={ disabled }
+								name={ name }
+								type="text"
+								value={ value }
+								onChange={ onChange }
+								list={ `audience-editor__rule__data_${ name }` }
+								autoComplete="on"
+							/>
+							<datalist
+								id={ `audience-editor__rule__data_${ name }` }
+								className="audience-editor__rule-value"
+								disabled={ disabled }
+								name={ name }
+								value={ value }
+								onChange={ onChange }
+							>
+								<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+								{ currentField.data && currentField.data.map( datum => datum.value !== '' && (
+									<option
+										key={ datum.value }
+										value={ datum.value }
+									/>
+								) ) }
+							</datalist>
+						</Fragment>
 					);
 
 				default:
@@ -126,7 +125,10 @@ export default function Rule( props ) {
 				className="audience-editor__rule-field"
 				name={ `${namePrefix}[field]` }
 				value={ field }
-				onChange={ e => onChange( { field: e.target.value } ) }
+				onChange={ e => onChange( {
+					field: e.target.value,
+					value: '',
+				} ) }
 				disabled={ fields.length === 0 }
 			>
 				<option
