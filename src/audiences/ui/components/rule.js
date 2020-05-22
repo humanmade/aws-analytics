@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState, useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
 import SelectOperator from './select-operator';
@@ -31,6 +31,21 @@ const StyledRule = styled.div`
 	}
 `;
 
+const ClearableInput = styled.div`
+	flex: 1;
+	input {
+		width: 100%;
+	}
+	.components-button {
+		text-decoration: none;
+		margin-left: -1.5em;
+
+		&:hover {
+			color: #d94f4f;
+		}
+	}
+`;
+
 const RuleInput = props => {
 	const {
 		disabled,
@@ -40,6 +55,24 @@ const RuleInput = props => {
 		value,
 		onChange,
 	} = props;
+
+	// Get the currently available values for the field.
+	const data = ( currentField.data && currentField.data.map( datum => datum.value ) ) || [];
+
+	// Get input refs to manage focus.
+	const inputEl = useRef( null );
+	const dropdownRef = useRef( null );
+
+	// Default to display of the dropdown if the value is in existing data or empty.
+	const [ showDropdown, setShowDropdown ] = useState( value === '' || data.indexOf( value ) >= 0 );
+	useEffect( () => {
+		if ( showDropdown ) {
+			dropdownRef.current.focus();
+		} else {
+			inputEl.current.focus();
+		}
+	}, [ showDropdown ] );
+
 
 	switch ( currentField.type ) {
 		case 'number':
@@ -70,32 +103,59 @@ const RuleInput = props => {
 				case '^=':
 					return (
 						<Fragment>
-							<input
-								className="regular-text"
-								disabled={ disabled }
-								name={ name }
-								type="text"
-								value={ value }
-								onChange={ onChange }
-								list={ `audience-editor__rule__data_${ name }` }
-								autoComplete="on"
-							/>
-							<datalist
-								id={ `audience-editor__rule__data_${ name }` }
-								className="audience-editor__rule-value"
-								disabled={ disabled }
-								name={ name }
-								value={ value }
-								onChange={ onChange }
-							>
-								<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-								{ currentField.data && currentField.data.map( datum => datum.value !== '' && (
-									<option
-										key={ datum.value }
-										value={ datum.value }
+							{ ! showDropdown && (
+								<ClearableInput>
+									<input
+										ref={ inputEl }
+										className="regular-text"
+										disabled={ disabled }
+										name={ name }
+										type="text"
+										value={ value }
+										onChange={ onChange }
+										list={ `audience-editor__rule__data_${ name }` }
 									/>
-								) ) }
-							</datalist>
+									<Button
+										label={ __( 'Clear selection', 'altis-anlaytics' ) }
+										isLink
+										isDestructive
+										onClick={ () => {
+											onChange( { target: { value: '' } } );
+											setShowDropdown( true );
+										} }
+									>
+										&times;
+									</Button>
+								</ClearableInput>
+							) }
+							{ showDropdown && (
+								<select
+									ref={ dropdownRef }
+									id={ `audience-editor__rule__data_${ name }` }
+									className="audience-editor__rule-value"
+									disabled={ disabled }
+									name={ name }
+									value={ value }
+									onChange={ e => {
+										if ( e.target.value === '___' ) {
+											setShowDropdown( false );
+										} else {
+											onChange( e );
+										}
+									} }
+								>
+									<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+									{ data.map( datum => datum !== '' && (
+										<option
+											key={ datum }
+											value={ datum }
+										>
+											{ datum }
+										</option>
+									) ) }
+									<option value="___">{ __( 'Other, please specify...', 'altis-analytics' ) }</option>
+								</select>
+							) }
 						</Fragment>
 					);
 
