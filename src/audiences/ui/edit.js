@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 
 import AudienceEditor from './components/audience-editor';
@@ -88,6 +88,7 @@ class Edit extends Component {
 			canEdit,
 			loading,
 			saving,
+			onSelect,
 			post,
 			setTitle,
 			setAudience,
@@ -179,6 +180,17 @@ class Edit extends Component {
 							{ post.id && __( 'Update' ) }
 							{ saving && <Spinner /> }
 						</Button>
+						{ post.id && onSelect && (
+							<Fragment>
+								{ ' ' }
+								<Button
+									isLarge
+									onClick={ () => onSelect( post ) }
+								>
+									{ __( 'Select', 'altis-experiments' ) }
+								</Button>
+							</Fragment>
+						) }
 					</div>
 				</div>
 			</StyledEdit>
@@ -190,6 +202,7 @@ Edit.defaultProps = {
 	postId: null,
 	post: defaultPost,
 	loading: false,
+	onSelect: null,
 	saving: false,
 	setTitle: () => { },
 	setAudience: () => { },

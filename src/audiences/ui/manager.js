@@ -73,7 +73,7 @@ class Manager extends Component {
 					label: __( 'Back to Audiences', 'altis-analytics' ),
 					onClick: () => this.setState( { view: 'list' } ),
 				},
-				body: () => <Edit />,
+				body: () => <Edit onSelect={ onSelect } />,
 			},
 		};
 
