@@ -185,6 +185,7 @@ class Edit extends Component {
 								{ ' ' }
 								<Button
 									isLarge
+									disabled={ post.status !== 'publish' }
 									onClick={ () => onSelect( post ) }
 								>
 									{ __( 'Select', 'altis-experiments' ) }
