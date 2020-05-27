@@ -771,6 +771,37 @@ function build_audience_query( array $audience ) : array {
 }
 
 /**
+ * Query audience posts.
+ *
+ * @param array|null $args Query arguments to pass to WP_Query.
+ * @return array
+ */
+function query_audiences( $args = null ) {
+	/**
+	 * Limits the number of active audiences there can be in use at any one time
+	 * on the front end.
+	 *
+	 * @param int $limit The number of audiences to fetch for use client side.
+	 */
+	$limit = apply_filters( 'altis.analytics.audiences.limit', 20 );
+
+	// Prevent negative values, -1 in this case means an unbounded query.
+	$limit = absint( $limit );
+
+	$args = wp_parse_args( $args, [
+		'no_found_rows' => true,
+		'order' => 'ASC',
+		'orderby' => 'menu_order',
+		'post_status' => 'publish',
+		'post_type' => POST_TYPE,
+		'posts_per_page' => $limit,
+	] );
+
+	$audiences = new WP_Query( $args );
+	return $audiences->posts;
+}
+
+/**
  * Returns audience configuration data array for client side use.
  *
  * @return array
@@ -783,31 +814,12 @@ function get_audience_config() : array {
 		return $config;
 	}
 
-	/**
-	 * Limits the number of active audiences there can be in use at any one time
-	 * on the front end.
-	 *
-	 * @param int $limit The number of audiences to fetch for use client side.
-	 */
-	$limit = apply_filters( 'altis.analytics.audiences.limit', 20 );
-
-	// Prevent negative values, -1 in this case means an unbounded query.
-	$limit = absint( $limit );
-
-	$audiences = new WP_Query( [
-		'fields' => 'ids',
-		'no_found_rows' => true,
-		'order' => 'ASC',
-		'orderby' => 'menu_order',
-		'post_status' => 'publish',
-		'post_type' => POST_TYPE,
-		'posts_per_page' => $limit,
-	] );
-
-	$config = [];
-
 	// Get the audience config from post meta for each post.
-	foreach ( $audiences->posts as $audience_id ) {
+	$audiences = query_audiences( [
+		'fields' => 'ids',
+	] );
+	$config = [];
+	foreach ( $audiences as $audience_id ) {
 		$config[] = [
 			'id' => $audience_id,
 			'config' => get_audience( $audience_id ),
