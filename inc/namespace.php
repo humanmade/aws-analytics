@@ -12,6 +12,10 @@ use function Altis\Analytics\Utils\get_asset_url;
 function setup() {
 	// Setup audiences.
 	Audiences\setup();
+
+	// Set up preview.
+	Preview\setup();
+
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
