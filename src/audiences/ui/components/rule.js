@@ -67,9 +67,9 @@ const RuleInput = props => {
 	const [ showDropdown, setShowDropdown ] = useState( value === '' || data.indexOf( value ) >= 0 );
 	useEffect( () => {
 		if ( showDropdown ) {
-			dropdownRef.current.focus();
+			dropdownRef && dropdownRef.current && dropdownRef.current.focus();
 		} else {
-			inputEl.current.focus();
+			inputEl && inputEl.current && inputEl.current.focus();
 		}
 	}, [ showDropdown ] );
 
