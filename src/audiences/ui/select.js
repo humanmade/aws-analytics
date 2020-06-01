@@ -85,6 +85,10 @@ class Select extends Component {
 			? __( 'Change Audience', 'altis-analytics' )
 			: __( 'Select Audience', 'altis-analytics' );
 
+		const status = ( audiencePost && audiencePost.status ) || 'draft';
+		const error = audiencePost && audiencePost.error && audiencePost.error.message;
+		const title = audiencePost && audiencePost.title && audiencePost.title.rendered;
+
 		return (
 			<StyledSelect className="audience-select">
 				<div className="audience-select__info">
@@ -110,8 +114,14 @@ class Select extends Component {
 									{ __( 'Loading...', 'altis-analytics' ) }
 								</Fragment>
 							) }
-							{ audiencePost && (
-								<strong className="audience-select__value">{ audiencePost.title.rendered }</strong>
+							{ error && (
+								<strong className="audience-select__value audience-select__value--error">{ error }</strong>
+							) }
+							{ status === 'trash' && title && (
+								<strong className="audience-select__value">{ __( '(deleted)', 'altis-analytics' ) }</strong>
+							) }
+							{ status !== 'trash' && title && (
+								<strong className="audience-select__value">{ title }</strong>
 							) }
 							{ ! audience && buttonLabel }
 						</IconButton>

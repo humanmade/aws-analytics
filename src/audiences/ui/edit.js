@@ -100,11 +100,29 @@ class Edit extends Component {
 			notice,
 		} = this.state;
 
+		// Check for REST API errors.
+		if ( post && post.error && post.error.message ) {
+			return (
+				<Notice status="error">
+					{ post.error.message }
+				</Notice>
+			);
+		}
+
+		// Check status is valid.
+		if ( post && post.status === 'trash' ) {
+			return (
+				<Notice status="error">
+					{ __( 'This audience has been deleted.', 'altis-analytics' ) }
+				</Notice>
+			);
+		}
+
 		// Check permissions.
 		if ( post && post.id && canEdit( post.id ) === false ) {
 			return (
 				<Notice status="error">
-					{ __( 'You do not have permission to edit this audience.' ) }
+					{ __( 'You do not have permission to edit this audience.', 'altis-analytics' ) }
 				</Notice>
 			);
 		}
