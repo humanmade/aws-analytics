@@ -101,7 +101,25 @@ class Edit extends Component {
 			notice,
 		} = this.state;
 
-		// Check permissions.
+		// Check for REST API errors.
+		if ( post && post.error && post.error.message ) {
+			return (
+				<Notice status="error">
+					{ post.error.message }
+				</Notice>
+			);
+		}
+
+		// Check status is valid.
+		if ( post && post.status === 'trash' ) {
+			return (
+				<Notice status="error">
+					{ __( 'This audience has been deleted.', 'altis-analytics' ) }
+				</Notice>
+			);
+		}
+
+		// Check permission for editing.
 		if ( post && post.id && canEdit === false ) {
 			return (
 				<Notice status="error">
@@ -110,7 +128,7 @@ class Edit extends Component {
 			);
 		}
 
-		// Check permissions.
+		// Check permission for creating.
 		if ( post && ! post.id && canCreate === false ) {
 			return (
 				<Notice status="error">

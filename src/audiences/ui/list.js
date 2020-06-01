@@ -151,8 +151,11 @@ class List extends Component {
 			error,
 		} = this.state;
 
+		// Remove any posts that are REST API errors or trashed.
+		const validPosts = posts.filter( post => ! post.error && post.status !== 'trash' );
+
 		// Filter posts using fuzzy matching on title and rule values.
-		const fuse = new Fuse( posts, {
+		const fuse = new Fuse( validPosts, {
 			keys: [
 				'title.rendered',
 				'audience.groups.rules.value',
@@ -162,7 +165,7 @@ class List extends Component {
 
 		const filteredPosts = search
 			? fuse.search( search ).map( result => result.item )
-			: posts;
+			: validPosts;
 
 		// Whether to show the 5th column or not.
 		const isSelectMode = filteredPosts && filteredPosts.length > 0 && onSelect;

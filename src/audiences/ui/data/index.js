@@ -145,11 +145,11 @@ const actionGenerators = {
 	},
 	*deletePost( id ) {
 		yield actions.setIsDeleting( true );
-		yield actions.fetch( {
+		const post = yield actions.fetch( {
 			path: `wp/v2/audiences/${ id }`,
 			method: 'DELETE',
 		} );
-		yield actions.removePost( id );
+		yield actions.addPosts( [ post ] );
 		return actions.setIsDeleting( false );
 	},
 };
@@ -209,16 +209,21 @@ const resolvers = {
 			return;
 		}
 		yield actions.setIsLoading( true );
-		const post = yield actions.fetch( {
-			path: `wp/v2/audiences/${ id }?context=edit`,
-		} );
-		if ( post.status === 'auto-draft' ) {
-			post.title.rendered = '';
+		try {
+			const post = yield actions.fetch( {
+				path: `wp/v2/audiences/${ id }?context=edit`,
+			} );
+			if ( post.status === 'auto-draft' ) {
+				post.title.rendered = '';
+			}
+			if ( ! post.audience ) {
+				post.audience = defaultAudience;
+			}
+			yield actions.addPosts( [ post ] );
+		} catch ( error ) {
+			// Add the post ID to the error response.
+			yield actions.addPosts( [ { id, error } ] );
 		}
-		if ( ! post.audience ) {
-			post.audience = defaultAudience;
-		}
-		yield actions.addPosts( [ post ] );
 		return actions.setIsLoading( false );
 	},
 	*getCurrentPost( id ) {
