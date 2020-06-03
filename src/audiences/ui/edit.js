@@ -137,6 +137,8 @@ class Edit extends Component {
 			);
 		}
 
+		const isPublished = post && post.status === 'publish';
+
 		return (
 			<StyledEdit className={ `audience-ui ${ loading ? 'audience-ui--loading' : '' }` }>
 				{ error && (
@@ -187,7 +189,7 @@ class Edit extends Component {
 						<StatusToggle
 							disabled={ loading }
 							status={ post.status }
-							onChange={ () => setStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
+							onChange={ () => setStatus( isPublished ? 'draft' : 'publish' ) }
 						/>
 						<Button
 							disabled={ loading || saving }
@@ -196,8 +198,8 @@ class Edit extends Component {
 							type="submit"
 							onClick={ this.onSubmit }
 						>
-							{ post.status === 'publish' && ! post.id && __( 'Publish' ) }
-							{ post.status !== 'publish' && ! post.id && __( 'Save Draft' ) }
+							{ isPublished && ! post.id && __( 'Publish' ) }
+							{ ! isPublished && ! post.id && __( 'Save Draft' ) }
 							{ post.id && __( 'Update' ) }
 							{ saving && <Spinner /> }
 						</Button>
@@ -206,7 +208,7 @@ class Edit extends Component {
 								{ ' ' }
 								<Button
 									isLarge
-									disabled={ post.status !== 'publish' }
+									disabled={ ! isPublished }
 									onClick={ () => onSelect( post ) }
 								>
 									{ __( 'Select', 'altis-experiments' ) }

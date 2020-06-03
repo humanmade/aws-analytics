@@ -22,6 +22,7 @@ const ListRow = props => {
 		canMoveDown,
 		onMoveUp,
 		onMoveDown,
+		onClick,
 		onEdit,
 	} = props;
 
@@ -63,7 +64,10 @@ const ListRow = props => {
 	);
 
 	return (
-		<tr className={ `audience-row audience-row--${ isPublished ? 'active' : 'inactive' }` }>
+		<tr
+			className={ `audience-row audience-row--${ isPublished ? 'active' : 'inactive' }` }
+			onClick={ onClick }
+		>
 			<td>
 				<AudienceSort
 					index={ index }
@@ -128,6 +132,10 @@ const ListRow = props => {
 			) }
 		</tr>
 	);
+};
+
+ListRow.defaultProps = {
+	onClick: () => {},
 };
 
 export default ListRow;
