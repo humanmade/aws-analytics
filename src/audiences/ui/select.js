@@ -41,7 +41,7 @@ const StyledSelect = styled.div`
 		display: block;
 		margin-bottom: 4px;
 	}
-	&&& .audience-select__controls {
+	.audience-select__controls {
 		margin-left: -3px;
 		display: flex;
 
@@ -49,7 +49,8 @@ const StyledSelect = styled.div`
 			padding-left: 0;
 			padding-right: 0;
 
-			&:hover, &:focus {
+			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):hover,
+			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):focus {
 				box-shadow: none;
 				text-decoration: underline;
 			}
