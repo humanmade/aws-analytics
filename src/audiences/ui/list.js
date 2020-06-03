@@ -1,5 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import styled, { css } from 'styled-components';
+import { memoize } from 'lodash';
 import Fuse from 'fuse.js';
 import ListRowHeading from './components/list-row-heading';
 import ListRowLoading from './components/list-row-loading';
@@ -15,6 +16,17 @@ const {
 	Button,
 	Notice,
 } = wp.components;
+
+const searchEngine = memoize(
+	posts => new Fuse( posts, {
+		keys: [
+			'title.rendered',
+			'audience.groups.rules.value',
+		],
+		shouldSort: false,
+	} ),
+	posts => posts.map( post => post.id ).join( '-' )
+);
 
 const selectModeCSS = css`
 	tbody tr.audience-row--active:hover {
@@ -155,13 +167,7 @@ class List extends Component {
 		const validPosts = posts.filter( post => ! post.error && post.status !== 'trash' );
 
 		// Filter posts using fuzzy matching on title and rule values.
-		const fuse = new Fuse( validPosts, {
-			keys: [
-				'title.rendered',
-				'audience.groups.rules.value',
-			],
-			shouldSort: false,
-		} );
+		const fuse = searchEngine( validPosts );
 
 		const filteredPosts = search
 			? fuse.search( search ).map( result => result.item )
