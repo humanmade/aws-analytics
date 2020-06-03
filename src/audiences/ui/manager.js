@@ -104,7 +104,6 @@ class Manager extends Component {
 			</StyledManager>
 		);
 	}
-
 }
 
 Manager.defaultProps = {

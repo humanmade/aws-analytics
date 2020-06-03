@@ -11,6 +11,7 @@ const StyledRule = styled.div`
 	margin: 0 0 15px;
 	display: flex;
 	flex-wrap: wrap;
+	align-items: center;
 
 	select, input {
 		flex: 1;

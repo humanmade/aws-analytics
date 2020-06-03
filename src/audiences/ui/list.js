@@ -1,41 +1,20 @@
 import React, { Component, Fragment } from 'react';
 import styled, { css } from 'styled-components';
 import Fuse from 'fuse.js';
+import ListRowHeading from './components/list-row-heading';
 import ListRowLoading from './components/list-row-loading';
-import Estimate from './components/estimate';
+import ListRow from './components/list-row';
 
 const { compose } = wp.compose;
 const {
 	withSelect,
 	withDispatch,
 } = wp.data;
-const { __, sprintf } = wp.i18n;
+const { __ } = wp.i18n;
 const {
 	Button,
-	IconButton,
 	Notice,
-	ToggleControl,
 } = wp.components;
-
-const ActionLink = ( {
-	post,
-	label,
-	children = null,
-	className = '',
-	onClick,
-} ) => (
-	<Button
-		isLink
-		className={ className }
-		onClick={ event => {
-			event.preventDefault();
-			onClick( post );
-		} }
-		aria-label={ sprintf( label, post.title.rendered ) }
-	>
-		{ children || post.title.rendered }
-	</Button>
-);
 
 const selectModeCSS = css`
 	tbody tr.audience-row--active:hover {
@@ -85,28 +64,6 @@ const AudienceList = styled.div`
 	${ props => props.selectMode && selectModeCSS }
 `;
 
-const AudienceSort = styled.span`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-
-	.audience-sort-order {
-		&__number {
-			font-weight: bold;
-			flex: 1;
-		}
-		&__controls {
-			flex: 1;
-			button {
-				padding: 3px;
-			}
-		}
-		&__up {
-			margin-bottom: 2px;
-		}
-	}
-`;
-
 class List extends Component {
 
 	state = {
@@ -123,7 +80,19 @@ class List extends Component {
 		console.error( error, errorInfo );
 	}
 
-	selectRow = ( event, post ) => {
+	onSearch = event => {
+		const value = event.target.value;
+		this.setState( {
+			page: 1,
+			search: value,
+		} );
+		// Query posts by the search term.
+		if ( ! this.props.loading ) {
+			this.props.getPosts( this.state.page, value );
+		}
+	}
+
+	onSelectRow = ( event, post ) => {
 		// Check if it's an active audience.
 		if ( post.status !== 'publish' ) {
 			return;
@@ -146,42 +115,41 @@ class List extends Component {
 		this.props.onSelect && this.props.onSelect( post );
 	}
 
+	onMove = ( posts, index, direction = 'up' ) => {
+		const post = posts[ index ];
+		const directionInt = direction === 'up' ? -1 : 1;
+
+		// Swap the menu order of the audiences in the direction of prioritisation.
+		this.props.updatePost( {
+			id: post.id,
+			menu_order: post.menu_order + directionInt,
+		} );
+		this.props.updatePost( {
+			id: posts[ index + directionInt ].id,
+			menu_order: post.menu_order,
+		} );
+	}
+
+	onNextPage = () => {
+		const { page, search } = this.state;
+		this.props.getPosts( page + 1, search );
+		this.setState( { page: page + 1 } );
+	}
+
 	render() {
 		const {
 			canCreate,
-			canEdit,
 			posts,
 			pagination,
-			getPosts,
 			onEdit,
 			onSelect,
-			deletePost,
-			updatePost,
 			loading,
 		} = this.props;
 
 		const {
-			page,
 			search,
 			error,
 		} = this.state;
-
-		const EditLink = props => (
-			<ActionLink
-				label={ __( 'Edit “%s”' ) }
-				onClick={ onEdit }
-				{ ...props }
-			/>
-		);
-
-		const TrashLink = props => (
-			<ActionLink
-				label={ __( 'Move “%s” to the Trash' ) }
-				className="is-destructive"
-				onClick={ post => deletePost( post.id ) }
-				{ ...props }
-			/>
-		);
 
 		// Filter posts using fuzzy matching on title and rule values.
 		const fuse = new Fuse( posts, {
@@ -198,26 +166,6 @@ class List extends Component {
 
 		// Whether to show the 5th column or not.
 		const isSelectMode = filteredPosts && filteredPosts.length > 0 && onSelect;
-
-		const ColumnHeadings = () => (
-			<tr>
-				<th scope="col" className="manage-column column-order">
-					{ __( 'Priority', 'altis-analytics' ) }
-				</th>
-				<th scope="col" className="manage-column column-title column-primary">
-					{ __( 'Title', 'altis-analytics' ) }
-				</th>
-				<th scope="col" className="manage-column column-active">
-					{ __( 'Status', 'altis-analytics' ) }
-				</th>
-				<th scope="col" className="manage-column column-estimate">
-					{ __( 'Size', 'altis-analytics' ) }
-				</th>
-				{ isSelectMode && (
-					<th scope="col" className="manage-column column-select">&nbsp;</th>
-				) }
-			</tr>
-		);
 
 		return (
 			<AudienceList className="audience-listing" selectMode={ isSelectMode }>
@@ -240,22 +188,12 @@ class List extends Component {
 						name="s"
 						value={ search }
 						placeholder={ __( 'Search Audiences', 'altis-analytics' ) }
-						onChange={ event => {
-							const value = event.target.value;
-							this.setState( {
-								page: 1,
-								search: value,
-							} );
-							// Query posts by the search term.
-							if ( ! loading ) {
-								getPosts( page, value );
-							}
-						} }
+						onChange={ this.onSearch }
 					/>
 				</div>
 				<table className="wp-list-table widefat fixed striped posts">
 					<thead>
-						<ColumnHeadings />
+						<ListRowHeading selectMode={ isSelectMode } />
 					</thead>
 					<tbody>
 						{ ! loading && filteredPosts.length === 0 && (
@@ -276,110 +214,19 @@ class List extends Component {
 							</tr>
 						) }
 						{ filteredPosts.length > 0 && filteredPosts.map( ( post, index ) => {
-							const canEditAudience = canEdit( post.id );
-
 							return (
-								<tr
+								<ListRow
 									key={ post.id }
-									className={ `audience-row audience-row--${ post.status === 'publish' ? 'active' : 'inactive' }` }
-									onClick={ event => this.selectRow( event, post ) }
-								>
-									<td>
-										<AudienceSort className="audience-sort-order">
-											<span className="audience-sort-order__number">{ index + 1 }</span>
-											{ canEditAudience && (
-												<span className="audience-sort-order__controls">
-													<IconButton
-														className="audience-sort-order__up"
-														icon="arrow-up-alt2"
-														label={ __( 'Move up', 'altis-analytics' ) }
-														disabled={ ! filteredPosts[ index - 1 ] }
-														onClick={ () => {
-															updatePost( {
-																id: post.id,
-																menu_order: post.menu_order - 1,
-															} );
-															updatePost( {
-																id: filteredPosts[ index - 1 ].id,
-																menu_order: post.menu_order,
-															} );
-														} }
-													/>
-													<IconButton
-														className="audience-sort-order__down"
-														icon="arrow-down-alt2"
-														label={ __( 'Move down', 'altis-analytics' ) }
-														disabled={ ! filteredPosts[ index + 1 ] }
-														onClick={ () => {
-															updatePost( {
-																id: post.id,
-																menu_order: post.menu_order + 1,
-															} );
-															updatePost( {
-																id: filteredPosts[ index + 1 ].id,
-																menu_order: post.menu_order,
-															} );
-														} }
-													/>
-												</span>
-											) }
-										</AudienceSort>
-									</td>
-									<td>
-										{ ! canEditAudience && (
-											<span className="row-title">
-												<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
-											</span>
-										) }
-										{ canEditAudience && (
-											<EditLink className="row-title" post={ post }>
-												<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
-											</EditLink>
-										) }
-										{ canEditAudience && (
-											<div className="row-actions">
-												<span className="edit">
-													<EditLink post={ post }>
-														{ __( 'Edit' ) }
-													</EditLink>
-												</span>
-												{ ' | ' }
-												<span className="trash">
-													<TrashLink post={ post }>
-														{ __( 'Trash' ) }
-													</TrashLink>
-												</span>
-											</div>
-										) }
-									</td>
-									<td>
-										<ToggleControl
-											disabled={ ! canEditAudience }
-											checked={ post.status === 'publish' }
-											help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
-											label={ __( 'Active', 'altis-analytics' ) }
-											onChange={ () => updatePost( {
-												id: post.id,
-												status: post.status === 'publish' ? 'draft' : 'publish',
-											} ) }
-										/>
-									</td>
-									<td>
-										<Estimate audience={ post.audience } horizontal />
-									</td>
-									{ isSelectMode && (
-										<td>
-											{ post.status === 'publish' && (
-												<Button
-													className="button"
-													onClick={ () => onSelect( post ) }
-												>
-													{ __( 'Select', 'altis-analytics' ) }
-												</Button>
-											) }
-										</td>
-									) }
-								</tr>
+									index={ index }
+									post={ post }
+									canMoveUp={ filteredPosts[ index - 1 ] }
+									canMoveDown={ filteredPosts[ index + 1 ] }
+									onMoveUp={ () => this.onMove( filteredPosts, index, 'up' ) }
+									onMoveDown={ () => this.onMove( filteredPosts, index, 'down' ) }
+									onClick={ event => this.onSelectRow( event, post ) }
+									onEdit={ onEdit }
+									onSelect={ onSelect }
+								/>
 							);
 						} ) }
 						{ ! loading && pagination.total > filteredPosts.length && (
@@ -387,10 +234,7 @@ class List extends Component {
 								<td colSpan={ isSelectMode ? 5 : 4 }>
 									<Button
 										className="button"
-										onClick={ () => {
-											getPosts( page + 1, search );
-											this.setState( { page: page + 1 } );
-										} }
+										onClick={ this.onNextPage }
 									>
 										{ __( 'Load more audiences', 'altis-analytics' ) }
 									</Button>
@@ -406,7 +250,7 @@ class List extends Component {
 						) }
 					</tbody>
 					<tfoot>
-						<ColumnHeadings />
+						<ListRowHeading selectMode={ isSelectMode } />
 					</tfoot>
 				</table>
 			</AudienceList>
@@ -432,12 +276,10 @@ const applyWithSelect = withSelect( select => {
 	const loading = getIsLoading();
 	const pagination = getPagination();
 
-	const { canUser } = select( 'core' );
-	const canCreate = canUser( 'create', 'audiences' );
+	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
 
 	return {
 		canCreate,
-		canEdit: id => canUser( 'update', 'audiences', id ),
 		getPosts,
 		pagination,
 		posts,
@@ -446,17 +288,9 @@ const applyWithSelect = withSelect( select => {
 } );
 
 const applyWithDispatch = withDispatch( dispatch => {
-	const {
-		deletePost,
-		updatePost,
-	} = dispatch( 'audience' );
+	const { updatePost } = dispatch( 'audience' );
 
 	return {
-		deletePost: id => {
-			if ( window.confirm( __( 'Are you sure you want to permanently delete this audience?', 'altis-analytics' ) ) ) {
-				deletePost( id );
-			}
-		},
 		updatePost,
 	};
 } );

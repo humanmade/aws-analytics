@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
+import StatusToggle from './components/status-toggle';
 import { defaultPost, defaultAudience } from './data/defaults';
 
 const { compose } = wp.compose;
@@ -13,7 +14,6 @@ const {
 const { __ } = wp.i18n;
 const {
 	Button,
-	ToggleControl,
 	Notice,
 	Spinner,
 } = wp.components;
@@ -85,6 +85,7 @@ class Edit extends Component {
 
 	render() {
 		const {
+			canCreate,
 			canEdit,
 			loading,
 			saving,
@@ -101,10 +102,19 @@ class Edit extends Component {
 		} = this.state;
 
 		// Check permissions.
-		if ( post && post.id && canEdit( post.id ) === false ) {
+		if ( post && post.id && canEdit === false ) {
 			return (
 				<Notice status="error">
-					{ __( 'You do not have permission to edit this audience.' ) }
+					{ __( 'You do not have permission to edit this audience.', 'altis-analytics' ) }
+				</Notice>
+			);
+		}
+
+		// Check permissions.
+		if ( post && ! post.id && canCreate === false ) {
+			return (
+				<Notice status="error">
+					{ __( 'You do not have permission to create new audiences.', 'altis-analytics' ) }
 				</Notice>
 			);
 		}
@@ -156,17 +166,10 @@ class Edit extends Component {
 							sparkline
 						/>
 						<h3>{ __( 'Audience options', 'altis-analytics' ) }</h3>
-						<ToggleControl
-							checked={ post.status === 'publish' }
+						<StatusToggle
 							disabled={ loading }
-							help={ post.status === 'publish' ? __( 'Audience is active', 'altis-analytics' ) : __( 'Audience is inactive', 'altis-analytics' ) }
-							label={ __( 'Active', 'altis-analytics' ) }
+							status={ post.status }
 							onChange={ () => setStatus( post.status === 'publish' ? 'draft' : 'publish' ) }
-						/>
-						<input
-							name="post_status"
-							type="hidden"
-							value={ post.status }
 						/>
 						<Button
 							disabled={ loading || saving }
@@ -233,10 +236,11 @@ const applyWithSelect = withSelect( ( select, props ) => {
 	// Permissions check.
 	const { canUser } = select( 'core' );
 	const canCreate = canUser( 'create', 'audiences' );
+	const canEdit = canUser( 'update', 'audiences', post.id || props.postId );
 
 	return {
 		canCreate,
-		canEdit: id => canUser( 'update', 'audiences', id ),
+		canEdit,
 		post,
 		loading,
 		saving,

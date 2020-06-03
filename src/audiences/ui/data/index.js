@@ -254,12 +254,12 @@ const resolvers = {
 			},
 			parse: false,
 		} );
+		const posts = yield actions.json( response );
+		yield actions.addPosts( posts );
 		yield actions.setPagination(
 			response.headers.get( 'x-wp-total' ),
 			response.headers.get( 'x-wp-totalpages' )
 		);
-		const posts = yield actions.json( response );
-		yield actions.addPosts( posts );
 		return actions.setIsLoading( false );
 	},
 };

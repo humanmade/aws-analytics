@@ -57,6 +57,10 @@ export default function reducer( state, action ) {
 		case 'REMOVE_POST': {
 			return {
 				...state,
+				pagination: {
+					total: state.pagination.total - 1,
+					pages: Math.floor( ( state.pagination.total - 1 ) / 20 ),
+				},
 				posts: state.posts.filter( post => post.id !== action.id ),
 			};
 		}
