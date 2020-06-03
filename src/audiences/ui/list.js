@@ -17,7 +17,7 @@ const {
 	Notice,
 } = wp.components;
 
-const searchEngine = memoize(
+const getSearchEngine = memoize(
 	posts => new Fuse( posts, {
 		keys: [
 			'title.rendered',
@@ -167,10 +167,10 @@ class List extends Component {
 		const validPosts = posts.filter( post => ! post.error && post.status !== 'trash' );
 
 		// Filter posts using fuzzy matching on title and rule values.
-		const fuse = searchEngine( validPosts );
+		const searchEngine = getSearchEngine( validPosts );
 
 		const filteredPosts = search
-			? fuse.search( search ).map( result => result.item )
+			? searchEngine.search( search ).map( result => result.item )
 			: validPosts;
 
 		// Whether to show the 5th column or not.
