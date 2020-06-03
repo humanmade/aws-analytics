@@ -16,7 +16,7 @@ const ListRowHeading = props => (
 		<th scope="col" className="manage-column column-estimate">
 			{ __( 'Size', 'altis-analytics' ) }
 		</th>
-		{ props.selectMode && (
+		{ props.isSelectMode && (
 			<th scope="col" className="manage-column column-select">&nbsp;</th>
 		) }
 	</tr>

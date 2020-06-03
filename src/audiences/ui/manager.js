@@ -40,8 +40,8 @@ class Manager extends Component {
 	render() {
 		const {
 			canCreate,
-			setCurrentPost,
 			onSelect,
+			onSetCurrentPost,
 		} = this.props;
 		const { view } = this.state;
 
@@ -52,7 +52,7 @@ class Manager extends Component {
 					permission: canCreate,
 					label: __( 'Add New', 'altis-analytics' ),
 					onClick: () => {
-						setCurrentPost( defaultPost );
+						onSetCurrentPost( defaultPost );
 						this.setState( { view: 'edit' } );
 					},
 				},
@@ -60,7 +60,7 @@ class Manager extends Component {
 					<List
 						onSelect={ onSelect }
 						onEdit={ post => {
-							setCurrentPost( post || defaultPost );
+							onSetCurrentPost( post || defaultPost );
 							this.setState( { view: 'edit' } );
 						} }
 					/>
@@ -124,7 +124,7 @@ const applyWithDispatch = withDispatch( dispatch => {
 	const { setCurrentPost } = dispatch( 'audience' );
 
 	return {
-		setCurrentPost,
+		onSetCurrentPost: setCurrentPost,
 	};
 } );
 

@@ -63,8 +63,8 @@ class Edit extends Component {
 
 		const {
 			post,
-			createPost,
-			updatePost,
+			onCreatePost,
+			onUpdatePost,
 		} = this.props;
 
 		if ( post && post.title.rendered.length === 0 ) {
@@ -77,9 +77,9 @@ class Edit extends Component {
 
 		// Update if we have an ID, otherwise create a new one.
 		if ( post.id ) {
-			updatePost( post );
+			onUpdatePost( post );
 		} else {
-			createPost( post );
+			onCreatePost( post );
 		}
 	}
 
@@ -88,12 +88,12 @@ class Edit extends Component {
 			canCreate,
 			canEdit,
 			loading,
-			saving,
 			onSelect,
+			onSetTitle,
+			onSetAudience,
+			onSetStatus,
 			post,
-			setTitle,
-			setAudience,
-			setStatus,
+			saving,
 		} = this.props;
 
 		const {
@@ -169,14 +169,14 @@ class Edit extends Component {
 						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						type="text"
 						value={ post.title.rendered }
-						onChange={ e => setTitle( e.target.value ) }
+						onChange={ event => onSetTitle( event.target.value ) }
 					/>
 				</div>
 
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ setAudience }
+						onChange={ onSetAudience }
 					/>
 
 					<div className="audience-options">
@@ -189,7 +189,7 @@ class Edit extends Component {
 						<StatusToggle
 							disabled={ loading }
 							status={ post.status }
-							onChange={ () => setStatus( isPublished ? 'draft' : 'publish' ) }
+							onChange={ () => onSetStatus( isPublished ? 'draft' : 'publish' ) }
 						/>
 						<Button
 							disabled={ loading || saving }
@@ -223,15 +223,16 @@ class Edit extends Component {
 }
 
 Edit.defaultProps = {
-	postId: null,
-	post: defaultPost,
 	loading: false,
+	post: defaultPost,
+	postId: null,
+	onCreatePost: () => { },
 	onSelect: null,
+	onSetAudience: () => { },
+	onSetStatus: () => { },
+	onSetTitle: () => { },
+	onUpdatePost: () => { },
 	saving: false,
-	setTitle: () => { },
-	setAudience: () => { },
-	setStatus: () => { },
-	savePost: () => { },
 };
 
 const applyWithSelect = withSelect( ( select, props ) => {
@@ -275,16 +276,16 @@ const applyWithDispatch = withDispatch( dispatch => {
 	} = dispatch( 'audience' );
 
 	return {
-		setTitle: value => updateCurrentPost( {
+		onCreatePost: post => createPost( post ),
+		onSetTitle: value => updateCurrentPost( {
 			title: {
 				rendered: value,
 				raw: value,
 			},
 		} ),
-		setAudience: value => updateCurrentPost( { audience: value } ),
-		setStatus: value => updateCurrentPost( { status: value } ),
-		updatePost,
-		createPost,
+		onSetAudience: value => updateCurrentPost( { audience: value } ),
+		onSetStatus: value => updateCurrentPost( { status: value } ),
+		onUpdatePost: post => updatePost( post ),
 	};
 } );
 

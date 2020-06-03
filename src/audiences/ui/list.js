@@ -98,9 +98,9 @@ class List extends Component {
 			page: 1,
 			search: value,
 		} );
-		// Query posts by the search term.
+		// Query posts by the search term if we don't have an existing request.
 		if ( ! this.props.loading ) {
-			this.props.getPosts( this.state.page, value );
+			this.props.onGetPosts( this.state.page, value );
 		}
 	}
 
@@ -132,11 +132,11 @@ class List extends Component {
 		const directionInt = direction === 'up' ? -1 : 1;
 
 		// Swap the menu order of the audiences in the direction of prioritisation.
-		this.props.updatePost( {
+		this.props.onUpdatePost( {
 			id: post.id,
 			menu_order: post.menu_order + directionInt,
 		} );
-		this.props.updatePost( {
+		this.props.onUpdatePost( {
 			id: posts[ index + directionInt ].id,
 			menu_order: post.menu_order,
 		} );
@@ -144,7 +144,7 @@ class List extends Component {
 
 	onNextPage = () => {
 		const { page, search } = this.state;
-		this.props.getPosts( page + 1, search );
+		this.props.onGetPosts( page + 1, search );
 		this.setState( { page: page + 1 } );
 	}
 
@@ -159,8 +159,8 @@ class List extends Component {
 		} = this.props;
 
 		const {
-			search,
 			error,
+			search,
 		} = this.state;
 
 		// Remove any posts that are REST API errors or trashed.
@@ -202,7 +202,7 @@ class List extends Component {
 				</div>
 				<table className="wp-list-table widefat fixed striped posts">
 					<thead>
-						<ListRowHeading selectMode={ isSelectMode } />
+						<ListRowHeading isSelectMode={ isSelectMode } />
 					</thead>
 					<tbody>
 						{ ! loading && filteredPosts.length === 0 && (
@@ -259,7 +259,7 @@ class List extends Component {
 						) }
 					</tbody>
 					<tfoot>
-						<ListRowHeading selectMode={ isSelectMode } />
+						<ListRowHeading isSelectMode={ isSelectMode } />
 					</tfoot>
 				</table>
 			</AudienceList>
@@ -268,11 +268,15 @@ class List extends Component {
 }
 
 List.defaultProps = {
-	posts: [],
+	canCreate: false,
+	onGetPosts: () => { },
 	pagination: {
 		total: 0,
 		pages: 0,
 	},
+	posts: [],
+	loading: false,
+	onUpdatePost: () => { },
 };
 
 const applyWithSelect = withSelect( select => {
@@ -289,7 +293,7 @@ const applyWithSelect = withSelect( select => {
 
 	return {
 		canCreate,
-		getPosts,
+		onGetPosts: getPosts,
 		pagination,
 		posts,
 		loading,
@@ -300,7 +304,7 @@ const applyWithDispatch = withDispatch( dispatch => {
 	const { updatePost } = dispatch( 'audience' );
 
 	return {
-		updatePost,
+		onUpdatePost: post => updatePost( post ),
 	};
 } );
 
