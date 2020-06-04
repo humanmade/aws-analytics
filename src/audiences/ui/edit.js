@@ -88,12 +88,12 @@ class Edit extends Component {
 			canCreate,
 			canEdit,
 			loading,
-			onSelect,
-			onSetTitle,
-			onSetAudience,
-			onSetStatus,
 			post,
 			saving,
+			onSelect,
+			onSetAudience,
+			onSetTitle,
+			onSetStatus,
 		} = this.props;
 
 		const {
@@ -182,8 +182,8 @@ class Edit extends Component {
 					<div className="audience-options">
 						<Estimate
 							audience={ post.audience }
-							title={ __( 'Audience size', 'altis-analytics' ) }
 							sparkline
+							title={ __( 'Audience size', 'altis-analytics' ) }
 						/>
 						<h3>{ __( 'Audience options', 'altis-analytics' ) }</h3>
 						<StatusToggle
@@ -207,8 +207,8 @@ class Edit extends Component {
 							<Fragment>
 								{ ' ' }
 								<Button
-									isLarge
 									disabled={ ! isPublished }
+									isLarge
 									onClick={ () => onSelect( post ) }
 								>
 									{ __( 'Select', 'altis-experiments' ) }
@@ -226,13 +226,13 @@ Edit.defaultProps = {
 	loading: false,
 	post: defaultPost,
 	postId: null,
+	saving: false,
 	onCreatePost: () => { },
 	onSelect: null,
 	onSetAudience: () => { },
 	onSetStatus: () => { },
 	onSetTitle: () => { },
 	onUpdatePost: () => { },
-	saving: false,
 };
 
 const applyWithSelect = withSelect( ( select, props ) => {
@@ -262,8 +262,8 @@ const applyWithSelect = withSelect( ( select, props ) => {
 	return {
 		canCreate,
 		canEdit,
-		post,
 		loading,
+		post,
 		saving,
 	};
 } );
@@ -277,13 +277,13 @@ const applyWithDispatch = withDispatch( dispatch => {
 
 	return {
 		onCreatePost: post => createPost( post ),
+		onSetAudience: value => updateCurrentPost( { audience: value } ),
 		onSetTitle: value => updateCurrentPost( {
 			title: {
 				rendered: value,
 				raw: value,
 			},
 		} ),
-		onSetAudience: value => updateCurrentPost( { audience: value } ),
 		onSetStatus: value => updateCurrentPost( { status: value } ),
 		onUpdatePost: post => updatePost( post ),
 	};

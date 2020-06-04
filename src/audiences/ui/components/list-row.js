@@ -4,8 +4,8 @@ import AudienceSort from './audience-sort';
 import Estimate from './estimate';
 import StatusToggle from './status-toggle';
 import {
-	useCanEdit,
 	useCanDelete,
+	useCanEdit,
 	useDeletePost,
 	useUpdatePost,
 } from '../data/hooks';
@@ -15,15 +15,15 @@ const { __ } = wp.i18n;
 
 const ListRow = props => {
 	const {
+		canMoveDown,
+		canMoveUp,
 		index,
 		post,
-		onSelect,
-		canMoveUp,
-		canMoveDown,
-		onMoveUp,
 		onMoveDown,
+		onMoveUp,
 		onClick,
 		onEdit,
+		onSelect,
 	} = props;
 
 	const isSelectMode = !! onSelect;
@@ -47,18 +47,18 @@ const ListRow = props => {
 	const EditLink = props => (
 		<ActionLink
 			label={ __( 'Edit “%s”' ) }
-			onClick={ onEdit }
 			post={ post }
+			onClick={ onEdit }
 			{ ...props }
 		/>
 	);
 
 	const TrashLink = props => (
 		<ActionLink
-			label={ __( 'Move “%s” to the Trash' ) }
 			className="is-destructive"
-			onClick={ onDeletePost }
+			label={ __( 'Move “%s” to the Trash' ) }
 			post={ post }
+			onClick={ onDeletePost }
 			{ ...props }
 		/>
 	);
@@ -70,11 +70,11 @@ const ListRow = props => {
 		>
 			<td>
 				<AudienceSort
-					index={ index }
-					onMoveUp={ onMoveUp }
-					onMoveDown={ onMoveDown }
-					canMoveUp={ canMoveUp }
 					canMoveDown={ canMoveDown }
+					canMoveUp={ canMoveUp }
+					index={ index }
+					onMoveDown={ onMoveDown }
+					onMoveUp={ onMoveUp }
 				/>
 			</td>
 			<td>

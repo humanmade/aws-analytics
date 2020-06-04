@@ -28,11 +28,11 @@ const StyledAudienceSort = styled.span`
 
 const AudienceSort = props => {
 	const {
-		index,
-		canMoveUp,
 		canMoveDown,
-		onMoveUp,
+		canMoveUp,
+		index,
 		onMoveDown,
+		onMoveUp,
 	} = props;
 
 	return (
@@ -41,16 +41,16 @@ const AudienceSort = props => {
 			<span className="audience-sort-order__controls">
 				<IconButton
 					className="audience-sort-order__up"
+					disabled={ ! canMoveUp }
 					icon="arrow-up-alt2"
 					label={ __( 'Move up', 'altis-analytics' ) }
-					disabled={ ! canMoveUp }
 					onClick={ onMoveUp }
 				/>
 				<IconButton
 					className="audience-sort-order__down"
+					disabled={ ! canMoveDown }
 					icon="arrow-down-alt2"
 					label={ __( 'Move down', 'altis-analytics' ) }
-					disabled={ ! canMoveDown }
 					onClick={ onMoveDown }
 				/>
 			</span>

@@ -16,8 +16,8 @@ const StatusToggle = props => {
 
 	return (
 		<ToggleControl
-			disabled={ disabled }
 			checked={ status === 'publish' }
+			disabled={ disabled }
 			help={ helpText }
 			label={ __( 'Active', 'altis-analytics' ) }
 			onChange={ onChange }

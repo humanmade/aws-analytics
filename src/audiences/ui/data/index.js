@@ -163,7 +163,7 @@ const selectors = {
 		return state.estimates[ key ] || {
 			count: 0,
 			total: 0,
-			histogram: new Array( 28 ).fill( { count: 1 } ), // Build empty histrogram data.
+			histogram: new Array( 28 ).fill( { count: 1 } ), // Build empty histogram data.
 		};
 	},
 	getPost( state, id ) {
@@ -222,7 +222,12 @@ const resolvers = {
 			yield actions.addPosts( [ post ] );
 		} catch ( error ) {
 			// Add the post ID to the error response.
-			yield actions.addPosts( [ { id, error } ] );
+			yield actions.addPosts( [
+				{
+					id,
+					error,
+				},
+			] );
 		}
 		return actions.setIsLoading( false );
 	},

@@ -73,8 +73,6 @@ const RuleInput = props => {
 			inputEl && inputEl.current && inputEl.current.focus();
 		}
 	}, [ showDropdown ] );
-
-
 	switch ( currentField.type ) {
 		case 'number':
 			return (
@@ -110,16 +108,16 @@ const RuleInput = props => {
 										ref={ inputEl }
 										className="regular-text"
 										disabled={ disabled }
+										list={ `audience-editor__rule__data_${ name }` }
 										name={ name }
 										type="text"
 										value={ value }
 										onChange={ onChange }
-										list={ `audience-editor__rule__data_${ name }` }
 									/>
 									<Button
-										label={ __( 'Clear selection', 'altis-anlaytics' ) }
 										isLink
 										isDestructive
+										label={ __( 'Clear selection', 'altis-anlaytics' ) }
 										onClick={ () => {
 											onChange( { target: { value: '' } } );
 											setShowDropdown( true );
@@ -132,9 +130,9 @@ const RuleInput = props => {
 							{ showDropdown && (
 								<select
 									ref={ dropdownRef }
-									id={ `audience-editor__rule__data_${ name }` }
 									className="audience-editor__rule-value"
 									disabled={ disabled }
+									id={ `audience-editor__rule__data_${ name }` }
 									name={ name }
 									value={ value }
 									onChange={ e => {
@@ -184,13 +182,13 @@ export default function Rule( props ) {
 		<StyledRule className="audience-editor__rule">
 			<select
 				className="audience-editor__rule-field"
+				disabled={ fields.length === 0 }
 				name={ `${namePrefix}[field]` }
 				value={ field }
 				onChange={ e => onChange( {
 					field: e.target.value,
 					value: '',
 				} ) }
-				disabled={ fields.length === 0 }
 			>
 				<option
 					className="placeholder"
@@ -211,16 +209,16 @@ export default function Rule( props ) {
 
 			<SelectOperator
 				className="audience-editor__rule-operator"
+				disabled={ fields.length === 0 }
 				name={ `${ namePrefix }[operator]` }
+				type={ currentField.type || 'string' }
 				value={ operator }
 				onChange={ e => onChange( { operator: e.target.value } ) }
-				type={ currentField.type || 'string' }
-				disabled={ fields.length === 0 }
 			/>
 
 			<RuleInput
-				disabled={ fields.length === 0 }
 				currentField={ currentField }
+				disabled={ fields.length === 0 }
 				name={ `${ namePrefix }[value]` }
 				operator={ operator }
 				value={ value }

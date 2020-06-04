@@ -151,11 +151,11 @@ class List extends Component {
 	render() {
 		const {
 			canCreate,
-			posts,
+			loading,
 			pagination,
+			posts,
 			onEdit,
 			onSelect,
-			loading,
 		} = this.props;
 
 		const {
@@ -180,8 +180,8 @@ class List extends Component {
 			<AudienceList className="audience-listing" selectMode={ isSelectMode }>
 				{ error && (
 					<Notice
-						status="error"
 						isDismissable
+						status="error"
 						onRemove={ () => this.setState( { error: null } ) }
 					>
 						{ error.toString() }
@@ -192,11 +192,11 @@ class List extends Component {
 						{ __( 'Search Audiences', 'altis-analytics' ) }
 					</label>
 					<input
-						type="search"
 						id="audience-search-input"
 						name="s"
-						value={ search }
 						placeholder={ __( 'Search Audiences', 'altis-analytics' ) }
+						type="search"
+						value={ search }
 						onChange={ this.onSearch }
 					/>
 				</div>
@@ -214,7 +214,7 @@ class List extends Component {
 									{ canCreate && (
 										<Button
 											isLink
-											onClick={ () => onEdit() }
+											onClick={ onEdit }
 										>
 											{ __( 'Create a new audience.' ) }
 										</Button>
@@ -226,14 +226,14 @@ class List extends Component {
 							return (
 								<ListRow
 									key={ post.id }
+									canMoveDown={ filteredPosts[ index + 1 ] }
+									canMoveUp={ filteredPosts[ index - 1 ] }
 									index={ index }
 									post={ post }
-									canMoveUp={ filteredPosts[ index - 1 ] }
-									canMoveDown={ filteredPosts[ index + 1 ] }
-									onMoveUp={ () => this.onMove( filteredPosts, index, 'up' ) }
-									onMoveDown={ () => this.onMove( filteredPosts, index, 'down' ) }
 									onClick={ event => this.onSelectRow( event, post ) }
 									onEdit={ onEdit }
+									onMoveDown={ () => this.onMove( filteredPosts, index, 'down' ) }
+									onMoveUp={ () => this.onMove( filteredPosts, index, 'up' ) }
 									onSelect={ onSelect }
 								/>
 							);
@@ -269,13 +269,13 @@ class List extends Component {
 
 List.defaultProps = {
 	canCreate: false,
-	onGetPosts: () => { },
+	loading: false,
 	pagination: {
 		total: 0,
 		pages: 0,
 	},
 	posts: [],
-	loading: false,
+	onGetPosts: () => { },
 	onUpdatePost: () => { },
 };
 
@@ -293,10 +293,10 @@ const applyWithSelect = withSelect( select => {
 
 	return {
 		canCreate,
-		onGetPosts: getPosts,
+		loading,
 		pagination,
 		posts,
-		loading,
+		onGetPosts: getPosts,
 	};
 } );
 
@@ -304,7 +304,7 @@ const applyWithDispatch = withDispatch( dispatch => {
 	const { updatePost } = dispatch( 'audience' );
 
 	return {
-		onUpdatePost: post => updatePost( post ),
+		onUpdatePost: updatePost,
 	};
 } );
 

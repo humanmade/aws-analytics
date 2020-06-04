@@ -147,7 +147,7 @@ function admin_page() {
 				'<noscript><div class="error msg">%s</div></noscript>' .
 				'</div>',
 				esc_html__( 'Loading...', 'altis-analytics' ),
-				esc_html__( 'Javascript is required to use the audience editor.', 'altis-analytics' )
+				esc_html__( 'JavaScript is required to use the audience editor.', 'altis-analytics' )
 			);
 		},
 		'dashicons-groups',
@@ -747,7 +747,11 @@ function build_audience_query( array $audience ) : array {
 						break;
 					default:
 						$rule_query['bool']['filter'][] = [
-							'range' => [ $rule['field'] => [ $rule['operator'] => intval( $rule['value'] ) ] ],
+							'range' => [
+								$rule['field'] => [
+									$rule['operator'] => intval( $rule['value'] ),
+								],
+							],
 						];
 				}
 			}

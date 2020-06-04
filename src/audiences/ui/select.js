@@ -104,8 +104,8 @@ class Select extends Component {
 							/>
 						) }
 						<IconButton
-							icon="edit"
 							className="audience-select__choose"
+							icon="edit"
 							label={ buttonLabel }
 							onClick={ () => this.setState( { show: true } ) }
 						>

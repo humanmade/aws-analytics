@@ -89,11 +89,11 @@ class Manager extends Component {
 						<Button
 							ref={ this.actionRef }
 							className="page-title-action"
+							isPrimary
 							onClick={ () => {
 								viewState.action.onClick();
 								this.actionRef.current.blur();
 							} }
-							isPrimary
 						>
 							{ viewState.action.label }
 						</Button>
