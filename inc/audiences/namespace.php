@@ -252,7 +252,7 @@ function set_menu_order( array $data, array $postarr ) : array {
 /**
  * Get the audience configuration data.
  *
- * @param int $post_id
+ * @param int $post_id Audience post ID.
  * @return array|null
  */
 function get_audience( int $post_id ) : ?array {
@@ -322,7 +322,7 @@ function admin_enqueue_scripts() {
 	];
 
 	// Add post data server side to load front end quickly on legacy edit screens.
-	if ( isset( $_GET['edit'] ) && get_post_type( intval( $_GET['edit'] ) ) === POST_TYPE ) {
+	if ( isset( $_GET['edit'] ) && get_post_type( intval( $_GET['edit'] ) ) === POST_TYPE && current_user_can( 'edit_audience', intval( $_GET['edit'] ) ) ) {
 		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
 		$data['Current'] = $response->get_data();
 	}
@@ -345,14 +345,12 @@ function admin_enqueue_scripts() {
 		return;
 	}
 
-	wp_dequeue_script( 'post' );
 	wp_enqueue_script( 'altis-analytics-audience-ui' );
 
-	wp_enqueue_style( 'wp-components' );
 	wp_enqueue_style(
 		'altis-analytics-audience-ui',
 		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
-		[],
+		[ 'wp-components' ],
 		'2020-03-19-1'
 	);
 }
@@ -360,8 +358,8 @@ function admin_enqueue_scripts() {
 /**
  * Get estimated audience size.
  *
- * @param array $audience
- * @return void
+ * @param array $audience Audience configuration array.
+ * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
 	$query = [
@@ -653,7 +651,7 @@ function get_field_data() : ?array {
  *     ],
  * ];
  *
- * @param array $audience
+ * @param array $audience Audience configuration array.
  * @return array
  */
 function build_audience_query( array $audience ) : array {
