@@ -78,13 +78,18 @@ function register_post_type() {
 }
 
 /**
- * Force audiences to be sorted according to menu order by default.
+ * Sort audiences according to menu order (priority) by default.
  *
  * @param WP_Query $query The current query object.
  */
 function pre_get_posts( WP_Query $query ) {
 	// Must be an exact query for the audiences post type.
 	if ( $query->get( 'post_type' ) !== POST_TYPE ) {
+		return;
+	}
+
+	// Respect existing orderby settings.
+	if ( $query->get( 'orderby' ) ) {
 		return;
 	}
 
