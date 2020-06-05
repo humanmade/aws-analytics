@@ -323,7 +323,7 @@ function admin_enqueue_scripts() {
 
 	// Add post data server side to load front end quickly on legacy edit screens.
 	if ( isset( $_GET['edit'] ) && get_post_type( intval( $_GET['edit'] ) ) === POST_TYPE && current_user_can( 'edit_audience', intval( $_GET['edit'] ) ) ) {
-		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', $_GET['post'] ) );
+		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', intval( $_GET['post'] ) ) );
 		$data['Current'] = $response->get_data();
 	}
 
