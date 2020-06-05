@@ -30,9 +30,7 @@ export default function Selector() {
 				Audiences
 			</a>
 			<div className="ab-sub-wrapper">
-				<ul
-					className="ab-submenu"
-				>
+				<ul className="ab-submenu">
 					{ audiences.map( audience => (
 						<li
 							key={ audience.id }
