@@ -49,11 +49,11 @@ function get_asset_url( string $filename ) {
 function composite_stddev( array $means, array $stddevs, array $group_counts ) : float {
 	// Number of groups.
 	$g = count( $means );
-	if ( $g != count( $stddevs ) ) {
+	if ( $g !== count( $stddevs ) ) {
 		trigger_error( 'inconsistent list lengths', E_USER_WARNING );
 		return 0.0;
 	}
-	if ( $g != count( $group_counts ) ) {
+	if ( $g !== count( $group_counts ) ) {
 		trigger_error( 'wrong nCounts list length', E_USER_WARNING );
 		return 0.0;
 	}
@@ -61,7 +61,8 @@ function composite_stddev( array $means, array $stddevs, array $group_counts ) :
 	// Calculate total number of samples, N, and grand mean, GM.
 	$n = array_sum( $group_counts ); // Total number of samples.
 	if ( $n <= 1 ) {
-		trigger_error( "Warning: only $n samples, SD is incalculable", E_USER_WARNING );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		trigger_error( "Warning: only {$n} samples, SD is incalculable", E_USER_WARNING );
 	}
 	$gm = 0.0;
 	for ( $i = 0; $i < $g; $i++ ) {
@@ -131,7 +132,7 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 		'headers' => [
 			'Content-Type' => 'application/json',
 		],
-		'body' => json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
+		'body' => wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
 	] );
 
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
@@ -139,7 +140,8 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 			trigger_error(
 				sprintf(
 					"Analytics: elasticsearch query failed:\n%s\n%s",
-					$url,
+					esc_url( $url ),
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					$response->get_error_message()
 				),
 				E_USER_WARNING
@@ -148,8 +150,9 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 			trigger_error(
 				sprintf(
 					"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
-					$url,
-					json_encode( $query ),
+					esc_url( $url ),
+					wp_json_encode( $query ),
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					wp_remote_retrieve_body( $response )
 				),
 				E_USER_WARNING
@@ -172,7 +175,7 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 			sprintf(
 				"Analytics: elasticsearch query:\n%s\n%s\n%s",
 				$url,
-				json_encode( $query ),
+				wp_json_encode( $query ),
 				wp_remote_retrieve_body( $response )
 			)
 		);
@@ -193,11 +196,11 @@ function milliseconds() : int {
 /**
  * Merge aggregations from ES results.
  *
- *
  * @todo work out how to merge percentiles & percentile ranks.
  *
- * @param array $current
- * @param array $new
+ * @param array $current Current aggregate results.
+ * @param array $new Updated aggregate results.
+ * @param string $bucket_type The type of aggregation.
  * @return array
  */
 function merge_aggregates( array $current, array $new, string $bucket_type = '' ) : array {
