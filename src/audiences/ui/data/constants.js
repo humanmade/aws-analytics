@@ -9,6 +9,8 @@ export const STRING_OPERATIONS = {
 };
 
 export const NUMERIC_OPERATIONS = {
+	'=': __( 'is', 'altis-analytics' ),
+	'!=': __( 'is not', 'altis-analytics' ),
 	'gt': __( 'is greater than', 'altis-analytics' ),
 	'gte': __( 'is greater than or equal to', 'altis-analytics' ),
 	'lt': __( 'is less than', 'altis-analytics' ),

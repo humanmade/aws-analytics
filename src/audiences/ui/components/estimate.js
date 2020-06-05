@@ -20,6 +20,7 @@ const StyledEstimate = styled.div`
 	.audience-estimate__percentage {
 		flex: 0 1 100px;
 		margin-right: 20px;
+		max-width: 5.5rem;
 	}
 
 	.audience-estimate__totals {

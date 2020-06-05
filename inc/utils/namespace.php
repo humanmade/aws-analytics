@@ -5,16 +5,16 @@
 
 namespace Altis\Analytics\Utils;
 
-use const Altis\Analytics\ROOT_DIR;
+use Altis\Analytics;
 
 /**
  * Return asset file name based on generated manifest.json file.
  *
- * @param string $filename
- * @return string|false
+ * @param string $filename The webpack entry point file name.
+ * @return string|false The real URL of the asset or false if it couldn't be found.
  */
 function get_asset_url( string $filename ) {
-	$manifest_file = ROOT_DIR . '/build/manifest.json';
+	$manifest_file = Analytics\ROOT_DIR . '/build/manifest.json';
 
 	if ( ! file_exists( $manifest_file ) ) {
 		return false;
@@ -34,7 +34,7 @@ function get_asset_url( string $filename ) {
 		return $path;
 	}
 
-	return plugins_url( $manifest[ $filename ], ROOT_DIR . '/build/assets' );
+	return plugins_url( $manifest[ $filename ], Analytics\ROOT_DIR . '/build/assets' );
 }
 
 /**

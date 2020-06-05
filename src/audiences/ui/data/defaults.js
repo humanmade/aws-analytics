@@ -20,7 +20,10 @@ export const defaultAudience = {
 };
 
 export const defaultPost = {
-	title: { rendered: '' },
+	title: {
+		rendered: '',
+		raw: '',
+	},
 	audience: defaultAudience,
 	status: 'draft',
 };

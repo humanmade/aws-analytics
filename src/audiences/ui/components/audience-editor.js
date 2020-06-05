@@ -92,7 +92,6 @@ export default class AudienceEditor extends Component {
 				<Button
 					className="audience-editor__group-add"
 					isLarge
-					isPrimary
 					onClick={ this.onAddGroup }
 				>
 					{ __( 'Add a group', 'altis-analytics' ) }
