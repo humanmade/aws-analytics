@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Altis Analytics
  * Description: Analytics layer for Altis powered by AWS Pinpoint.
- * Version: 1.0.3
+ * Version: 2.0.0
  * Author: Human Made Limited
  * Author URI: https://humanmade.com/
  *
