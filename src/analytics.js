@@ -381,6 +381,19 @@ const Analytics = {
 			window.dispatchEvent( updateAudiencesEvent );
 		}
 	},
+	overrideAudiences: ids => {
+		// Take a clone of the current audiences to check if they changed later.
+		const oldAudienceIds = Analytics.audiences.slice().sort();
+		Analytics.audiences = ids;
+
+		// Trigger an event when audiences are modified.
+		if ( ids.sort().toString() !== oldAudienceIds.toString() ) {
+			const updateAudiencesEvent = new CustomEvent( 'altis.analytics.updateAudiences', {
+				detail: ids,
+			} );
+			window.dispatchEvent( updateAudiencesEvent );
+		}
+	},
 	getAudiences: () => {
 		return Analytics.audiences;
 	},
@@ -653,6 +666,7 @@ window.addEventListener( 'beforeunload', () => {
 window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
 window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
 window.Altis.Analytics.getAudiences = Analytics.getAudiences;
+window.Altis.Analytics.overrideAudiences = Analytics.overrideAudiences;
 window.Altis.Analytics.on = Analytics.on;
 window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = Analytics.record;

@@ -13,6 +13,7 @@ const sharedConfig = {
 	entry: {
 		analytics: path.resolve( __dirname, 'src/analytics.js' ),
 		audiences: path.resolve( __dirname, 'src/audiences/index.js' ),
+		preview: path.resolve( __dirname, 'src/preview/index.js' ),
 	},
 	output: {
 		path: path.resolve( __dirname, 'build' ),
