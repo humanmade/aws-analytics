@@ -17,6 +17,7 @@
     "@aws-sdk/client-pinpoint-browser": "0.1.0-preview.2",
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-transform-runtime": "^7.8.3",
     "@babel/polyfill": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
@@ -41,7 +42,6 @@
     "webpack-subresource-integrity": "^1.4.0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",
     "eslint-config-humanmade": "^0.8.0",
