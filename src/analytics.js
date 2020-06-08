@@ -103,6 +103,7 @@ const getSessionID = () => {
 	return newSessionID;
 };
 const getAttributes = ( extra = {} ) => ( {
+	date: new Date().toISOString(),
 	session: getSessionID(),
 	pageSession: pageSession,
 	url: window.location.origin + window.location.pathname,
