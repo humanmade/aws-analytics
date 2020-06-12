@@ -3,20 +3,54 @@
  * Altis Analytics.
  *
  * @package altis-analytics
- *
  */
 
 namespace Altis\Analytics;
 
-require_once ROOT_DIR . '/inc/utils.php';
+use Altis\Analytics\Utils;
+use DateTime;
+use DateInterval;
 
 function setup() {
+	// Setup audiences.
+	Audiences\setup();
+
+	// Set up preview.
+	Preview\setup();
+
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
-	add_action( 'index_maintenance', __NAMESPACE__ . '\\delete_old_indexes' );
+	// Remove indexes & data older than a set threshold.
+	add_action( 'altis.analytics.index_maintenance', __NAMESPACE__ . '\\delete_old_indexes' );
+	// Check whether we are previewing a page.
+	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
+	// Schedule cron tasks.
+	add_action( 'init', __NAMESPACE__ . '\\schedule_events' );
+}
 
+/**
+ * Schedule common maintenance tasks.
+ *
+ * @return void
+ */
+function schedule_events() {
+	/**
+	 * Schedule index maintenance daily at midnight.
+	 */
+	if ( ! wp_next_scheduled( 'altis.analytics.index_maintenance' ) ) {
+		wp_schedule_event( strtotime( 'midnight tomorrow' ), 'daily', 'altis.analytics.index_maintenance' );
+	}
+}
+
+/**
+ * Filter to check if current page is a preview.
+ *
+ * @return bool
+ */
+function check_preview() : bool {
+	return is_preview();
 }
 
 /**
@@ -31,13 +65,12 @@ function setup() {
  * @return array
  */
 function get_client_side_data() : array {
-
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],
-		'AppPackageName' => sanitize_key( get_bloginfo('name') ),
+		'AppPackageName' => sanitize_key( get_bloginfo( 'name' ) ),
 		'AppVersion' => '',
-		'SiteName' => get_bloginfo('name'),
+		'SiteName' => get_bloginfo( 'name' ),
 		'Attributes' => [],
 		'Metrics' => [],
 	];
@@ -161,13 +194,26 @@ function async_scripts( string $tag, string $handle ) : string {
 function enqueue_scripts() {
 	global $wp_scripts;
 
-	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], null, false );
+	/**
+	 * If true prevents any analytics events from actually being sent
+	 * to Pinpoint. Useful in situations such as previewing content.
+	 *
+	 * @param bool $noop Set to true to prevent any analytics events being recorded.
+	 */
+	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
+
+	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
-			'Altis.Analytics.registerAttribute = function (key, value) { Altis.Analytics._attributes[key] = value; };' .
-			'Altis.Analytics.registerMetric = function (key, value) { Altis.Analytics._metrics[key] = value; };',
+			'Altis.Analytics.onReady = function ( callback ) {' .
+				'if ( Altis.Analytics.registerAttribute ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.ready\', callback );' .
+				'}' .
+			'};',
 			wp_json_encode(
 				[
 					'Config' => [
@@ -178,9 +224,9 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
+					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),
-					'_attributes' => (object) [],
-					'_metrics' => (object) [],
+					'Audiences' => Audiences\get_audience_config(),
 				]
 			)
 		),
@@ -200,75 +246,76 @@ function enqueue_scripts() {
 }
 
 /**
- * Schedule index maintenance daily.
- */
-if( ! wp_next_scheduled( __NAMESPACE__ . '\\index_maintenance' ) ) {
-	wp_schedule_event( time(), 'daily',  __NAMESPACE__ . '\\index_maintenance' );
-}
-
-
-/**
  * Delete old Analytics indexes in Elasticsearch.
  */
-function delete_old_indexes() : ?array {
-	// Index age in days.
-	$duration = apply_filters( 'altis.analytics.index_age', 7 );
+function delete_old_indexes() {
 
-	// If duration has been set out of the 60-day limit, default to 7 days and warn user.
-	if ( $duration < 1 || $duration > 60 ) {
-		$duration = 7;
-		trigger_error( 
-			'Analytics data retention period must be between 1 and 60 days, defaulting to 7.', 
-			E_USER_WARNING 
+	/**
+	 * Filter the maximum index age for data retention in days.
+	 *
+	 * @param int $max_age Maximum number of days to keep analytics data for.
+	 */
+	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 14 );
+
+	// If age has been set out of the 60-day limit, default to 7 days and warn user.
+	if ( $max_age < 1 || $max_age > 60 ) {
+		$max_age = 14;
+		trigger_error(
+			'Analytics data retention period must be between 1 and 60 days, defaulting to 14.',
+			E_USER_WARNING
 		);
 	}
 
-	// Get index name by date. 
-	$date = new \DateTime();
-	$date->sub( new \DateInterval( 'P'. $duration . 'D' ) );
-	$index_date = ( $date->format('U') );
+	// Get index name by date.
+	$date = new DateTime( 'midnight' );
+	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
+	$max_age_date = $date->format( 'U' );
 
-	// Get URL.
-	$index_list = wp_remote_request( get_elasticsearch_url() . '/analytics-*/');
+	// Get indices.
+	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
+	if ( is_wp_error( $indices_response ) ) {
+		trigger_error( sprintf(
+			'Analytics: Could not fetch analytics indexes: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$indices_response->get_error_message()
+		), E_USER_WARNING );
+		return;
+	}
+	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch index deletion failed:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $indices_response )
+		), E_USER_WARNING );
+		return;
+	}
 
-	$indices = json_decode( wp_remote_retrieve_body( $index_list ), true);
-	
-	// Check each available index's creation date, and delete if too old. 
-	foreach ( $indices as $i ) {
-		if ( $i['settings']['index']['creation_date'] < $index_date ) {
-			// Get the name of the index to delete;
-			$index = $i['settings']['index']['provided_name'];
+	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
+	$index_names = array_keys( $indices );
 
-			// Create new deletion URL.
-			$delete_url = add_query_arg( [], get_elasticsearch_url() . '/' . $index . '/' );
-			$response = wp_remote_request( $delete_url, [
-				'method' => 'DELETE',
-			] );
+	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
+		$date = trim( str_replace( 'analytics', '', $name ), '-' );
+		return strtotime( $date ) < $max_age_date;
+	} );
 
-			// Check for failures.
-			if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
-				if ( is_wp_error( $response ) ) {
-					trigger_error( sprintf(
-						"Analytics: ES index deletion failed: %s",
-						$response->get_error_message()
-					), E_USER_WARNING );
-				} else {
-					trigger_error( sprintf(
-						"Analytics: ES index deletion failed:\n%s\n%s",
-						json_encode( $index ),
-						wp_remote_retrieve_body( $response )
-					), E_USER_WARNING );
-				}
-				return null;
-			} else {
-				$json = wp_remote_retrieve_body( $response );
-				$result = json_decode( $json, true );
-			
-				if ( json_last_error() ) {
-					trigger_error( 'Analytics: ES deletion response could not be decoded.', E_USER_WARNING );
-					return null;
-				}
-			}
-		}
+	// Create new deletion URL.
+	$response = wp_remote_request( Utils\get_elasticsearch_url() . '/' . implode( ',', $indices_to_remove ), [
+		'method' => 'DELETE',
+	] );
+
+	// Check for failures.
+	if ( is_wp_error( $response ) ) {
+		trigger_error( sprintf(
+			'Analytics: ElasticSearch index deletion failed: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$response->get_error_message()
+		), E_USER_WARNING );
+	}
+	if ( wp_remote_retrieve_response_code( $response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch index deletion failed:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $response )
+		), E_USER_WARNING );
 	}
 }

@@ -1,3 +1,11 @@
 {
-  "extends": ["prettier"]
+	"extends": "humanmade",
+	"globals": {
+		"Altis": "readonly",
+		"wp": "readonly"
+	},
+	"rules": {
+		"no-multi-str": "off",
+		"no-console": "off"
+	}
 }

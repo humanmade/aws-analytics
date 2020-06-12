@@ -1,0 +1,23 @@
+#wpadminbar #wp-admin-bar-altis-analytics-preview > .ab-item::before {
+	content: "\f183";
+	top: 2px;
+}
+
+#wpadminbar .altis-analytics-preview-selected {
+	display: flex !important;
+	justify-content: space-between;
+	color: #8c8 !important;
+}
+
+#wpadminbar .altis-analytics-preview-selected::after {
+	font: 20px/1 "dashicons";
+	padding: 4px;
+	margin-left: 6px;
+	content: "\f147";
+	-moz-osx-font-smoothing: grayscale;
+}
+
+#wpadminbar .altis-analytics-preview-selected:focus,
+#wpadminbar .altis-analytics-preview-selected:hover {
+	color: #47a747 !important;
+}
