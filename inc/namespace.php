@@ -20,6 +20,17 @@ function setup() {
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
+	// Check whether we are previewing a page.
+	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
+}
+
+/**
+ * Filter to check if current page is a preview.
+ *
+ * @return bool
+ */
+function check_preview() : bool {
+	return is_preview();
 }
 
 /**
@@ -34,7 +45,6 @@ function setup() {
  * @return array
  */
 function get_client_side_data() : array {
-
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],
@@ -164,6 +174,14 @@ function async_scripts( string $tag, string $handle ) : string {
 function enqueue_scripts() {
 	global $wp_scripts;
 
+	/**
+	 * If true prevents any analytics events from actually being sent
+	 * to Pinpoint. Useful in situations such as previewing content.
+	 *
+	 * @param bool $noop Set to true to prevent any analytics events being recorded.
+	 */
+	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
+
 	wp_enqueue_script( 'altis-analytics', get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
@@ -186,6 +204,7 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
+					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),
 					'Audiences' => Audiences\get_audience_config(),
 				]

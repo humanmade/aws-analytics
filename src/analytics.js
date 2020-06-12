@@ -21,6 +21,7 @@ import { parseQueryString } from '@aws-sdk/querystring-parser';
 const {
 	Config,
 	Data,
+	Noop,
 	Audiences,
 } = Altis.Analytics;
 
@@ -617,12 +618,14 @@ const Analytics = {
 				ApplicationId: Config.PinpointId,
 				EventsRequest: EventsRequest,
 			} );
-			const result = await client.send( command );
+
+			// If event delivery is enabled.
+			if ( ! Noop ) {
+				await client.send( command );
+			}
 
 			// Clear events on success.
 			Analytics.events = [];
-
-			return result;
 		} catch ( error ) {
 			console.error( error );
 		}
