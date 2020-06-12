@@ -184,7 +184,6 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 	return $result;
 }
 
-
 /**
  * Get actual milliseconds value as integer.
  *

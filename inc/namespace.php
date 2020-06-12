@@ -8,9 +8,12 @@
 namespace Altis\Analytics;
 
 use Altis\Analytics\Utils;
-use DateTime;
 use DateInterval;
+use DateTime;
 
+/**
+ * Set up the plugin.
+ */
 function setup() {
 	// Setup audiences.
 	Audiences\setup();
@@ -32,8 +35,6 @@ function setup() {
 
 /**
  * Schedule common maintenance tasks.
- *
- * @return void
  */
 function schedule_events() {
 	/**
