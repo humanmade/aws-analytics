@@ -3,27 +3,33 @@
  * Altis Analytics.
  *
  * @package altis-analytics
- *
  */
 
 namespace Altis\Analytics;
 
-require_once ROOT_DIR . '/inc/utils.php';
+use function Altis\Analytics\Utils\get_asset_url;
 
 function setup() {
+	// Setup audiences.
+	Audiences\setup();
+
+	// Set up preview.
+	Preview\setup();
+
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
-	add_filter( 'altis.analytics.preview', __NAMESPACE__ . '\\check_preview' );
+	// Check whether we are previewing a page.
+	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
 }
 
 /**
  * Filter to check if current page is a preview.
- * 
- * return bool;
+ *
+ * @return bool
  */
-function check_preview() {
+function check_preview() : bool {
 	return is_preview();
 }
 
@@ -42,9 +48,9 @@ function get_client_side_data() : array {
 	// Initialise data array.
 	$data = [
 		'Endpoint' => [],
-		'AppPackageName' => sanitize_key( get_bloginfo('name') ),
+		'AppPackageName' => sanitize_key( get_bloginfo( 'name' ) ),
 		'AppVersion' => '',
-		'SiteName' => get_bloginfo('name'),
+		'SiteName' => get_bloginfo( 'name' ),
 		'Attributes' => [],
 		'Metrics' => [],
 	];
@@ -168,13 +174,26 @@ function async_scripts( string $tag, string $handle ) : string {
 function enqueue_scripts() {
 	global $wp_scripts;
 
-	wp_enqueue_script( 'altis-analytics', plugins_url( 'build/analytics.js', __DIR__ ), [], null, false );
+	/**
+	 * If true prevents any analytics events from actually being sent
+	 * to Pinpoint. Useful in situations such as previewing content.
+	 *
+	 * @param bool $noop Set to true to prevent any analytics events being recorded.
+	 */
+	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
+
+	wp_enqueue_script( 'altis-analytics', get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
-			'Altis.Analytics.registerAttribute = function (key, value) { Altis.Analytics._attributes[key] = value; };' .
-			'Altis.Analytics.registerMetric = function (key, value) { Altis.Analytics._metrics[key] = value; };',
+			'Altis.Analytics.onReady = function ( callback ) {' .
+				'if ( Altis.Analytics.registerAttribute ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.ready\', callback );' .
+				'}' .
+			'};',
 			wp_json_encode(
 				[
 					'Config' => [
@@ -185,10 +204,9 @@ function enqueue_scripts() {
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
 					],
-					'Noop' => (bool) apply_filters( 'altis.analytics.preview', false ),
+					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),
-					'_attributes' => (object) [],
-					'_metrics' => (object) [],
+					'Audiences' => Audiences\get_audience_config(),
 				]
 			)
 		),
