@@ -9,7 +9,11 @@ This plugin integrates WordPress with [AWS Pinpoint](#) and provides an extensib
 
 Once installed the plugin will queue up an analytics tracker script that provides a few client side functions you can use:
 
-#### Updating Data
+#### API
+
+**`Altis.Analytics.onReady( callback <function> )`**
+
+Use this function to ensure analytics has loaded before making calls to `registerAttribute()` or `record()`.
 
 **`Altis.Analytics.updateEndpoint( data <object> )`**
 
@@ -52,7 +56,7 @@ Retrieves an array of the audience IDs for the current page session.
 
 Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` allows this. If a function is passed as the value will be evaluated at the time an event recorded.
 
-**`Altis.Analytics.registerMetric( name <string>, value <string | callback> )`**
+**`Altis.Analytics.registerMetric( name <string>, value <number | callback> )`**
 
 Similar to `registerAttribute()` above but for metrics.
 
@@ -163,26 +167,32 @@ A user session covers every event recorded between opening the website and closi
 - `event_type`: The type of event recorded, eg. `pageView`, `click`, `_session.start` or `_session.stop`.
 - `event_timestamp`: The timestamp in milliseconds of when the event was recorded on the site.
 - `attributes`
+  - `date`: ISO-8601 standard date string.
   - `session`: Unique ID across all page views.
   - `pageSession`: Unique ID for one page view.
   - `url`: The current page URL.
   - `hash`: The current URL hash.
   - `referer`: The page referer.
-  - `blog`: The current site URL.
   - `network`: The current network's primary URL.
+  - `networkId`: The current network's Id.
+  - `blog`: The current site URL.
   - `blogId`: The current blog ID.
-  - `networkId`: The current network ID.
-  - `utm_campaign`: The Urchin Tracker campaign from the query string if set.
-  - `utm_source`: The Urchin Tracker source from the query string if set.
-  - `utm_medium`: The Urchin Tracker medium from the query string if set.
+  - `qv_utm_campaign`: The Urchin Tracker campaign from the query string if set.
+  - `qv_utm_source`: The Urchin Tracker source from the query string if set.
+  - `qv_utm_medium`: The Urchin Tracker medium from the query string if set.
+  - `qv_*`: Any query string parameters will be recorded with the prefix `qv_`.
   - Any attributes added via the `altis.analytics.data.attributes` filter.
   - Any attributes added via `Altis.Analytics.registerAttribute()` or passed to `Altis.Analytics.record()`.
 - `metrics`
   - `scrollDepthMax`: Maximum scroll depth on page so far. Percentage value between 1-100.
   - `scrollDepthNow`: Scroll depth at time of event. Percentage value between 1-100.
   - `elapsed`: Time elapsed in milliseconds since the start of the page view.
+  - `day`: The day of the week, 1 being Sunday through to 7 being Saturday.
+  - `hour`: The hour of the day in 24 hour format.
+  - `month`: The month of the year.
   - Any metrics added via `Altis.Analytics.registerMetric()` or passed to `Altis.Analytics.record()`.
 - `endpoint`
+  - `Id`: A unique UUID for the endpoint.
   - `Address`: An optional target for push notifications such as an email address or phone number.
   - `OptOut`: The push notification channels this visitor has opted out of. Defaults to "ALL".
   - `Demographic`
@@ -303,11 +313,15 @@ To enable the use of any event record data in the audience editor it needs to be
 use function Altis\Analytics\Audiences\register_field;
 
 add_action( 'init', function () {
-  register_field( 'endpoint.Location.City', __( 'City' ) );
+  register_field(
+    'endpoint.Location.City', // The Elasticsearch field to query.
+    __( 'City' ), // A label for the field.
+    __( 'The closest metropolitan area.' ) // Optional description for the field.
+  );
 } );
 ```
 
-In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.qv_utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
 
 The 2nd parameter is a human readable label for the audience field.
 
