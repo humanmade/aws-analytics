@@ -7,8 +7,13 @@
 
 namespace Altis\Analytics;
 
-use function Altis\Analytics\Utils\get_asset_url;
+use Altis\Analytics\Utils;
+use DateInterval;
+use DateTime;
 
+/**
+ * Set up the plugin.
+ */
 function setup() {
 	// Setup audiences.
 	Audiences\setup();
@@ -20,8 +25,24 @@ function setup() {
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
+	// Remove indexes & data older than a set threshold.
+	add_action( 'altis.analytics.index_maintenance', __NAMESPACE__ . '\\delete_old_indexes' );
 	// Check whether we are previewing a page.
 	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
+	// Schedule cron tasks.
+	add_action( 'init', __NAMESPACE__ . '\\schedule_events' );
+}
+
+/**
+ * Schedule common maintenance tasks.
+ */
+function schedule_events() {
+	/**
+	 * Schedule index maintenance daily at midnight.
+	 */
+	if ( ! wp_next_scheduled( 'altis.analytics.index_maintenance' ) ) {
+		wp_schedule_event( strtotime( 'midnight tomorrow' ), 'daily', 'altis.analytics.index_maintenance' );
+	}
 }
 
 /**
@@ -182,7 +203,7 @@ function enqueue_scripts() {
 	 */
 	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
 
-	wp_enqueue_script( 'altis-analytics', get_asset_url( 'analytics.js' ), [], null, false );
+	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
@@ -223,4 +244,79 @@ function enqueue_scripts() {
 
 	// Print queued scripts.
 	print_head_scripts();
+}
+
+/**
+ * Delete old Analytics indexes in Elasticsearch.
+ */
+function delete_old_indexes() {
+
+	/**
+	 * Filter the maximum index age for data retention in days.
+	 *
+	 * @param int $max_age Maximum number of days to keep analytics data for.
+	 */
+	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 14 );
+
+	// If age has been set out of the 60-day limit, default to 7 days and warn user.
+	if ( $max_age < 1 || $max_age > 60 ) {
+		$max_age = 14;
+		trigger_error(
+			'Analytics data retention period must be between 1 and 60 days, defaulting to 14.',
+			E_USER_WARNING
+		);
+	}
+
+	// Get index name by date.
+	$date = new DateTime( 'midnight' );
+	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
+	$max_age_date = $date->format( 'U' );
+
+	// Get indices.
+	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
+	if ( is_wp_error( $indices_response ) ) {
+		trigger_error( sprintf(
+			'Analytics: Could not fetch analytics indexes: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$indices_response->get_error_message()
+		), E_USER_WARNING );
+		return;
+	}
+	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch index deletion failed:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $indices_response )
+		), E_USER_WARNING );
+		return;
+	}
+
+	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
+	$index_names = array_keys( $indices );
+
+	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
+		$date = trim( str_replace( 'analytics', '', $name ), '-' );
+		return strtotime( $date ) < $max_age_date;
+	} );
+
+	// Create new deletion URL.
+	$response = wp_remote_request( Utils\get_elasticsearch_url() . '/' . implode( ',', $indices_to_remove ), [
+		'method' => 'DELETE',
+	] );
+
+	// Check for failures.
+	if ( is_wp_error( $response ) ) {
+		trigger_error( sprintf(
+			'Analytics: ElasticSearch index deletion failed: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$response->get_error_message()
+		), E_USER_WARNING );
+	}
+	if ( wp_remote_retrieve_response_code( $response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch index deletion failed:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $response )
+		), E_USER_WARNING );
+	}
 }

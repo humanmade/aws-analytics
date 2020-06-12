@@ -126,6 +126,12 @@ Filters the Elasticsearch server URL.
 
 Returning `false` from this filter will prevent any events or updated endpoint data from being sent to Pinpoint. The built in usage for this is to prevent logging events on page previews.
 
+**`altis.analytics.max_index_age <int>`**
+
+Filter the maximum number of days to keep real time stats available for. The default number of days is 14, after which data is removed. This is important for streamlining your user's privacy.
+
+Insights and aggregated analytics data can be calculated, updated and stored in the database in cases where you wish to retain information for longer periods of time such as number of page views.
+
 ### Functions
 
 **`Altis\Analytics\Utils\query( array $query, array $params = [] ) : array`**
