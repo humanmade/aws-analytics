@@ -410,10 +410,10 @@ document.addEventListener("visibilitychange", () => {
 	}
 });
 
-// Start recording after document loaded and tests applied.
-window.addEventListener("DOMContentLoaded", () => {
+// Start recording after document is interactive.
+const recordPageView = () => {
 	// Session start.
-	Analytics.record("_session.start", {
+	Analytics.record( "_session.start", {
 		attributes: getAttributes()
 	});
 	// Record page view event immediately.
@@ -424,7 +424,13 @@ window.addEventListener("DOMContentLoaded", () => {
 		},
 		false
 	);
-});
+};
+
+if ( document.readyState === 'interactive' || document.readyState === 'complete' || document.readyState === 'loaded' ) {
+	recordPageView();
+} else {
+	window.addEventListener( "DOMContentLoaded", recordPageView );
+}
 
 // Flush remaining events.
 window.addEventListener("beforeunload", async () => {
