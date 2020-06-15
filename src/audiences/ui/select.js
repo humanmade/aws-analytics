@@ -135,7 +135,7 @@ class Select extends Component {
 						<Manager
 							onSelect={ post => {
 								this.setState( { show: false } );
-								onSelect( post );
+								onSelect( post.id, post );
 							} }
 						/>
 					</StyledModal>
