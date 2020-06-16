@@ -214,7 +214,7 @@ class List extends Component {
 									{ canCreate && (
 										<Button
 											isLink
-											onClick={ onEdit }
+											onClick={ () => onEdit() }
 										>
 											{ __( 'Create a new audience.' ) }
 										</Button>
