@@ -113,6 +113,7 @@ export default class Group extends Component {
 					<Button
 						className="audience-editor__group-rule-add"
 						isLarge
+						isSecondary
 						onClick={ this.onAddRule }
 					>
 						{ __( 'Add a rule', 'altis-analytics' ) }

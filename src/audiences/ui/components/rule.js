@@ -23,7 +23,7 @@ const StyledRule = styled.div`
 
 	.audience-editor__rule-operator,
 	button {
-		flex 0;
+		flex: none;
 	}
 
 	p.description {
