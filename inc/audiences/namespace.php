@@ -616,6 +616,14 @@ function get_field_data() : ?array {
 		return $result;
 	}
 
+	// Do we have any results? If not, there's no aggregations.
+	if ( $result['hits']['total'] === 0 && empty( $result['aggregations'] ) ) {
+		// Cache the data.
+		wp_cache_set( $key, [], 'altis-audiences', HOUR_IN_SECONDS );
+
+		return [];
+	}
+
 	$aggregations = $result['aggregations'];
 
 	// Normalise aggregations to useful just the useful data.
