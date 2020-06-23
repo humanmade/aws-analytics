@@ -316,6 +316,7 @@ function admin_enqueue_scripts() {
 			'wp-api-fetch',
 			'wp-url',
 			'wp-compose',
+			'wp-html-entities',
 		],
 		null,
 		true

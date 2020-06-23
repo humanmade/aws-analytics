@@ -11,6 +11,7 @@ import {
 } from '../data/hooks';
 
 const { Button } = wp.components;
+const { decodeEntities } = wp.htmlEntities;
 const { __ } = wp.i18n;
 
 const ListRow = props => {
@@ -63,6 +64,8 @@ const ListRow = props => {
 		/>
 	);
 
+	const postTitle = decodeEntities( post.title.rendered || __( '(no title)', 'altis-analytics' ) );
+
 	return (
 		<tr
 			className={ `audience-row audience-row--${ isPublished ? 'active' : 'inactive' }` }
@@ -80,12 +83,12 @@ const ListRow = props => {
 			<td>
 				{ ! canEdit && (
 					<span className="row-title">
-						<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
+						<strong>{ postTitle }</strong>
 					</span>
 				) }
 				{ canEdit && (
 					<EditLink className="row-title">
-						<strong>{ post.title.rendered || __( '(no title)', 'altis-analytics' ) }</strong>
+						<strong>{ postTitle }</strong>
 					</EditLink>
 				) }
 				<div className="row-actions">

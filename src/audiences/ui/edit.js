@@ -11,6 +11,7 @@ const {
 	withSelect,
 	withDispatch,
 } = wp.data;
+const { decodeEntities } = wp.htmlEntities;
 const { __ } = wp.i18n;
 const {
 	Button,
@@ -168,7 +169,7 @@ class Edit extends Component {
 						name="post_title"
 						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						type="text"
-						value={ post.title.rendered }
+						value={ decodeEntities( post.title.rendered ) }
 						onChange={ event => onSetTitle( event.target.value ) }
 					/>
 				</div>
