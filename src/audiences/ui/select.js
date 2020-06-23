@@ -9,6 +9,7 @@ const {
 } = wp.components;
 const { compose } = wp.compose;
 const { withSelect } = wp.data;
+const { decodeEntities } = wp.htmlEntities;
 const { __ } = wp.i18n;
 
 const StyledModal = styled( Modal )`
@@ -122,7 +123,7 @@ class Select extends Component {
 								<strong className="audience-select__value">{ __( '(deleted)', 'altis-analytics' ) }</strong>
 							) }
 							{ status !== 'trash' && title && (
-								<strong className="audience-select__value">{ title }</strong>
+								<strong className="audience-select__value">{ decodeEntities( title ) }</strong>
 							) }
 							{ ! audience && buttonLabel }
 						</IconButton>
