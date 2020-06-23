@@ -74,7 +74,7 @@ function get_script_data() : array {
 	foreach ( $audiences as $post ) {
 		$data['audiences'][] = [
 			'id' => $post->ID,
-			'title' => get_the_title( $post->ID ),
+			'title' => html_entity_decode( get_the_title( $post->ID ) ),
 		];
 	}
 
