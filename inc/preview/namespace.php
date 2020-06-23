@@ -27,7 +27,7 @@ function setup() : void {
  * @return bool True to show the preview selector, false otherwise.
  */
 function should_show_selector() : bool {
-	return is_admin_bar_showing() && ! is_admin() && current_user_can( 'edit_posts' );
+	return is_admin_bar_showing() && ! is_admin() && current_user_can( 'edit_posts' ) && count( Audiences\query_audiences() ) > 0;
 }
 
 /**
@@ -84,7 +84,7 @@ function get_script_data() : array {
 /**
  * Register the menu item.
  *
- * @param \WP_Admin_Bar $wp_admin_bar
+ * @param \WP_Admin_Bar $wp_admin_bar The admin bar manager object.
  * @return void
  */
 function add_menu_item( $wp_admin_bar ) : void {
