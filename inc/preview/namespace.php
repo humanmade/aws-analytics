@@ -70,6 +70,9 @@ function get_script_data() : array {
 	$audiences = Audiences\query_audiences();
 	$data = [
 		'audiences' => [],
+		'editLabel' => __( 'Create your first audience', 'altis-analytics' ),
+		'editUrl' => admin_url( 'admin.php?page=audience' ),
+		'label' => __( 'Audience Preview', 'altis-analytics' ),
 	];
 	foreach ( $audiences as $post ) {
 		$data['audiences'][] = [
