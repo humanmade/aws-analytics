@@ -3,7 +3,12 @@ import React, { useState } from 'react';
 
 export default function Selector() {
 	const [ selected, setSelected ] = useState( Altis.Analytics.getAudiences() );
-	const audiences = window.AltisExperimentsPreview.audiences;
+	const {
+		audiences,
+		editLabel,
+		editUrl,
+		label,
+	} = window.AltisExperimentsPreview;
 
 	const isSelected = id => selected.indexOf( id ) >= 0;
 	const onClick = ( e, id ) => {
@@ -27,7 +32,7 @@ export default function Selector() {
 				className="ab-item"
 				href="#qm-overview"
 			>
-				Audiences
+				{ label }
 			</a>
 			<div className="ab-sub-wrapper">
 				<ul className="ab-submenu">
@@ -46,6 +51,16 @@ export default function Selector() {
 							</a>
 						</li>
 					) ) }
+					{ audiences.length === 0 && (
+						<li>
+							<a
+								className="ab-item"
+								href={ editUrl }
+							>
+								{ editLabel }
+							</a>
+						</li>
+					) }
 				</ul>
 			</div>
 		</>
