@@ -27,7 +27,7 @@ function setup() : void {
  * @return bool True to show the preview selector, false otherwise.
  */
 function should_show_selector() : bool {
-	return is_admin_bar_showing() && ! is_admin() && current_user_can( 'edit_posts' ) && count( Audiences\query_audiences() ) > 0;
+	return is_admin_bar_showing() && ! is_admin() && current_user_can( 'edit_posts' );
 }
 
 /**
