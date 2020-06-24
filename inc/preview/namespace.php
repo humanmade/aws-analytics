@@ -70,6 +70,9 @@ function get_script_data() : array {
 	$audiences = Audiences\query_audiences();
 	$data = [
 		'audiences' => [],
+		'editLabel' => __( 'Create your first audience', 'altis-analytics' ),
+		'editUrl' => admin_url( 'admin.php?page=audience' ),
+		'label' => __( 'Audience Preview', 'altis-analytics' ),
 	];
 	foreach ( $audiences as $post ) {
 		$data['audiences'][] = [
@@ -84,7 +87,7 @@ function get_script_data() : array {
 /**
  * Register the menu item.
  *
- * @param \WP_Admin_Bar $wp_admin_bar
+ * @param \WP_Admin_Bar $wp_admin_bar The admin bar manager object.
  * @return void
  */
 function add_menu_item( $wp_admin_bar ) : void {
