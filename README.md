@@ -30,7 +30,7 @@ Records an event. The data passed in should be an object with either or both an 
 ```js
 {
   attributes: {
-    name: 'value' // <string>
+    name: [ 'value', '...' ] // <string[]>
     // ...
   },
   metrics: {
@@ -54,11 +54,11 @@ Retrieves an array of the audience IDs for the current page session.
 
 **`Altis.Analytics.registerAttribute( name <string>, value <string | callback> )`**
 
-Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` allows this. If a function is passed as the value will be evaluated at the time an event recorded.
+Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` function allows this. Values can be a single string or array of strings. If a function is passed as the value will be evaluated at the time an event recorded. Promises are supported as a return value.
 
 **`Altis.Analytics.registerMetric( name <string>, value <number | callback> )`**
 
-Similar to `registerAttribute()` above but for metrics.
+Similar to `registerAttribute()` above but for numbers. Metrics do not support arrays of values.
 
 #### Events
 
