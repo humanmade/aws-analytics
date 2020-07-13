@@ -467,9 +467,9 @@ const Analytics = {
 
 		// Sanitise attributes and metrics.
 		if ( endpoint.User && endpoint.User.UserAttributes ) {
-			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes );
+			endpoint.User.UserAttributes = await prepareAttributes( endpoint.User.UserAttributes, true );
 		}
-		endpoint.Attributes = await prepareAttributes( endpoint.Attributes );
+		endpoint.Attributes = await prepareAttributes( endpoint.Attributes, true );
 		endpoint.Metrics = await prepareMetrics( endpoint.Metrics );
 
 		// Add session and page view counts to endpoint.

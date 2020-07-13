@@ -30,7 +30,7 @@ Records an event. The data passed in should be an object with either or both an 
 ```js
 {
   attributes: {
-    name: [ 'value', '...' ] // <string[]>
+    name: 'value', // <string>
     // ...
   },
   metrics: {
@@ -54,11 +54,11 @@ Retrieves an array of the audience IDs for the current page session.
 
 **`Altis.Analytics.registerAttribute( name <string>, value <string | callback> )`**
 
-Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` function allows this. Values can be a single string or array of strings. If a function is passed as the value will be evaluated at the time an event recorded. Promises are supported as a return value.
+Sometimes you may want to record a dynamic attribute value for all events on the page. The `registerAttribute()` function allows this. Values must be a single string. If a function is passed as the value will be evaluated at the time an event recorded. Promises are supported as a return value.
 
 **`Altis.Analytics.registerMetric( name <string>, value <number | callback> )`**
 
-Similar to `registerAttribute()` above but for numbers. Metrics do not support arrays of values.
+Similar to `registerAttribute()` above but for numbers.
 
 #### Events
 
@@ -195,6 +195,12 @@ A user session covers every event recorded between opening the website and closi
   - `Id`: A unique UUID for the endpoint.
   - `Address`: An optional target for push notifications such as an email address or phone number.
   - `OptOut`: The push notification channels this visitor has opted out of. Defaults to "ALL".
+  - `Attributes`
+    - Any custom attributes associated with this endpoint.
+  - `Metrics`
+    - `sessions`: Number of separate browsing sessions for this endpoint.
+    - `pageViews`: Number of total page views for this endpoint.
+    - Any custom metrics associated with the endpoint.
   - `Demographic`
     - `AppVersion`: Current application version, can be provided via the `altis.analytics.data` filter.
     - `Locale`: Locale code of the endpoint, derived from the browser.
