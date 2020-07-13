@@ -51,25 +51,24 @@ const prepareData = async ( value, sanitizeCallback ) => {
 	if ( typeof value === 'function' ) {
 		value = await value();
 	}
-	if ( ! Array.isArray( value ) ) {
-		value = [ value ];
-	}
-	return value.map( sanitizeCallback );
+	return sanitizeCallback( value );
 };
 
 /**
- * Ensure value is a string.
+ * Ensure value is an array of strings.
  *
  * @param {mixed} value
  */
-const sanitizeAttribute = value => value.toString();
+const sanitizeAttribute = value => Array.isArray( value )
+	? value.map( val => val.toString() )
+	: [ value.toString() ];
 
 /**
- * Ensure value is a float.
+ * Ensure value is a single float.
  *
  * @param {mixed} value
  */
-const sanitizeMetric = value => parseFloat( Number( value ) );
+const sanitizeMetric = value => parseFloat( Number( Array.isArray( value ) ? value[0] : value ) );
 
 /**
  * Prepares an object for inclusion in endpoint data or event data.
