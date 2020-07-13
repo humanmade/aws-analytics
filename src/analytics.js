@@ -476,18 +476,18 @@ const Analytics = {
 		if ( ! endpoint.Attributes.lastSession ) {
 			endpoint.Attributes.lastSession = [ getSessionID() ];
 			endpoint.Attributes.lastPageSession = [ pageSession ];
-			endpoint.Metrics.sessions = [ 1.0 ];
-			endpoint.Metrics.pageViews = [ 1.0 ];
+			endpoint.Metrics.sessions = 1.0;
+			endpoint.Metrics.pageViews = 1.0;
 		} else {
 			// Increment sessions.
 			if ( endpoint.Attributes.lastSession[0] !== getSessionID() ) {
 				endpoint.Attributes.lastSession = [ getSessionID() ];
-				endpoint.Metrics.sessions = [ endpoint.Metrics.sessions[0] + 1.0 ];
+				endpoint.Metrics.sessions = endpoint.Metrics.sessions + 1.0;
 			}
 			// Increment pageViews.
 			if ( endpoint.Attributes.lastPageSession[0] !== pageSession ) {
 				endpoint.Attributes.lastPageSession = [ pageSession ];
-				endpoint.Metrics.pageViews = [ endpoint.Metrics.pageViews[0] + 1.0 ];
+				endpoint.Metrics.pageViews = endpoint.Metrics.pageViews + 1.0;
 			}
 		}
 
