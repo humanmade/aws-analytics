@@ -13,6 +13,7 @@ export default function Selector() {
 	// Update the selected audiences on the first update event as
 	// the analytics ready event can fire before the audiences have been calculated.
 	useEffect( () => {
+		setSelected( Altis.Analytics.getAudiences() );
 		const listener = Altis.Analytics.on( 'updateAudiences', () => {
 			setSelected( Altis.Analytics.getAudiences() );
 		} );
