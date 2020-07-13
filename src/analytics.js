@@ -482,12 +482,12 @@ const Analytics = {
 			// Increment sessions.
 			if ( endpoint.Attributes.lastSession[0] !== getSessionID() ) {
 				endpoint.Attributes.lastSession = [ getSessionID() ];
-				endpoint.Metrics.sessions = endpoint.Metrics.sessions + 1.0;
+				endpoint.Metrics.sessions += 1.0;
 			}
 			// Increment pageViews.
 			if ( endpoint.Attributes.lastPageSession[0] !== pageSession ) {
 				endpoint.Attributes.lastPageSession = [ pageSession ];
-				endpoint.Metrics.pageViews = endpoint.Metrics.pageViews + 1.0;
+				endpoint.Metrics.pageViews += 1.0;
 			}
 		}
 
