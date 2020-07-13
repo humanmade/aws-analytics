@@ -195,6 +195,12 @@ A user session covers every event recorded between opening the website and closi
   - `Id`: A unique UUID for the endpoint.
   - `Address`: An optional target for push notifications such as an email address or phone number.
   - `OptOut`: The push notification channels this visitor has opted out of. Defaults to "ALL".
+  - `Attributes`
+    - Any custom attributes associated with this endpoint.
+  - `Metrics`
+    - `sessions`: Number of separate browsing sessions for this endpoint.
+    - `pageViews`: Number of total page views for this endpoint.
+    - Any custom metrics associated with the endpoint.
   - `Demographic`
     - `AppVersion`: Current application version, can be provided via the `altis.analytics.data` filter.
     - `Locale`: Locale code of the endpoint, derived from the browser.
