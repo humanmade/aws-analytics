@@ -35,7 +35,9 @@ function setup() {
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
 	// Create fallback for capabilities.
-	add_filter( 'user_has_cap', __NAMESPACE__ . '\\maybe_grant_caps', 1 );
+	if ( ! defined( 'ALTIS_ANALYTICS_FALLBACK_CAPS' ) || ALTIS_ANALYTICS_FALLBACK_CAPS ) {
+		add_filter( 'user_has_cap', __NAMESPACE__ . '\\maybe_grant_caps', 1 );
+	}
 
 	// Set menu order to minimum value when creating an audience.
 	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\set_menu_order', 10, 2 );
