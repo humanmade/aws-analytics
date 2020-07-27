@@ -102,6 +102,12 @@ Allows you to define the Elasticsearch server URL directly.
 
 Define as true to enable logging queries to the error log.
 
+**`ALTIS_ANALYTICS_FALLBACK_CAPS`**
+
+By default, Altis Analytics will grant any role who can edit pages the ability to edit audiences. You can explicitly remove the capabilities from a role (i.e. `'edit_audiences' => false`), but in some cases you may wish to remove this fallback entirely.
+
+Define as false to disable the capability fallback to page capabilities.
+
 ### Filters
 
 The plugin provides a few hooks for you to control the default endpoint data and attributes recorded with events.
