@@ -34,6 +34,9 @@ function setup() {
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
+	// Create fallback for capabilities.
+	add_filter( 'user_has_cap', __NAMESPACE__ . '\\maybe_grant_caps', 1 );
+
 	// Set menu order to minimum value when creating an audience.
 	add_filter( 'wp_insert_post_data', __NAMESPACE__ . '\\set_menu_order', 10, 2 );
 
@@ -75,6 +78,42 @@ function register_post_type() {
 			'plural' => __( 'Audiences', 'altis-analytics' ),
 		]
 	);
+}
+
+/**
+ * Filters the user capabilities to grant the audience capabilities.
+ *
+ * Users who are able to edit pages will be able to edit audiences, unless
+ * their role has explicitly had the capabilities removed.
+ *
+ * @since 4.9.0
+ *
+ * @param bool[] $allcaps An array of all the user's capabilities.
+ * @return bool[] Filtered array of the user's capabilities.
+ */
+function maybe_grant_caps( $allcaps ) {
+	$cap_map = [
+		'edit_audiences' => 'edit_pages',
+		'edit_others_audiences' => 'edit_others_pages',
+		'publish_audiences' => 'publish_pages',
+		'read_private_audiences' => 'read_private_pages',
+		'delete_audiences' => 'delete_pages',
+		'delete_private_audiences' => 'delete_private_pages',
+		'delete_published_audiences' => 'delete_published_pages',
+		'delete_others_audiences' => 'delete_others_pages',
+		'edit_private_audiences' => 'edit_private_pages',
+		'edit_published_audiences' => 'edit_published_pages',
+	];
+
+	foreach ( $cap_map as $cap => $fallback ) {
+		// If the user doesn't have an explicit cap, use the capability set
+		// as a fallback.
+		if ( ! isset( $allcaps[ $cap ] ) && isset( $allcaps[ $fallback ] ) ) {
+			$allcaps[ $cap ] = $allcaps[ $fallback ];
+		}
+	}
+
+	return $allcaps;
 }
 
 /**
