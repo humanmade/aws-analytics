@@ -37,6 +37,10 @@ function setup() {
  * Schedule common maintenance tasks.
  */
 function schedule_events() {
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
+
 	/**
 	 * Schedule index maintenance daily at midnight.
 	 */
