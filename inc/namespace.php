@@ -40,7 +40,7 @@ function schedule_events() {
 	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
 		return;
 	}
-	
+
 	if ( function_exists( 'is_main_site' ) && ! is_main_site() ) {
 		return;
 	}
