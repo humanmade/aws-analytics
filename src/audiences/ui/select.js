@@ -60,6 +60,7 @@ const StyledSelect = styled.div`
 	.audience-select__clear {
 		margin-left: -2px;
 		margin-right: 5px;
+		min-width: none;
 
 		&:hover svg, &:focus svg {
 			fill: #d94f4f;
