@@ -1,0 +1,16 @@
+{
+    "name": "altis/aws-analytics",
+    "description": "AWS Pinpoint Analytics integration for WordPress",
+    "type": "wordpress-plugin",
+    "require": {
+        "aws/aws-sdk-php": "^3.103.0",
+        "johnbillion/extended-cpts": "^4.3.2"
+    },
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Human Made Limited",
+            "email": "hello@humanmade.com"
+        }
+    ]
+}
