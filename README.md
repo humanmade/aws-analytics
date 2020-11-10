@@ -108,6 +108,14 @@ By default, Altis Analytics will grant any role who can edit pages the ability t
 
 Define as false to disable the capability fallback to page capabilities.
 
+**`ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN`**
+
+If you have the Pinpoint Kinesis Firehose set to back up data to S3 then defining this constant allows for data to be cleaned from the backups periodically too.
+
+**`ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION`**
+
+The region for the Kinsesis Firehose S3 bucket (if configured).
+
 ### Filters
 
 The plugin provides a few hooks for you to control the default endpoint data and attributes recorded with events.
@@ -141,6 +149,10 @@ Returning `false` from this filter will prevent any events or updated endpoint d
 Filter the maximum number of days to keep real time stats available for. The default number of days is 14, after which data is removed. This is important for streamlining your user's privacy.
 
 Insights and aggregated analytics data can be calculated, updated and stored in the database in cases where you wish to retain information for longer periods of time such as number of page views.
+
+**`altis.analytics.max_s3_backup_age <int>`**
+
+Filter the maximum number of days to keep backup data for. The default number of days is 90 in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your user's privacy. There is no upper limit on this value however you should make sure any long term data storage is explained to users when opting in to tracking.
 
 ### Functions
 
