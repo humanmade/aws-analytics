@@ -469,6 +469,7 @@ function clean_s3_store() : void {
 		}
 	} catch ( Exception $error ) {
 		// Log the error.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		trigger_error( $error->getMessage(), E_USER_WARNING );
 	}
 }
