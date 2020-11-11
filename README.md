@@ -110,7 +110,7 @@ Define as false to disable the capability fallback to page capabilities.
 
 **`ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN`**
 
-If you have the Pinpoint Kinesis Firehose set to back up data to S3 then defining this constant allows for data to be cleaned from the backups periodically too.
+If you have the Pinpoint Kinesis Firehose set to back up data to S3, defining this constant allows for data to be cleaned from the backups periodically.
 
 **`ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION`**
 
@@ -152,7 +152,7 @@ Insights and aggregated analytics data can be calculated, updated and stored in 
 
 **`altis.analytics.max_s3_backup_age <int>`**
 
-Filter the maximum number of days to keep backup data for. The default number of days is 90 in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your user's privacy. There is no upper limit on this value however you should make sure any long term data storage is explained to users when opting in to tracking.
+Filter the maximum number of days to keep backup data for. The default number of days is 90, in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your users' privacy. There is no upper limit on this value, however you should make sure any long term data storage is explained to users when opting in to tracking.
 
 ### Functions
 
