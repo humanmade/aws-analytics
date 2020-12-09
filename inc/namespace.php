@@ -23,6 +23,9 @@ function setup() {
 	// Set up preview.
 	Preview\setup();
 
+	// Set up preview.
+	Export\setup();
+
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.
