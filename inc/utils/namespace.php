@@ -322,3 +322,162 @@ function get_field_type( string $field ) : ?string {
 
 	return 'string';
 }
+
+/**
+ * Escape values for CSV.
+ *
+ * Ensure commas are preserved and quotes are encoded.
+ *
+ * @param mixed $value The value to escape.
+ * @return mixed
+ */
+function esc_csv( $value ) {
+	if ( is_string( $value ) && strpos( $value, ',' ) !== false ) {
+		if ( strpos( $value, '"' ) !== false ) {
+			$value = str_replace( '"', '""', $value );
+		}
+		$value = sprintf( '"%s"', $value );
+	}
+
+	return $value;
+}
+
+/**
+ * Flattens an array recursively and sets the keys for nested values
+ * as a dot separated path.
+ *
+ * @param array $data The array to flatten.
+ * @param string $prefix The current key prefix.
+ * @param callable|null $sanitize_callback Optional value sanitization callback.
+ * @return array
+ */
+function flatten_array( array $data, string $prefix = '' ) : array {
+	$flattened = [];
+	$prefix = ! empty( $prefix ) ? "{$prefix}." : '';
+
+	foreach ( $data as $key => $value ) {
+		if ( is_array( $value ) ) {
+			$flattened = array_merge( $flattened, flatten_array( $value, "{$prefix}{$key}" ) );
+		} else {
+			$flattened[ "{$prefix}{$key}" ] = $value;
+		}
+	}
+
+	return $flattened;
+}
+
+/**
+ * Recursively convert array to CSV string.
+ *
+ * @param array $data The data to output as CSV.
+ * @return string|null
+ */
+function array_to_csv( array $data ) : ?string {
+	if ( empty( $data ) ) {
+		return null;
+	}
+
+	// Collect column headers.
+	$columns = [];
+
+	// Flatten rows and collect column names.
+	$data = array_map( function ( $row ) use ( &$columns ) {
+		$flattened_data = flatten_array( $row );
+
+		$new_columns = array_keys( $flattened_data );
+		$columns = array_merge( $new_columns, $columns );
+		$columns = array_unique( $columns );
+
+		return $flattened_data;
+	}, $data );
+
+	// Convert to CSV string.
+	$data = array_reduce( $data, function ( $carry, $row ) use ( $columns ) {
+		// Ensure all rows have the same columns.
+		foreach ( $columns as $column ) {
+			$carry .= esc_csv( $row[ $column ] ?? '' ) . ',';
+		}
+
+		return trim( $carry, ',' ) . "\n";
+	}, '' );
+
+	// Add header row.
+	$columns = implode( ',', $columns ) . "\n";
+
+	return $columns . $data;
+}
+
+
+/**
+ * Parse an Accept header.
+ *
+ * @param string $value Raw header value from the user.
+ * @return array Parsed Accept header to pass to find_best_match()
+ */
+function parse_accept_header( string $value ) : array {
+	$types = array_map( 'trim', explode( ',', $value ) );
+	$prioritized = [];
+	foreach ( $types as $type ) {
+		$params = [
+			'q' => 1,
+		];
+		if ( strpos( $type, ';' ) !== false ) {
+			list( $type, $param_str ) = explode( ';', $type, 2 );
+			$param_parts = array_map( 'trim', explode( ';', $param_str ) );
+			foreach ( $param_parts as $part ) {
+				if ( strpos( $part, '=' ) !== false ) {
+					list( $key, $value ) = explode( '=', $part, 2 );
+				} else {
+					$key = $part;
+					$value = true;
+				}
+				$params[ $key ] = $value;
+			}
+		}
+
+		list( $type, $subtype ) = explode( '/', $type, 2 );
+
+		// Build a regex matcher.
+		$regex = ( $type === '*' ) ? '([^/]+)' : preg_quote( $type, '#' );
+		$regex .= '/';
+		$regex .= ( $subtype === '*' ) ? '([^/]+)' : preg_quote( $subtype, '#' );
+		$regex = '#^' . $regex . '$#i';
+		$prioritized[] = compact( 'type', 'subtype', 'regex', 'params' );
+	}
+
+	usort( $prioritized, function ( $a, $b ) {
+		return $b['params']['q'] <=> $a['params']['q'];
+	} );
+
+	return $prioritized;
+}
+
+/**
+ * Find the best matching type from available types.
+ *
+ * @param array $parsed Parsed Accept header from parse_accept_header()
+ * @param string[] $available Available MIME types that could be served.
+ * @return string|null Best matching MIME type if available, or null if none match.
+ */
+function find_best_accept_header_match( array $parsed, array $available ) : ?string {
+	$scores = [];
+	foreach ( $available as $type ) {
+		// Loop through $parsed and find the first match.
+		// Note: presorted by q, so first match is highest score.
+		foreach ( $parsed as $acceptable ) {
+			if ( preg_match( $acceptable['regex'], $type ) ) {
+				$scores[ $type ] = $acceptable['params']['q'];
+				break;
+			}
+		}
+	}
+	if ( empty( $scores ) ) {
+		return null;
+	}
+
+	// Sort to highest score.
+	arsort( $scores );
+
+	// Return highest score.
+	return array_keys( $scores )[0];
+}

@@ -16,8 +16,6 @@ use WP_Error;
 use WP_REST_Request;
 use WP_REST_Server;
 
-use function HM\GTM\flatten_array as GTMFlatten_array;
-
 /**
  * Class Data_Endpoint
  *
@@ -38,26 +36,22 @@ class Endpoint {
 	public function register_routes() : void {
 		register_rest_route(
 			'analytics/v1',
-			'export/(?P<date>\d{4}-\d{2}-\d{2})',
+			'export/events/(?P<date>\d{4}-\d{2}-\d{2})',
 			[
 				'args'   => [
 					'date' => [
 						'description' => 'Day to retrieve the analytics data from.',
 						'type' => 'date',
-						'sanitize_callback' => 'sanitize_text_field',
 					],
 					'page' => [
 						'description'       => 'Current page',
-						'type'              => 'integer',
+						'type'              => 'number',
 						'default'           => 1,
-						'sanitize_callback' => 'absint',
-						'validate_callback' => 'rest_validate_request_arg',
 						'minimum'           => 1,
 					],
 					'per_page' => [
 						'description' => 'How many records to return per page.',
 						'type' => 'number',
-						'sanitize_callback' => 'absint',
                     ],
                     'format' => [
                         'description' => 'The data format to get results in, one of json or csv.',
@@ -147,6 +141,9 @@ class Endpoint {
 			'size' => max( 10000, $per_page + 1000 ),
 		];
 
+		// Allow 3 minutes per page of data.
+		$cache_results_minutes = $total_pages * 3;
+
 		$results = Utils\query( $query, [ 'scroll' => $cache_results_minutes . 'm' ] );
 
 		if ( ! is_array( $results ) ) {
@@ -165,7 +162,7 @@ class Endpoint {
 	}
 
 	/**
-	 * Undocumented function
+	 * Filter before the request is served to deliver CSV if requested.
 	 *
 	 * @param bool $served Whether the request has already been served.
 	 * @param WP_HTTP_ResponseInterface $result Result to send to the client. Usually a WP_REST_Response.
@@ -176,11 +173,18 @@ class Endpoint {
 	public function pre_serve_request( bool $served, $result, WP_REST_Request $request, WP_REST_Server $server ) : bool {
 		$params = $request->get_params();
 
-		if ( ! preg_match( '#/analytics/v1/export/(?P<date>\d{4}-\d{2}-\d{2})#', $request->get_route() ) || 'GET' !== $request->get_method() ) {
+		if ( ! preg_match( '#/analytics/v1/export/events/(?P<date>\d{4}-\d{2}-\d{2})#', $request->get_route() ) || 'GET' !== $request->get_method() ) {
 			return $served;
 		}
 
-		if ( ! isset( $params['format'] ) || 'csv' !== $params['format'] ) {
+		// Check accept header.
+		$parsed_header = Utils\parse_accept_header( $request->get_header( 'accept' ) );
+		$accept_type = Utils\find_best_accept_header_match( $parsed_header, [
+			'application/json',
+			'text/csv',
+		] );
+
+		if ( $accept_type !== 'text/csv' && ( ! isset( $params['format'] ) || 'csv' !== $params['format'] ) ) {
 			return $served;
 		}
 
@@ -188,7 +192,7 @@ class Endpoint {
 		$data = $server->response_to_data( $result, false );
 
 		// Convert to a CSV string.
-		$result = $this->to_csv( $data );
+		$result = Utils\array_to_csv( $data );
 
 		// Bail if there's no data.
 		if ( ! $result ) {
@@ -229,95 +233,19 @@ class Endpoint {
 	}
 
 	/**
-	 * Recursively convert array to CSV string.
-	 *
-	 * @param array $data The data to output as CSV.
-	 * @return string|null
-	 */
-	private function to_csv( array $data ) : ?string {
-		if ( empty( $data ) ) {
-			return null;
-		}
-
-		// Collect column headers.
-		$columns = [];
-
-		// Flatten rows and collect column names.
-		$data = array_map( function ( $row ) use ( &$columns ) {
-			$flattened_data = $this->flatten_array( $row );
-
-			$new_columns = array_keys( $flattened_data );
-			$columns = array_merge( $new_columns, $columns );
-			$columns = array_unique( $columns );
-
-			return $flattened_data;
-		}, $data );
-
-		// Convert to CSV string.
-		$data = array_reduce( $data, function ( $carry, $row ) use ( $columns ) {
-			// Ensure all rows have the same columns.
-			foreach ( $columns as $column ) {
-				$carry .= ( $row[ $column ] ?? '' ) . ',';
-			}
-
-			return trim( $carry, ',' ) . "\n";
-		}, '' );
-
-		// Add header row.
-		$columns = implode( ',', $columns ) . "\n";
-
-		return $columns . $data;
-	}
-
-	/**
-	 * Escape values for CSV.
-	 *
-	 * Ensure commas are preserved and quotes are encoded.
-	 *
-	 * @param mixed $value The value to escape.
-	 * @return mixed
-	 */
-	private function esc_csv( $value ) {
-		if ( is_string( $value ) && strpos( $value, ',' ) !== false ) {
-			if ( strpos( $value, '"' ) !== false ) {
-				$value = str_replace( '"', '""', $value );
-			}
-			$value = sprintf( '"%s"', $value );
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Flattens an array recursively and sets the keys for nested values
-	 * as a dot separated path.
-	 *
-	 * @param array $data The array to flatten.
-	 * @param string $prefix The current key prefix.
-	 * @return array
-	 */
-	private function flatten_array( array $data, string $prefix = '' ) : array {
-		$flattened = [];
-		$prefix = ! empty( $prefix ) ? "{$prefix}." : '';
-
-		foreach ( $data as $key => $value ) {
-			if ( is_array( $value ) ) {
-				$flattened = array_merge( $flattened, $this->flatten_array( $value, "{$prefix}{$key}" ) );
-			} else {
-				$flattened[ "{$prefix}{$key}" ] = $this->esc_csv( $value );
-			}
-		}
-
-		return $flattened;
-	}
-
-	/**
 	 * Lock down the endpoint to only allow administrator users authenticated via application password to access the
 	 * date.
 	 *
 	 * @return bool True if the request has read access for the item, otherwise false.
 	 */
 	public function get_item_permissions_check() {
-		return current_user_can( 'manage_options' );
+		/**
+		 * Filter the require capability for exporting analytics events.
+		 *
+		 * @param string $capability A capability belonging to the authenticated user. Defaults to 'manage_options'.
+		 */
+		$capability = (string) apply_filters( 'altis.analytics.export_events_capability', 'manage_options' );
+
+		return current_user_can( $capability );
 	}
 }
