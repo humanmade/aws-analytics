@@ -27,7 +27,6 @@ class Endpoint {
 	 */
 	public function bootstrap() : void {
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-		add_filter( 'rest_pre_serve_request', [ $this, 'pre_serve_request' ], 10, 4 );
 	}
 
 	/**
@@ -41,24 +40,20 @@ class Endpoint {
 				'args'   => [
 					'date' => [
 						'description' => 'Day to retrieve the analytics data from.',
-						'type' => 'date',
+						'type' => 'string',
+						'required' => true,
 					],
-					'page' => [
-						'description'       => 'Current page',
-						'type'              => 'number',
-						'default'           => 1,
-						'minimum'           => 1,
-					],
-					'per_page' => [
-						'description' => 'How many records to return per page.',
+					'chunk_size' => [
+						'description' => 'How many records to return per chunk.',
 						'type' => 'number',
+						'default' => 2000,
                     ],
                     'format' => [
                         'description' => 'The data format to get results in, one of json or csv.',
                         'type' => 'string',
                         'enum' => [ 'json', 'csv' ],
                         'default' => 'json',
-                    ],
+					],
 				],
 				[
 					'methods' => WP_REST_Server::READABLE,
@@ -77,12 +72,32 @@ class Endpoint {
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
 	public function get_items( WP_REST_Request $request ) {
-		$dates = $this->get_date_query_arguments( $request->get_params()['date'] );
+		$dates = $this->get_date_query_arguments( $request->get_param( 'date' ) );
 
 		if ( is_wp_error( $dates ) ) {
 			return $dates;
 		}
 
+		// Manually stream the response, as there is likely too much to hold in memory at once.
+		header( 'X-Accel-Buffering: no' );
+
+		// Check accept header for format.
+		$parsed_header = Utils\parse_accept_header( $request->get_header( 'accept' ) );
+		$accept_type = Utils\find_best_accept_header_match( $parsed_header, [
+			'application/json',
+			'text/csv',
+		] );
+
+		$format = $accept_type === 'text/csv' ? 'csv' : $request->get_param( 'format' );
+
+		// Set content type header.
+		if ( $format === 'json' ) {
+			header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ), true );
+		} else {
+			header( 'Content-Type: text/csv; charset=' . get_option( 'blog_charset' ), true );
+		}
+
+		// Default part of the query to get all events for the current site.
 		$main_query = [
 			'bool' => [
 				'filter' => [
@@ -103,110 +118,134 @@ class Endpoint {
 			],
 		];
 
-		// The first query returns just the total number of items
-		// so the results can be sliced later.
-		$total_results = Utils\query( [
+		$total_query = [
 			'query' => $main_query,
 			'size' => 0,
-		] );
-
-		// Now get the paginated results.
-		$per_page = $request->get_param( 'per_page' ) ?? 5000; // Should not be more than 10000.
-		$per_page = max( 1, $per_page );
-        $page = (int) $request->get_params()['page'] ?? 1;
-        $total = $total_results['hits']['total']['value'] ?? $total_results['hits']['total']; // ES 7 compat.
-		$max = (int) ceil( $total / $per_page );
-
-		if ( $max === 0 ) {
-			return rest_ensure_response( [] );
-		}
-
-		// Elasticsearch slices need at least 2 pages.
-		$total_pages = max( $max, 2 );
-
-		// This is the slice ID (similar to a current page).
-		$id = $page - 1;
-
-		if ( $id >= $total_pages ) {
-			return rest_ensure_response( [] );
-		}
-
-		$query = [
-			'query' => $main_query,
-			'slice' => [
-				'id' => $id,
-				'max' => $total_pages,
-			],
-			// Elasticsearch needs this even if slice is set. Let's give it a higher number than per_page.
-			'size' => max( 10000, $per_page + 1000 ),
 		];
 
-		// Allow 3 minutes per page of data.
-		$cache_results_minutes = $total_pages * 3;
+		// Ensure we're tracking the total hits for ES 7.3+ so our slices aren't too large.
+		if ( version_compare( Utils\get_elasticsearch_version(), '7.2', '>' ) ) {
+			$total_query['track_total_hits'] = true;
+		}
 
-		$results = Utils\query( $query, [ 'scroll' => $cache_results_minutes . 'm' ] );
+		// The first query returns just the total number of items
+		// so the results can be sliced later.
+		$total_results = Utils\query( $total_query );
+		$total = $total_results['hits']['total']['value'] ?? $total_results['hits']['total']; // ES 7 compat.
 
-		if ( ! is_array( $results ) ) {
-			return rest_ensure_response( [] );
-        }
+		// Set total found results header.
+		header( sprintf( 'X-WP-Total: %d', $total ) );
 
-        // Extract the event source data only.
-        $hits = wp_list_pluck( $results['hits']['hits'], '_source' );
+		// Determine the chunk size.
+		$per_page = $request->get_param( 'per_page' ); // Should not be more than 10000.
+		$per_page = max( 1, $per_page );
 
-		$response = rest_ensure_response( $hits );
+		// Elasticsearch slices need at least 2 pages and no more than 1024 by default.
+		$total_pages = (int) ceil( $total / $per_page );
+		$total_pages = min( 1024, max( $total_pages, 2 ) );
 
-		$response->header( 'X-WP-Total', (int) $total );
-		$response->header( 'X-WP-TotalPages', $total_pages );
+		// Collect all the fields we'll need ahead of time for CSV output.
+		$fields = [];
 
-		return $response;
+		// Begin output.
+		if ( $format === 'json' ) {
+			echo "[\n";
+		} else {
+			// Fetch all available columns across all indices if we're sending a csv, we need these for the 1st line.
+			$index_mappings = Utils\query( [], [
+				'ignore_unavailable' => 'false',
+				'include_defaults' => 'false',
+				'filter_path' => '-*.mappings.*keyword,-*.mappings._*,-*.mappings.*.*.*',
+			], '_mapping/field/*', 'GET' );
+
+			foreach ( $index_mappings as $mapping ) {
+				$fields = array_merge( $fields, array_keys( $mapping['mappings'] ) );
+				$fields = array_unique( $fields );
+			}
+
+			sort( $fields );
+
+			// Write columns headings line.
+			fputcsv( fopen( 'php://output', 'w' ), $fields ) . "\n";
+		}
+
+		// Track the scroll ID, default to _all.
+		$scroll_ids = [];
+
+		// Page through the events for the desired day.
+		for ( $page = 0; $page < $total_pages; $page++ ) {
+			$query = [
+				'query' => $main_query,
+				'slice' => [
+					'id' => $page,
+					'max' => $total_pages,
+				],
+				// Elasticsearch needs this even if slice is set, maximum value is 10000.
+				// We give it a higher number than per_page so all results within the slice are returned.
+				'size' => min( 10000, $per_page + 1000 ),
+			];
+
+			// Keep the scroll query alive for 1 minute per page of data.
+			$results = Utils\query( $query, [ 'scroll' => $total_pages . 'm' ] );
+
+			if ( ! is_array( $results ) ) {
+				break;
+			}
+
+			// Get the scroll ID.
+			if ( isset( $results['_scroll_id'] ) ) {
+				$scroll_ids[] = $results['_scroll_id'];
+			}
+
+			// Extract the event source data only.
+			$events = wp_list_pluck( $results['hits']['hits'], '_source' );
+
+			if ( $format === 'json' ) {
+				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
+				// Add a comma in between result sets except for the last page.
+				echo $page === $total_pages - 1 ? '' : ',';
+			} else {
+				foreach ( $events as $event ) {
+					$event = Utils\flatten_array( $event );
+					$row = [];
+					foreach ( $fields as $field ) {
+						$row[ $field ] = $event[ $field ] ?? null;
+					}
+
+					fputcsv( fopen( 'php://output', 'w' ), $row ) . "\n";
+				}
+			}
+
+			flush();
+		}
+
+		// Close out the JSON array.
+		if ( $format === 'json' ) {
+			echo "]";
+		}
+
+		// Cleanup resource heavy scroll query.
+		$this->clear_search_scroll( $scroll_ids );
+
+		exit;
 	}
 
 	/**
-	 * Filter before the request is served to deliver CSV if requested.
+	 * Removes any existing Elasticsearch search scrolls.
 	 *
-	 * @param bool $served Whether the request has already been served.
-	 * @param WP_HTTP_ResponseInterface $result Result to send to the client. Usually a WP_REST_Response.
-	 * @param WP_REST_Request $request Request used to generate the response.
-	 * @param WP_REST_Server $server Server instance.
-	 * @return true
+	 * @return void
 	 */
-	public function pre_serve_request( bool $served, $result, WP_REST_Request $request, WP_REST_Server $server ) : bool {
-		$params = $request->get_params();
-
-		if ( ! preg_match( '#/analytics/v1/events/(?P<date>\d{4}-\d{2}-\d{2})#', $request->get_route() ) || 'GET' !== $request->get_method() ) {
-			return $served;
-		}
-
-		// Check accept header.
-		$parsed_header = Utils\parse_accept_header( $request->get_header( 'accept' ) );
-		$accept_type = Utils\find_best_accept_header_match( $parsed_header, [
-			'application/json',
-			'text/csv',
+	private function clear_search_scroll( array $scroll_ids ) {
+		// Clear search scrolls.
+		wp_remote_request( Utils\get_elasticsearch_url() . '/_search/scroll', [
+			'method' => 'DELETE',
+			'headers' => [
+				'Content-Type' => 'application/json',
+			],
+			'body' => wp_json_encode( [
+				'scroll_id' => $scroll_ids,
+			] ),
 		] );
-
-		if ( $accept_type !== 'text/csv' && ( ! isset( $params['format'] ) || 'csv' !== $params['format'] ) ) {
-			return $served;
-		}
-
-		// Get the response data.
-		$data = $server->response_to_data( $result, false );
-
-		// Convert to a CSV string.
-		$result = Utils\array_to_csv( $data );
-
-		// Bail if there's no data.
-		if ( ! $result ) {
-			status_header( 501 );
-			return get_status_header_desc( 501 );
-		}
-
-		if ( ! headers_sent() ) {
-			$server->send_header( 'Content-Type', 'text/csv; charset=' . get_option( 'blog_charset' ) );
-		}
-
-		echo $result;
-
-		return true;
 	}
 
 	/**
