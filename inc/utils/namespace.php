@@ -110,14 +110,46 @@ function get_elasticsearch_url() : string {
 }
 
 /**
+ * Retrieve the elasticsearch version.
+ *
+ * Return the version string if found otherwise 'unknown'.
+ *
+ * @return string
+ */
+function get_elasticsearch_version() : string {
+	$version = wp_cache_get( 'elasticsearch-version' );
+	if ( ! empty( $version ) ) {
+		return $version;
+	}
+
+	$response = wp_remote_get( get_elasticsearch_url() );
+
+	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
+		return null;
+	}
+
+	$json = wp_remote_retrieve_body( $response );
+	$result = json_decode( $json, true );
+	$version = $result['version']['number'] ?? 'unknown';
+
+	// Cache for a long time as it's not going to be changing particularly often.
+	wp_cache_set( 'elasticsearch-version', $version, '', DAY_IN_SECONDS );
+
+	return $version;
+}
+
+/**
  * Query Analytics data in Elasticsearch.
  *
  * @param array $query A full elasticsearch Query DSL array.
  * @param array $params URL query parameters to append to request URL.
  * @param string $path The endpoint to query against, defaults to _search.
+ * @param string $method The HTTP request method to use.
  * @return array|null
  */
-function query( array $query, array $params = [], string $path = '_search' ) : ?array {
+function query( array $query, array $params = [], string $path = '_search', string $method = 'POST' ) : ?array {
+	// Raise memory limit for analytics requests.
+	wp_raise_memory_limit( 'analytics' );
 
 	// Sanitize path.
 	$path = trim( $path, '/' );
@@ -128,12 +160,21 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
-	$response = wp_remote_post( $url, [
+	$request_args = [
+		'method' => $method,
 		'headers' => [
 			'Content-Type' => 'application/json',
 		],
-		'body' => wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
-	] );
+		'timeout' => 15,
+	];
+
+	// Only attach the body if the method supports it.
+	if ( in_array( $method, [ 'POST', 'PUT', 'PATCH', 'DELETE' ], true ) ) {
+		$request_args['body'] = wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	}
+
+	// Get the data!
+	$response = wp_remote_request( $url, $request_args );
 
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
 		if ( is_wp_error( $response ) ) {
@@ -324,25 +365,6 @@ function get_field_type( string $field ) : ?string {
 }
 
 /**
- * Escape values for CSV.
- *
- * Ensure commas are preserved and quotes are encoded.
- *
- * @param mixed $value The value to escape.
- * @return mixed
- */
-function esc_csv( $value ) {
-	if ( is_string( $value ) && strpos( $value, ',' ) !== false ) {
-		if ( strpos( $value, '"' ) !== false ) {
-			$value = str_replace( '"', '""', $value );
-		}
-		$value = sprintf( '"%s"', $value );
-	}
-
-	return $value;
-}
-
-/**
  * Flattens an array recursively and sets the keys for nested values
  * as a dot separated path.
  *
@@ -357,7 +379,12 @@ function flatten_array( array $data, string $prefix = '' ) : array {
 
 	foreach ( $data as $key => $value ) {
 		if ( is_array( $value ) ) {
-			$flattened = array_merge( $flattened, flatten_array( $value, "{$prefix}{$key}" ) );
+			// For non associative arrays we need to combine the values into one.
+			if ( ! empty( array_filter( array_keys( $value ), 'is_int' ) ) ) {
+				$flattened[ "{$prefix}{$key}" ] = implode( ';', $value );
+			} else {
+				$flattened = array_merge( $flattened, flatten_array( $value, "{$prefix}{$key}" ) );
+			}
 		} else {
 			$flattened[ "{$prefix}{$key}" ] = $value;
 		}
@@ -365,48 +392,6 @@ function flatten_array( array $data, string $prefix = '' ) : array {
 
 	return $flattened;
 }
-
-/**
- * Recursively convert array to CSV string.
- *
- * @param array $data The data to output as CSV.
- * @return string|null
- */
-function array_to_csv( array $data ) : ?string {
-	if ( empty( $data ) ) {
-		return null;
-	}
-
-	// Collect column headers.
-	$columns = [];
-
-	// Flatten rows and collect column names.
-	$data = array_map( function ( $row ) use ( &$columns ) {
-		$flattened_data = flatten_array( $row );
-
-		$new_columns = array_keys( $flattened_data );
-		$columns = array_merge( $new_columns, $columns );
-		$columns = array_unique( $columns );
-
-		return $flattened_data;
-	}, $data );
-
-	// Convert to CSV string.
-	$data = array_reduce( $data, function ( $carry, $row ) use ( $columns ) {
-		// Ensure all rows have the same columns.
-		foreach ( $columns as $column ) {
-			$carry .= esc_csv( $row[ $column ] ?? '' ) . ',';
-		}
-
-		return trim( $carry, ',' ) . "\n";
-	}, '' );
-
-	// Add header row.
-	$columns = implode( ',', $columns ) . "\n";
-
-	return $columns . $data;
-}
-
 
 /**
  * Parse an Accept header.
