@@ -36,7 +36,7 @@ class Endpoint {
 	public function register_routes() : void {
 		register_rest_route(
 			'analytics/v1',
-			'export/events/(?P<date>\d{4}-\d{2}-\d{2})',
+			'events/(?P<date>\d{4}-\d{2}-\d{2})',
 			[
 				'args'   => [
 					'date' => [
@@ -173,7 +173,7 @@ class Endpoint {
 	public function pre_serve_request( bool $served, $result, WP_REST_Request $request, WP_REST_Server $server ) : bool {
 		$params = $request->get_params();
 
-		if ( ! preg_match( '#/analytics/v1/export/events/(?P<date>\d{4}-\d{2}-\d{2})#', $request->get_route() ) || 'GET' !== $request->get_method() ) {
+		if ( ! preg_match( '#/analytics/v1/events/(?P<date>\d{4}-\d{2}-\d{2})#', $request->get_route() ) || 'GET' !== $request->get_method() ) {
 			return $served;
 		}
 
