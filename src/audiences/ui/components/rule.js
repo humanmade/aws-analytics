@@ -47,6 +47,12 @@ const ClearableInput = styled.div`
 	}
 `;
 
+/**
+ * Rule input component.
+ *
+ * @param {object} props Component props.
+ * @returns {React.ReactNode} Rule input component.
+ */
 const RuleInput = props => {
 	const {
 		disabled,
@@ -115,8 +121,8 @@ const RuleInput = props => {
 										onChange={ onChange }
 									/>
 									<Button
-										isLink
 										isDestructive
+										isLink
 										label={ __( 'Clear selection', 'altis-anlaytics' ) }
 										onClick={ () => {
 											onChange( { target: { value: '' } } );
@@ -164,6 +170,12 @@ const RuleInput = props => {
 	}
 };
 
+/**
+ * The rule editor input component.
+ *
+ * @param {object} props Component props.
+ * @returns {React.ReactNode} Rule Editor component.
+ */
 export default function Rule( props ) {
 	const {
 		canRemove,

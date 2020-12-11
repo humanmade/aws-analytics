@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 
+import { defaultRule } from '../data/defaults';
+
 import Rule from './rule';
 import SelectInclude from './select-include';
-import { defaultRule } from '../data/defaults';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
@@ -32,7 +33,13 @@ const StyledGroup = styled.div`
 	}
 `;
 
+/**
+ * Rule Group editor component.
+ */
 export default class Group extends Component {
+	/**
+	 * New rule handler.
+	 */
 	onAddRule = () => {
 		this.props.onChange( {
 			rules: [
@@ -42,12 +49,22 @@ export default class Group extends Component {
 		} );
 	};
 
+	/**
+	 * Rule update handler.
+	 *
+	 * @param {Event} e Change event for rule input.
+	 */
 	onChangeRule = e => {
 		this.props.onChange( {
 			include: e.target.value,
 		} );
 	};
 
+	/**
+	 * Remove rule handler.
+	 *
+	 * @param {number} id Rule index to remove.
+	 */
 	onRemoveRule = id => {
 		const { rules } = this.props;
 		this.props.onChange( {
@@ -58,6 +75,12 @@ export default class Group extends Component {
 		} );
 	};
 
+	/**
+	 * Update rule handler.
+	 *
+	 * @param {number} ruleId Rule index.
+	 * @param {object} rule Rule config object.
+	 */
 	updateRule = ( ruleId, rule ) => {
 		const { rules } = this.props;
 		this.props.onChange( {

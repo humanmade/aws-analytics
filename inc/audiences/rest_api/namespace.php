@@ -203,7 +203,7 @@ function get_audience_schema() : array {
 /**
  * Retrieve the estimate response.
  *
- * @param WP_REST_Request $request
+ * @param WP_REST_Request $request The REST request object.
  * @return WP_REST_Response
  */
 function handle_estimate_request( WP_REST_Request $request ) : WP_REST_Response {
