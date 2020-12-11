@@ -3,6 +3,12 @@ import React from 'react';
 const { Button } = wp.components;
 const { sprintf } = wp.i18n;
 
+/**
+ * Action Link Component.
+ *
+ * @param {Object} props Component props.
+ * @returns JSX
+ */
 const ActionLink = ( {
 	children = null,
 	className = '',

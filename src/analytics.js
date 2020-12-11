@@ -1,5 +1,11 @@
-// Utils.
-import './utils/polyfills';
+import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
+import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand';
+import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
+import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
+import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
+import { parseQueryString } from '@aws-sdk/querystring-parser';
+import merge from 'deepmerge';
+import UAParser from 'ua-parser-js';
 import {
 	getLanguage,
 	overwriteMerge,
@@ -7,16 +13,7 @@ import {
 	prepareMetrics,
 	uuid,
 } from './utils';
-import merge from 'deepmerge';
-import UAParser from 'ua-parser-js';
-
-// AWS SDK.
-import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
-import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand';
-import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
-import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
-import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
-import { parseQueryString } from '@aws-sdk/querystring-parser';
+import './utils/polyfills';
 
 const {
 	Config,
@@ -33,9 +30,7 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	define( 'ALTIS_ANALYTICS_PINPOINT_ID', '...' );\n \
 	define( 'ALTIS_ANALYTICS_PINPOINT_REGION', '...' );\n \
 	define( 'ALTIS_ANALYTICS_COGNITO_ID', '...' );\n \
-	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' ); \
-	"
-	);
+	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' );" );
 	/* eslint-enable quotes */
 }
 
@@ -84,7 +79,9 @@ for ( const qv in params ) {
 }
 
 /**
- * Attributes helper.
+ * Get unique session ID.
+ *
+ * @returns String|null
  */
 const getSessionID = () => {
 	if ( typeof window.sessionStorage === 'undefined' ) {
@@ -103,6 +100,13 @@ const getSessionID = () => {
 	window.sessionStorage.setItem( '_hm_uuid', newSessionID );
 	return newSessionID;
 };
+
+/**
+ * Returns current set of default and registered attributes.
+ *
+ * @param {Object} extra Additional attributes to log.
+ * @returns Object
+ */
 const getAttributes = ( extra = {} ) => ( {
 	date: new Date().toISOString(),
 	session: getSessionID(),
@@ -117,6 +121,13 @@ const getAttributes = ( extra = {} ) => ( {
 	...extra,
 	...( _attributes || {} ),
 } );
+
+/**
+ * Return current set of default and registered metrics.
+ *
+ * @param {Object} extra Additional metrics to log.
+ * @returns Object
+ */
 const getMetrics = ( extra = {} ) => ( {
 	elapsed: elapsed + ( Date.now() - start ),
 	scrollDepthMax,
