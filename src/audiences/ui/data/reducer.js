@@ -5,6 +5,7 @@ import { unionBy } from 'lodash';
  *
  * @param {object} a The first post object to sort.
  * @param {object} b The second post object to sort.
+ * @returns {number} Sort result value.
  */
 const sortPosts = ( a, b ) => {
 	if ( a.menu_order < b.menu_order ) {
@@ -22,6 +23,13 @@ const sortPosts = ( a, b ) => {
 	return 0;
 };
 
+/**
+ * Reducer for the audience data store.
+ *
+ * @param {object} state The current state object.
+ * @param {object} action The action used to update the store.
+ * @returns {object} The updated state.
+ */
 export default function reducer( state, action ) {
 	switch ( action.type ) {
 		case 'SET_FIELDS': {

@@ -9,7 +9,7 @@ import {
  * Operator selector.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Select operator component.
+ * @returns {React.ReactNode} Select operator component.
  */
 export default function SelectOperator( props ) {
 	const {

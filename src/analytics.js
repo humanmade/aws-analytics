@@ -149,7 +149,17 @@ const Analytics = {
 		UserId: `aws.cognito.identity-id.${ Config.CognitoId }`,
 		UserCredentials: `aws.cognito.identity-credentials.${ Config.CognitoId }`,
 	},
+	/**
+	 * Get the cognito user ID.
+	 *
+	 * @returns {?string} The cognito user UUID.
+	 */
 	getUserId: () => localStorage.getItem( Analytics.keys.UserId ),
+	/**
+	 * Get the user credentials object.
+	 *
+	 * @returns {object|boolean} The user credentials object or false if it doesn't exist.
+	 */
 	getUserCredentials: () => {
 		try {
 			const ParsedCredentials = JSON.parse( localStorage.getItem( Analytics.keys.UserCredentials ) );
@@ -161,8 +171,25 @@ const Analytics = {
 			return false;
 		}
 	},
+	/**
+	 * Set the user ID.
+	 *
+	 * @param {string} id The user UUID string.
+	 * @returns {boolean} True if updated successfully.
+	 */
 	setUserId: id => localStorage.setItem( Analytics.keys.UserId, id ),
+	/**
+	 * Set the user credntials object.
+	 *
+	 * @param {object} credentials Credentials object from cognito.
+	 * @returns {boolean} True if updated successfully.
+	 */
 	setUserCredentials: credentials => localStorage.setItem( Analytics.keys.UserCredentials, JSON.stringify( credentials ) ),
+	/**
+	 * Authenticates the current user.
+	 *
+	 * @returns {object|boolean} User credentials object on success or false otherwise.
+	 */
 	authenticate: async () => {
 		// Get user credentials from cache.
 		let UserId = Analytics.getUserId();
@@ -205,6 +232,11 @@ const Analytics = {
 		}
 		return false;
 	},
+	/**
+	 * Gets the AWS SDK client object.
+	 *
+	 * @returns {Promise|PinpointClient} Returns a promise for the client or the client itself.
+	 */
 	getClient: async () => {
 		if ( Analytics.client ) {
 			return await Analytics.client;
@@ -240,6 +272,9 @@ const Analytics = {
 		return await Analytics.client;
 	},
 	audiences: [],
+	/**
+	 * Sets the currently matched audiences based on client side data.
+	 */
 	updateAudiences: async () => {
 		// Take a clone of the current audiences to check if they changed later.
 		const oldAudienceIds = Analytics.audiences.slice().sort();
@@ -395,6 +430,11 @@ const Analytics = {
 			window.dispatchEvent( updateAudiencesEvent );
 		}
 	},
+	/**
+	 * Overrides matched audiences.
+	 *
+	 * @param {Array} ids Audience IDs to override the amtched ones with.
+	 */
 	overrideAudiences: ids => {
 		// Take a clone of the current audiences to check if they changed later.
 		const oldAudienceIds = Analytics.audiences.slice().sort();
@@ -408,12 +448,28 @@ const Analytics = {
 			window.dispatchEvent( updateAudiencesEvent );
 		}
 	},
+	/**
+	 * Retrieve current matched audience IDs.
+	 *
+	 * @returns {Array} Audience IDs.
+	 */
 	getAudiences: () => {
 		return Analytics.audiences;
 	},
+	/**
+	 * Updates the Pinpoint endpoint data.
+	 *
+	 * @param {object} endpoint The endpoint object with updates.
+	 * @returns {Promise} Update Promise.
+	 */
 	updateEndpoint: async ( endpoint = {} ) => {
 		return await Analytics.flushEvents( endpoint );
 	},
+	/**
+	 * Retrieves the current endpoint data.
+	 *
+	 * @returns {object} Endpoint object.
+	 */
 	getEndpoint: () => {
 		try {
 			const ParsedEndpoint = JSON.parse( localStorage.getItem( 'aws.pinpoint.endpoint' ) );
@@ -422,15 +478,38 @@ const Analytics = {
 			return {};
 		}
 	},
+	/**
+	 * Stores endpoint data.
+	 *
+	 * @param {object} endpoint The endpoint object.
+	 */
 	setEndpoint: endpoint => {
 		localStorage.setItem( 'aws.pinpoint.endpoint', JSON.stringify( endpoint ) );
 	},
+	/**
+	 * Add an analytics event listener.
+	 *
+	 * @param {string} event The event name.
+	 * @param {Function} callback Callback to run on the event.
+	 * @returns {EventListener} The event listener handle.
+	 */
 	on: ( event, callback ) => {
 		return window.addEventListener( `altis.analytics.${event}`, event => callback( event.detail ) );
 	},
+	/**
+	 * Removes an event listener.
+	 *
+	 * @param {EventListener} listener The event listener to remove.
+	 */
 	off: listener => {
 		window.removeEventListener( listener );
 	},
+	/**
+	 * Merge current endpoint data with new.
+	 *
+	 * @param {object} endpoint The new endpoint data to merge.
+	 * @returns {object} The updated endpoint data.
+	 */
 	mergeEndpointData: async ( endpoint = {} ) => {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
@@ -518,6 +597,14 @@ const Analytics = {
 		return endpoint;
 	},
 	events: [],
+	/**
+	 * Log an event to AWS Pinpoint.
+	 *
+	 * @param {string} type The event type.
+	 * @param {object} data The event data.
+	 * @param {object} endpoint Updated endpoint data.
+	 * @param {boolean} queue True if event recording can be queued.
+	 */
 	record: async ( type, data = {}, endpoint = {}, queue = true ) => {
 		// Back compat, if data or endpoint is a boolean it is expected to be the value for queue.
 		if ( typeof data === 'boolean' ) {
@@ -588,6 +675,11 @@ const Analytics = {
 		// Flush new events after 5 seconds.
 		Analytics.timer = setTimeout( Analytics.flushEvents, 5000 );
 	},
+	/**
+	 * Send events to Pinpoint.
+	 *
+	 * @param {object} endpoint Optional updated endpoint data.
+	 */
 	flushEvents: async ( endpoint = {} ) => {
 		// Get the client.
 		const client = await Analytics.getClient();

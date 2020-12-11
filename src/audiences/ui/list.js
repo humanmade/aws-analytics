@@ -76,6 +76,9 @@ const AudienceList = styled.div`
 	${ props => props.selectMode && selectModeCSS }
 `;
 
+/**
+ *
+ */
 class List extends Component {
 
 	state = {
@@ -92,6 +95,11 @@ class List extends Component {
 		console.error( error, errorInfo );
 	}
 
+	/**
+	 * Fetch posts on search.
+	 *
+	 * @param {Event} event Search typing event.
+	 */
 	onSearch = event => {
 		const value = event.target.value;
 		this.setState( {
@@ -104,6 +112,12 @@ class List extends Component {
 		}
 	}
 
+	/**
+	 * On audience selection.
+	 *
+	 * @param {Event} event Audience row click event.
+	 * @param {object} post Post object.
+	 */
 	onSelectRow = ( event, post ) => {
 		// Check if it's an active audience.
 		if ( post.status !== 'publish' ) {
@@ -127,6 +141,13 @@ class List extends Component {
 		this.props.onSelect && this.props.onSelect( post );
 	}
 
+	/**
+	 * Updates the audience priority.
+	 *
+	 * @param {Array} posts All posts in the list.
+	 * @param {number} index Current row index.
+	 * @param {string} direction The direction to move the audience.
+	 */
 	onMove = ( posts, index, direction = 'up' ) => {
 		const post = posts[ index ];
 		const directionInt = direction === 'up' ? -1 : 1;
@@ -142,6 +163,9 @@ class List extends Component {
 		} );
 	}
 
+	/**
+	 * Fetch the next page of results.
+	 */
 	onNextPage = () => {
 		const { page, search } = this.state;
 		this.props.onGetPosts( page + 1, search );
@@ -275,7 +299,13 @@ List.defaultProps = {
 		pages: 0,
 	},
 	posts: [],
+	/**
+	 *
+	 */
 	onGetPosts: () => { },
+	/**
+	 *
+	 */
 	onUpdatePost: () => { },
 };
 

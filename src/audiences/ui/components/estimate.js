@@ -46,7 +46,7 @@ const StyledEstimate = styled.div`
  * Audience size estimator.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Estimation component.
+ * @returns {React.ReactNode} Estimation component.
  */
 export default function Estimate( props ) {
 	const {
@@ -55,11 +55,12 @@ export default function Estimate( props ) {
 		title,
 	} = props;
 
+	const estimate = useSelect( select => audience && select( 'audience' ).getEstimate( audience ), [ audience ] );
+
 	if ( ! audience ) {
 		return null;
 	}
 
-	const estimate = useSelect( select => select( 'audience' ).getEstimate( audience ), [ audience ] );
 	const percent = estimate.total ? Math.round( ( estimate.count / estimate.total ) * 100 ) : 0;
 
 	return (

@@ -7,7 +7,7 @@ const { __ } = wp.i18n;
  * Audience status toggle.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Status toggle component.
+ * @returns {*} Status toggle component.
  */
 const StatusToggle = props => {
 	const {

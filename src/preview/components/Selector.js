@@ -1,6 +1,11 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useState } from 'react';
 
+/**
+ * Audience Preview Selector.
+ *
+ * @returns {React.ReactNode} Selector component.
+ */
 export default function Selector() {
 	const [ selected, setSelected ] = useState( Altis.Analytics.getAudiences() );
 	const {
@@ -22,7 +27,19 @@ export default function Selector() {
 		};
 	}, [] );
 
+	/**
+	 * Check selected status of Audience by ID.
+	 *
+	 * @param {number} id Audience ID.
+	 * @returns {boolean} True if selected.
+	 */
 	const isSelected = id => selected.indexOf( id ) >= 0;
+	/**
+	 * Handle toggling of audiences.
+	 *
+	 * @param {Event} e Event object.
+	 * @param {number} id The audience ID.
+	 */
 	const onClick = ( e, id ) => {
 		e.preventDefault();
 
