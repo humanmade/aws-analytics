@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Manager, Select } from './ui';
+
 // Import the data store file directly.
 import './ui/data';
 
@@ -19,6 +20,6 @@ if ( AudienceManager ) {
 	// Mount audience react app.
 	ReactDOM.render(
 		<Manager />,
-		AudienceManager,
+		AudienceManager
 	);
 }
