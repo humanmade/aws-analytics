@@ -45,7 +45,7 @@ const StyledEdit = styled.div`
 `;
 
 /**
- *
+ * Edit audience component.
  */
 class Edit extends Component {
 	state = {
@@ -237,24 +237,24 @@ Edit.defaultProps = {
 	postId: null,
 	saving: false,
 	/**
-	 *
+	 * Create post placeholder.
 	 */
 	onCreatePost: () => { },
 	onSelect: null,
 	/**
-	 *
+	 * Set audience placeholder.
 	 */
 	onSetAudience: () => { },
 	/**
-	 *
+	 * Set status placeholder.
 	 */
 	onSetStatus: () => { },
 	/**
-	 *
+	 * Set title placeholder.
 	 */
 	onSetTitle: () => { },
 	/**
-	 *
+	 * Update post placeholder.
 	 */
 	onUpdatePost: () => { },
 };

@@ -70,7 +70,7 @@ const StyledSelect = styled.div`
 `;
 
 /**
- *
+ * Select audience component.
  */
 class Select extends Component {
 

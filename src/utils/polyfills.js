@@ -29,15 +29,15 @@
 
 window.console = window.console || {
 	/**
-	 *
+	 * Log placeholder function.
 	 */
 	log: function () { },
 	/**
-	 *
+	 * Warn placeholder function.
 	 */
 	warn: function () { },
 	/**
-	 *
+	 * Error placeholder function.
 	 */
 	error: function () { },
 };
