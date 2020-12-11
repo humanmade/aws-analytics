@@ -11,6 +11,6 @@ namespace Altis\Analytics\Export;
  * @return void
  */
 function setup() {
-    $endpoint = new Endpoint();
-    $endpoint->bootstrap();
+	$endpoint = new Endpoint();
+	$endpoint->bootstrap();
 }
