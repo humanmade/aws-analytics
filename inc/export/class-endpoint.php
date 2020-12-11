@@ -42,7 +42,7 @@ class Endpoint {
 					'chunk_size' => [
 						'description' => 'How many records to return per chunk.',
 						'type' => 'number',
-						'default' => 2000,
+						'default' => 3000,
 					],
 					'format' => [
 						'description' => 'The data format to get results in, one of json or csv.',
@@ -137,11 +137,11 @@ class Endpoint {
 		header( sprintf( 'X-WP-Total: %d', $total ) );
 
 		// Determine the chunk size.
-		$per_page = $request->get_param( 'per_page' ); // Should not be more than 10000.
-		$per_page = max( 1, $per_page );
+		$chunk_size = $request->get_param( 'chunk_size' ); // Should not be more than 10000.
+		$chunk_size = min( 9000, max( 1, $chunk_size ) );
 
 		// Elasticsearch slices need at least 2 pages and no more than 1024 by default.
-		$total_pages = (int) ceil( $total / $per_page );
+		$total_pages = (int) ceil( $total / $chunk_size );
 		$total_pages = min( 1024, max( $total_pages, 2 ) );
 
 		// Collect all the fields we'll need ahead of time for CSV output.
@@ -150,6 +150,7 @@ class Endpoint {
 		// Begin output.
 		if ( $format === 'json' ) {
 			echo "[\n";
+			flush();
 		} else {
 			// Fetch all available columns across all indices if we're sending a csv, we need these for the 1st line.
 			$index_mappings = Utils\query( [], [
@@ -165,8 +166,12 @@ class Endpoint {
 
 			sort( $fields );
 
+			// Get PHP output handle.
+			$handle = fopen( 'php://output', 'w' );
+
 			// Write columns headings line.
-			fputcsv( fopen( 'php://output', 'w' ), $fields ) . "\n";
+			fputcsv( $handle, $fields ) . "\n";
+			fflush( $handle );
 		}
 
 		// Track the scroll ID, default to _all.
@@ -182,7 +187,7 @@ class Endpoint {
 				],
 				// Elasticsearch needs this even if slice is set, maximum value is 10000.
 				// We give it a higher number than per_page so all results within the slice are returned.
-				'size' => min( 10000, $per_page + 1000 ),
+				'size' => min( 10000, $chunk_size + 1000 ),
 			];
 
 			// Keep the scroll query alive for 1 minute per page of data.
@@ -205,6 +210,7 @@ class Endpoint {
 				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
 				// Add a comma in between result sets except for the last page.
 				echo $page === $total_pages - 1 ? '' : ',';
+				flush();
 			} else {
 				foreach ( $events as $event ) {
 					$event = Utils\flatten_array( $event );
@@ -214,15 +220,15 @@ class Endpoint {
 					}
 
 					fputcsv( fopen( 'php://output', 'w' ), $row ) . "\n";
+					fflush( $handle );
 				}
 			}
-
-			flush();
 		}
 
 		// Close out the JSON array.
 		if ( $format === 'json' ) {
 			echo ']';
+			flush();
 		}
 
 		// Cleanup resource heavy scroll query.
