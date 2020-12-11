@@ -26,7 +26,7 @@ const StyledManager = styled.div`
 `;
 
 /**
- *
+ * Audience manager component.
  */
 class Manager extends Component {
 

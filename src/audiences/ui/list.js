@@ -78,7 +78,7 @@ const AudienceList = styled.div`
 `;
 
 /**
- *
+ * Audience list component.
  */
 class List extends Component {
 
