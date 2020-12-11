@@ -148,9 +148,6 @@ function get_elasticsearch_version() : string {
  * @return array|null
  */
 function query( array $query, array $params = [], string $path = '_search', string $method = 'POST' ) : ?array {
-	// Raise memory limit for analytics requests.
-	wp_raise_memory_limit( 'analytics' );
-
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
