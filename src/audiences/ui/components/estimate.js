@@ -55,7 +55,7 @@ export default function Estimate( props ) {
 		title,
 	} = props;
 
-	const estimate = useSelect( select => audience && select( 'audience' ).getEstimate( audience ), [ audience ] );
+	const estimate = useSelect( select => select( 'audience' ).getEstimate( audience ), [ audience ] );
 
 	if ( ! audience ) {
 		return null;
