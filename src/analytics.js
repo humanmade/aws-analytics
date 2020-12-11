@@ -82,7 +82,7 @@ for ( const qv in params ) {
 /**
  * Get unique session ID.
  *
- * @returns {?string}
+ * @returns {?string} The UUID for the current session.
  */
 const getSessionID = () => {
 	if ( typeof window.sessionStorage === 'undefined' ) {
@@ -667,8 +667,6 @@ document.addEventListener( 'visibilitychange', () => {
 
 /**
  * Record the default page view.
- *
- * @returns void
  */
 const recordPageView = () => {
 	// Session start.
@@ -702,7 +700,6 @@ window.Altis.Analytics.record = Analytics.record;
  *
  * @param {string} name The attribute name.
  * @param {*} value The attribute value, can be a string, or callback or Promise that returns a string.
- * @returns void
  */
 window.Altis.Analytics.registerAttribute = ( name, value ) => {
 	_attributes[ name ] = value;
