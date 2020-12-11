@@ -11,9 +11,10 @@ import {
 	overwriteMerge,
 	prepareAttributes,
 	prepareMetrics,
-	uuid,
+	uuid
 } from './utils';
 import './utils/polyfills';
+
 
 const {
 	Config,
@@ -81,7 +82,7 @@ for ( const qv in params ) {
 /**
  * Get unique session ID.
  *
- * @returns String|null
+ * @returns {?String}
  */
 const getSessionID = () => {
 	if ( typeof window.sessionStorage === 'undefined' ) {
@@ -104,8 +105,8 @@ const getSessionID = () => {
 /**
  * Returns current set of default and registered attributes.
  *
- * @param {Object} extra Additional attributes to log.
- * @returns Object
+ * @param {object} extra Additional attributes to log.
+ * @returns {object}
  */
 const getAttributes = ( extra = {} ) => ( {
 	date: new Date().toISOString(),
@@ -125,8 +126,8 @@ const getAttributes = ( extra = {} ) => ( {
 /**
  * Return current set of default and registered metrics.
  *
- * @param {Object} extra Additional metrics to log.
- * @returns Object
+ * @param {object} extra Additional metrics to log.
+ * @returns {object}
  */
 const getMetrics = ( extra = {} ) => ( {
 	elapsed: elapsed + ( Date.now() - start ),
