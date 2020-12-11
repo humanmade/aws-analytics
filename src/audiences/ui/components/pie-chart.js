@@ -28,14 +28,14 @@ const StyledPie = styled.svg`
  * Audience size pie chart.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Pie chart component.
+ * @returns {React.ReactNode} Pie chart component.
  */
 export default function PieChart( props ) {
 	return (
 		<StyledPie viewBox="0 0 36 36" { ...props }>
-			<circle r="16" cx="18" cy="18" />
-			<circle data-percent r="16" cx="18" cy="18" />
-			<text x="18" y="21" textAnchor="middle">{ props.percent }%</text>
+			<circle cx="18" cy="18" r="16" />
+			<circle cx="18" cy="18" data-percent r="16" />
+			<text textAnchor="middle" x="18" y="21">{ props.percent }%</text>
 		</StyledPie>
 	);
 }

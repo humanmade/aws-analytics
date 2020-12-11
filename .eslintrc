@@ -6,6 +6,7 @@
 	},
 	"rules": {
 		"no-multi-str": "off",
-		"no-console": "off"
+		"no-console": "off",
+		"jsdoc/no-undefined-types": "off"
 	}
 }

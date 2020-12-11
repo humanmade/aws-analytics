@@ -17,7 +17,7 @@ const StyledSelect = styled.select`
  * Include selector.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Include selector component.
+ * @returns {React.ReactNode} Include selector component.
  */
 export default function SelectInclude( props ) {
 	return (

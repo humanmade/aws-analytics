@@ -18,6 +18,7 @@ const { __ } = wp.i18n;
  * Audience list row component.
  *
  * @param {object} props Component props.
+ * @returns {React.ReactNode} List row component.
  */
 const ListRow = props => {
 	const {
@@ -39,17 +40,31 @@ const ListRow = props => {
 	const deletePost = useDeletePost();
 	const updatePost = useUpdatePost();
 
+	/**
+	 * Delete post handler.
+	 */
 	const onDeletePost = () => {
 		if ( window.confirm( __( 'Are you sure you want to delete this audience?', 'altis-anlaytics' ) ) ) {
 			deletePost( post.id );
 		}
 	};
 
+	/**
+	 * Audience status change handler.
+	 *
+	 * @returns {void}
+	 */
 	const onStatusChange = () => updatePost( {
 		id: post.id,
 		status: post.status === 'publish' ? 'draft' : 'publish',
 	} );
 
+	/**
+	 * Audience on edit link component.
+	 *
+	 * @param {object} props Component props.
+	 * @returns {ActionLink} Action link component.
+	 */
 	const EditLink = props => (
 		<ActionLink
 			label={ __( 'Edit “%s”' ) }
@@ -59,6 +74,12 @@ const ListRow = props => {
 		/>
 	);
 
+	/**
+	 * Audience trash link component.
+	 *
+	 * @param {object} props Component props.
+	 * @returns {ActionLink} Action link component.
+	 */
 	const TrashLink = props => (
 		<ActionLink
 			className="is-destructive"
@@ -143,6 +164,9 @@ const ListRow = props => {
 };
 
 ListRow.defaultProps = {
+	/**
+	 * Default click handler.
+	 */
 	onClick: () => {},
 };
 

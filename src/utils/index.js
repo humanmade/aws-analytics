@@ -4,6 +4,9 @@
 
 /**
  * Generate a UUID v4 string.
+ *
+ * @param {?number} placeholder UUID placeholder.
+ * @returns {string} A new UUID.
  */
 export const uuid = placeholder =>
 	placeholder
@@ -13,8 +16,9 @@ export const uuid = placeholder =>
 /**
  * Get a throttled version of a function to reduce event trigger rates.
  *
- * @param {int} delay Milliseconds to delay function call by.
- * @param {callable} fn Callback.
+ * @param {number} delay Milliseconds to delay function call by.
+ * @param {Function} fn Callback.
+ * @returns {Function} Throttled function.
  */
 export const throttle = ( delay, fn ) => {
 	let lastCall = 0;
@@ -30,22 +34,26 @@ export const throttle = ( delay, fn ) => {
 
 /**
  * Get browser locale / language.
+ *
+ * @returns {string} The browser locale code.
  */
 export const getLanguage = () => ( navigator.language || navigator.browserLanguage || ( navigator.languages || [ 'en_US' ] )[ 0 ] ).toLowerCase().replace( '-', '_' );
 
 /**
  * Array merge function for deepmerge.
  *
- * @param {Array} destinationArray
- * @param {Array} sourceArray
+ * @param {Array} destinationArray The array to merge into.
+ * @param {Array} sourceArray The original array.
+ * @returns {Array} The original array.
  */
 export const overwriteMerge = ( destinationArray, sourceArray ) => sourceArray;
 
 /**
  * Resolves an attribute or metric value and sanitize it.
  *
- * @param {mixed} value
- * @param {Function} sanitizeCallback
+ * @param {*} value Property value.
+ * @param {Function} sanitizeCallback Callback to correct the type.
+ * @returns {*} Sanitized value.
  */
 const prepareData = async ( value, sanitizeCallback ) => {
 	if ( typeof value === 'function' ) {
@@ -57,7 +65,8 @@ const prepareData = async ( value, sanitizeCallback ) => {
 /**
  * Ensure value is a string or array of strings.
  *
- * @param {mixed} value
+ * @param {*} value Attribute to sanitize.
+ * @returns {string} Attribute value as a string.
  */
 const sanitizeAttribute = value => Array.isArray( value )
 	? value.map( val => val.toString() )
@@ -66,15 +75,17 @@ const sanitizeAttribute = value => Array.isArray( value )
 /**
  * Ensure value is a single float.
  *
- * @param {mixed} value
+ * @param {*} value Metric to sanitize.
+ * @returns {number} Sanitized metric value.
  */
 const sanitizeMetric = value => parseFloat( Number( Array.isArray( value ) ? value[0] : value ) );
 
 /**
  * Prepares an object for inclusion in endpoint data or event data.
  *
- * @param {Object} attributes
- * @param {Boolean} asArray If true ensure an array of strings is returned for each property
+ * @param {object} attributes Attributes object.
+ * @param {boolean} asArray If true ensure an array of strings is returned for each property.
+ * @returns {object} The sanitized attributes.
  */
 export const prepareAttributes = async ( attributes, asArray = false ) => {
 	const sanitized = {};
@@ -92,7 +103,8 @@ export const prepareAttributes = async ( attributes, asArray = false ) => {
 /**
  * Prepares an object for inclusion in endpoint data or event data.
  *
- * @param {Object} metrics
+ * @param {object} metrics Metrics object.
+ * @returns {object} Sanitized metrics object.
  */
 export const prepareMetrics = async metrics => {
 	const sanitized = {};

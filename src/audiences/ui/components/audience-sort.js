@@ -30,7 +30,7 @@ const StyledAudienceSort = styled.span`
  * The audience sort buttons component.
  *
  * @param {object} props Component props.
- * @returns {ReactNode} Audience sorting component.
+ * @returns {React.ReactNode} Audience sorting component.
  */
 const AudienceSort = props => {
 	const {

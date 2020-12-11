@@ -44,6 +44,9 @@ const StyledEdit = styled.div`
 	}
 `;
 
+/**
+ *
+ */
 class Edit extends Component {
 	state = {
 		notice: null,
@@ -58,6 +61,11 @@ class Edit extends Component {
 		console.error( error, errorInfo );
 	}
 
+	/**
+	 * Handle audience save / update.
+	 *
+	 * @param {Event} event Audience edit form submit event.
+	 */
 	onSubmit = event => {
 		// Clear errors.
 		this.setState( { error: null } );
@@ -228,11 +236,26 @@ Edit.defaultProps = {
 	post: defaultPost,
 	postId: null,
 	saving: false,
+	/**
+	 *
+	 */
 	onCreatePost: () => { },
 	onSelect: null,
+	/**
+	 *
+	 */
 	onSetAudience: () => { },
+	/**
+	 *
+	 */
 	onSetStatus: () => { },
+	/**
+	 *
+	 */
 	onSetTitle: () => { },
+	/**
+	 *
+	 */
 	onUpdatePost: () => { },
 };
 
@@ -277,20 +300,40 @@ const applyWithDispatch = withDispatch( dispatch => {
 	} = dispatch( 'audience' );
 
 	return {
+		/**
+		 * @param {object} post Post object data.
+		 * @returns {void}
+		 */
 		onCreatePost: post => createPost( post ),
+		/**
+		 * @param {object} value Audience config object.
+		 * @returns {void}
+		 */
 		onSetAudience: value => updateCurrentPost( { audience: value } ),
+		/**
+		 * @param {string} value New post title.
+		 * @returns {void}
+		 */
 		onSetTitle: value => updateCurrentPost( {
 			title: {
 				rendered: value,
 				raw: value,
 			},
 		} ),
+		/**
+		 * @param {string} value New post status.
+		 * @returns {void}
+		 */
 		onSetStatus: value => updateCurrentPost( { status: value } ),
+		/**
+		 * @param {object} post Post object with updates.
+		 * @returns {void}
+		 */
 		onUpdatePost: post => updatePost( post ),
 	};
 } );
 
 export default compose(
 	applyWithDispatch,
-	applyWithSelect,
+	applyWithSelect
 )( Edit );
