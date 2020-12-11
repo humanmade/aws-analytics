@@ -78,6 +78,10 @@ class Endpoint {
 			return $dates;
 		}
 
+		// Raise memory and timeout limit for export request.
+		wp_raise_memory_limit( 'analytics' );
+		set_time_limit( 0 );
+
 		// Manually stream the response, as there is likely too much to hold in memory at once.
 		header( 'X-Accel-Buffering: no' );
 
