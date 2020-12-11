@@ -659,8 +659,11 @@ function get_field_data() : ?array {
 		return $result;
 	}
 
+	// Get the total in a backwards compatible way.
+	$total = $result['hits']['total']['value'] ?? $result['hits']['total'];
+
 	// Do we have any results? If not, there's no aggregations.
-	if ( $result['hits']['total'] === 0 && empty( $result['aggregations'] ) ) {
+	if ( $total === 0 && empty( $result['aggregations'] ) ) {
 		// Cache the data.
 		wp_cache_set( $key, [], 'altis-audiences', HOUR_IN_SECONDS );
 
