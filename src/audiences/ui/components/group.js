@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 
+import { defaultRule } from '../data/defaults';
+
 import Rule from './rule';
 import SelectInclude from './select-include';
-import { defaultRule } from '../data/defaults';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
