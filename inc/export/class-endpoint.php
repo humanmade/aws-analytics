@@ -1,11 +1,7 @@
 <?php
 /**
  * REST API endpoint to retrieve all the Altis Analytics data for a particular date.
- *
- * Displays 5000 items at once, after that there's pagination.
  */
-
-declare( strict_types=1 );
 
 namespace Altis\Analytics\Export;
 
@@ -47,12 +43,12 @@ class Endpoint {
 						'description' => 'How many records to return per chunk.',
 						'type' => 'number',
 						'default' => 2000,
-                    ],
-                    'format' => [
-                        'description' => 'The data format to get results in, one of json or csv.',
-                        'type' => 'string',
-                        'enum' => [ 'json', 'csv' ],
-                        'default' => 'json',
+					],
+					'format' => [
+						'description' => 'The data format to get results in, one of json or csv.',
+						'type' => 'string',
+						'enum' => [ 'json', 'csv' ],
+						'default' => 'json',
 					],
 				],
 				[
@@ -205,6 +201,7 @@ class Endpoint {
 			$events = wp_list_pluck( $results['hits']['hits'], '_source' );
 
 			if ( $format === 'json' ) {
+				// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped
 				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
 				// Add a comma in between result sets except for the last page.
 				echo $page === $total_pages - 1 ? '' : ',';
@@ -225,7 +222,7 @@ class Endpoint {
 
 		// Close out the JSON array.
 		if ( $format === 'json' ) {
-			echo "]";
+			echo ']';
 		}
 
 		// Cleanup resource heavy scroll query.
@@ -237,6 +234,7 @@ class Endpoint {
 	/**
 	 * Removes any existing Elasticsearch search scrolls.
 	 *
+	 * @param array $scroll_ids A list of scroll IDs to be removed.
 	 * @return void
 	 */
 	private function clear_search_scroll( array $scroll_ids ) {

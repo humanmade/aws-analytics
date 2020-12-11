@@ -367,7 +367,6 @@ function get_field_type( string $field ) : ?string {
  *
  * @param array $data The array to flatten.
  * @param string $prefix The current key prefix.
- * @param callable|null $sanitize_callback Optional value sanitization callback.
  * @return array
  */
 function flatten_array( array $data, string $prefix = '' ) : array {
@@ -377,7 +376,7 @@ function flatten_array( array $data, string $prefix = '' ) : array {
 	foreach ( $data as $key => $value ) {
 		if ( is_array( $value ) ) {
 			// For non associative arrays we need to combine the values into one.
-			if ( ! empty( array_filter( array_keys( $value ), 'is_int' ) ) ) {
+			if ( count( $value ) === count( array_filter( array_keys( $value ), 'is_int' ) ) ) {
 				$flattened[ "{$prefix}{$key}" ] = implode( ';', $value );
 			} else {
 				$flattened = array_merge( $flattened, flatten_array( $value, "{$prefix}{$key}" ) );
