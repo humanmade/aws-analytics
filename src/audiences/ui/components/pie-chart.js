@@ -24,6 +24,12 @@ const StyledPie = styled.svg`
 	}
 `;
 
+/**
+ * Audience size pie chart.
+ *
+ * @param {object} props Component props.
+ * @returns {ReactNode} Pie chart component.
+ */
 export default function PieChart( props ) {
 	return (
 		<StyledPie viewBox="0 0 36 36" { ...props }>

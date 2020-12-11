@@ -47,6 +47,12 @@ const ClearableInput = styled.div`
 	}
 `;
 
+/**
+ * Rule editor component.
+ *
+ * @param {object} props Component props.
+ * @returns {ReactNode} Rule input component.
+ */
 const RuleInput = props => {
 	const {
 		disabled,

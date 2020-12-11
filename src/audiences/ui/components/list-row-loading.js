@@ -1,6 +1,9 @@
 import React from 'react';
 import ContentLoader from 'react-content-loader';
 
+/**
+ * Audience list loading component.
+ */
 const ListRowLoading = () => (
 	<tr>
 		<td>

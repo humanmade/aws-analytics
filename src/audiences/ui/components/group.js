@@ -32,6 +32,9 @@ const StyledGroup = styled.div`
 	}
 `;
 
+/**
+ * Rule Group editor component.
+ */
 export default class Group extends Component {
 	onAddRule = () => {
 		this.props.onChange( {
