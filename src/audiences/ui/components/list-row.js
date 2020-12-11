@@ -1,14 +1,16 @@
 import React, { Fragment } from 'react';
-import ActionLink from './action-link';
-import AudienceSort from './audience-sort';
-import Estimate from './estimate';
-import StatusToggle from './status-toggle';
+
 import {
 	useCanDelete,
 	useCanEdit,
 	useDeletePost,
 	useUpdatePost,
 } from '../data/hooks';
+
+import ActionLink from './action-link';
+import AudienceSort from './audience-sort';
+import Estimate from './estimate';
+import StatusToggle from './status-toggle';
 
 const { Button } = wp.components;
 const { decodeEntities } = wp.htmlEntities;

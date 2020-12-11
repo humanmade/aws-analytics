@@ -1,10 +1,11 @@
+import Fuse from 'fuse.js';
+import { memoize } from 'lodash';
 import React, { Component, Fragment } from 'react';
 import styled, { css } from 'styled-components';
-import { memoize } from 'lodash';
-import Fuse from 'fuse.js';
+
+import ListRow from './components/list-row';
 import ListRowHeading from './components/list-row-heading';
 import ListRowLoading from './components/list-row-loading';
-import ListRow from './components/list-row';
 
 const { compose } = wp.compose;
 const {

@@ -57,7 +57,6 @@ export default function Selector() {
 	return (
 		<>
 			<a
-				aria-haspopup="true"
 				className="ab-item"
 				href="#qm-overview"
 			>

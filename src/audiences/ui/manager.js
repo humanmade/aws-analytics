@@ -1,8 +1,9 @@
 import React, { Component, createRef } from 'react';
 import styled from 'styled-components';
+
+import { defaultPost } from './data/defaults';
 import Edit from './edit';
 import List from './list';
-import { defaultPost } from './data/defaults';
 
 const { withSelect, withDispatch } = wp.data;
 const { Button } = wp.components;
