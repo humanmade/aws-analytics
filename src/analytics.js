@@ -6,15 +6,15 @@ import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient'
 import { parseQueryString } from '@aws-sdk/querystring-parser';
 import merge from 'deepmerge';
 import UAParser from 'ua-parser-js';
+
 import {
 	getLanguage,
 	overwriteMerge,
 	prepareAttributes,
 	prepareMetrics,
-	uuid
+	uuid,
 } from './utils';
 import './utils/polyfills';
-
 
 const {
 	Config,
@@ -82,7 +82,7 @@ for ( const qv in params ) {
 /**
  * Get unique session ID.
  *
- * @returns {?String}
+ * @returns {?string}
  */
 const getSessionID = () => {
 	if ( typeof window.sessionStorage === 'undefined' ) {
@@ -106,7 +106,7 @@ const getSessionID = () => {
  * Returns current set of default and registered attributes.
  *
  * @param {object} extra Additional attributes to log.
- * @returns {object}
+ * @returns {object} Attributes data.
  */
 const getAttributes = ( extra = {} ) => ( {
 	date: new Date().toISOString(),
@@ -127,7 +127,7 @@ const getAttributes = ( extra = {} ) => ( {
  * Return current set of default and registered metrics.
  *
  * @param {object} extra Additional metrics to log.
- * @returns {object}
+ * @returns {object} Metrics data.
  */
 const getMetrics = ( extra = {} ) => ( {
 	elapsed: elapsed + ( Date.now() - start ),
@@ -665,7 +665,11 @@ document.addEventListener( 'visibilitychange', () => {
 	}
 } );
 
-// Start recording after document is interactive.
+/**
+ * Record the default page view.
+ *
+ * @returns void
+ */
 const recordPageView = () => {
 	// Session start.
 	Analytics.record( '_session.start' );
@@ -692,10 +696,25 @@ window.Altis.Analytics.overrideAudiences = Analytics.overrideAudiences;
 window.Altis.Analytics.on = Analytics.on;
 window.Altis.Analytics.off = Analytics.off;
 window.Altis.Analytics.record = Analytics.record;
+
+/**
+ * Add a default attribute for all events.
+ *
+ * @param {string} name The attribute name.
+ * @param {*} value The attribute value, can be a string, or callback or Promise that returns a string.
+ * @returns void
+ */
 window.Altis.Analytics.registerAttribute = ( name, value ) => {
 	_attributes[ name ] = value;
 	Analytics.updateAudiences();
 };
+
+/**
+ * Add a default metric for all events.
+ *
+ * @param {string} name The metric name.
+ * @param {*} value The metric value, can be a number, or callback or Promise that returns a number.
+ */
 window.Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
