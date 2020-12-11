@@ -5,6 +5,12 @@ import {
 	STRING_OPERATIONS,
 } from '../data/constants';
 
+/**
+ * Operator selector.
+ *
+ * @param {object} props Component props.
+ * @returns {ReactNode} Select operator component.
+ */
 export default function SelectOperator( props ) {
 	const {
 		type = 'string',

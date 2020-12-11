@@ -2,6 +2,11 @@ import React from 'react';
 
 const { __ } = wp.i18n;
 
+/**
+ * Audience listing headers.
+ *
+ * @param {object} props Component props.
+ */
 const ListRowHeading = props => (
 	<tr>
 		<th scope="col" className="manage-column column-order">

@@ -10,6 +10,9 @@ const StyledModal = styled.div`
 	}
 `;
 
+/**
+ * Audience Editor Modal.
+ */
 class Modal extends Component {
 	constructor( props ) {
 		super( props );

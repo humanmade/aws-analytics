@@ -42,6 +42,12 @@ const StyledEstimate = styled.div`
 	}
 `;
 
+/**
+ * Audience size estimator.
+ *
+ * @param {object} props Component props.
+ * @returns {ReactNode} Estimation component.
+ */
 export default function Estimate( props ) {
 	const {
 		audience,

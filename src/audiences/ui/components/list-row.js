@@ -14,6 +14,11 @@ const { Button } = wp.components;
 const { decodeEntities } = wp.htmlEntities;
 const { __ } = wp.i18n;
 
+/**
+ * Audience list row component.
+ *
+ * @param {object} props Component props.
+ */
 const ListRow = props => {
 	const {
 		canMoveDown,

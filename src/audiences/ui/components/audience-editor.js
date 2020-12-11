@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 
-import Group from './group';
-import SelectInclude from './select-include';
 import {
 	defaultAudience,
 	defaultGroup,
 } from '../data/defaults';
+
+import Group from './group';
+import SelectInclude from './select-include';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
@@ -19,6 +20,9 @@ const StyledAudienceEditor = styled.div`
 	}
 `;
 
+/**
+ * Audience Editor Component.
+ */
 export default class AudienceEditor extends Component {
 	onChangeInclude = e => {
 		this.props.onChange( {
