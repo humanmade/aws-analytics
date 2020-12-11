@@ -1,11 +1,12 @@
+const path = require( 'path' );
+
 const { CleanWebpackPlugin } = require( 'clean-webpack-plugin' );
 const DynamicPublicPathPlugin = require( 'dynamic-public-path-webpack-plugin' );
-const path = require( 'path' );
 const webpack = require( 'webpack' );
 const BundleAnalyzerPlugin = require( 'webpack-bundle-analyzer' )
 	.BundleAnalyzerPlugin;
-const SriPlugin = require( 'webpack-subresource-integrity' );
 const ManifestPlugin = require( 'webpack-manifest-plugin' );
+const SriPlugin = require( 'webpack-subresource-integrity' );
 
 const mode = process.env.NODE_ENV || 'production';
 
