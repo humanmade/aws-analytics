@@ -3,6 +3,12 @@ import React from 'react';
 const { ToggleControl } = wp.components;
 const { __ } = wp.i18n;
 
+/**
+ * Audience status toggle.
+ *
+ * @param {object} props Component props.
+ * @returns {*} Status toggle component.
+ */
 const StatusToggle = props => {
 	const {
 		disabled,

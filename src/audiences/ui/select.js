@@ -1,7 +1,8 @@
 import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
-import Manager from './manager';
+
 import Modal from './components/modal';
+import Manager from './manager';
 
 const {
 	IconButton,
@@ -68,6 +69,9 @@ const StyledSelect = styled.div`
 	}
 `;
 
+/**
+ * Select audience component.
+ */
 class Select extends Component {
 
 	state = {

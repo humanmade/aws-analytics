@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 
-import Group from './group';
-import SelectInclude from './select-include';
 import {
 	defaultAudience,
 	defaultGroup,
 } from '../data/defaults';
+
+import Group from './group';
+import SelectInclude from './select-include';
 
 const { __ } = wp.i18n;
 const { Button } = wp.components;
@@ -19,7 +20,15 @@ const StyledAudienceEditor = styled.div`
 	}
 `;
 
+/**
+ * Audience Editor Component.
+ */
 export default class AudienceEditor extends Component {
+	/**
+	 * Change rule inclusion setting/
+	 *
+	 * @param {Event} e Change event object.
+	 */
 	onChangeInclude = e => {
 		this.props.onChange( {
 			...this.props.audience,
@@ -27,6 +36,9 @@ export default class AudienceEditor extends Component {
 		} );
 	}
 
+	/**
+	 * Add rule group handler.
+	 */
 	onAddGroup = () => {
 		this.props.onChange( {
 			...this.props.audience,
@@ -37,6 +49,12 @@ export default class AudienceEditor extends Component {
 		} );
 	}
 
+	/**
+	 * Update group handler.
+	 *
+	 * @param {number} id Group index.
+	 * @param {object} group Group config object.
+	 */
 	onUpdateGroup = ( id, group = {} ) => {
 		const { audience } = this.props;
 		this.props.onChange( {
@@ -52,6 +70,11 @@ export default class AudienceEditor extends Component {
 		} );
 	}
 
+	/**
+	 * Remove group handler.
+	 *
+	 * @param {number} id Group index.
+	 */
 	onRemoveGroup = id => {
 		const { audience } = this.props;
 		this.props.onChange( {
@@ -105,5 +128,8 @@ export default class AudienceEditor extends Component {
 AudienceEditor.defaultProps = {
 	audience: defaultAudience,
 	fields: [],
+	/**
+	 * Default group update handler.
+	 */
 	onChange: () => {},
 };
