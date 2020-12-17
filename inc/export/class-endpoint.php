@@ -82,13 +82,15 @@ class Endpoint {
 		header( 'X-Accel-Buffering: no' );
 
 		// Check accept header for format.
-		$parsed_header = Utils\parse_accept_header( $request->get_header( 'accept' ) );
-		$accept_type = Utils\find_best_accept_header_match( $parsed_header, [
-			'application/json',
-			'text/csv',
-		] );
-
-		$format = $accept_type === 'text/csv' ? 'csv' : $request->get_param( 'format' );
+		$format = $request->get_param( 'format' );
+		if ( ! empty( $request->get_header( 'accept' ) ) ) {
+			$parsed_header = Utils\parse_accept_header( $request->get_header( 'accept' ) );
+			$accept_type = Utils\find_best_accept_header_match( $parsed_header, [
+				'application/json',
+				'text/csv',
+			] );
+			$format = $accept_type === 'text/csv' ? 'csv' : $request->get_param( 'format' );
+		}
 
 		// Set content type header.
 		if ( $format === 'json' ) {
