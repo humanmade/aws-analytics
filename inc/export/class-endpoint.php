@@ -152,15 +152,28 @@ class Endpoint {
 			echo "[\n";
 			flush();
 		} else {
+			// Field mapping include a type key before the property names.
+			$filter_path = '-*.mappings.*.*keyword,-*.mappings.*._*,-*.mappings.*.*.*.*';
+			if ( version_compare( Utils\get_elasticsearch_version(), '7', '>=' ) ) {
+				$filter_path = '-*.mappings.*keyword,-*.mappings._*,-*.mappings.*.*.*';
+			}
+
 			// Fetch all available columns across all indices if we're sending a csv, we need these for the 1st line.
 			$index_mappings = Utils\query( [], [
 				'ignore_unavailable' => 'false',
 				'include_defaults' => 'false',
-				'filter_path' => '-*.mappings.*keyword,-*.mappings._*,-*.mappings.*.*.*',
+				'filter_path' => $filter_path,
 			], '_mapping/field/*', 'GET' );
 
 			foreach ( $index_mappings as $mapping ) {
-				$fields = array_merge( $fields, array_keys( $mapping['mappings'] ) );
+				// ES 6.x compatibility.
+				if ( version_compare( Utils\get_elasticsearch_version(), '7', '<' ) ) {
+					$fields = array_merge( $fields, array_keys( $mapping['mappings']['_doc'] ?? [] ) );
+					$fields = array_merge( $fields, array_keys( $mapping['mappings']['record'] ?? [] ) );
+				} else {
+					$fields = array_merge( $fields, array_keys( $mapping['mappings'] ) );
+				}
+
 				$fields = array_unique( $fields );
 			}
 
