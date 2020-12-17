@@ -6,6 +6,13 @@
 		return false;
 	}
 
+	/**
+	 * Creates a custom event handler.
+	 *
+	 * @param {string} event The event name.
+	 * @param {object} params The event options.
+	 * @returns {Event} The new custom event.
+	 */
 	function CustomEvent( event, params ) {
 		params = params || {
 			bubbles: false,
@@ -21,7 +28,16 @@
 } )();
 
 window.console = window.console || {
+	/**
+	 * Log placeholder function.
+	 */
 	log: function () { },
+	/**
+	 * Warn placeholder function.
+	 */
 	warn: function () { },
+	/**
+	 * Error placeholder function.
+	 */
 	error: function () { },
 };

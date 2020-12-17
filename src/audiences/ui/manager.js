@@ -1,8 +1,9 @@
 import React, { Component, createRef } from 'react';
 import styled from 'styled-components';
+
+import { defaultPost } from './data/defaults';
 import Edit from './edit';
 import List from './list';
-import { defaultPost } from './data/defaults';
 
 const { withSelect, withDispatch } = wp.data;
 const { Button } = wp.components;
@@ -24,6 +25,9 @@ const StyledManager = styled.div`
 	}
 `;
 
+/**
+ * Audience manager component.
+ */
 class Manager extends Component {
 
 	constructor( props ) {
@@ -51,18 +55,24 @@ class Manager extends Component {
 				action: {
 					permission: canCreate,
 					label: __( 'Add New', 'altis-analytics' ),
+					/**
+					 * Switch to edit state.
+					 */
 					onClick: () => {
 						onSetCurrentPost( defaultPost );
 						this.setState( { view: 'edit' } );
 					},
 				},
+				/**
+				 * @returns {React.ReactNode} List interface.
+				 */
 				body: () => (
 					<List
-						onSelect={ onSelect }
 						onEdit={ post => {
 							onSetCurrentPost( post || defaultPost );
 							this.setState( { view: 'edit' } );
 						} }
+						onSelect={ onSelect }
 					/>
 				),
 			},
@@ -71,8 +81,16 @@ class Manager extends Component {
 				action: {
 					permission: true,
 					label: __( 'Back to Audiences', 'altis-analytics' ),
+					/**
+					 * Switch to list state.
+					 *
+					 * @returns {void}
+					 */
 					onClick: () => this.setState( { view: 'list' } ),
 				},
+				/**
+				 * @returns {React.ReactNode} Edit view.
+				 */
 				body: () => <Edit onSelect={ onSelect } />,
 			},
 		};
