@@ -8,7 +8,6 @@
 namespace Altis\Analytics;
 
 use Altis\Analytics\Utils;
-use Altis\Consent;
 use Aws\S3\S3Client;
 use DateInterval;
 use DateTime;
@@ -225,9 +224,9 @@ function enqueue_scripts() {
 	/**
 	 * Filters the consent cookie prefix to integrate with the WordPress Consent API.
 	 *
-	 * @param string|false $cookie_prefix The consent cookie prefix or false to skip consent check.
+	 * @param string|null $cookie_prefix The consent cookie prefix or false to skip consent check.
 	 */
-	$consent_cookie = apply_filters( 'altis.analytics.consent_cookie_prefix', false );
+	$consent_cookie = apply_filters( 'altis.analytics.consent_cookie_prefix', null );
 
 	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
