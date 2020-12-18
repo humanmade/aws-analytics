@@ -232,7 +232,7 @@ function enqueue_scripts() {
 	$consent_cookie_prefix = apply_filters( 'altis.analytics.consent_cookie_prefix', null );
 
 	/**
-	 * Filters the consent cookie prefix to integrate with the WordPress Consent API.
+	 * Filters the consent category required to run analytics.
 	 *
 	 * @param string $consent_category The consent category to allow analytics to run with.
 	 */
