@@ -829,9 +829,9 @@ const isAnonymous = ! ( Data.Endpoint && Data.Endpoint.User && Data.Endpoint.Use
 const consentType = 'statistics' + ( isAnonymous ? '-anonymous' : '' );
 
 // Check Altis Consent feature is in use.
-if ( Altis.Analytics.UseConsent ) {
+if ( Altis.Analytics.ConsentCookie ) {
 	// Check cookie directly for an early match.
-	if ( document.cookie.match( `_altis_consent_${ consentType }=allow` ) ) {
+	if ( document.cookie.match( `${ Altis.Analytics.ConsentCookie }_${ consentType }=allow` ) ) {
 		startAnalytics();
 	} else {
 		// Otherwise listen for a consent change.
