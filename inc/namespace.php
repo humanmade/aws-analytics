@@ -8,6 +8,7 @@
 namespace Altis\Analytics;
 
 use Altis\Analytics\Utils;
+use Altis\Consent;
 use Aws\S3\S3Client;
 use DateInterval;
 use DateTime;
@@ -227,7 +228,7 @@ function enqueue_scripts() {
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
 			'Altis.Analytics.onReady = function ( callback ) {' .
-				'if ( Altis.Analytics.registerAttribute ) {' .
+				'if ( Altis.Analytics.Ready ) {' .
 					'callback();' .
 				'} else {' .
 					'window.addEventListener( \'altis.analytics.ready\', callback );' .
@@ -235,6 +236,8 @@ function enqueue_scripts() {
 			'};',
 			wp_json_encode(
 				[
+					'Ready' => false,
+					'UseConsent' => function_exists( 'Altis\\Consent\\should_display_banner' ) && Consent\should_display_banner(),
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
 						'PinpointRegion' => defined( 'ALTIS_ANALYTICS_PINPOINT_REGION' ) ? ALTIS_ANALYTICS_PINPOINT_REGION : null,

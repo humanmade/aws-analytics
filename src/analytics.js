@@ -736,56 +736,14 @@ const Analytics = {
 	},
 };
 
-// Set initial endpoint data.
-Analytics.mergeEndpointData( Data.Endpoint || {} );
-
-// Track sessions.
-document.addEventListener( 'visibilitychange', () => {
-	if ( document.hidden ) {
-		// On hide increment elapsed time.
-		elapsed += Date.now() - start;
-		// Fire session stop event.
-		Analytics.record( '_session.stop' );
-	} else {
-		// On show reset start time.
-		start = Date.now();
-		// Reset subSessions.
-		subSessionId = uuid();
-		subSessionStart = Date.now();
-		// Fire session start event.
-		Analytics.record( '_session.start' );
-	}
-} );
-
-/**
- * Record the default page view.
- */
-const recordPageView = () => {
-	// Session start.
-	Analytics.record( '_session.start' );
-	// Record page view event & create/update endpoint immediately.
-	Analytics.record( 'pageView', false );
-};
-
-if ( document.readyState === 'interactive' || document.readyState === 'complete' || document.readyState === 'loaded' ) {
-	recordPageView();
-} else {
-	window.addEventListener( 'DOMContentLoaded', recordPageView );
-}
-
-// Flush remaining events.
-window.addEventListener( 'beforeunload', () => {
-	Analytics.record( '_session.stop', false );
-} );
-
 // Expose userland API.
-window.Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
-window.Altis.Analytics.getEndpoint = Analytics.getEndpoint;
-window.Altis.Analytics.getAudiences = Analytics.getAudiences;
-window.Altis.Analytics.overrideAudiences = Analytics.overrideAudiences;
-window.Altis.Analytics.on = Analytics.on;
-window.Altis.Analytics.off = Analytics.off;
-window.Altis.Analytics.record = Analytics.record;
+Altis.Analytics.updateEndpoint = Analytics.updateEndpoint;
+Altis.Analytics.getEndpoint = Analytics.getEndpoint;
+Altis.Analytics.getAudiences = Analytics.getAudiences;
+Altis.Analytics.overrideAudiences = Analytics.overrideAudiences;
+Altis.Analytics.on = Analytics.on;
+Altis.Analytics.off = Analytics.off;
+Altis.Analytics.record = Analytics.record;
 
 /**
  * Add a default attribute for all events.
@@ -793,7 +751,7 @@ window.Altis.Analytics.record = Analytics.record;
  * @param {string} name The attribute name.
  * @param {*} value The attribute value, can be a string, or callback or Promise that returns a string.
  */
-window.Altis.Analytics.registerAttribute = ( name, value ) => {
+Altis.Analytics.registerAttribute = ( name, value ) => {
 	_attributes[ name ] = value;
 	Analytics.updateAudiences();
 };
@@ -804,11 +762,86 @@ window.Altis.Analytics.registerAttribute = ( name, value ) => {
  * @param {string} name The metric name.
  * @param {*} value The metric value, can be a number, or callback or Promise that returns a number.
  */
-window.Altis.Analytics.registerMetric = ( name, value ) => {
+Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
 };
 
-// Fire a ready event once userland API has been exported.
-const readyEvent = new CustomEvent( 'altis.analytics.ready' );
-window.dispatchEvent( readyEvent );
+/**
+ * Start recording default events and trigger onReady event.
+ */
+function startAnalytics() {
+	// Avoid re-running everything.
+	if ( Altis.Analytics.Ready ) {
+		return;
+	}
+
+	// Set initial endpoint data.
+	Analytics.mergeEndpointData( Data.Endpoint || {} );
+
+	// Track sessions.
+	document.addEventListener( 'visibilitychange', () => {
+		if ( document.hidden ) {
+			// On hide increment elapsed time.
+			elapsed += Date.now() - start;
+			// Fire session stop event.
+			Analytics.record( '_session.stop' );
+		} else {
+			// On show reset start time.
+			start = Date.now();
+			// Reset subSessions.
+			subSessionId = uuid();
+			subSessionStart = Date.now();
+			// Fire session start event.
+			Analytics.record( '_session.start' );
+		}
+	} );
+
+	/**
+	 * Record the default page view.
+	 */
+	const recordPageView = () => {
+		// Session start.
+		Analytics.record( '_session.start' );
+		// Record page view event & create/update endpoint immediately.
+		Analytics.record( 'pageView', false );
+	};
+
+	if ( document.readyState === 'interactive' || document.readyState === 'complete' || document.readyState === 'loaded' ) {
+		recordPageView();
+	} else {
+		window.addEventListener( 'DOMContentLoaded', recordPageView );
+	}
+
+	// Flush remaining events.
+	window.addEventListener( 'beforeunload', () => {
+		Analytics.record( '_session.stop', false );
+	} );
+
+	// Fire a ready event once userland API has been exported.
+	Altis.Analytics.Ready = true;
+	const readyEvent = new CustomEvent( 'altis.analytics.ready' );
+	window.dispatchEvent( readyEvent );
+}
+
+// Check if this is anonymous or not by looking for endpoint user ID.
+const isAnonymous = ! ( Data.Endpoint && Data.Endpoint.User && Data.Endpoint.User.UserId );
+const consentType = 'statistics' + ( isAnonymous ? '-anonymous' : '' );
+
+// Check Altis Consent feature is in use.
+if ( Altis.Analytics.UseConsent ) {
+	// Check cookie directly for an early match.
+	if ( document.cookie.match( `_altis_consent_${ consentType }=allow` ) ) {
+		startAnalytics();
+	} else {
+		// Otherwise listen for a consent change.
+		const consentChangeListener = document.addEventListener( 'wp_listen_for_consent_change', function ( e ) {
+			if ( e.detail[ consentType ] && e.detail[ consentType ] === 'allow' ) {
+				document.removeEventListener(  'wp_listen_for_consent_change', consentChangeListener );
+				startAnalytics();
+			}
+		} );
+	}
+} else {
+	startAnalytics();
+}
