@@ -114,9 +114,13 @@ function get_elasticsearch_url() : string {
  *
  * Return the version string if found otherwise 'unknown'.
  *
- * @return string
+ * @return string|null
  */
-function get_elasticsearch_version() : string {
+function get_elasticsearch_version() : ?string {
+	if ( defined( 'ELASTICSEARCH_VERSION' ) ) {
+		return ELASTICSEARCH_VERSION;
+	}
+
 	$version = wp_cache_get( 'elasticsearch-version' );
 	if ( ! empty( $version ) ) {
 		return $version;
