@@ -18,6 +18,7 @@ import './utils/polyfills';
 
 const {
 	Config,
+	Consent,
 	Data,
 	Noop,
 	Audiences,
@@ -779,6 +780,11 @@ function startAnalytics() {
 	// Set initial endpoint data.
 	Analytics.mergeEndpointData( Data.Endpoint || {} );
 
+	// Fire a ready event once userland API has been exported.
+	Altis.Analytics.Ready = true;
+	const readyEvent = new CustomEvent( 'altis.analytics.ready' );
+	window.dispatchEvent( readyEvent );
+
 	// Track sessions.
 	document.addEventListener( 'visibilitychange', () => {
 		if ( document.hidden ) {
@@ -817,26 +823,17 @@ function startAnalytics() {
 	window.addEventListener( 'beforeunload', () => {
 		Analytics.record( '_session.stop', false );
 	} );
-
-	// Fire a ready event once userland API has been exported.
-	Altis.Analytics.Ready = true;
-	const readyEvent = new CustomEvent( 'altis.analytics.ready' );
-	window.dispatchEvent( readyEvent );
 }
 
-// Check if this is anonymous or not by looking for endpoint user ID.
-const isAnonymous = ! ( Data.Endpoint && Data.Endpoint.User && Data.Endpoint.User.UserId );
-const consentType = 'statistics' + ( isAnonymous ? '-anonymous' : '' );
-
 // Check Altis Consent feature is in use.
-if ( Altis.Analytics.ConsentCookie ) {
+if ( Consent.CookiePrefix ) {
 	// Check cookie directly for an early match.
-	if ( document.cookie.match( `${ Altis.Analytics.ConsentCookie }_${ consentType }=allow` ) ) {
+	if ( document.cookie.match( `${ Consent.CookiePrefix }_${ Consent.Category }=allow` ) ) {
 		startAnalytics();
 	} else {
 		// Otherwise listen for a consent change.
 		const consentChangeListener = document.addEventListener( 'wp_listen_for_consent_change', function ( e ) {
-			if ( e.detail[ consentType ] && e.detail[ consentType ] === 'allow' ) {
+			if ( e.detail[ Consent.Category ] && e.detail[ Consent.Category ] === 'allow' ) {
 				document.removeEventListener(  'wp_listen_for_consent_change', consentChangeListener );
 				startAnalytics();
 			}
