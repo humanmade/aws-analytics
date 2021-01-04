@@ -37,6 +37,12 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 }
 
 /**
+ * Get consent types.
+ */
+let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
+let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
+
+/**
  * Custom global attributes and metrics, extended by the
  * registerAttribute and registerMetric functions.
  */
@@ -583,6 +589,11 @@ const Analytics = {
 			}
 		}
 
+		// Strip user data if full consent not given.
+		if ( ! hasFullConsent ) {
+			delete endpoint.User;
+		}
+
 		// Store the endpoint data.
 		Analytics.setEndpoint( endpoint );
 
@@ -826,14 +837,20 @@ function startAnalytics() {
 }
 
 // Check Altis Consent feature is in use.
-if ( Consent.CookiePrefix ) {
+if ( Consent.Enabled ) {
 	// Check cookie directly for an early match.
-	if ( document.cookie.match( `${ Consent.CookiePrefix }_${ Consent.Category }=allow` ) ) {
+	if ( hasAnonConsent || hasFullConsent ) {
 		startAnalytics();
 	} else {
 		// Otherwise listen for a consent change.
 		const consentChangeListener = document.addEventListener( 'wp_listen_for_consent_change', function ( e ) {
-			if ( e.detail[ Consent.Category ] && e.detail[ Consent.Category ] === 'allow' ) {
+			if ( e.detail['statistics-anonymous'] && e.detail['statistics-anonymous'] === 'allow' ) {
+				hasAnonConsent = true;
+			}
+			if ( e.detail['statistics'] && e.detail['statistics'] === 'allow' ) {
+				hasFullConsent = true;
+			}
+			if ( hasAnonConsent || hasFullConsent ) {
 				document.removeEventListener(  'wp_listen_for_consent_change', consentChangeListener );
 				startAnalytics();
 			}

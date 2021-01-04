@@ -1,7 +1,9 @@
 AWS Analytics
 =============
 
-This plugin integrates WordPress with [AWS Pinpoint](#) and provides an extensible tracker out of the box.
+This plugin integrates WordPress with [AWS Pinpoint](https://aws.amazon.com/pinpoint/) and provides an extensible tracker out of the box.
+
+It also automatically integrates with the [WP Consent Level API plugin](https://github.com/rlankhorst/wp-consent-level-api) or the [client side only version](https://github.com/humanmade/consent-api-js) maintained by Human Made. At least the `statistics-anonymous` category must be consented to for any tracking to occur and `statistics` is required for tracking personally identifiable information.
 
 ## Usage
 
@@ -19,11 +21,13 @@ Use this function to ensure analytics has loaded before making calls to `registe
 
 Updates the data associated with the current user. Use this to provide updated custom user attributes and metrics, a user ID, and demographic data.
 
+**Important**: If used in conjunction with the WP Consent API all data passed to this function under the `User` property is removed. You should only store personally identifiable information under the `User.UserId` and `User.UserAttributes` properties. All other endpoint data as outlined further down should only be used for anonymous demographic data.
+
 **`Altis.Analytics.getEndpoint()`**
 
 Returns the current endpoint data object.
 
-**`Altis.Analytics.record( eventName <string> [, data <object>] )`**
+**`Altis.Analytics.record( eventName <string> [, data <object> [, endpoint <object>]] )`**
 
 Records an event. The data passed in should be an object with either or both an `attributes` property and `metrics` property:
 
@@ -40,7 +44,7 @@ Records an event. The data passed in should be an object with either or both an 
 }
 ```
 
-Those attributes and metrics can be later queried via elasticsearch.
+The optional 3rd parameter allows you to simulataneously update the endpoint data as if calling `Altis.Analytics.updateEndpoint()`. These attributes, metrics and endpoint data can be later queried via Elasticsearch.
 
 **`Altis.Analytics.updateAudiences()`**
 
@@ -119,6 +123,10 @@ The region for the Kinsesis Firehose S3 bucket (if configured).
 ### Filters
 
 The plugin provides a few hooks for you to control the default endpoint data and attributes recorded with events.
+
+**`altis.analytics.consent_enabled <bool>`**
+
+This defaults to if the WP Consent API plugin or a derivative is installed and active by checking if the constant `WP_CONSENT_API_URL` is defined.
 
 **`altis.analytics.data.endpoint <array>`**
 
