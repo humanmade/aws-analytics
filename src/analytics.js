@@ -38,6 +38,9 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 
 /**
  * Get consent types.
+ *
+ * We directly read the cookies rather than use the JS API so this script
+ * can load as early as possible.
  */
 let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
 let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
