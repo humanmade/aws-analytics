@@ -222,21 +222,18 @@ function enqueue_scripts() {
 	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
 
 	/**
-	 * Filters the consent cookie prefix to integrate with the WordPress Consent API.
+	 * Filters whether the consent cookie should be used.
 	 *
-	 * If the value is `null` then no special consent handling is done and Analytics will
-	 * run as normal.
-	 *
-	 * @param string|null $cookie_prefix The consent cookie prefix or false to skip consent check.
+	 * @param string $consent_enabled If set to true adds support for the WP consent API.
 	 */
-	$consent_cookie_prefix = apply_filters( 'altis.analytics.consent_cookie_prefix', null );
+	$consent_enabled = (bool) apply_filters( 'altis.analytics.consent_enabled', defined( 'WP_CONSENT_API_URL' ) );
 
 	/**
-	 * Filters the consent category required to run analytics.
+	 * Filters the consent cookie prefix to integrate with the WordPress Consent API.
 	 *
-	 * @param string $consent_category The consent category to allow analytics to run with.
+	 * @param string $cookie_prefix The consent cookie prefix.
 	 */
-	$consent_category = apply_filters( 'altis.analytics.consent_category', 'statistics' );
+	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
 	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
@@ -255,7 +252,7 @@ function enqueue_scripts() {
 					'Ready' => false,
 					'Consent' => [
 						'CookiePrefix' => $consent_cookie_prefix,
-						'Category' => $consent_category,
+						'Enabled' => $consent_enabled,
 					],
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
