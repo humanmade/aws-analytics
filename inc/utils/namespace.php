@@ -110,15 +110,48 @@ function get_elasticsearch_url() : string {
 }
 
 /**
+ * Retrieve the elasticsearch version.
+ *
+ * Return the version string if found otherwise 'unknown'.
+ *
+ * @return string|null
+ */
+function get_elasticsearch_version() : ?string {
+	if ( defined( 'ELASTICSEARCH_VERSION' ) ) {
+		return ELASTICSEARCH_VERSION;
+	}
+
+	$version = wp_cache_get( 'elasticsearch-version' );
+	if ( ! empty( $version ) ) {
+		return $version;
+	}
+
+	$response = wp_remote_get( get_elasticsearch_url() );
+
+	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
+		return null;
+	}
+
+	$json = wp_remote_retrieve_body( $response );
+	$result = json_decode( $json, true );
+	$version = $result['version']['number'] ?? 'unknown';
+
+	// Cache for a long time as it's not going to be changing particularly often.
+	wp_cache_set( 'elasticsearch-version', $version, '', DAY_IN_SECONDS );
+
+	return $version;
+}
+
+/**
  * Query Analytics data in Elasticsearch.
  *
  * @param array $query A full elasticsearch Query DSL array.
  * @param array $params URL query parameters to append to request URL.
  * @param string $path The endpoint to query against, defaults to _search.
+ * @param string $method The HTTP request method to use.
  * @return array|null
  */
-function query( array $query, array $params = [], string $path = '_search' ) : ?array {
-
+function query( array $query, array $params = [], string $path = '_search', string $method = 'POST' ) : ?array {
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
@@ -128,12 +161,21 @@ function query( array $query, array $params = [], string $path = '_search' ) : ?
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
-	$response = wp_remote_post( $url, [
+	$request_args = [
+		'method' => $method,
 		'headers' => [
 			'Content-Type' => 'application/json',
 		],
-		'body' => wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ),
-	] );
+		'timeout' => 15,
+	];
+
+	// Only attach the body if the method supports it.
+	if ( in_array( $method, [ 'POST', 'PUT', 'PATCH', 'DELETE' ], true ) ) {
+		$request_args['body'] = wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	}
+
+	// Get the data!
+	$response = wp_remote_request( $url, $request_args );
 
 	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
 		if ( is_wp_error( $response ) ) {
@@ -321,4 +363,106 @@ function get_field_type( string $field ) : ?string {
 	}
 
 	return 'string';
+}
+
+/**
+ * Flattens an array recursively and sets the keys for nested values
+ * as a dot separated path.
+ *
+ * @param array $data The array to flatten.
+ * @param string $prefix The current key prefix.
+ * @return array
+ */
+function flatten_array( array $data, string $prefix = '' ) : array {
+	$flattened = [];
+	$prefix = ! empty( $prefix ) ? "{$prefix}." : '';
+
+	foreach ( $data as $key => $value ) {
+		if ( is_array( $value ) ) {
+			// For non associative arrays we need to combine the values into one.
+			if ( count( $value ) === count( array_filter( array_keys( $value ), 'is_int' ) ) ) {
+				$flattened[ "{$prefix}{$key}" ] = implode( ';', $value );
+			} else {
+				$flattened = array_merge( $flattened, flatten_array( $value, "{$prefix}{$key}" ) );
+			}
+		} else {
+			$flattened[ "{$prefix}{$key}" ] = $value;
+		}
+	}
+
+	return $flattened;
+}
+
+/**
+ * Parse an Accept header.
+ *
+ * @param string $value Raw header value from the user.
+ * @return array Parsed Accept header to pass to find_best_match()
+ */
+function parse_accept_header( string $value ) : array {
+	$types = array_map( 'trim', explode( ',', $value ) );
+	$prioritized = [];
+	foreach ( $types as $type ) {
+		$params = [
+			'q' => 1,
+		];
+		if ( strpos( $type, ';' ) !== false ) {
+			list( $type, $param_str ) = explode( ';', $type, 2 );
+			$param_parts = array_map( 'trim', explode( ';', $param_str ) );
+			foreach ( $param_parts as $part ) {
+				if ( strpos( $part, '=' ) !== false ) {
+					list( $key, $value ) = explode( '=', $part, 2 );
+				} else {
+					$key = $part;
+					$value = true;
+				}
+				$params[ $key ] = $value;
+			}
+		}
+
+		list( $type, $subtype ) = explode( '/', $type, 2 );
+
+		// Build a regex matcher.
+		$regex = ( $type === '*' ) ? '([^/]+)' : preg_quote( $type, '#' );
+		$regex .= '/';
+		$regex .= ( $subtype === '*' ) ? '([^/]+)' : preg_quote( $subtype, '#' );
+		$regex = '#^' . $regex . '$#i';
+		$prioritized[] = compact( 'type', 'subtype', 'regex', 'params' );
+	}
+
+	usort( $prioritized, function ( $a, $b ) {
+		return $b['params']['q'] <=> $a['params']['q'];
+	} );
+
+	return $prioritized;
+}
+
+/**
+ * Find the best matching type from available types.
+ *
+ * @param array $parsed Parsed Accept header from parse_accept_header()
+ * @param string[] $available Available MIME types that could be served.
+ * @return string|null Best matching MIME type if available, or null if none match.
+ */
+function find_best_accept_header_match( array $parsed, array $available ) : ?string {
+	$scores = [];
+	foreach ( $available as $type ) {
+		// Loop through $parsed and find the first match.
+		// Note: presorted by q, so first match is highest score.
+		foreach ( $parsed as $acceptable ) {
+			if ( preg_match( $acceptable['regex'], $type ) ) {
+				$scores[ $type ] = $acceptable['params']['q'];
+				break;
+			}
+		}
+	}
+	if ( empty( $scores ) ) {
+		return null;
+	}
+
+	// Sort to highest score.
+	arsort( $scores );
+
+	// Return highest score.
+	return array_keys( $scores )[0];
 }
