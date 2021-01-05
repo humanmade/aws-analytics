@@ -21,6 +21,8 @@ if ( file_exists( ROOT_DIR . '/vendor/autoload.php' ) ) {
 require_once __DIR__ . '/inc/namespace.php';
 require_once __DIR__ . '/inc/audiences/namespace.php';
 require_once __DIR__ . '/inc/audiences/rest_api/namespace.php';
+require_once __DIR__ . '/inc/export/class-endpoint.php';
+require_once __DIR__ . '/inc/export/namespace.php';
 require_once __DIR__ . '/inc/preview/namespace.php';
 require_once __DIR__ . '/inc/utils/namespace.php';
 
