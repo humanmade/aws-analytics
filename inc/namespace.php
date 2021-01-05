@@ -221,13 +221,27 @@ function enqueue_scripts() {
 	 */
 	$noop = (bool) apply_filters( 'altis.analytics.noop', false );
 
+	/**
+	 * Filters whether the consent cookie should be used.
+	 *
+	 * @param string $consent_enabled If set to true adds support for the WP consent API.
+	 */
+	$consent_enabled = (bool) apply_filters( 'altis.analytics.consent_enabled', defined( 'WP_CONSENT_API_URL' ) );
+
+	/**
+	 * Filters the consent cookie prefix to integrate with the WordPress Consent API.
+	 *
+	 * @param string $cookie_prefix The consent cookie prefix.
+	 */
+	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
+
 	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
 			'Altis.Analytics.onReady = function ( callback ) {' .
-				'if ( Altis.Analytics.registerAttribute ) {' .
+				'if ( Altis.Analytics.Ready ) {' .
 					'callback();' .
 				'} else {' .
 					'window.addEventListener( \'altis.analytics.ready\', callback );' .
@@ -235,6 +249,11 @@ function enqueue_scripts() {
 			'};',
 			wp_json_encode(
 				[
+					'Ready' => false,
+					'Consent' => [
+						'CookiePrefix' => $consent_cookie_prefix,
+						'Enabled' => $consent_enabled,
+					],
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
 						'PinpointRegion' => defined( 'ALTIS_ANALYTICS_PINPOINT_REGION' ) ? ALTIS_ANALYTICS_PINPOINT_REGION : null,
