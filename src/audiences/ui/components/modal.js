@@ -10,6 +10,9 @@ const StyledModal = styled.div`
 	}
 `;
 
+/**
+ * Audience Editor Modal.
+ */
 class Modal extends Component {
 	constructor( props ) {
 		super( props );
@@ -35,8 +38,8 @@ class Modal extends Component {
 
 		return createPortal(
 			<Fragment>
-				<StyledModal tabIndex="0" className={ `media-modal wp-core-ui ${ className }` } role="dialog" aria-labelledby="media-frame-title">
-					<button type="button" className="media-modal-close" onClick={ onClose }>
+				<StyledModal aria-labelledby="media-frame-title" className={ `media-modal wp-core-ui ${ className }` } role="dialog" tabIndex="0">
+					<button className="media-modal-close" type="button" onClick={ onClose }>
 						<span className="media-modal-icon">
 							<span className="screen-reader-text">{ __( 'Close dialog' ) }</span>
 						</span>

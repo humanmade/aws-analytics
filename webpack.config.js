@@ -1,12 +1,14 @@
 const path = require( 'path' );
+
+const { CleanWebpackPlugin } = require( 'clean-webpack-plugin' );
+const DynamicPublicPathPlugin = require( 'dynamic-public-path-webpack-plugin' );
 const webpack = require( 'webpack' );
-const mode = process.env.NODE_ENV || 'production';
 const BundleAnalyzerPlugin = require( 'webpack-bundle-analyzer' )
 	.BundleAnalyzerPlugin;
-const DynamicPublicPathPlugin = require( 'dynamic-public-path-webpack-plugin' );
-const SriPlugin = require( 'webpack-subresource-integrity' );
 const ManifestPlugin = require( 'webpack-manifest-plugin' );
-const { CleanWebpackPlugin } = require( 'clean-webpack-plugin' );
+const SriPlugin = require( 'webpack-subresource-integrity' );
+
+const mode = process.env.NODE_ENV || 'production';
 
 const sharedConfig = {
 	mode: mode,
