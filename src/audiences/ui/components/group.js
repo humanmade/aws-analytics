@@ -135,7 +135,6 @@ export default class Group extends Component {
 				<div className="audience-editor__group-footer">
 					<Button
 						className="audience-editor__group-rule-add"
-						isLarge
 						isSecondary
 						onClick={ this.onAddRule }
 					>

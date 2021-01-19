@@ -54,7 +54,12 @@ const StyledSelect = styled.div`
 			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):hover,
 			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):focus {
 				box-shadow: none;
-				text-decoration: underline;
+			}
+
+			strong {
+				&:hover, &:focus {
+					text-decoration: underline;
+				}
 			}
 		}
 	}
@@ -62,6 +67,10 @@ const StyledSelect = styled.div`
 		margin-left: -2px;
 		margin-right: 5px;
 		min-width: 0;
+
+		&:hover, &:focus {
+			color: #d94f4f;
+		}
 
 		&:hover svg, &:focus svg {
 			fill: #d94f4f;

@@ -114,7 +114,6 @@ export default class AudienceEditor extends Component {
 
 				<Button
 					className="audience-editor__group-add"
-					isLarge
 					isSecondary
 					onClick={ this.onAddGroup }
 				>
