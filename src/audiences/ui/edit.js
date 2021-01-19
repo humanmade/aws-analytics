@@ -202,7 +202,6 @@ class Edit extends Component {
 						/>
 						<Button
 							disabled={ loading || saving }
-							isLarge
 							isPrimary
 							type="submit"
 							onClick={ this.onSubmit }
@@ -217,7 +216,6 @@ class Edit extends Component {
 								{ ' ' }
 								<Button
 									disabled={ ! isPublished }
-									isLarge
 									onClick={ () => onSelect( post ) }
 								>
 									{ __( 'Select', 'altis-experiments' ) }
