@@ -175,7 +175,10 @@ class List extends Component {
 	 */
 	onNextPage = () => {
 		const { page, search } = this.state;
-		this.props.onGetPosts( { page: page + 1, search: search } );
+		this.props.onGetPosts( {
+			page: page + 1,
+			search: search
+		} );
 		this.setState( { page: page + 1 } );
 	}
 
@@ -325,7 +328,10 @@ const applyWithSelect = withSelect( select => {
 	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
 	const loading = getIsLoading();
 	const pagination = getPagination();
-	const posts = canCreate ? getPosts() : getPosts( { context: 'view', status: 'publish' } );
+	const posts = canCreate ? getPosts() : getPosts( {
+		context: 'view',
+		status: 'publish',
+	} );
 
 
 	return {
