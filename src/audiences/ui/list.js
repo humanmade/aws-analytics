@@ -110,7 +110,12 @@ class List extends Component {
 		} );
 		// Query posts by the search term if we don't have an existing request.
 		if ( ! this.props.loading ) {
-			this.props.onGetPosts( this.state.page, value );
+			this.props.onGetPosts( {
+				page: this.state.page,
+				search: value,
+				context: canCreate ? 'edit' : 'view',
+				status: canCreate ? 'publish,draft' : 'publish',
+			} );
 		}
 	}
 
