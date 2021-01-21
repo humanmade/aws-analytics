@@ -177,7 +177,7 @@ class List extends Component {
 		const { page, search } = this.state;
 		this.props.onGetPosts( {
 			page: page + 1,
-			search: search
+			search: search,
 		} );
 		this.setState( { page: page + 1 } );
 	}
@@ -332,7 +332,6 @@ const applyWithSelect = withSelect( select => {
 		context: 'view',
 		status: 'publish',
 	} );
-
 
 	return {
 		canCreate,
