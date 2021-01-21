@@ -96,6 +96,7 @@ function register_post_type() {
 function maybe_grant_caps( $allcaps ) {
 	$cap_map = [
 		'edit_audiences' => 'edit_pages',
+		'read_audiences' => 'read',
 		'edit_others_audiences' => 'edit_others_pages',
 		'publish_audiences' => 'publish_pages',
 		'read_private_audiences' => 'read_private_pages',
