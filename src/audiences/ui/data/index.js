@@ -436,7 +436,7 @@ const resolvers = {
 	 * @param {string} status Post status.
 	 * @returns {object} Action objects.
 	 */
-	*getPosts( page = 1, search = '', status = 'publish,draft' ) {
+	*getPosts( queryArgs = {} ) {
 		yield actions.setIsLoading( true );
 		const response = yield actions.fetch( {
 			path: addQueryArgs( 'wp/v2/audiences', {
