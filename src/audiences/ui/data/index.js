@@ -438,14 +438,17 @@ const resolvers = {
 	 */
 	*getPosts( queryArgs = {} ) {
 		yield actions.setIsLoading( true );
+
+		queryArgs = Object.assign( {
+			context: 'edit',
+			per_page: 20,
+			page: 1,
+			search: '',
+			status: 'publish,draft',
+		}, queryArgs );
+
 		const response = yield actions.fetch( {
-			path: addQueryArgs( 'wp/v2/audiences', {
-				context: 'edit',
-				per_page: 20,
-				page,
-				search,
-				status,
-			} ),
+			path: addQueryArgs( 'wp/v2/audiences', queryArgs ),
 			headers: {
 				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
 			},
