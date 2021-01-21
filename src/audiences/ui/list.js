@@ -169,7 +169,7 @@ class List extends Component {
 	 */
 	onNextPage = () => {
 		const { page, search } = this.state;
-		this.props.onGetPosts( page + 1, search );
+		this.props.onGetPosts( { page: page + 1, search: search } );
 		this.setState( { page: page + 1 } );
 	}
 
