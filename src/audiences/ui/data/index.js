@@ -431,9 +431,7 @@ const resolvers = {
 	/**
 	 * Resolve request for multiple posts.
 	 *
-	 * @param {number} page Results page to get.
-	 * @param {string} search Current search query.
-	 * @param {string} status Post status.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
 	*getPosts( queryArgs = {} ) {
