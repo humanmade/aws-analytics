@@ -260,8 +260,8 @@ class List extends Component {
 							return (
 								<ListRow
 									key={ post.id }
-									canMoveDown={ filteredPosts[ index + 1 ] }
-									canMoveUp={ filteredPosts[ index - 1 ] }
+									canMoveDown={ canCreate && filteredPosts[ index + 1 ] }
+									canMoveUp={ canCreate && filteredPosts[ index - 1 ] }
 									index={ index }
 									post={ post }
 									onClick={ event => this.onSelectRow( event, post ) }
