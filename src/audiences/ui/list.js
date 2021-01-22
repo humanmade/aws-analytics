@@ -103,7 +103,7 @@ class List extends Component {
 	 */
 	onSearch = event => {
 		const value = event.target.value;
-		const canCreate = wp.data.select( 'core' ).canUser( 'create', 'audiences' );
+		const canCreate = this.props.canCreate();
 		this.setState( {
 			page: 1,
 			search: value,
