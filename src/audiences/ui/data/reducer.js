@@ -8,6 +8,7 @@ import { unionBy } from 'lodash';
  * @returns {number} Sort result value.
  */
 const sortPosts = ( a, b ) => {
+	// Check for errored posts.
 	if ( a.error || b.error ) {
 		return 0;
 	}
