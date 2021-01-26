@@ -399,7 +399,7 @@ function admin_enqueue_scripts() {
 		'altis-analytics-audience-ui',
 		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
 		[ 'wp-components' ],
-		'2020-03-19-1'
+		'2021-01-22'
 	);
 }
 
