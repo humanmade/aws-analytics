@@ -423,6 +423,11 @@ const resolvers = {
 			return;
 		}
 		yield actions.setIsLoading( true );
+
+		queryArgs = Object.assign( {
+			context: 'view',
+		}, queryArgs );
+
 		const post = yield actions.fetch( {
 			path: `wp/v2/audiences/${ id }?context=edit`,
 		} );
