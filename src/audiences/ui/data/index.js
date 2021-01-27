@@ -429,7 +429,7 @@ const resolvers = {
 		}, queryArgs );
 
 		const post = yield actions.fetch( {
-			path: `wp/v2/audiences/${ id }?context=edit`,
+			path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
 		} );
 		if ( post.status === 'auto-draft' ) {
 			post.title.rendered = '';
