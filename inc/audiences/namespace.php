@@ -474,10 +474,12 @@ function get_estimate( array $audience ) : ?array {
 	$result = Utils\query( $query );
 
 	if ( ! $result ) {
-		return [
+		$no_result = [
 			'count' => 0,
 			'total' => get_unique_endpoint_count(),
 		];
+		wp_cache_set( $key, $no_result, 'altis-audiences', MINUTE_IN_SECONDS );
+		return $no_result;
 	}
 
 	$histogram = array_map( function ( array $bucket ) {

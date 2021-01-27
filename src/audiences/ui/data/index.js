@@ -275,6 +275,7 @@ const selectors = {
 		const key = JSON.stringify( audience );
 		return state.estimates[ key ] || {
 			count: 0,
+			isLoading: false,
 			total: 0,
 			histogram: new Array( 28 ).fill( { count: 1 } ), // Build empty histogram data.
 		};
@@ -364,11 +365,18 @@ const resolvers = {
 	 * @returns {object} Action objects.
 	 */
 	*getEstimate( audience ) {
+		yield actions.addEstimate( audience, {
+			count: 0,
+			isLoading: true,
+			total: 0,
+			histogram: new Array( 28 ).fill( { count: 1 } ), // Build empty histogram data.
+		} );
 		const audienceQuery = encodeURIComponent( JSON.stringify( audience ) );
 		const estimate = yield actions.fetch( {
 			path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
 		} );
 		estimate.histogram = estimate.histogram || new Array( 28 ).fill( { count: 1 } );
+		estimate.isLoading = false;
 		return actions.addEstimate( audience, estimate );
 	},
 	/**

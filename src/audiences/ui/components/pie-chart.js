@@ -31,15 +31,17 @@ const StyledPie = styled.svg`
  * @returns {React.ReactNode} Pie chart component.
  */
 export default function PieChart( props ) {
+	const { isLoading, percent } = props;
 	return (
 		<StyledPie viewBox="0 0 36 36" { ...props }>
 			<circle cx="18" cy="18" r="16" />
 			<circle cx="18" cy="18" data-percent r="16" />
-			<text textAnchor="middle" x="18" y="21">{ props.percent }%</text>
+			<text textAnchor="middle" x="18" y="21">{ isLoading ? '…' : `${ percent }%` }</text>
 		</StyledPie>
 	);
 }
 
 PieChart.defaultProps = {
+	isLoading: false,
 	percent: 0,
 };
