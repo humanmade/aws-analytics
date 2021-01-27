@@ -471,12 +471,13 @@ function get_estimate( array $audience ) : ?array {
 		return $cache;
 	}
 
+	$unique_count = get_unique_endpoint_count();
 	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		return [
 			'count' => 0,
-			'total' => get_unique_endpoint_count(),
+			'total' => $unique_count,
 		];
 	}
 
@@ -487,9 +488,18 @@ function get_estimate( array $audience ) : ?array {
 		];
 	}, $result['aggregations']['histogram']['buckets'] );
 
+	// Get number of unique IDs within the audience.
+	$estimate_count = $result['aggregations']['estimate']['value'];
+
+	// Check if total count may need updating.
+	if ( $estimate_count > $unique_count ) {
+		$unique_count = get_unique_endpoint_count( true );
+	}
+
 	$estimate = [
-		'count' => $result['aggregations']['estimate']['value'],
-		'total' => get_unique_endpoint_count(),
+		'count' => $estimate_count,
+		// Make absolutely sure that the total audience size is reflected even if the total uniques is out of sync.
+		'total' => max( $unique_count, $estimate_count ),
 		'histogram' => array_values( $histogram ),
 	];
 
@@ -501,9 +511,10 @@ function get_estimate( array $audience ) : ?array {
 /**
  * Get total unique endpoints for the past 7 days.
  *
+ * @param bool $force_update Set to true to ignore the cache.
  * @return integer|null
  */
-function get_unique_endpoint_count() : ?int {
+function get_unique_endpoint_count( bool $force_update = false ) : ?int {
 	$query = [
 		'query' => [
 			'bool' => [
@@ -547,13 +558,14 @@ function get_unique_endpoint_count() : ?int {
 	];
 
 	$cache = wp_cache_get( 'total-uniques', 'altis-audiences' );
-	if ( $cache ) {
+	if ( $cache && ! $force_update ) {
 		return $cache;
 	}
 
 	$result = Utils\query( $query );
 
 	if ( ! $result ) {
+		wp_cache_set( 'total-uniques', 0, 'altis-audiences', MINUTE_IN_SECONDS );
 		return $result;
 	}
 
