@@ -57,7 +57,6 @@ const RuleInput = props => {
 	const {
 		disabled,
 		currentField,
-		key,
 		name,
 		operator,
 		value,
@@ -81,10 +80,12 @@ const RuleInput = props => {
 		}
 	}, [ showDropdown ] );
 
-	// Reset dropdown state if the field or key has changed.
-	useEffect( () => {
+	// Set intial dropdown state and update if the field has changed.
+	const [ prevField, setPrevField ] = useState( null );
+	if ( currentField.name !== prevField ) {
 		setShowDropdown( value === '' || data.indexOf( value ) >= 0 );
-	}, [ currentField, key ] );
+		setPrevField( currentField.name );
+	}
 
 	switch ( currentField.type ) {
 		case 'number':
@@ -125,11 +126,11 @@ const RuleInput = props => {
 										name={ name }
 										type="text"
 										value={ value }
-										onChange={ onChange }
 										onBlur={ () => {
 											// If the value is empty or in the field data convert back to dropdown on blur.
 											setShowDropdown( value === '' || data.indexOf( value ) >= 0 );
 										} }
+										onChange={ onChange }
 									/>
 									<Button
 										isDestructive
@@ -191,7 +192,6 @@ export default function Rule( props ) {
 	const {
 		canRemove,
 		field,
-		key,
 		namePrefix,
 		operator,
 		value,
@@ -243,7 +243,6 @@ export default function Rule( props ) {
 			<RuleInput
 				currentField={ currentField }
 				disabled={ fields.length === 0 }
-				key={ key }
 				name={ `${ namePrefix }[value]` }
 				operator={ operator }
 				value={ value }
