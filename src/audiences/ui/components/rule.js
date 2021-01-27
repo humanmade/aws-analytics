@@ -71,7 +71,8 @@ const RuleInput = props => {
 	const dropdownRef = useRef( null );
 
 	// Default to display of the dropdown if the value is in existing data or empty.
-	const [ showDropdown, setShowDropdown ] = useState( value === '' || data.indexOf( value ) >= 0 );
+	const defaultDropdownState = value === '' || data.indexOf( value ) >= 0;
+	const [ showDropdown, setShowDropdown ] = useState( defaultDropdownState );
 	useEffect( () => {
 		if ( showDropdown ) {
 			dropdownRef && dropdownRef.current && dropdownRef.current.focus();
@@ -83,7 +84,7 @@ const RuleInput = props => {
 	// Set intial dropdown state and update if the field has changed.
 	const [ prevField, setPrevField ] = useState( null );
 	if ( currentField.name !== prevField ) {
-		setShowDropdown( value === '' || data.indexOf( value ) >= 0 );
+		setShowDropdown( defaultDropdownState );
 		setPrevField( currentField.name );
 	}
 
@@ -128,7 +129,7 @@ const RuleInput = props => {
 										value={ value }
 										onBlur={ () => {
 											// If the value is empty or in the field data convert back to dropdown on blur.
-											setShowDropdown( value === '' || data.indexOf( value ) >= 0 );
+											setShowDropdown( defaultDropdownState );
 										} }
 										onChange={ onChange }
 									/>
