@@ -375,16 +375,23 @@ const resolvers = {
 	 * Resolve request for post.
 	 *
 	 * @param {number} id The post ID.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getPost( id ) {
+	*getPost( id, queryArgs = {} ) {
 		if ( ! id ) {
 			return;
 		}
 		yield actions.setIsLoading( true );
+
+		// Default context to view only.
+		queryArgs = Object.assign( {
+			context: 'view',
+		}, queryArgs );
+
 		try {
 			const post = yield actions.fetch( {
-				path: `wp/v2/audiences/${ id }?context=edit`,
+				path: addQueryArgs( `wp/v2/audiences/${id}`, queryArgs ),
 			} );
 			if ( post.status === 'auto-draft' ) {
 				post.title.rendered = '';
