@@ -415,9 +415,10 @@ const resolvers = {
 	 * Resolve request for current post.
 	 *
 	 * @param {number} id The post ID.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getCurrentPost( id ) {
+	*getCurrentPost( id, queryArgs = {} ) {
 		if ( ! id ) {
 			return;
 		}
