@@ -167,7 +167,7 @@ const applyWithSelect = withSelect( ( select, props ) => {
 	const canCreate = select( 'core' ).canUser( 'create', 'audiences' ),
 		queryArgs = canCreate ? { context: 'edit' } : {};
 
-	if ( props.audience ) { console.log(props.audience);
+	if ( props.audience ) {
 		audiencePost = select( 'audience' ).getPost( props.audience, queryArgs );
 	}
 
