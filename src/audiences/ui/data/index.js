@@ -391,7 +391,7 @@ const resolvers = {
 
 		try {
 			const post = yield actions.fetch( {
-				path: addQueryArgs( `wp/v2/audiences/${id}`, queryArgs ),
+				path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
 			} );
 			if ( post.status === 'auto-draft' ) {
 				post.title.rendered = '';
