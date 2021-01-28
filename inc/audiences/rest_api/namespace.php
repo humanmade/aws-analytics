@@ -268,3 +268,13 @@ function check_edit_permission() : bool {
 	$type = get_post_type_object( Audiences\POST_TYPE );
 	return current_user_can( $type->cap->edit_posts );
 }
+
+/**
+ * Check user can view audience posts.
+ *
+ * @return bool
+ */
+function check_read_permission() : bool {
+	$type = get_post_type_object( Audiences\POST_TYPE );
+	return current_user_can( $type->cap->read );
+}
