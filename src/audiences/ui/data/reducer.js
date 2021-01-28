@@ -41,9 +41,6 @@ export default function reducer( state, action ) {
 
 		case 'ADD_ESTIMATE': {
 			const key = JSON.stringify( action.audience );
-			if ( state.estimates[ key ] ) {
-				return state;
-			}
 			return {
 				...state,
 				estimates: {
