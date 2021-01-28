@@ -146,10 +146,8 @@ const ListRow = props => {
 						onChange={ onStatusChange }
 					/>
 				) }
-				{ ! canEdit && post.status === 'publish' && (
-					<Fragment>
-						<span className="active">{ __( 'Active', 'altis-analytics' ) }</span>
-					</Fragment>
+				{ ! canEdit && (
+					<span className="active">{ post.status === 'publish' ? __( 'Active', 'altis-analytics' ) : __( 'Inactive', 'altis-analytics' ) }</span>
 				) }
 			</td>
 			<td>
