@@ -109,7 +109,12 @@ class List extends Component {
 		} );
 		// Query posts by the search term if we don't have an existing request.
 		if ( ! this.props.loading ) {
-			this.props.onGetPosts( this.state.page, value );
+			this.props.onGetPosts( {
+				page: this.state.page,
+				search: value,
+				context: this.props.canCreate ? 'edit' : 'view',
+				status: this.props.canCreate ? 'publish,draft' : 'publish',
+			} );
 		}
 	}
 
@@ -169,7 +174,12 @@ class List extends Component {
 	 */
 	onNextPage = () => {
 		const { page, search } = this.state;
-		this.props.onGetPosts( page + 1, search );
+		this.props.onGetPosts( {
+			page: page + 1,
+			search: search,
+			context: this.props.canCreate ? 'edit' : 'view',
+			status: this.props.canCreate ? 'publish,draft' : 'publish',
+		} );
 		this.setState( { page: page + 1 } );
 	}
 
@@ -251,8 +261,8 @@ class List extends Component {
 							return (
 								<ListRow
 									key={ post.id }
-									canMoveDown={ filteredPosts[ index + 1 ] }
-									canMoveUp={ filteredPosts[ index - 1 ] }
+									canMoveDown={ canCreate && filteredPosts[ index + 1 ] }
+									canMoveUp={ canCreate && filteredPosts[ index - 1 ] }
 									index={ index }
 									post={ post }
 									onClick={ event => this.onSelectRow( event, post ) }
@@ -316,11 +326,14 @@ const applyWithSelect = withSelect( select => {
 		getIsLoading,
 		getPagination,
 	} = select( 'audience' );
-	const posts = getPosts();
+	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
 	const loading = getIsLoading();
 	const pagination = getPagination();
-
-	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
+	const queryArgs = {
+		context: canCreate ? 'edit' : 'view',
+		status: canCreate ? 'publish,draft' : 'publish',
+	};
+	const posts = getPosts( queryArgs );
 
 	return {
 		canCreate,

@@ -383,16 +383,23 @@ const resolvers = {
 	 * Resolve request for post.
 	 *
 	 * @param {number} id The post ID.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getPost( id ) {
+	*getPost( id, queryArgs = {} ) {
 		if ( ! id ) {
 			return;
 		}
 		yield actions.setIsLoading( true );
+
+		// Default context to view only.
+		queryArgs = Object.assign( {
+			context: 'view',
+		}, queryArgs );
+
 		try {
 			const post = yield actions.fetch( {
-				path: `wp/v2/audiences/${ id }?context=edit`,
+				path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
 			} );
 			if ( post.status === 'auto-draft' ) {
 				post.title.rendered = '';
@@ -416,15 +423,21 @@ const resolvers = {
 	 * Resolve request for current post.
 	 *
 	 * @param {number} id The post ID.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getCurrentPost( id ) {
+	*getCurrentPost( id, queryArgs = {} ) {
 		if ( ! id ) {
 			return;
 		}
 		yield actions.setIsLoading( true );
+
+		queryArgs = Object.assign( {
+			context: 'view',
+		}, queryArgs );
+
 		const post = yield actions.fetch( {
-			path: `wp/v2/audiences/${ id }?context=edit`,
+			path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
 		} );
 		if ( post.status === 'auto-draft' ) {
 			post.title.rendered = '';
@@ -439,21 +452,22 @@ const resolvers = {
 	/**
 	 * Resolve request for multiple posts.
 	 *
-	 * @param {number} page Results page to get.
-	 * @param {string} search Current search query.
-	 * @param {string} status Post status.
+	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getPosts( page = 1, search = '', status = 'publish,draft' ) {
+	*getPosts( queryArgs = {} ) {
 		yield actions.setIsLoading( true );
+
+		queryArgs = Object.assign( {
+			context: 'edit',
+			per_page: 20,
+			page: 1,
+			search: '',
+			status: 'publish,draft',
+		}, queryArgs );
+
 		const response = yield actions.fetch( {
-			path: addQueryArgs( 'wp/v2/audiences', {
-				context: 'edit',
-				per_page: 20,
-				page,
-				search,
-				status,
-			} ),
+			path: addQueryArgs( 'wp/v2/audiences', queryArgs ),
 			headers: {
 				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
 			},

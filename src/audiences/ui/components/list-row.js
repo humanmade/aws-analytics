@@ -140,11 +140,15 @@ const ListRow = props => {
 				</div>
 			</td>
 			<td>
-				<StatusToggle
-					disabled={ ! canEdit }
-					status={ post.status }
-					onChange={ onStatusChange }
-				/>
+				{ canEdit && (
+					<StatusToggle
+						status={ post.status }
+						onChange={ onStatusChange }
+					/>
+				) }
+				{ ! canEdit && (
+					<span className="active">{ post.status === 'publish' ? __( 'Active', 'altis-analytics' ) : __( 'Inactive', 'altis-analytics' ) }</span>
+				) }
 			</td>
 			<td>
 				<Estimate audience={ post.audience } horizontal />

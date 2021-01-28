@@ -163,8 +163,12 @@ class Select extends Component {
 const applyWithSelect = withSelect( ( select, props ) => {
 	let audiencePost = null;
 
+	// Check if the current user can create audiences. If so, they should have create permissions sent to getPost.
+	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
+	const queryArgs = canCreate ? { context: 'edit' } : {};
+
 	if ( props.audience ) {
-		audiencePost = select( 'audience' ).getPost( props.audience );
+		audiencePost = select( 'audience' ).getPost( props.audience, queryArgs );
 	}
 
 	return {
