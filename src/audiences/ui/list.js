@@ -329,10 +329,11 @@ const applyWithSelect = withSelect( select => {
 	const canCreate = select( 'core' ).canUser( 'create', 'audiences' );
 	const loading = getIsLoading();
 	const pagination = getPagination();
-	const posts = canCreate ? getPosts() : getPosts( {
-		context: 'view',
-		status: 'publish',
-	} );
+	const queryArgs = {
+		context: canCreate ? 'edit' : 'view',
+		status: canCreate ? 'publish,draft' : 'publish',
+	};
+	const posts = getPosts( queryArgs );
 
 	return {
 		canCreate,
