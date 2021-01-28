@@ -82,7 +82,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
-			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_read_permission',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
