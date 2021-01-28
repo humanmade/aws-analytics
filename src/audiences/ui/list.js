@@ -177,6 +177,8 @@ class List extends Component {
 		this.props.onGetPosts( {
 			page: page + 1,
 			search: search,
+			context: this.props.canCreate ? 'edit' : 'view',
+			status: this.props.canCreate ? 'publish,draft' : 'publish',
 		} );
 		this.setState( { page: page + 1 } );
 	}
