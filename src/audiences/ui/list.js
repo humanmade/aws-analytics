@@ -112,8 +112,8 @@ class List extends Component {
 			this.props.onGetPosts( {
 				page: this.state.page,
 				search: value,
-				context: canCreate ? 'edit' : 'view',
-				status: canCreate ? 'publish,draft' : 'publish',
+				context: this.props.canCreate ? 'edit' : 'view',
+				status: this.props.canCreate ? 'publish,draft' : 'publish',
 			} );
 		}
 	}
