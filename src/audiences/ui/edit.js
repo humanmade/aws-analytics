@@ -49,12 +49,31 @@ const StyledEdit = styled.div`
  */
 class Edit extends Component {
 	state = {
-		notice: null,
 		error: null,
+		hasEdits: false,
+		notice: null,
 	};
 
 	static getDerivedStateFromError( error ) {
 		return { error };
+	}
+
+	componentDidMount() {
+		this.onBeforeUnload = window.onbeforeunload;
+		/**
+		 * Overwrite window unload function.
+		 *
+		 * @returns {bool} True if there are no unsaved edits.
+		 */
+		window.onbeforeunload = () => {
+			if ( this.state.hasEdits ) {
+				return true;
+			}
+		};
+	}
+
+	componentWillUnmount() {
+		window.onbeforeunload = this.onBeforeUnload;
 	}
 
 	componentDidCatch( error, errorInfo ) {
@@ -90,6 +109,9 @@ class Edit extends Component {
 		} else {
 			onCreatePost( post );
 		}
+
+		// Edits have been saved now so it's safe to navigate again.
+		this.setState( { hasEdits: false } );
 	}
 
 	render() {
@@ -178,14 +200,20 @@ class Edit extends Component {
 						placeholder={ __( 'Add title', 'altis-analytics' ) }
 						type="text"
 						value={ decodeEntities( post.title.rendered ) }
-						onChange={ event => onSetTitle( event.target.value ) }
+						onChange={ event => {
+							this.setState( { hasEdits: true } );
+							onSetTitle( event.target.value );
+						} }
 					/>
 				</div>
 
 				<div className="audience-settings">
 					<AudienceEditor
 						audience={ post.audience || defaultAudience }
-						onChange={ onSetAudience }
+						onChange={ audience => {
+							this.setState( { hasEdits: true } );
+							onSetAudience( audience );
+						} }
 					/>
 
 					<div className="audience-options">
@@ -198,7 +226,10 @@ class Edit extends Component {
 						<StatusToggle
 							disabled={ loading }
 							status={ post.status }
-							onChange={ () => onSetStatus( isPublished ? 'draft' : 'publish' ) }
+							onChange={ () => {
+								this.setState( { hasEdits: true } );
+								onSetStatus( isPublished ? 'draft' : 'publish' );
+							} }
 						/>
 						<Button
 							disabled={ loading || saving }
