@@ -245,11 +245,11 @@ const actionGenerators = {
 	 */
 	*deletePost( id ) {
 		yield actions.setIsDeleting( true );
-		const post = yield actions.fetch( {
+		yield actions.fetch( {
 			path: `wp/v2/audiences/${ id }`,
 			method: 'DELETE',
 		} );
-		yield actions.addPosts( [ post ] );
+		yield actions.removePost( id );
 		return actions.setIsDeleting( false );
 	},
 };
