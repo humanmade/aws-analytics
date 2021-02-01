@@ -82,7 +82,7 @@ function init() {
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',
-			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
+			'permission_callback' => __NAMESPACE__ . '\\check_read_permission',
 			'args' => [
 				'audience' => [
 					'description' => __( 'A URL encoded audience configuration JSON string', 'altis-analytics' ),
@@ -267,4 +267,14 @@ function sanitize_estimate_audience( $param ) {
 function check_edit_permission() : bool {
 	$type = get_post_type_object( Audiences\POST_TYPE );
 	return current_user_can( $type->cap->edit_posts );
+}
+
+/**
+ * Check user can view audience posts.
+ *
+ * @return bool
+ */
+function check_read_permission() : bool {
+	$type = get_post_type_object( Audiences\POST_TYPE );
+	return current_user_can( $type->cap->read );
 }
