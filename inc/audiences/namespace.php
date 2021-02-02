@@ -67,6 +67,7 @@ function register_post_type() {
 			'menu_icon' => 'dashicons-groups',
 			'menu_position' => 151,
 			'show_in_rest' => true,
+			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\\Posts_Controller',
 			'rest_base' => 'audiences',
 			'hierarchical' => false,
 			'capability_type' => [
