@@ -36,7 +36,6 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
-
 		$post_type = get_post_type_object( $this->post_type );
 
 		if ( ! current_user_can( $post_type->cap->read ) ) {
