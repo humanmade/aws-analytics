@@ -592,6 +592,34 @@ const Analytics = {
 			}
 		}
 
+		// Add persistent referer tracking for external sources.
+		if ( document.referer && document.referrer.indexOf( window.location.hostname ) === -1 ) {
+			if ( ! endpoint.Attributes.initialReferer ) {
+				endpoint.Attributes.initialReferer = [ document.referer ];
+			}
+			if ( ! endpoint.Attributes.referer ) {
+				endpoint.Attributes.referer = [ document.referer ];
+			} else if ( endpoint.Attributes.referer.indexOf( document.referer ) === -1 ) {
+				endpoint.Attributes.referer.push( document.referer );
+			}
+		}
+
+		// Add persistent UTM campaign tracking.
+		for ( const qv in params ) {
+			const param = qv.toLowerCase();
+			if ( ! param.match( /^utm_/ ) ) {
+				continue;
+			}
+			if ( ! endpoint.Attributes[ `initial_${ param }`] ) {
+				endpoint.Attributes[ `initial_${ param }` ] = [ params[ param ] ];
+			}
+			if ( ! endpoint.Attributes[ param ] ) {
+				endpoint.Attributes[ param ] = [ params[ param ] ];
+			} else if ( endpoint.Attributes[ param ].indexOf( params[ param ] ) === -1 ) {
+				endpoint.Attributes[ param ].push( params[ param ] );
+			}
+		}
+
 		// Strip user data if full consent not given.
 		if ( ! hasFullConsent ) {
 			delete endpoint.User;

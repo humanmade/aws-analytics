@@ -146,7 +146,9 @@ function pre_get_posts( WP_Query $query ) {
  */
 function register_default_event_data_maps() {
 	// Traffic source data.
-	register_field( 'attributes.referer', __( 'Referrer', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initialReferer', __( 'Original Referrer', 'altis-analytics' ), __( 'The first external website a visitor arrived from', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.referer', __( 'Referrer', 'altis-analytics' ), __( 'Any external website a visitor has ever arrived from', 'altis-analytics' ) );
+	register_field( 'attributes.referer', __( 'Current Referrer', 'altis-analytics' ), __( 'The previous URL a visitor came from for the current page view only', 'altis-analytics' ) );
 
 	// Device data.
 	register_field( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
@@ -159,11 +161,16 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 
 	// UTM Campaign parameters.
-	register_field( 'attributes.qv_utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
-	register_field( 'attributes.qv_utm_source', __( 'UTM Source', 'altis-analytics' ) );
-	register_field( 'attributes.qv_utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
-	register_field( 'attributes.qv_utm_term', __( 'UTM Term', 'altis-analytics' ) );
-	register_field( 'attributes.qv_utm_content', __( 'UTM Content', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'Original UTM Campaign', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_source', __( 'Original UTM Source', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_medium', __( 'Original UTM Medium', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_term', __( 'Original UTM Term', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_content', __( 'Original UTM Content', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.utm_term', __( 'UTM Term', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.utm_content', __( 'UTM Content', 'altis-analytics' ) );
 
 	// Time based parameters.
 	register_field( 'metrics.hour', __( 'Hour', 'altis-analytics' ), __( '24 hour clock format. For example 0 = midnight and 18 = 6pm.', 'altis-analytics' ) );
