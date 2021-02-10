@@ -203,6 +203,9 @@ export default function Rule( props ) {
 	const fields = useSelect( select => select( 'audience' ).getFields(), [] );
 	const currentField = fields.find( fieldData => fieldData.name === field ) || {};
 
+	const persistentFields = fields.filter( fieldData => fieldData.name.match( /^endpoint\./ ) );
+	const pointInTimeFields = fields.filter( fieldData => ! fieldData.name.match( /^endpoint\./ ) );
+
 	return (
 		<StyledRule className="audience-editor__rule">
 			<select
@@ -221,15 +224,26 @@ export default function Rule( props ) {
 				>
 					{ __( 'Select a field', 'altis-analytics' ) }
 				</option>
-
-				{ fields.map( fieldData => (
-					<option
-						key={ fieldData.name }
-						value={ fieldData.name }
-					>
-						{ fieldData.label }
-					</option>
-				) ) }
+				<optgroup label={ __( 'Persistent Data', 'altis-analytics' ) }>
+					{ persistentFields.map( fieldData => (
+						<option
+							key={ fieldData.name }
+							value={ fieldData.name }
+						>
+							{ fieldData.label }
+						</option>
+					) ) }
+				</optgroup>
+				<optgroup label={ __( 'Point in time data', 'altis-analytics' ) }>
+					{ pointInTimeFields.map( fieldData => (
+						<option
+							key={ fieldData.name }
+							value={ fieldData.name }
+						>
+							{ fieldData.label }
+						</option>
+					) ) }
+				</optgroup>
 			</select>
 
 			<SelectOperator
