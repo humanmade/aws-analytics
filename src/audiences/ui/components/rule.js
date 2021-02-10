@@ -234,7 +234,7 @@ export default function Rule( props ) {
 						</option>
 					) ) }
 				</optgroup>
-				<optgroup label={ __( 'Point in time data', 'altis-analytics' ) }>
+				<optgroup label={ __( 'Point-in-time Data', 'altis-analytics' ) }>
 					{ pointInTimeFields.map( fieldData => (
 						<option
 							key={ fieldData.name }
