@@ -16,6 +16,12 @@ const StyledPanelRow = styled( PanelRow )`
 	}
 `;
 
+/**
+ * Custom sidebar panel container component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @returns {React.ReactNode} Panel row interior component.
+ */
 const PanelRowInner = props => (
 	<StyledPanelRow>
 		<div className="altis-experiments-panel-row">

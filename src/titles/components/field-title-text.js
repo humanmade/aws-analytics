@@ -48,18 +48,39 @@ const Preview = styled( Button ).attrs( {
 	}
 `;
 
+/**
+ * Updates a title in the array of titles.
+ *
+ * @param {Array} titles List of titles to test.
+ * @param {string} title The updated title string.
+ * @param {number} index The array index of the title to update.
+ * @returns {Array} The updated titles array.
+ */
 const editTitles = ( titles = [], title = '', index = 0 ) => {
 	const newTitles = [ ...titles ];
 	newTitles[ index ] = title;
 	return newTitles;
 };
 
+/**
+ * Remove a title from an array of titles.
+ *
+ * @param {Array} titles The list of titles.
+ * @param {number} index The index of the title to remove.
+ * @returns {Array} The updated array of titles.
+ */
 const removeTitle = ( titles, index ) => {
 	const newTitles = [ ...titles ];
 	newTitles.splice( index, 1 );
 	return newTitles;
 };
 
+/**
+ * Title field component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @returns {React.ReactNode} Title text field component.
+ */
 const TitleTextField = props => {
 	const {
 		defaultTitle,
@@ -82,14 +103,22 @@ const TitleTextField = props => {
 				return (
 					<Variant key={ index }>
 						<TextareaControl
-							autoFocus={ allTitles.length - 1 === index }
 							key={ index }
+							autoFocus={ allTitles.length - 1 === index }
 							label={ `
 								${ __( 'Title', 'altis-experiments' ) }
 								${ getLetter( index ) }
 								${ index === 0 ? __( '(original)', 'altis-experiments' ) : '' }
 							` }
+							placeholder={ __( 'Enter another title here.', 'altis-experiments' ) }
+							readOnly={ ! isEditable }
+							rows={ 3 }
+							value={ title }
 							onChange={ value => onChange( editTitles( allTitles, value, index ) ) }
+							onFocus={ event => {
+								const length = event.target.value.length * 2;
+								event.target.setSelectionRange( length, length );
+							} }
 							onKeyUp={ event => {
 								if (
 									title === '' &&
@@ -102,14 +131,6 @@ const TitleTextField = props => {
 									onChange( removeTitle( allTitles, index ) );
 								}
 							} }
-							onFocus={ event => {
-								const length = event.target.value.length * 2;
-								event.target.setSelectionRange( length, length );
-							} }
-							placeholder={ __( 'Enter another title here.', 'altis-experiments' ) }
-							value={ title }
-							readOnly={ ! isEditable }
-							rows={ 3 }
 						/>
 						<Info>
 							{ variant.size > 0 && (
@@ -137,10 +158,10 @@ const TitleTextField = props => {
 				<TextareaControl
 					autoFocus={ allTitles.length <= 1 }
 					label={ `${ __( 'Title', 'altis-experiments' ) } ${ getLetter( allTitles.length ) }` }
-					onChange={ value => onChange( editTitles( allTitles, value, allTitles.length ) ) }
 					placeholder={ __( 'Enter another title here.', 'altis-experiments' ) }
-					value=""
 					rows={ 3 }
+					value=""
+					onChange={ value => onChange( editTitles( allTitles, value, allTitles.length ) ) }
 				/>
 			) }
 		</Fragment>

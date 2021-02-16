@@ -1,10 +1,19 @@
 const { useSelect } = wp.data;
 const { __ } = wp.i18n;
 
-// Component for fetching and displaying the variant title string.
+/**
+ * Component for fetching and displaying the variant title string.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {object} props.variant The variant block object.
+ * @param {string} props.placeholder Optional placeholder text for the variant title.
+ * @returns {React.ReactNode} The title to show for the variant.
+ */
 const VariantTitle = ( { variant, placeholder = null } ) => {
+	let hasVariant = true;
 	if ( ! variant || typeof variant !== 'object' ) {
-		return '';
+		variant = { attributes: {} };
+		hasVariant = false;
 	}
 
 	const audience = useSelect( select => {
@@ -12,6 +21,10 @@ const VariantTitle = ( { variant, placeholder = null } ) => {
 	}, [ variant.attributes.audience ] );
 
 	const isLoading = useSelect( select => select( 'audience' ).getIsLoading(), [] );
+
+	if ( ! hasVariant ) {
+		return '';
+	}
 
 	if ( variant.attributes.fallback ) {
 		return __( 'Fallback', 'altis-experiments' );

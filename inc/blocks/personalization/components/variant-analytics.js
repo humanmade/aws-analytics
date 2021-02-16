@@ -4,6 +4,13 @@ import Views from './views';
 const { useSelect } = wp.data;
 const { _n, sprintf } = wp.i18n;
 
+/**
+ * Experience block variant analytics display component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {object} props.variant The personlization variant block object.
+ * @returns {React.ReactNode} The variant analytics display component.
+ */
 const VariantAnalytics = ( { variant } ) => {
 	const { audience, fallback } = variant.attributes;
 

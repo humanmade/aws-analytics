@@ -4,6 +4,16 @@ const { InnerBlocks } = wp.blockEditor;
 const { compose } = wp.compose;
 const { withSelect, withDispatch } = wp.data;
 
+/**
+ * Personalized content variant edit mode component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {string} props.clientId The block client ID.
+ * @param {boolean} props.hasChildBlocks True if the block has children.
+ * @param {boolean} props.isSelected True if the block currently selected.
+ * @param {Function} props.onSelect Function to select the parent block.
+ * @returns {React.ReactNode} The variant edit mode component.
+ */
 const Edit = ( {
 	clientId,
 	hasChildBlocks,
@@ -15,18 +25,22 @@ const Edit = ( {
 		if ( isSelected ) {
 			onSelect();
 		}
-	}, [ isSelected ] );
+	}, [ isSelected, onSelect ] );
 
 	const props = {};
 	if ( ! hasChildBlocks ) {
-		// If we don't have any child blocks, show large block appender button.
+		/**
+		 * If we don't have any child blocks, show large block appender button.
+		 *
+		 * @returns {InnerBlocks.DefaultBlockAppender} Block appender component.
+		 */
 		props.renderAppender = () => <InnerBlocks.DefaultBlockAppender />;
 	}
 
 	return (
 		<div
-			data-type="altis/personalization-variant"
 			data-block={ clientId }
+			data-type="altis/personalization-variant"
 		>
 			<InnerBlocks
 				{ ...props }
@@ -53,7 +67,12 @@ export default compose(
 		const rootClientId = getBlockRootClientId( clientId );
 
 		return {
+			/**
+			 * Function to select the parent block.
+			 *
+			 * @returns {object} Redux action object.
+			 */
 			onSelect: () => selectBlock( rootClientId ),
 		};
-	} ),
+	} )
 )( Edit );

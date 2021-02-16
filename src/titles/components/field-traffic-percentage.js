@@ -10,18 +10,24 @@ const StyledRangeControl = styled( RangeControl )`
 	.components-range-control__slider { flex: 1 1 50%; }
 `;
 
+/**
+ * Traffic percentage input component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @returns {React.ReactNode} Traffic percentage input component.
+ */
 const TrafficPercentage = props => {
 	const { value, onChange } = props;
 
 	return (
 		<Fragment>
 			<StyledRangeControl
+				help={ __( 'This is the amount of traffic that will be shown one of the variants.' ) }
 				label={ __( 'Traffic Percentage' ) }
+				max={ 100 }
+				min={ 0 }
 				value={ value }
 				onChange={ onChange }
-				help={ __( 'This is the amount of traffic that will be shown one of the variants.' ) }
-				min={ 0 }
-				max={ 100 }
 			/>
 		</Fragment>
 	);

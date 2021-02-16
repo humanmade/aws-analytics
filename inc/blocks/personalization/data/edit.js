@@ -3,10 +3,10 @@ const { compose } = wp.compose;
 const { withSelect, withDispatch } = wp.data;
 
 /**
- * Returns an upgraded React Component with data store connectors.
+ * Returns an upgraded React Component with experience block data store connectors.
  *
- * @param {React.Component} Component
- * @return React.Component
+ * @param {React.ReactNode} Component React component to enhance.
+ * @returns {React.ReactNode} Enhanced component.
  */
 const withData = Component => compose(
 	withSelect( ( select, ownProps ) => {
@@ -21,6 +21,12 @@ const withData = Component => compose(
 	} ),
 	withDispatch( ( dispatch, ownProps, registry ) => {
 		return {
+			/**
+			 * Adds a variant to the store.
+			 *
+			 * @param {object} attributes Variant attributes object.
+			 * @returns {string} The new variant block client ID.
+			 */
 			onAddVariant( attributes = {} ) {
 				const { clientId } = ownProps;
 				const { replaceInnerBlocks, selectBlock } = dispatch( 'core/block-editor' );
@@ -48,6 +54,12 @@ const withData = Component => compose(
 				// Return new client ID to enable selection.
 				return newVariant.clientId;
 			},
+			/**
+			 * Copies an existing variant.
+			 *
+			 * @param {string} variantClientId The source variant client ID.
+			 * @returns {string} The new variant block client ID.
+			 */
 			onCopyVariant( variantClientId ) {
 				const { replaceInnerBlocks } = dispatch( 'core/block-editor' );
 				const {
@@ -81,6 +93,11 @@ const withData = Component => compose(
 
 				return newVariant.clientId;
 			},
+			/**
+			 * Removes a block variant.
+			 *
+			 * @param {string} variantClientId Client ID for variant block to remove.
+			 */
 			onRemoveVariant( variantClientId ) {
 				const { clientId, attributes } = ownProps;
 				const { replaceInnerBlocks } = dispatch( 'core/block-editor' );
@@ -98,7 +115,7 @@ const withData = Component => compose(
 				replaceInnerBlocks( clientId, innerBlocks );
 			},
 		};
-	} ),
+	} )
 )( Component );
 
 export default withData;

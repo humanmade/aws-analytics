@@ -19,6 +19,12 @@ const { withDispatch } = wp.data;
 const { compose } = wp.compose;
 const { __ } = wp.i18n;
 
+/**
+ * A/B test results display component.
+ *
+ * @param {React.ComponentProps} props The results component props.
+ * @returns {React.ReactNode} The test results display.
+ */
 export const Results = props => {
 	const {
 		test = {},
@@ -107,13 +113,16 @@ export const ResultsWithData = compose(
 	withTestData,
 	withDispatch( ( dispatch, props ) => {
 		return {
+			/**
+			 * Resets the first title back to the original post title value.
+			 */
 			revertTitle: () => {
 				dispatch( 'core/editor' ).editPost( {
 					title: props.titles[ 0 ],
 				} );
 			},
 		};
-	} ),
+	} )
 )( Results );
 
 export default ResultsWithData;

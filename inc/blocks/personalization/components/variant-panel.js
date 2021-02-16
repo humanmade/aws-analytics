@@ -9,6 +9,14 @@ const { PanelBody } = wp.components;
 const { useDispatch } = wp.data;
 const { __ } = wp.i18n;
 
+/**
+ * Variant settings panel.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {object} props.variant The variant block object.
+ * @param {React.ReactNode} props.placeholder Placeholder text for the variant title while loading.
+ * @returns {React.ReactNode} Variant settings panel.
+ */
 const VariantPanel = ( { variant, placeholder = null } ) => {
 	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
@@ -28,11 +36,11 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 	}
 
 	return (
-		<PanelBody title={ <VariantTitle variant={ variant } placeholder={ placeholder } /> }>
+		<PanelBody title={ <VariantTitle placeholder={ placeholder } variant={ variant } /> }>
 			<AudiencePicker
 				audience={ variant.attributes.audience }
-				onSelect={ audience => updateBlockAttributes( variant.clientId, { audience } ) }
 				onClearSelection={ () => updateBlockAttributes( variant.clientId, { audience: null } ) }
+				onSelect={ audience => updateBlockAttributes( variant.clientId, { audience } ) }
 			/>
 			{ ! variant.attributes.audience && (
 				<p className="description">

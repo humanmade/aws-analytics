@@ -17,6 +17,12 @@ import { arrayEquals } from './utils';
 
 const { __ } = wp.i18n;
 
+/**
+ * Titles A/B test settings form component.
+ *
+ * @param {React.ComponentProps} props The settings component props.
+ * @returns {React.ReactNode} The A/B test settings form.
+ */
 const Settings = props => {
 	const {
 		isSaving,
@@ -47,10 +53,16 @@ const Settings = props => {
 		setState( { prevTitles: originalTitles } );
 	}
 
+	/**
+	 * @param {boolean} paused True to pause the test.
+	 */
 	const setPaused = paused => {
 		setState( { prevTitles: titles } );
 		updateTest( { paused }, titles, true );
 	};
+	/**
+	 * Start the test running.
+	 */
 	const startTest = () => {
 		setState( { prevTitles: titles } );
 		updateTest( {
@@ -58,6 +70,9 @@ const Settings = props => {
 			paused: false,
 		}, titles, true );
 	};
+	/**
+	 * Set the titles back to the values stored in the db.
+	 */
 	const resetTitles = () => {
 		updateTitles( prevTitles );
 	};
@@ -129,9 +144,9 @@ const Settings = props => {
 					defaultTitle={ title }
 					isEditable={ paused }
 					postId={ post.id }
-					onChange={ updateTitles }
 					titles={ titles }
 					variants={ variants }
+					onChange={ updateTitles }
 				/>
 			</PanelRow>
 			<PanelRow>
@@ -142,11 +157,11 @@ const Settings = props => {
 			</PanelRow>
 			<PanelRow>
 				<DateRangeField
-					startTime={ startTime || Date.now() }
-					endTime={ endTime || Date.now() + ( 30 * 24 * 60 * 60 * 1000 ) }
-					onChangeStart={ time => updateTest( { start_time: time } ) }
-					onChangeEnd={ time => updateTest( { end_time: time } ) }
 					description={ __( 'The test will stop automatically when it reaches statistical significance.', 'altis-experiments' ) }
+					endTime={ endTime || Date.now() + ( 30 * 24 * 60 * 60 * 1000 ) }
+					startTime={ startTime || Date.now() }
+					onChangeEnd={ time => updateTest( { end_time: time } ) }
+					onChangeStart={ time => updateTest( { start_time: time } ) }
 				/>
 			</PanelRow>
 			{ started && (

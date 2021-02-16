@@ -22,6 +22,12 @@ const Icon = styled.span.attrs( props => ( {
 	}
 `;
 
+/**
+ * Sidebar plugin icon component.
+ *
+ * @param {React.ComponentProps} props The plugin icon props.
+ * @returns {React.ReactNode} The custom plugin icon component.
+ */
 const PluginIcon = props => {
 	const { test } = props;
 	const { results } = test || {};

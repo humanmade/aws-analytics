@@ -5,6 +5,14 @@ const { __ } = wp.i18n;
 
 const registeredGoals = window.Altis.Analytics.Experiments.Goals || {};
 
+/**
+ * Dropdown goal selection component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {string} props.goal Currently selected goal.
+ * @param {Function} props.onChange Callback for value changes.
+ * @returns {React.ReactNode} The goal picker component.
+ */
 const GoalPicker = ( { goal, onChange } ) => {
 	const goals = Object.entries( registeredGoals );
 
@@ -26,9 +34,9 @@ const GoalPicker = ( { goal, onChange } ) => {
 	return (
 		<SelectControl
 			label={ __( 'Choose a conversion goal', 'altis-experiments' ) }
-			onChange={ onChange }
 			options={ options }
 			value={ goal }
+			onChange={ onChange }
 		/>
 	);
 };

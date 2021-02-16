@@ -15,6 +15,12 @@ const StyledDateRange = styled.div`
 	}
 `;
 
+/**
+ * Component for entering a date range.
+ *
+ * @param {React.ComponentProps} props Date range props.
+ * @returns {React.ReactNode} Date range component.
+ */
 const DateRange = props => {
 	const {
 		description,

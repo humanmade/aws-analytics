@@ -4,8 +4,8 @@ window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};
 /**
  * Check if an element is visible in the viewport.
  *
- * @param <HTMLElement> element The element to check visibility for.
- * @return Boolean
+ * @param {HTMLElement} element element The element to check visibility for.
+ * @returns {boolean} True if the element is in the viewport.
  */
 function isVisible( element ) {
 	const rect = element.getBoundingClientRect();
@@ -202,9 +202,9 @@ const goalHandlers = {};
  * Callback receives the target node and a function to record
  * to record the event.
  *
- * @param <String> name of the goal.
- * @param <Function> callback to bind an event listener.
- * @param <String[]> array of allowed node types to bind listener to.
+ * @param {string} name of the goal.
+ * @param {Function} callback to bind an event listener.
+ * @param {string[]} closest Array of allowed node types to bind listener to.
  */
 const registerGoalHandler = ( name, callback, closest = [] ) => {
 	goalHandlers[ name ] = {
@@ -214,10 +214,12 @@ const registerGoalHandler = ( name, callback, closest = [] ) => {
 };
 
 /**
+ * Attaches an event listener to a node and passes event data to a callback when fired.
  *
  * @param {HTMLElement} node The target node to attach the event listener to.
- * @param {*} record The function called by the event listener to record an event.
- * @param {*} on The JS dvent name to listen on.
+ * @param {Function} record The function called by the event listener to record an event.
+ * @param {string} on The JS dvent name to listen on.
+ * @returns {?EventListener} The event listener handle if successful or undefined.
  */
 const bindListener = ( node, record, on ) => node && node.addEventListener( on, event => {
 	if ( typeof record !== 'function' ) {
@@ -230,8 +232,9 @@ const bindListener = ( node, record, on ) => node && node.addEventListener( on, 
 /**
  * Get a goal handling function.
  *
- * @param {String} name The name of a registered goal, goal handler or a valid JS event.
- * @param {Object} options Optional overrides for the registered goal properties.
+ * @param {string} name The name of a registered goal, goal handler or a valid JS event.
+ * @param {object} options Optional overrides for the registered goal properties.
+ * @returns {Function} Callback for recording the goal.
  */
 const getGoalHandler = ( name, options = {} ) => {
 	// Compile the goal configuration.
@@ -282,6 +285,9 @@ registerGoalHandler( 'click', ( element, record ) => {
 	} );
 }, [ 'a' ] );
 
+/**
+ * Personalized content block element.
+ */
 class PersonalizationBlock extends HTMLElement {
 
 	get clientId() {
@@ -310,6 +316,9 @@ class PersonalizationBlock extends HTMLElement {
 		window.Altis.Analytics.on( 'updateAudiences', this.setContent );
 	}
 
+	/**
+	 * Updates the block content if needed and performs analytics tracking actions.
+	 */
 	setContent = () => {
 		const audiences = window.Altis.Analytics.getAudiences() || [];
 

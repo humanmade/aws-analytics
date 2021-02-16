@@ -3,6 +3,12 @@ import React from 'react';
 const { IconButton } = wp.components;
 const { __ } = wp.i18n;
 
+/**
+ * Toolbar options for a variant.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @returns {React.ReactNode} Toolbar component for a variant.
+ */
 const VariantToolbar = props => {
 	const {
 		canRemove,

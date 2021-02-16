@@ -25,7 +25,21 @@ const { __, sprintf } = wp.i18n;
  */
 const ALLOWED_BLOCKS = [ 'altis/personalization-variant' ];
 
-// Audience picker input.
+/**
+ * Audience picker input.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {object} props.attributes Block attributes object.
+ * @param {string} props.className Block class name.
+ * @param {string} props.clientId The block client ID.
+ * @param {boolean} props.isSelected True if the block is currently selected in the editor.
+ * @param {Function} props.onAddVariant Function to add a new variant.
+ * @param {Function} props.onCopyVariant Function to copy an existing variant.
+ * @param {Function} props.onRemoveVariant Function to remove a variant.
+ * @param {Function} props.setAttributes Function to set block attributes.
+ * @param {Array} props.variants The block content variant objects.
+ * @returns {React.ReactNode} The block edit component.
+ */
 const Edit = ( {
 	attributes,
 	className,
@@ -42,7 +56,7 @@ const Edit = ( {
 		if ( ! attributes.clientId ) {
 			setAttributes( { clientId: uuid() } );
 		}
-	}, [] );
+	}, [ attributes.clientId, setAttributes ] );
 
 	// Track currently selected variant.
 	const defaultVariantClientId = ( variants.length > 0 && variants[ 0 ].clientId ) || null;
@@ -58,7 +72,7 @@ const Edit = ( {
 		if ( variants.length === 0 ) {
 			setVariant( onAddVariant( { fallback: true } ) );
 		}
-	}, [] );
+	}, [ variants.length, onAddVariant ] );
 
 	// Track the active variant index to show in the title.
 	const activeVariantIndex = variants.findIndex( variant => variant.clientId === activeVariant );
@@ -69,11 +83,18 @@ const Edit = ( {
 			icon: 'plus',
 			title: __( 'Add a variant', 'altis-experiments' ),
 			className: 'altis-add-variant-button',
+			/**
+			 * Adds a new variant.
+			 *
+			 * @returns {string} New variant block client ID.
+			 */
 			onClick: () => setVariant( onAddVariant() ),
 		},
 	];
 
-	// When a variant is removed select the preceeding one along unless it's the first in the list.
+	/**
+	 * When a variant is removed select the preceeding one along unless it's the first in the list.
+	 */
 	const onRemove = () => {
 		if ( activeVariantIndex === 0 ) {
 			setVariant( variants[ activeVariantIndex + 1 ].clientId );
@@ -98,7 +119,7 @@ const Edit = ( {
 								title={ __( 'Select variant', 'altis-experiments' ) }
 								onClick={ () => setVariant( variant.clientId ) }
 							>
-								<VariantTitle variant={ variant } placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) } />
+								<VariantTitle placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) } variant={ variant } />
 							</Button>
 						) ) }
 					</div>
@@ -108,18 +129,18 @@ const Edit = ( {
 				<div className="components-panel__body is-opened">
 					<BlockAnalytics clientId={ attributes.clientId } />
 					<Button
-						onClick={ () => setVariant( onAddVariant() ) }
 						isSecondary
+						onClick={ () => setVariant( onAddVariant() ) }
 					>
 						{ __( 'Add a variant', 'altis-experiments' ) }
 					</Button>
 				</div>
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
-						className={ `variant-settings-${ variant.clientId }` }
 						key={ `variant-settings-${ variant.clientId }` }
-						variant={ variant }
+						className={ `variant-settings-${ variant.clientId }` }
 						placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) }
+						variant={ variant }
 					/>
 				) ) }
 				<PanelBody title={ __( 'Reset Analytics Data', 'altis-experiments' ) }>
@@ -137,8 +158,8 @@ const Edit = ( {
 					{ ' ' }
 					{ prevClientId && (
 						<Button
-							isTertiary
 							isLink
+							isTertiary
 							onClick={ () => {
 								setPrevClientId( null );
 								setAttributes( { clientId: prevClientId } );
@@ -166,8 +187,8 @@ const Edit = ( {
 						{ ' ・ ' }
 						{ variants.length > 0 && (
 							<VariantTitle
-								variant={ variants[ activeVariantIndex ] }
 								placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), activeVariantIndex + 1 ) }
+								variant={ variants[ activeVariantIndex ] }
 							/>
 						) }
 					</span>

@@ -12,6 +12,12 @@ const {
 const { __ } = wp.i18n;
 const { PanelBody } = wp.components;
 
+/**
+ * Block Editor sidebar plugin component for title A/B tests.
+ *
+ * @param {React.ComponentProps} props The sidebar plugin component props.
+ * @returns {React.ReactNode} The plugin sidebar.
+ */
 const Plugin = props => {
 	const {
 		post,
@@ -52,9 +58,9 @@ const Plugin = props => {
 				<Panel>
 					<PanelBody
 						className={ classNames }
-						title={ __( 'Post Titles', 'altis-experiments' ) }
 						icon={ paused ? 'controls-pause' : 'chart-line' }
-						initialOpen={ true }
+						initialOpen
+						title={ __( 'Post Titles', 'altis-experiments' ) }
 					>
 						{ ( winner !== false || hasEnded ) && (
 							<Results />

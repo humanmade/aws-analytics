@@ -70,6 +70,7 @@ const sharedConfig = {
 		'react': 'React',
 		'react-dom': 'ReactDOM',
 		'lodash': 'lodash',
+		'moment': 'moment',
 	},
 };
 
@@ -77,6 +78,10 @@ if ( mode === 'production' ) {
 	sharedConfig.plugins.push( new DynamicPublicPathPlugin( {
 		externalGlobal: 'window.Altis.Analytics.BuildURL',
 		chunkName: 'audiences',
+	} ) );
+	sharedConfig.plugins.push( new DynamicPublicPathPlugin( {
+		externalGlobal: 'window.Altis.Analytics.Experiments.BuildURL',
+		chunkName: 'experiments',
 	} ) );
 	sharedConfig.plugins.push( new SriPlugin( {
 		hashFuncNames: [ 'sha384' ],

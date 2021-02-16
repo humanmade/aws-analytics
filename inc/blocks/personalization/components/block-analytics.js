@@ -4,6 +4,13 @@ import Views from './views';
 const { useSelect } = wp.data;
 const { __, sprintf } = wp.i18n;
 
+/**
+ * Block analytics data display component.
+ *
+ * @param {React.ComponentProps} props The component props.
+ * @param {string} props.clientId The block client ID.
+ * @returns {React.ReactNode} The block analytics data component.
+ */
 const BlockAnalytics = ( { clientId } ) => {
 	const postId = useSelect( select => {
 		return select( 'core/editor' ).getCurrentPostId();
