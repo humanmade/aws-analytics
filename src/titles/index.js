@@ -1,5 +1,5 @@
-import Plugin from './plugin';
 import { PluginIcon } from './components';
+import Plugin from './plugin';
 
 const { registerPlugin } = wp.plugins;
 const { createElement } = wp.element;
