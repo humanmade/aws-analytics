@@ -1,10 +1,9 @@
+import blockData from './block.json';
 import edit from './edit';
 import save from './save';
 
 // Load analytics data store.
 import './data/analytics';
-
-import blockData from './block.json';
 
 const { registerBlockType } = wp.blocks;
 const { __ } = wp.i18n;

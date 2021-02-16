@@ -1,4 +1,5 @@
 import React from 'react';
+
 import Views from './views';
 
 const { useSelect } = wp.data;

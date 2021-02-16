@@ -1,10 +1,10 @@
 import React, { Fragment, useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
+
 import BlockAnalytics from './components/block-analytics';
 import VariantTitle from './components/variant-title';
 import VariantPanel from './components/variant-panel';
 import VariantToolbar from './components/variant-toolbar';
-
 import withData from './data/edit';
 
 const {

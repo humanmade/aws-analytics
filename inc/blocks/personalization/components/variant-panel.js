@@ -1,4 +1,5 @@
 import React from 'react';
+
 import GoalPicker from './goal-picker';
 import VariantAnalytics from './variant-analytics';
 import VariantTitle from './variant-title';
