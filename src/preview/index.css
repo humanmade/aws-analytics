@@ -4,13 +4,16 @@
 }
 
 #wpadminbar .altis-analytics-preview-selected {
+	/* stylelint-disable-next-line declaration-no-important */
 	display: flex !important;
 	justify-content: space-between;
+	/* stylelint-disable-next-line declaration-no-important */
 	color: #8c8 !important;
 }
 
 #wpadminbar .altis-analytics-preview-selected::after {
-	font: 20px/1 "dashicons";
+	/* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+	font: 20px/1 dashicons;
 	padding: 4px;
 	margin-left: 6px;
 	content: "\f147";
@@ -19,5 +22,6 @@
 
 #wpadminbar .altis-analytics-preview-selected:focus,
 #wpadminbar .altis-analytics-preview-selected:hover {
+	/* stylelint-disable-next-line declaration-no-important */
 	color: #47a747 !important;
 }

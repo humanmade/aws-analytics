@@ -1,6 +1,7 @@
 import React from 'react';
-import { Notice } from '.';
 import styled from 'styled-components';
+
+import { Notice } from '.';
 
 const { TimePicker } = wp.components;
 const { __ } = wp.i18n;
