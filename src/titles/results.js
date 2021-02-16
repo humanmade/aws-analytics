@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react';
 
-import withTestData from './data/with-test-data';
 import {
 	Button,
 	CenteredButton,
@@ -10,6 +9,7 @@ import {
 	StyledResults,
 	Variant,
 } from './components';
+import withTestData from './data/with-test-data';
 import {
 	getLetter,
 	getDateString,
