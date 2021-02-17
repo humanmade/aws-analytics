@@ -5,7 +5,7 @@
  * @phpcs:disable HM.Files.NamespaceDirectoryName.NameMismatch
  * @phpcs:disable HM.Files.FunctionFileName.WrongFile
  *
- * @package altis-experiments
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Blocks\Personalization_Variant;

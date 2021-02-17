@@ -2,7 +2,7 @@
 /**
  * Experience Block functions.
  *
- * @package altis-experiments
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Blocks;

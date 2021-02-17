@@ -2,7 +2,7 @@
 /**
  * Altis Analytics.
  *
- * @package altis-analytics
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics;

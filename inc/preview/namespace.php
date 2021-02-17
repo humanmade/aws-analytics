@@ -2,7 +2,7 @@
 /**
  * Audience preview selector.
  *
- * @package altis-analytics
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Preview;
