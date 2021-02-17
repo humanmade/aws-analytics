@@ -55,7 +55,6 @@ export const Warning = styled( props => (
 `;
 
 export const CenteredButton = styled( Button ).attrs( {
-	isLarge: true,
 	isPrimary: true,
 } )`
 	text-align: center;

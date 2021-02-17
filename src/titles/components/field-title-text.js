@@ -44,6 +44,13 @@ const Preview = styled( Button ).attrs( {
 	font-size: inherit;
 
 	.dashicon {
+		width: auto;
+		font-size: inherit;
+		line-height: inherit;
+		vertical-align: baseline;
+	}
+
+	svg.dashicon, .dashicon svg {
 		width: 0.9rem;
 		margin-left: 2px;
 	}
