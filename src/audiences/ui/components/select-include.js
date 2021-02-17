@@ -5,12 +5,6 @@ const { __ } = wp.i18n;
 
 const StyledSelect = styled.select`
 	vertical-align: middle;
-
-	&:not(:hover, :focus) {
-		border: none;
-		background: none;
-		margin-right: 8px;
-	}
 `;
 
 /**

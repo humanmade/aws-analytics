@@ -40,7 +40,7 @@ export const Results = props => {
 		traffic_percentage: trafficPercentage,
 	} = test;
 	const {
-		winner = false,
+		winner = null,
 		variants = [],
 	} = results;
 
@@ -49,10 +49,10 @@ export const Results = props => {
 	return (
 		<StyledResults>
 			<PanelRow>
-				{ winner !== false && (
+				{ winner !== null && (
 					<Notice>{ __( 'Your test is complete!', 'altis-experiments' ) }</Notice>
 				) }
-				{ hasEnded && winner === false && (
+				{ hasEnded && winner === null && (
 					<Notice>
 						{ __( 'The test has ended without finding a statistically significant difference between the variants.', 'altis-experiments' ) }
 					</Notice>

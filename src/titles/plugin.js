@@ -30,7 +30,7 @@ const Plugin = props => {
 		results,
 		end_time: endTime,
 	} = test;
-	const { winner = false } = results;
+	const { winner = null } = results;
 
 	const classNames = [
 		started && 'is-started',
@@ -63,10 +63,10 @@ const Plugin = props => {
 						initialOpen
 						title={ __( 'Post Titles', 'altis-experiments' ) }
 					>
-						{ ( winner !== false || hasEnded ) && (
+						{ ( winner !== null || hasEnded ) && (
 							<Results />
 						) }
-						{ ( winner === false && ! hasEnded ) && (
+						{ ( winner === null && ! hasEnded ) && (
 							<Settings />
 						) }
 					</PanelBody>

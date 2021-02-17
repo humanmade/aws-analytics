@@ -165,12 +165,12 @@ function register_post_ab_tests_rest_fields() {
 				}
 
 				$response[ $test_id ] = [
-					'started'            => is_ab_test_started_for_post( $test_id, $post['id'] ),
-					'start_time'         => get_ab_test_start_time_for_post( $test_id, $post['id'] ),
-					'end_time'           => get_ab_test_end_time_for_post( $test_id, $post['id'] ),
+					'started' => is_ab_test_started_for_post( $test_id, $post['id'] ),
+					'start_time' => get_ab_test_start_time_for_post( $test_id, $post['id'] ),
+					'end_time' => get_ab_test_end_time_for_post( $test_id, $post['id'] ),
 					'traffic_percentage' => get_ab_test_traffic_percentage_for_post( $test_id, $post['id'] ),
-					'paused'             => is_ab_test_paused_for_post( $test_id, $post['id'] ),
-					'results'            => (object) get_ab_test_results_for_post( $test_id, $post['id'] ),
+					'paused' => is_ab_test_paused_for_post( $test_id, $post['id'] ),
+					'results' => (object) get_ab_test_results_for_post( $test_id, $post['id'] ),
 				];
 			}
 			return (object) $response;
@@ -211,10 +211,10 @@ function register_post_ab_tests_rest_fields() {
 							'type' => 'boolean',
 						],
 						'start_time' => [
-							'type' => 'integer',
+							'type' => 'number',
 						],
 						'end_time' => [
-							'type' => 'integer',
+							'type' => 'number',
 						],
 						'traffic_percentage' => [
 							'type' => 'number',
@@ -228,13 +228,13 @@ function register_post_ab_tests_rest_fields() {
 							'readOnly' => true,
 							'properties' => [
 								'timestamp' => [
-									'type' => 'integer',
+									'type' => 'number',
 								],
 								'winning' => [
-									'type' => 'integer',
+									'type' => [ 'number', 'null' ],
 								],
 								'winner' => [
-									'type' => 'integer',
+									'type' => [ 'number', 'null' ],
 								],
 								'aggs' => [
 									'type' => 'array',
@@ -252,12 +252,12 @@ function register_post_ab_tests_rest_fields() {
 												'description' => __( 'Variant value', 'altis-experiments' ),
 											],
 											'size' => [
-												'type' => 'integer',
+												'type' => 'number',
 												'default' => 0,
 												'description' => __( 'Variant sample size', 'altis-experiments' ),
 											],
 											'hits' => [
-												'type' => 'integer',
+												'type' => 'number',
 												'default' => 0,
 												'description' => __( 'Variant conversion count', 'altis-experiments' ),
 											],
@@ -514,7 +514,8 @@ function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id 
  * @return array Results array
  */
 function get_ab_test_results_for_post( string $test_id, int $post_id ) : array {
-	return (array) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_results', true );
+	$results = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_results', true );
+	return is_array( $results ) ? $results : [];
 }
 
 /**
@@ -670,7 +671,7 @@ function is_ab_test_running_for_post( string $test_id, int $post_id ) : bool {
 function save_ab_test_results_for_post( string $test_id, int $post_id, array $data ) {
 	$data = wp_parse_args( $data, [
 		'timestamp' => Utils\milliseconds(),
-		'winner' => false,
+		'winner' => null,
 		'variants' => [],
 	] );
 	add_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_completed', $data );
@@ -698,7 +699,7 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
 
 	// Check for a winner and return that if present.
 	$results = get_ab_test_results_for_post( $test_id, $post_id );
-	if ( isset( $results['winner'] ) && $results['winner'] !== false ) {
+	if ( isset( $results['winner'] ) && $results['winner'] !== null ) {
 		if ( $results['winner'] === 0 ) {
 			return $default_output;
 		}
@@ -897,8 +898,8 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	// Merge existing data.
 	$merged_data = wp_parse_args( $data, [
 		'timestamp' => 0,
-		'winning' => false,
-		'winner' => false,
+		'winning' => null,
+		'winner' => null,
 		'aggs' => [],
 		'variants' => [],
 	] );

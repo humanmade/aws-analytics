@@ -46,10 +46,17 @@ const VariantAnalytics = ( { variant } ) => {
 	}
 
 	const audienceId = audience || 0;
+	const defaultAudienceData = {
+		views: 0,
+		unique: {
+			views: 0,
+			conversions: 0,
+		},
+	};
 
 	// Total loads, views & conversions.
 	const audiences = ( data && data.audiences ) || [];
-	const audienceData = audiences.find( data => data.id === audienceId ) || { unique: {} };
+	const audienceData = audiences.find( data => data.id === audienceId ) || defaultAudienceData;
 
 	// Use conversions vs total views if a goal is set.
 	if ( variant.attributes.goal ) {

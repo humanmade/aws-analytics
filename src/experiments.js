@@ -264,6 +264,10 @@ const getGoalHandler = ( name, options = {} ) => {
 
 // Register built in click goal handler.
 registerGoalHandler( 'click', ( element, record ) => {
+	if ( ! element ) {
+		return;
+	}
+
 	// Collect attributes.
 	const attributes = {
 		elementNode: element.nodeName || '',

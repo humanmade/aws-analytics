@@ -32,7 +32,7 @@ const Icon = styled.span.attrs( props => ( {
 const PluginIcon = props => {
 	const { test } = props;
 	const { results } = test || {};
-	const { winner = false } = results || {};
+	const { winner = null } = results || {};
 
 	return (
 		<Icon winner={ Boolean( winner ) }>

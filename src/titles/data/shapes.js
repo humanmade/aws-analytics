@@ -4,8 +4,8 @@ export const DEFAULT_TEST = {
 	results: {
 		aggs: [],
 		variants: [],
-		winner: false,
-		winning: false,
+		winner: null,
+		winning: null,
 	},
 	start_time: Date.now(),
 	started: false,

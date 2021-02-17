@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useEffect } from 'react';
 
 import {
 	Button,
@@ -50,9 +50,11 @@ const Settings = props => {
 	} = results;
 
 	// Set the initial prevTitles value if it's empty.
-	if ( originalTitles.length && ! prevTitles.length ) {
-		setState( { prevTitles: originalTitles } );
-	}
+	useEffect( () => {
+		if ( originalTitles.length && ! prevTitles.length ) {
+			setState( { prevTitles: originalTitles } );
+		}
+	}, [ originalTitles, prevTitles, setState ] );
 
 	/**
 	 * @param {boolean} paused True to pause the test.
