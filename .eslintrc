@@ -2,7 +2,8 @@
 	"extends": "humanmade",
 	"globals": {
 		"Altis": "readonly",
-		"wp": "readonly"
+		"wp": "readonly",
+		"moment": "readonly"
 	},
 	"rules": {
 		"no-multi-str": "off",

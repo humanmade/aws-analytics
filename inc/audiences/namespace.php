@@ -2,7 +2,7 @@
 /**
  * Audiences.
  *
- * @package altis-analytics
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Audiences;

@@ -2,7 +2,7 @@
 /**
  * Altis Analytics.
  *
- * @package altis-analytics
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics;
@@ -23,8 +23,14 @@ function setup() {
 	// Set up preview.
 	Preview\setup();
 
-	// Set up preview.
+	// Set up export.
 	Export\setup();
+
+	// Set up experiments.
+	Experiments\setup();
+
+	// Enable Experience Blocks.
+	Blocks\setup();
 
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );

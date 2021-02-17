@@ -2,7 +2,7 @@
 /**
  * Audience REST API.
  *
- * @package altis-analytics
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Audiences\REST_API;
