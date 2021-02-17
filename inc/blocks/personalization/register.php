@@ -72,9 +72,9 @@ function enqueue_assets() {
 	// Queue up editor CSS.
 	wp_enqueue_style(
 		'altis-experiments-features-blocks-personalization',
-		plugins_url( 'inc/features/blocks/personalization/edit.css', Analytics\ROOT_FILE ),
+		plugins_url( 'inc/blocks/personalization/edit.css', Analytics\ROOT_FILE ),
 		[],
-		'2021-02-11-1'
+		'2021-02-17-1'
 	);
 }
 
