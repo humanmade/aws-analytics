@@ -12,10 +12,13 @@ const withData = Component => compose(
 	withSelect( ( select, ownProps ) => {
 		const { clientId } = ownProps;
 		const { getBlocks } = select( 'core/block-editor' );
+		const { getCurrentPost } = select( 'core/editor');
 
+		const currentPost = getCurrentPost();
 		const innerBlocks = getBlocks( clientId );
 
 		return {
+			currentPost,
 			variants: innerBlocks,
 		};
 	} ),

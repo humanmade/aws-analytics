@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import BlockAnalytics from './components/block-analytics';
@@ -15,6 +15,7 @@ const {
 const {
 	Button,
 	PanelBody,
+	TextControl,
 	Toolbar,
 } = wp.components;
 const { __, sprintf } = wp.i18n;
@@ -32,6 +33,7 @@ const ALLOWED_BLOCKS = [ 'altis/personalization-variant' ];
  * @param {object} props.attributes Block attributes object.
  * @param {string} props.className Block class name.
  * @param {string} props.clientId The block client ID.
+ * @param {object} props.currentPost The currently edited post object.
  * @param {boolean} props.isSelected True if the block is currently selected in the editor.
  * @param {Function} props.onAddVariant Function to add a new variant.
  * @param {Function} props.onCopyVariant Function to copy an existing variant.
@@ -44,6 +46,7 @@ const Edit = ( {
 	attributes,
 	className,
 	clientId,
+	currentPost,
 	isSelected,
 	onAddVariant,
 	onCopyVariant,
@@ -57,6 +60,21 @@ const Edit = ( {
 			setAttributes( { clientId: uuid() } );
 		}
 	}, [ attributes.clientId, setAttributes ] );
+
+	// If currently editing the XB post directly update the title from the main post title.
+	useEffect( () => {
+		if ( currentPost.type === 'xb' ) {
+			setAttributes( { title: currentPost.title } );
+		}
+	}, [ currentPost.title, currentPost.type, setAttributes ] );
+
+	// Track the instance number for this block, only needs to be set when block is selected.
+	const instance = useRef( null );
+	useEffect( () => {
+		if ( ! instance.current ) {
+			instance.current = ++Edit.instanceNumber;
+		}
+	}, [ isSelected ] );
 
 	// Track currently selected variant.
 	const defaultVariantClientId = ( variants.length > 0 && variants[ 0 ].clientId ) || null;
@@ -127,6 +145,14 @@ const Edit = ( {
 			</BlockControls>
 			<InspectorControls>
 				<div className="components-panel__body is-opened">
+					{ currentPost.type !== 'xb' && (
+						<TextControl
+							label={ <strong>{ __( 'Block Title', 'altis-analytics' ) }</strong> }
+							placeholder={ sprintf( __( '%s (XB %d)', 'atlis-analytics' ), currentPost.title, instance.current ) }
+							value={ attributes.title || '' }
+							onChange={ title => setAttributes( { title } ) }
+						/>
+					) }
 					<BlockAnalytics clientId={ attributes.clientId } />
 					<Button
 						isSecondary
@@ -183,7 +209,8 @@ const Edit = ( {
 			<div className={ className }>
 				<div className="wp-core-ui altis-experience-block-header">
 					<span className="altis-experience-block-header__title">
-						{ __( 'Personalized Content', 'altis-experiments' ) }
+						{ ! attributes.title && __( 'Personalized Content', 'altis-experiments' ) }
+						{ attributes.title }
 						{ ' ・ ' }
 						{ variants.length > 0 && (
 							<VariantTitle
@@ -209,5 +236,7 @@ const Edit = ( {
 		</Fragment>
 	);
 };
+
+Edit.instanceNumber = 0;
 
 export default withData( Edit );
