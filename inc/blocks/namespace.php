@@ -9,9 +9,13 @@ namespace Altis\Analytics\Blocks;
 
 use Altis\Analytics\Audiences;
 use Altis\Analytics\Utils;
+use WP_Post;
+use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
+
+const POST_TYPE = 'xb';
 
 /**
  * Include and set up Experience Blocks.
@@ -24,11 +28,158 @@ function setup() {
 	Personalization\setup();
 	Personalization_Variant\setup();
 
+	// Set up the XB shadow post type.
+	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
+	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
+
 	// Register experience block category.
 	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 9 );
 
 	// Register API endpoints for getting XB analytics data.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\rest_api_init' );
+}
+
+/**
+ * Synchronise any XBs on the page with a shadow post type.
+ *
+ * @param int $post_ID Post ID.
+ * @param WP_Post $post Post object.
+ * @param bool $update Whether this is an existing post being updated.
+ */
+function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
+	if ( $post->post_type === POST_TYPE ) {
+		return;
+	}
+
+	if ( $post->post_type === 'revision' ) {
+		return;
+	}
+
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Scan for XBs in the post content.
+	$blocks = parse_blocks( $post->post_content );
+	$xbs = find_xbs( $blocks );
+
+	// Stop processing if no XBs on page.
+	if ( empty( $xbs ) ) {
+		return;
+	}
+
+	// Find referenced XBs.
+	$existing_posts = new WP_Query( [
+		'post_type' => POST_TYPE,
+		'post_status' => 'any',
+		'post_name__in' => array_filter( array_map( function ( array $xb ) : string {
+			return $xb['attrs']['clientId'];
+		}, $xbs ) ),
+		'posts_per_page' => 100,
+		'no_found_rows' => true,
+	] );
+
+	// Update or create XB posts.
+	foreach ( $xbs as $index => $xb ) {
+		if ( empty( $xb['attrs']['clientId'] ) ) {
+			continue;
+		}
+
+		// Extract existing post if found.
+		$posts = wp_list_filter( $existing_posts->posts, [
+			'post_name' => $xb['attrs']['clientId'],
+		] );
+		$posts = array_values( $posts ); // Reset keys.
+
+		// Generate a default using the current post title and instance number in the content.
+		$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
+
+		if ( empty( $posts ) ) {
+			// Create new shadow XB post.
+			wp_insert_post( [
+				'post_type' => POST_TYPE,
+				'post_status' => 'publish',
+				'post_content' => serialize_block( $xb ),
+				'post_name' => $xb['attrs']['clientId'],
+				'post_author' => get_current_user_id(),
+				'post_title' => $xb['attrs']['title'] ?? $default_title,
+			] );
+		} else {
+			// Update existing post.
+			wp_update_post( [
+				'ID' => $posts[0]->ID,
+				'post_content' => serialize_block( $xb ),
+				'post_title' => $xb['attrs']['title'] ?? $default_title,
+			] );
+		}
+	}
+}
+
+/**
+ * Recursively find blocks in a parsed blocks array.
+ *
+ * Use parse_blocks() on raw post content data to get the required input array.
+ *
+ * @param array $blocks The parsed blocks data for a post.
+ * @return array
+ */
+function find_xbs( array $blocks ) : array {
+	// Supported block types.
+	$xb_types = [
+		'altis/personalization',
+		'altis/experiment',
+	];
+
+	$xbs = [];
+
+	foreach ( $blocks as $block ) {
+		if ( ! in_array( $block['blockName'], $xb_types, true ) ) {
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$xbs = array_merge(
+					$xbs,
+					find_xbs( $block['innerBlocks'] )
+				);
+			}
+			continue;
+		}
+
+		$xbs[] = $block;
+	}
+
+	return $xbs;
+}
+
+/**
+ * Set up the Experience Block shadow post type.
+ *
+ * This is used for storing meta data and long term
+ * aggregated analytics data storage as well as easier referencing in code.
+ *
+ * @return void
+ */
+function register_post_type() {
+	register_extended_post_type(
+		POST_TYPE,
+		[
+			'public' => false,
+			'show_ui' => false,
+			'dashboard_glance' => false,
+			'block_editor' => true,
+			'supports' => [
+				'title',
+				'editor',
+			],
+			'menu_icon' => 'dashicons-networking',
+			'menu_position' => 152,
+			'show_in_rest' => true,
+			'rest_base' => 'xbs',
+			'hierarchical' => false,
+		],
+		[
+			'singular' => __( 'Experience Block', 'altis-analytics' ),
+			'plural' => __( 'Experience Blocks', 'altis-analytics' ),
+		]
+	);
 }
 
 /**
