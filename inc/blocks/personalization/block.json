@@ -1,0 +1,18 @@
+{
+    "name": "altis/personalization",
+    "settings": {
+        "category": "altis-experience-blocks",
+        "icon": "groups",
+        "supports": {
+            "alignWide": true,
+            "html": false,
+            "align": true
+        },
+        "attributes": {
+            "clientId": {
+                "type": "string",
+                "required": true
+            }
+        }
+    }
+}
