@@ -183,12 +183,12 @@ function register_post_type() {
 				'all_items' => __( 'Insights', 'altis-analytics' ),
 			],
 			'admin_cols' => [
-				'views' => [
-					'title' => __( 'Views', 'altis-analytics' ),
-					'function' => '__return_null',
-				],
 				'block' => [
 					'title' => __( 'Block', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
+				],
+				'views' => [
+					'title' => __( 'Views', 'altis-analytics' ),
 					'function' => '__return_null',
 				],
 				'conversion' => [
