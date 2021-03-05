@@ -179,8 +179,8 @@ function register_post_type() {
 				'create_posts' => 'do_not_allow',
 			],
 			'labels' => [
-				'name' => __( 'Experience Analytics', 'altis-analytics' ),
-				'all_items' => __( 'Analytics', 'altis-analytics' ),
+				'name' => __( 'Experience Insights', 'altis-analytics' ),
+				'all_items' => __( 'Insights', 'altis-analytics' ),
 			],
 			'admin_cols' => [
 				'views' => [
