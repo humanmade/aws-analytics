@@ -175,6 +175,10 @@ function register_post_type() {
 			'show_in_menu' => 'index.php',
 			'rest_base' => 'xbs',
 			'hierarchical' => false,
+			'labels' => [
+				'name' => __( 'Experience Analytics', 'altis-analytics' ),
+				'all_items' => __( 'Analytics', 'altis-analytics' ),
+			],
 		],
 		[
 			'singular' => __( 'Experience Block', 'altis-analytics' ),
