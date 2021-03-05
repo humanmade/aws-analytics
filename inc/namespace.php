@@ -32,7 +32,7 @@ function setup() {
 	// Enable Experience Blocks.
 	Blocks\setup();
 
-	// Setup the Analytics Dashboard.
+	// Set up the Analytics Dashboard.
 	Dashboard\setup();
 
 	// Handle async scripts.
