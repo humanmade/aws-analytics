@@ -179,6 +179,24 @@ function register_post_type() {
 				'name' => __( 'Experience Analytics', 'altis-analytics' ),
 				'all_items' => __( 'Analytics', 'altis-analytics' ),
 			],
+			'admin_cols' => [
+				'views' => [
+					'title' => __( 'Views', 'altis-analytics' ),
+					'function' => '__return_null',
+				],
+				'block' => [
+					'title' => __( 'Block', 'altis-analytics' ),
+					'function' => '__return_null',
+				],
+				'conversion' => [
+					'title' => __( 'Avg. Conversion', 'altis-analytics' ),
+					'function' => '__return_null',
+				],
+				'details' => [
+					'title' => __( 'Last Modified / Author', 'altis-analytics' ),
+					'function' => '__return_null'
+				]
+			]
 		],
 		[
 			'singular' => __( 'Experience Block', 'altis-analytics' ),
