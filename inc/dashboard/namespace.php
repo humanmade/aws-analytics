@@ -33,3 +33,10 @@ function remove_date_filter( $months, $post_type ) {
 
 	return $months;
 }
+
+function render_block_column() {
+	global $post;
+	?>
+	<strong><a href="#"><?php echo esc_attr( $post->post_title ); ?></a></strong>
+	<?php
+}
