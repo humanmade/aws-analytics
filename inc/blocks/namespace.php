@@ -162,7 +162,7 @@ function register_post_type() {
 		POST_TYPE,
 		[
 			'public' => false,
-			'show_ui' => false,
+			'show_ui' => true,
 			'dashboard_glance' => false,
 			'block_editor' => true,
 			'supports' => [
@@ -172,6 +172,7 @@ function register_post_type() {
 			'menu_icon' => 'dashicons-networking',
 			'menu_position' => 152,
 			'show_in_rest' => true,
+			'show_in_menu' => 'index.php',
 			'rest_base' => 'xbs',
 			'hierarchical' => false,
 		],
