@@ -7,6 +7,8 @@
 
 namespace Altis\Analytics\Dashboard;
 
+use function Altis\Analytics\Blocks\get_views;
+
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
@@ -51,5 +53,13 @@ function render_last_modified_author() {
 	<div class="post--author">
 		<?php echo esc_attr( get_the_author_meta( 'display_name', $post->post_author ) ); ?>
 	</div>
+	<?php
+}
+
+function render_views() {
+	global $post;
+	$views = get_views( $post->post_name )['views'];
+	?>
+	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
 }

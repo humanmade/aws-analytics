@@ -189,7 +189,7 @@ function register_post_type() {
 				],
 				'views' => [
 					'title' => __( 'Views', 'altis-analytics' ),
-					'function' => '__return_null',
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_views',
 				],
 				'conversion' => [
 					'title' => __( 'Avg. Conversion', 'altis-analytics' ),
