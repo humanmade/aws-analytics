@@ -193,7 +193,7 @@ function register_post_type() {
 				],
 				'conversion' => [
 					'title' => __( 'Avg. Conversion', 'altis-analytics' ),
-					'function' => '__return_null',
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_average_conversion_rate',
 				],
 				'details' => [
 					'title' => __( 'Last Modified / Author', 'altis-analytics' ),
