@@ -12,6 +12,7 @@ use function Altis\Analytics\Blocks\get_views;
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
+	add_filter( 'manage_edit-xb_sortable_columns', __NAMESPACE__ . '\\xb_table_sorting' );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', '__return_null' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
@@ -36,6 +37,13 @@ function remove_post_row_actions( $actions, $post ) : array {
 	}
 
 	return $actions;
+}
+
+function xb_table_sorting( $columns ) : array {
+	$columns['block'] = 'block';
+	$columns['views'] = 'views';
+	$columns['conversion'] = 'conversion';
+	return $columns;
 }
 
 function render_block_column() {
