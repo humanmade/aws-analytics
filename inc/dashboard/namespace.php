@@ -67,3 +67,9 @@ function render_views() {
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
 }
+function calculate_average_conversion_rate( $post ) : float {
+	$data = get_views( $post->post_name );
+	$conversions = $data['conversions'];
+	$views = $data['views'];
+	return $conversions / $views;
+}
