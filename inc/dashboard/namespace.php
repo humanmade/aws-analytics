@@ -17,14 +17,12 @@ function setup() {
 	add_filter( 'months_dropdown_results', __NAMESPACE__ . '\\remove_date_filter', 10, 2 );
 }
 
-function remove_default_columns( $columns, $post_type ) {
-	if ( $post_type !== 'xb' ) {
-		return $columns;
+function remove_default_columns( $columns, $post_type ) : array {
+	if ( 'xb' === $post_type ) {
+		unset( $columns['cb'] );
+		unset( $columns['title'] );
+		unset( $columns['altis_publication_checklist_status'] );
 	}
-
-	unset( $columns['cb'] );
-	unset( $columns['title'] );
-	unset( $columns['altis_publication_checklist_status'] );
 
 	return $columns;
 }
