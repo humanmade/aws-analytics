@@ -27,7 +27,7 @@ function remove_default_columns( $columns, $post_type ) : array {
 	return $columns;
 }
 
-function remove_post_row_actions( $actions, $post ) {
+function remove_post_row_actions( $actions, $post ) : array {
 	if ( 'xb' === $post->post_type ) {
 		unset( $actions['edit'] );
 		unset( $actions['view'] );
