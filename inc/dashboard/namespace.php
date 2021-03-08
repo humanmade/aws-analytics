@@ -11,6 +11,7 @@ use function Altis\Analytics\Blocks\get_views;
 
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
+	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', '__return_null' );
 	add_filter( 'months_dropdown_results', __NAMESPACE__ . '\\remove_date_filter', 10, 2 );
@@ -28,12 +29,15 @@ function remove_default_columns( $columns, $post_type ) {
 	return $columns;
 }
 
-function remove_date_filter( $months, $post_type ) {
-	if ( 'xb' === $post_type ) {
-		return [];
+function remove_post_row_actions( $actions, $post ) {
+	if ( 'xb' === $post->post_type ) {
+		unset( $actions['edit'] );
+		unset( $actions['view'] );
+		unset( $actions['trash'] );
+		unset( $actions['inline hide-if-no-js'] );
 	}
 
-	return $months;
+	return $actions;
 }
 
 function render_block_column() {
