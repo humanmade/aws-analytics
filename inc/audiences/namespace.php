@@ -29,6 +29,7 @@ const POST_TYPE = 'audience';
 function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
+	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
@@ -47,6 +48,7 @@ function setup() {
 
 	// Set up Audience REST API.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\REST_API\\init' );
+
 }
 
 /**
@@ -347,41 +349,39 @@ function register_field( string $field, string $label, ?string $description = nu
 }
 
 /**
- * Queue up the audience admin UI scripts.
+ * Register resuable scripts.
  */
-function admin_enqueue_scripts() {
+function register_scripts() {
+	wp_register_script(
+		'altis-analytics-audience-data',
+		Utils\get_asset_url( 'audiences/data.js' ),
+		[
+			'wp-data',
+			'wp-api-fetch',
+			'wp-url',
+		],
+		null,
+		true
+	);
 
 	wp_register_script(
 		'altis-analytics-audience-ui',
-		Utils\get_asset_url( 'audiences.js' ),
+		Utils\get_asset_url( 'audiences/ui.js' ),
 		[
 			'lodash',
 			'react',
 			'react-dom',
+			'altis-analytics-audience-data',
 			'wp-core-data',
 			'wp-i18n',
 			'wp-hooks',
-			'wp-data',
 			'wp-components',
-			'wp-api-fetch',
-			'wp-url',
 			'wp-compose',
 			'wp-html-entities',
 		],
 		null,
 		true
 	);
-
-	// Hydrate with data to speed up the front end.
-	$data = [
-		'Fields' => get_field_data(),
-	];
-
-	// Add post data server side to load front end quickly on legacy edit screens.
-	if ( isset( $_GET['post'] ) && isset( $_GET['edit'] ) && get_post_type( intval( $_GET['edit'] ) ) === POST_TYPE && current_user_can( 'edit_audience', intval( $_GET['edit'] ) ) ) {
-		$response = rest_do_request( sprintf( '/wp/v2/audiences/%d', intval( $_GET['post'] ) ) );
-		$data['Current'] = $response->get_data();
-	}
 
 	wp_add_inline_script(
 		'altis-analytics-audience-ui',
@@ -391,24 +391,30 @@ function admin_enqueue_scripts() {
 			'window.Altis.Analytics.BuildURL = %s;' .
 			'window.Altis.Analytics.Audiences = %s;',
 			wp_json_encode( plugins_url( 'build', dirname( __FILE__, 2 ) ) ),
-			wp_json_encode( (object) $data )
+			wp_json_encode( (object) [] )
 		),
 		'before'
 	);
 
+	wp_register_style(
+		'altis-analytics-audience-ui',
+		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
+		[ 'wp-components' ],
+		'2021-01-22'
+	);
+}
+
+/**
+ * Queue up the audience admin UI scripts.
+ */
+function admin_enqueue_scripts() {
 	// Only queue things up by default on the audience edit pages.
 	if ( get_current_screen()->id !== 'toplevel_page_' . POST_TYPE ) {
 		return;
 	}
 
 	wp_enqueue_script( 'altis-analytics-audience-ui' );
-
-	wp_enqueue_style(
-		'altis-analytics-audience-ui',
-		plugins_url( 'src/audiences/index.css', dirname( __FILE__, 2 ) ),
-		[ 'wp-components' ],
-		'2021-01-22'
-	);
+	wp_enqueue_style( 'altis-analytics-audience-ui' );
 }
 
 /**

@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import AudienceEditor from './components/audience-editor';
 import Estimate from './components/estimate';
 import StatusToggle from './components/status-toggle';
-import { defaultPost, defaultAudience } from './data/defaults';
+import { defaultPost, defaultAudience } from '../data/defaults';
 
 const { compose } = wp.compose;
 const {

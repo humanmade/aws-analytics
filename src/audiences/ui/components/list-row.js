@@ -5,7 +5,7 @@ import {
 	useCanEdit,
 	useDeletePost,
 	useUpdatePost,
-} from '../data/hooks';
+} from '../../data/hooks';
 
 import ActionLink from './action-link';
 import AudienceSort from './audience-sort';

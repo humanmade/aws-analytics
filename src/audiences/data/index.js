@@ -19,15 +19,6 @@ const initialState = {
 	isDeleting: false,
 };
 
-// Hydrate from server side.
-if ( window.Altis.Analytics.Audiences.Fields ) {
-	initialState.fields = window.Altis.Analytics.Audiences.Fields;
-}
-if ( window.Altis.Analytics.Audiences.Current ) {
-	initialState.posts.push( window.Altis.Analytics.Audiences.Current );
-	initialState.post = window.Altis.Analytics.Audiences.Current;
-}
-
 const controls = {
 	/**
 	 * @param {object} action Action object.

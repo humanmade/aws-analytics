@@ -37,6 +37,27 @@ function setup() {
 
 	// Register API endpoints for getting XB analytics data.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\rest_api_init' );
+
+	// Register globally useful scripts.
+	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
+}
+
+/**
+ * Register discrete scripts for use in multiple places.
+ *
+ * @return void
+ */
+function register_scripts() {
+	wp_register_script(
+		'altis-analytics-xb-data',
+		Utils\get_asset_url( 'blocks/data.js' ),
+		[
+			'wp-api-fetch',
+			'wp-url',
+			'wp-data',
+		],
+		null
+	);
 }
 
 /**

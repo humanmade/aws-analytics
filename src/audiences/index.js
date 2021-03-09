@@ -4,9 +4,6 @@ import ReactDOM from 'react-dom';
 
 import { Manager, Select } from './ui';
 
-// Import the data store file directly.
-import './ui/data';
-
 // Export select component as an audience picker.
 window.Altis = window.Altis || {};
 window.Altis.Analytics = window.Altis.Analytics || {};
