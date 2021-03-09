@@ -7,6 +7,8 @@ const { registerStore } = wp.data;
 const { addQueryArgs } = wp.url;
 
 const initialState = {
+	posts: [],
+	post: null,
 	views: {},
 	isLoading: false,
 };
@@ -41,6 +43,13 @@ const reducer = function reducer( state, action ) {
 			return {
 				...state,
 				isLoading: action.isLoading,
+			};
+		}
+
+		case 'ADD_POST': {
+			return {
+				...state,
+				posts: [ ...state.posts, action.post ],
 			};
 		}
 
@@ -116,6 +125,18 @@ const actions = {
 		};
 	},
 	/**
+	 * Action creator for adding a post to the store.
+	 *
+	 * @param {object} post A post object.
+	 * @returns {object} Action creator object.
+	 */
+	addPost( post ) {
+		return {
+			type: 'ADD_POST',
+			post,
+		};
+	},
+	/**
 	 * Action creator for fetching API data.
 	 *
 	 * @param {object} options API fetch function options object.
@@ -162,6 +183,16 @@ const selectors = {
 	getIsLoading( state ) {
 		return state.isLoading;
 	},
+	/**
+	 * Get an XB post from the store.
+	 *
+	 * @param {object} state The current store state.
+	 * @param {string} clientId The block's client ID.
+	 * @returns {?object} Post object or null.
+	 */
+	getPost( state, clientId ) {
+		return state.posts.find( post => post.name === clientId ) || null;
+	},
 };
 
 const resolvers = {
@@ -180,6 +211,20 @@ const resolvers = {
 			} ),
 		} );
 		yield actions.addViews( clientId, postId, response );
+		return actions.setIsLoading( false );
+	},
+	/**
+	 * Get an experience block post.
+	 *
+	 * @param {string} clientId The block client ID.
+	 * @returns {object} Redux action objects.
+	 */
+	*getPost( clientId ) {
+		yield actions.setIsLoading( true );
+		const response = yield actions.fetch( {
+			path: `analytics/v1/xbs/${ clientId }`,
+		} );
+		yield actions.addPost( response );
 		return actions.setIsLoading( false );
 	},
 };

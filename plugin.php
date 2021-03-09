@@ -24,6 +24,8 @@ require_once __DIR__ . '/inc/audiences/namespace.php';
 require_once __DIR__ . '/inc/audiences/rest_api/class-posts-controller.php';
 require_once __DIR__ . '/inc/audiences/rest_api/namespace.php';
 require_once __DIR__ . '/inc/blocks/namespace.php';
+require_once __DIR__ . '/inc/blocks/rest_api/namespace.php';
+require_once __DIR__ . '/inc/blocks/rest_api/class-posts-controller.php';
 require_once __DIR__ . '/inc/experiments/namespace.php';
 require_once __DIR__ . '/inc/experiments/titles/namespace.php';
 require_once __DIR__ . '/inc/export/class-endpoint.php';

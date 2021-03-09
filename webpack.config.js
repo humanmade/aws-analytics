@@ -18,6 +18,7 @@ const sharedConfig = {
 		'audiences/preview': path.resolve( __dirname, 'src/audiences/preview/index.js' ),
 		'audiences/ui': path.resolve( __dirname, 'src/audiences/index.js' ),
 		'blocks/data': path.resolve( __dirname, 'src/blocks/data/index.js' ),
+		'blocks/ui': path.resolve( __dirname, 'src/blocks/index.js' ),
 		'blocks/personalization': path.resolve( __dirname, 'inc/blocks/personalization/index.js' ),
 		'blocks/personalization-variant': path.resolve( __dirname, 'inc/blocks/personalization-variant/index.js' ),
 		experiments: path.resolve( __dirname, 'src/experiments.js' ),

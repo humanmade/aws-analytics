@@ -7,13 +7,9 @@
 
 namespace Altis\Analytics\Blocks;
 
-use Altis\Analytics\Audiences;
 use Altis\Analytics\Utils;
 use WP_Post;
 use WP_Query;
-use WP_REST_Request;
-use WP_REST_Response;
-use WP_REST_Server;
 
 const POST_TYPE = 'xb';
 
@@ -40,24 +36,11 @@ function setup() {
 
 	// Register globally useful scripts.
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
-}
+	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_scripts' );
 
-/**
- * Register discrete scripts for use in multiple places.
- *
- * @return void
- */
-function register_scripts() {
-	wp_register_script(
-		'altis-analytics-xb-data',
-		Utils\get_asset_url( 'blocks/data.js' ),
-		[
-			'wp-api-fetch',
-			'wp-url',
-			'wp-data',
-		],
-		null
-	);
+	// Register an admin page for the block anlaytics view.
+	add_action( 'admin_menu', __NAMESPACE__ . '\\add_block_admin_page' );
+	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 }
 
 /**
@@ -194,6 +177,7 @@ function register_post_type() {
 			'menu_position' => 152,
 			'show_in_rest' => true,
 			'rest_base' => 'xbs',
+			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
 			'hierarchical' => false,
 		],
 		[
@@ -251,352 +235,134 @@ function get_block_settings( string $name ) : ?array {
 	return $settings;
 }
 
+
 /**
- * Register REST API endpoints for Experience Blocks.
+ * Fetch a post object by block client ID.
+ *
+ * @param string $client_id The block client ID.
+ * @return WP_Post|null
+ */
+function get_block_post( string $client_id ) : ?WP_Post {
+	static $block_posts = [];
+
+	if ( isset( $block_posts[ $client_id ] ) ) {
+		return $block_posts[ $client_id ];
+	}
+
+	$query = new WP_Query( [
+		'post_type' => POST_TYPE,
+		'post_name' => $client_id,
+		'posts_per_page' => 1,
+		'no_found_rows' => true,
+	] );
+
+	if ( empty( $query->posts ) ) {
+		$block_posts[ $client_id ] = null;
+		return null;
+	}
+
+	// Cache the lookup.
+	$block_posts[ $client_id ] = $query->posts[0];
+
+	return $block_posts[ $client_id ];
+}
+
+/**
+ * Add menu page for Experience Insights.
  *
  * @return void
  */
-function rest_api_init() : void {
+function add_block_admin_page() {
+	$type = get_post_type_object( POST_TYPE );
 
-	// Experience blocks views endpoint.
-	register_rest_route( 'analytics/v1', 'xbs/(?P<id>[a-z0-9-]+)/views', [
-		[
-			'methods' => WP_REST_Server::READABLE,
-			'callback' => __NAMESPACE__ . '\\handle_views_request',
-			'permission_callback' => __NAMESPACE__ . '\\check_views_permission',
-			'args' => [
-				'id' => [
-					'description' => __( 'The experience block client ID', 'altis-experiments' ),
-					'required' => true,
-					'type' => 'string',
-					'validate_callback' => __NAMESPACE__ . '\\validate_id',
-					'sanitize_callback' => __NAMESPACE__ . '\\sanitize_id',
-				],
-				'post_id' => [
-					'description' => __( 'An optional post ID to filter by.', 'altis-experiments' ),
-					'type' => 'number',
-				],
-			],
-		],
-		'schema' => [
-			'type' => 'object',
-			'properties' => [
-				'loads' => [ 'type' => 'number' ],
-				'views' => [ 'type' => 'number' ],
-				'conversions' => [ 'type' => 'number' ],
-				'audiences' => [
-					'type' => 'array',
-					'items' => get_audiences_data_schema(),
-				],
-				'posts' => [
-					'type' => 'array',
-					'items' => [
-						'type' => 'object',
-						'properties' => array_merge(
-							get_audiences_data_schema()['properties'],
-							[ 'audiences' => get_audiences_data_schema() ]
-						),
-					],
-				],
-				'postId' => [ 'type' => 'number' ],
-			],
-		],
-	] );
-}
-
-/**
- * Get the schema for XB analytics audience metrics.
- *
- * @return array
- */
-function get_audiences_data_schema() : array {
-	return [
-		'type' => 'object',
-		'properties' => [
-			'id' => [
-				'type' => 'number',
-			],
-			'loads' => [
-				'type' => 'number',
-			],
-			'views' => [
-				'type' => 'number',
-			],
-			'conversions' => [
-				'type' => 'number',
-			],
-			'unique' => [
-				'type' => 'object',
-				'properties' => [
-					'loads' => [
-						'type' => 'number',
-					],
-					'views' => [
-						'type' => 'number',
-					],
-					'conversions' => [
-						'type' => 'number',
-					],
-				],
-			],
-		],
-	];
-}
-
-/**
- * Validate Experience Block ID.
- *
- * @param string $param The Experience Block ID.
- * @return bool
- */
-function validate_id( $param ) : bool {
-	return (bool) preg_match( '/[a-z0-9-]+/', $param );
-}
-
-/**
- * Sanitize Experience Block ID.
- *
- * @param string $param The Experience Block ID.
- * @return string
- */
-function sanitize_id( $param ) : string {
-	return preg_replace( '/[^a-z0-9-]+/', '', $param );
-}
-
-/**
- * Check current user can view XB analytics data.
- *
- * @return boolean
- */
-function check_views_permission() : bool {
-	$type = get_post_type_object( Audiences\POST_TYPE );
-	return current_user_can( $type->cap->read );
-}
-
-/**
- * Retrieve the Experience Block views data.
- *
- * @param WP_REST_Request $request The REST request object.
- * @return WP_REST_Response
- */
-function handle_views_request( WP_REST_Request $request ) : WP_REST_Response {
-	$block_id = $request->get_param( 'id' );
-	$post_id = $request->get_param( 'post_id' ) ?? null;
-	$views = get_views( $block_id, $post_id );
-	return rest_ensure_response( $views );
-}
-
-/**
- * Map event type aggregate bucket data to response format.
- *
- * @param array $event_buckets Elasticsearch aggregate buckets data.
- * @return array
- */
-function map_aggregations( array $event_buckets ) : array {
-	$data = [
-		'loads' => 0,
-		'views' => 0,
-		'conversions' => 0,
-		'unique' => [
-			'loads' => 0,
-			'views' => 0,
-			'conversions' => 0,
-		],
-		'audiences' => [],
-	];
-
-	// Map collected event names to output schema.
-	$event_type_map = [
-		'experienceLoad' => 'loads',
-		'experienceView' => 'views',
-		'conversion' => 'conversions',
-	];
-
-	foreach ( $event_buckets as $event_bucket ) {
-		$key = $event_type_map[ $event_bucket['key'] ];
-
-		// Set the total.
-		$data[ $key ] = $event_bucket['doc_count'];
-		$data['unique'][ $key ] = $event_bucket['uniques']['value'];
-
-		foreach ( $event_bucket['audiences']['buckets'] as $audience_bucket ) {
-			if ( ! isset( $data['audiences'][ $audience_bucket['key'] ] ) ) {
-				$data['audiences'][ $audience_bucket['key'] ] = [
-					'id' => absint( $audience_bucket['key'] ),
-					'loads' => 0,
-					'views' => 0,
-					'conversions' => 0,
-					'unique' => [
-						'loads' => 0,
-						'views' => 0,
-						'conversions' => 0,
-					],
-				];
+	add_submenu_page(
+		'edit.php?post_type=' . POST_TYPE,
+		__( 'Experience Insights', 'altis-analytics' ),
+		__( 'Experience Insights', 'altis-analytics' ),
+		$type->cap->read,
+		'xb-analytics',
+		function () {
+			$post_id = intval( wp_unslash( $_GET['post'] ?? null ) );
+			$client_id = sanitize_key( wp_unslash( $_GET['clientId'] ?? null ) );
+			// Check for client ID and map to post ID if missing.
+			if ( empty( $post_id ) && ! empty( $client_id ) ) {
+				$post = get_block_post( $client_id );
+				if ( $post ) {
+					$post_id = $post->ID;
+				}
+			} elseif ( ! empty( $post_id ) && empty( $client_id ) ) {
+				$post = get_post( $post_id );
+				if ( $post ) {
+					$client_id = $post->post_name;
+				}
 			}
-			$data['audiences'][ $audience_bucket['key'] ][ $key ] = $audience_bucket['doc_count'];
-			$data['audiences'][ $audience_bucket['key'] ]['unique'][ $key ] = $audience_bucket['uniques']['value'];
+
+			// Ensure we have a post.
+			if ( empty( $client_id ) ) {
+				printf( '<h2>' . esc_html__( 'Experience Block Not Found', 'altis-analytics' ) . '</h2>' );
+				return;
+			}
+
+			printf(
+				'<div id="altis-analytics-xb-block" data-client-id="%d">' .
+				'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
+				'<noscript><div class="error msg">%s</div></noscript>' .
+				'</div>',
+				esc_attr( $client_id ),
+				esc_html__( 'Loading...', 'altis-analytics' ),
+				esc_html__( 'JavaScript is required to use the block insights view.', 'altis-analytics' )
+			);
 		}
-	}
-
-	// Ensure audiences key is an array.
-	$data['audiences'] = array_values( $data['audiences'] );
-
-	return $data;
+	);
 }
 
 /**
- * Get the Experience Block views data.
- *
- * @param string $block_id The Experience block client ID to get data for.
- * @param int|null $post_id An optional post ID to limit results by.
- * @return array|WP_Error
+ * Output markup for the XB block data modal.
  */
-function get_views( string $block_id, ?int $post_id = null ) {
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Set current site.
-					[
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
+function modal_portal() {
+	echo '<div id="altis-analytics-xb-block-modal"></div>';
+}
 
-					// Set block ID.
-					[
-						'term' => [
-							'attributes.clientId.keyword' => $block_id,
-						],
-					],
-
-					// Limit event type to experience block related records.
-					[
-						'terms' => [
-							'event_type.keyword' => [ 'experienceLoad', 'experienceView', 'conversion' ],
-						],
-					],
-				],
-			],
+/**
+ * Register discrete scripts for use in multiple places.
+ *
+ * @return void
+ */
+function register_scripts() {
+	wp_register_script(
+		'altis-analytics-xb-data',
+		Utils\get_asset_url( 'blocks/data.js' ),
+		[
+			'wp-api-fetch',
+			'wp-url',
+			'wp-data',
 		],
-		'aggs' => [
-			'events' => [
-				// Get buckets for each event type.
-				'terms' => [
-					'field' => 'event_type.keyword',
-				],
-				'aggs' => [
-					// Get unique views by event.
-					'uniques' => [
-						'cardinality' => [
-							'field' => 'endpoint.Id.keyword',
-						],
-					],
-					// Get the split by audience.
-					'audiences' => [
-						'terms' => [
-							'field' => 'attributes.audience.keyword',
-						],
-						'aggs' => [
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-						],
-					],
-				],
-			],
-			// Get the split by post ID and audience.
-			'posts' => [
-				'terms' => [
-					'field' => 'attributes.postId.keyword',
-					'size' => 100,
-				],
-				'aggs' => [
-					'events' => [
-						// Get buckets for each even type.
-						'terms' => [
-							'field' => 'event_type.keyword',
-						],
-						'aggs' => [
-							// Get uniques by event.
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-							// Get the split by audience.
-							'audiences' => [
-								'terms' => [
-									'field' => 'attributes.audience.keyword',
-								],
-								'aggs' => [
-									'uniques' => [
-										'cardinality' => [
-											'field' => 'endpoint.Id.keyword',
-										],
-									],
-								],
-							],
-						],
-					],
-				],
-			],
+		null
+	);
+
+	wp_register_script(
+		'altis-analytics-xb-ui',
+		Utils\get_asset_url( 'blocks/ui.js' ),
+		[
+			'altis-analytics-xb-data',
+			'wp-core-data',
+			'wp-components',
+			'wp-i18n',
 		],
-		'size' => 0,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
+		null
+	);
+}
 
-	// Add post ID query filter.
-	if ( $post_id ) {
-		// Remove the posts aggregation.
-		unset( $query['aggs']['posts'] );
-
-		$query['query']['bool']['filter'][] = [
-			'term' => [
-				'attributes.postId.keyword' => (string) $post_id,
-			],
-		];
+/**
+ * Enqueue block UI scripts.
+ *
+ * @return void
+ */
+function enqueue_scripts() {
+	// Only queue things up by default on the block view pages.
+	if ( get_current_screen()->id !== 'admin_page_xb-analytics' ) {
+		return;
 	}
 
-	$key = sprintf( 'views:%s:%s', $block_id, $post_id );
-	$cache = wp_cache_get( $key, 'altis-xbs' );
-	if ( $cache ) {
-		return $cache;
-	}
-
-	$result = Utils\query( $query );
-
-	if ( ! $result ) {
-		$data = [
-			'loads' => 0,
-			'views' => 0,
-			'conversions' => 0,
-			'audiences' => [],
-		];
-		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
-		return $data;
-	}
-
-	// Collect metrics.
-	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
-
-	// Add the post ID or posts aggregation.
-	if ( $post_id ) {
-		$data['post_id'] = $post_id;
-	} else {
-		$data['posts'] = [];
-		foreach ( $result['aggregations']['posts']['buckets'] as $posts_bucket ) {
-			$post_metrics = map_aggregations( $posts_bucket['events']['buckets'] );
-			$post_metrics = [ 'id' => absint( $posts_bucket['key'] ) ] + $post_metrics;
-			$data['posts'][] = $post_metrics;
-		}
-	}
-
-	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
-
-	return $data;
+	wp_enqueue_script( 'altis-analytics-xb-ui' );
 }
