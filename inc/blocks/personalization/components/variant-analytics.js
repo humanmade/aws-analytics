@@ -29,8 +29,8 @@ const VariantAnalytics = ( { variant } ) => {
 
 	// Fetch the stats.
 	const data = useSelect( select => {
-		return select( 'analytics/xbs' ).getViews( clientId, postId );
-	}, [ clientId, postId ] );
+		return select( 'analytics/xbs' ).getViews( clientId );
+	}, [ clientId ] );
 	const isLoading = useSelect( select => {
 		return select( 'analytics/xbs' ).getIsLoading();
 	}, [ data ] );

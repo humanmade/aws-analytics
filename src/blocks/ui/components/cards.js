@@ -25,7 +25,7 @@ export default function Cards( { cards = [] } ) {
 		<Container className="altis-analytics-cards">
 			{ cards.map( card => (
 				<Card className="altis-analytics-card">
-					<h2>{ card.title }</h2>
+					<h3>{ card.title }</h3>
 					<div className="altis-analytics-card__metric">{ card.metric }</div>
 					<p>{ card.description }</p>
 				</Card>

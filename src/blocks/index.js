@@ -10,7 +10,7 @@ const BlockView = document.getElementById( 'altis-analytics-xb-block' );
 // Mount if our block UI placeholder is present.
 if ( BlockView ) {
 	ReactDOM.render(
-		<Block postId={ BlockView.dataset.postId } />,
+		<Block clientId={ BlockView.dataset.clientId } />,
 		BlockView
 	);
 }

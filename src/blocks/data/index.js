@@ -8,7 +8,6 @@ const { addQueryArgs } = wp.url;
 
 const initialState = {
 	posts: [],
-	post: null,
 	views: {},
 	isLoading: false,
 };
@@ -23,7 +22,7 @@ const initialState = {
 const reducer = function reducer( state, action ) {
 	switch ( action.type ) {
 		case 'ADD_VIEWS': {
-			const key = `${ action.clientId }${ action.postId ? `-${ action.postId }` : '' }`;
+			const key = `${ action.clientId }:${ btoa( JSON.stringify( action.args ) ) }`;
 			return {
 				...state,
 				views: {
@@ -34,7 +33,7 @@ const reducer = function reducer( state, action ) {
 		}
 
 		case 'REMOVE_VIEWS': {
-			const key = `${ action.clientId }${ action.postId ? `-${ action.postId }` : '' }`;
+			const key = `${ action.clientId }:${ btoa( JSON.stringify( action.args ) ) }`;
 			const { [ key ]: deletedItem, ...newState } = state;
 			return newState;
 		}
@@ -86,15 +85,15 @@ const actions = {
 	 * Action creator for adding block analytics data.
 	 *
 	 * @param {string} clientId Block client ID.
-	 * @param {number} postId Post ID to scope results to.
+	 * @param {object} args Optional filters for the query.
 	 * @param {object} views Analytics data.
 	 * @returns {object} Redux action object.
 	 */
-	addViews( clientId, postId, views ) {
+	addViews( clientId, args, views ) {
 		return {
 			type: 'ADD_VIEWS',
 			clientId,
-			postId,
+			args,
 			views,
 		};
 	},
@@ -102,14 +101,14 @@ const actions = {
 	 * Action creator to remove block analytics data.
 	 *
 	 * @param {string} clientId The block client ID.
-	 * @param {number} postId Post ID to scope views to remove to.
+	 * @param {object} args Optional filters for the query.
 	 * @returns {object} Redux action object.
 	 */
-	removeViews( clientId, postId ) {
+	removeViews( clientId, args ) {
 		return {
 			type: 'REMOVE_VIEWS',
 			clientId,
-			postId,
+			args,
 		};
 	},
 	/**
@@ -168,11 +167,11 @@ const selectors = {
 	 *
 	 * @param {object} state Redux store state.
 	 * @param {string} clientId Block client ID.
-	 * @param {number} postId Post to scope views data to.
+	 * @param {object} args Optional args to scope views data to.
 	 * @returns {object|boolean} Object of analytics data or false on failure.
 	 */
-	getViews( state, clientId, postId = null ) {
-		return state.views[ `${ clientId }${ postId ? `-${ postId }` : '' }` ] || false;
+	getViews( state, clientId, args = null ) {
+		return state.views[ `${ clientId }:${ btoa( JSON.stringify( args ) ) }` ] || false;
 	},
 	/**
 	 * Get loading state for anlaytics data.
@@ -191,7 +190,7 @@ const selectors = {
 	 * @returns {?object} Post object or null.
 	 */
 	getPost( state, clientId ) {
-		return state.posts.find( post => post.name === clientId ) || null;
+		return state.posts.find( post => post.slug === clientId ) || null;
 	},
 };
 
@@ -200,17 +199,19 @@ const resolvers = {
 	 * Fetch block analytics data from API.
 	 *
 	 * @param {string} clientId The block ID.
-	 * @param {number} postId Optional post ID to scope data to.
+	 * @param {?object} args Optional args for filtering the data.
 	 * @returns {object} Redux action object(s).
 	 */
-	*getViews( clientId, postId = null ) {
+	*getViews( clientId, args = null ) {
 		yield actions.setIsLoading( true );
+		let path = `analytics/v1/xbs/${ clientId }/views`;
+		if ( args ) {
+			path = addQueryArgs( path, args );
+		}
 		const response = yield actions.fetch( {
-			path: addQueryArgs( `analytics/v1/xbs/${ clientId }/views`, {
-				post_id: postId,
-			} ),
+			path,
 		} );
-		yield actions.addViews( clientId, postId, response );
+		yield actions.addViews( clientId, args, response );
 		return actions.setIsLoading( false );
 	},
 	/**

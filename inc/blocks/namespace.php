@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\Blocks;
 
+use Altis\Analytics;
 use Altis\Analytics\Utils;
 use WP_Post;
 use WP_Query;
@@ -32,7 +33,7 @@ function setup() {
 	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 9 );
 
 	// Register API endpoints for getting XB analytics data.
-	add_action( 'rest_api_init', __NAMESPACE__ . '\\rest_api_init' );
+	REST_API\setup();
 
 	// Register globally useful scripts.
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
@@ -235,7 +236,6 @@ function get_block_settings( string $name ) : ?array {
 	return $settings;
 }
 
-
 /**
  * Fetch a post object by block client ID.
  *
@@ -284,13 +284,8 @@ function add_block_admin_page() {
 		function () {
 			$post_id = intval( wp_unslash( $_GET['post'] ?? null ) );
 			$client_id = sanitize_key( wp_unslash( $_GET['clientId'] ?? null ) );
-			// Check for client ID and map to post ID if missing.
-			if ( empty( $post_id ) && ! empty( $client_id ) ) {
-				$post = get_block_post( $client_id );
-				if ( $post ) {
-					$post_id = $post->ID;
-				}
-			} elseif ( ! empty( $post_id ) && empty( $client_id ) ) {
+			// Check for post ID and map to client ID if missing.
+			if ( ! empty( $post_id ) && empty( $client_id ) ) {
 				$post = get_post( $post_id );
 				if ( $post ) {
 					$client_id = $post->post_name;
@@ -304,7 +299,7 @@ function add_block_admin_page() {
 			}
 
 			printf(
-				'<div id="altis-analytics-xb-block" data-client-id="%d">' .
+				'<div id="altis-analytics-xb-block" data-client-id="%s">' .
 				'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 				'<noscript><div class="error msg">%s</div></noscript>' .
 				'</div>',
@@ -345,11 +340,11 @@ function register_scripts() {
 		Utils\get_asset_url( 'blocks/ui.js' ),
 		[
 			'altis-analytics-xb-data',
-			'wp-core-data',
 			'wp-components',
 			'wp-i18n',
 		],
-		null
+		null,
+		true
 	);
 }
 
@@ -365,4 +360,256 @@ function enqueue_scripts() {
 	}
 
 	wp_enqueue_script( 'altis-analytics-xb-ui' );
+}
+
+/**
+ * Map event type aggregate bucket data to response format.
+ *
+ * @param array $event_buckets Elasticsearch aggregate buckets data.
+ * @return array
+ */
+function map_aggregations( array $event_buckets ) : array {
+	$data = [
+		'loads' => 0,
+		'views' => 0,
+		'conversions' => 0,
+		'unique' => [
+			'loads' => 0,
+			'views' => 0,
+			'conversions' => 0,
+		],
+		'audiences' => [],
+	];
+
+	// Map collected event names to output schema.
+	$event_type_map = [
+		'experienceLoad' => 'loads',
+		'experienceView' => 'views',
+		'conversion' => 'conversions',
+	];
+
+	foreach ( $event_buckets as $event_bucket ) {
+		$key = $event_type_map[ $event_bucket['key'] ];
+
+		// Set the total.
+		$data[ $key ] = $event_bucket['doc_count'];
+		$data['unique'][ $key ] = $event_bucket['uniques']['value'];
+
+		foreach ( $event_bucket['audiences']['buckets'] as $audience_bucket ) {
+			if ( ! isset( $data['audiences'][ $audience_bucket['key'] ] ) ) {
+				$data['audiences'][ $audience_bucket['key'] ] = [
+					'id' => absint( $audience_bucket['key'] ),
+					'loads' => 0,
+					'views' => 0,
+					'conversions' => 0,
+					'unique' => [
+						'loads' => 0,
+						'views' => 0,
+						'conversions' => 0,
+					],
+				];
+			}
+			$data['audiences'][ $audience_bucket['key'] ][ $key ] = $audience_bucket['doc_count'];
+			$data['audiences'][ $audience_bucket['key'] ]['unique'][ $key ] = $audience_bucket['uniques']['value'];
+		}
+	}
+
+	// Ensure audiences key is an array.
+	$data['audiences'] = array_values( $data['audiences'] );
+
+	return $data;
+}
+
+/**
+ * Get the Experience Block views data.
+ *
+ * @param string $block_id The Experience block client ID to get data for.
+ * @param array $args Filter args.
+ *     - int|null $args['post_id'] An optional post ID to limit results by.
+ *     - int $args['days'] The number of days to get data for.
+ *     - int $args['offset'] The offset for number of days prior to start query from.
+ * @return array|\WP_Error
+ */
+function get_views( string $block_id, $args = [] ) {
+	if ( ! empty( $args ) && is_numeric( $args ) ) {
+		_deprecated_argument(
+			__FUNCTION__,
+			'3.1.0',
+			__( 'The $post_id argument has been deprecated in favours of args array. Please use [ \'post_id\' => 123 ] instead.' )
+		);
+		$args = [ 'post_id' => $args ];
+	}
+
+	// Get filter arguments.
+	$args = wp_parse_args( $args, [
+		'post_id' => null,
+		'days' => 7,
+		'offset' => 0,
+	] );
+
+	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
+	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
+
+	$query = [
+		'query' => [
+			'bool' => [
+				'filter' => [
+					// Set current site.
+					[
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+
+					// Set block ID.
+					[
+						'term' => [
+							'attributes.clientId.keyword' => $block_id,
+						],
+					],
+
+					// Limit event type to experience block related records.
+					[
+						'terms' => [
+							'event_type.keyword' => [ 'experienceLoad', 'experienceView', 'conversion' ],
+						],
+					],
+
+					// Limit to date range.
+					[
+						'range' => [
+							'event_timestamp' => [
+								'gte' => $start * 1000,
+								'lt' => $end * 1000,
+							],
+						],
+					],
+				],
+			],
+		],
+		'aggs' => [
+			'events' => [
+				// Get buckets for each event type.
+				'terms' => [
+					'field' => 'event_type.keyword',
+				],
+				'aggs' => [
+					// Get unique views by event.
+					'uniques' => [
+						'cardinality' => [
+							'field' => 'endpoint.Id.keyword',
+						],
+					],
+					// Get the split by audience.
+					'audiences' => [
+						'terms' => [
+							'field' => 'attributes.audience.keyword',
+						],
+						'aggs' => [
+							'uniques' => [
+								'cardinality' => [
+									'field' => 'endpoint.Id.keyword',
+								],
+							],
+						],
+					],
+				],
+			],
+			// Get the split by post ID and audience.
+			'posts' => [
+				'terms' => [
+					'field' => 'attributes.postId.keyword',
+					'size' => 100,
+				],
+				'aggs' => [
+					'events' => [
+						// Get buckets for each even type.
+						'terms' => [
+							'field' => 'event_type.keyword',
+						],
+						'aggs' => [
+							// Get uniques by event.
+							'uniques' => [
+								'cardinality' => [
+									'field' => 'endpoint.Id.keyword',
+								],
+							],
+							// Get the split by audience.
+							'audiences' => [
+								'terms' => [
+									'field' => 'attributes.audience.keyword',
+								],
+								'aggs' => [
+									'uniques' => [
+										'cardinality' => [
+											'field' => 'endpoint.Id.keyword',
+										],
+									],
+								],
+							],
+						],
+					],
+				],
+			],
+		],
+		'size' => 0,
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
+	];
+
+	// Add post ID query filter.
+	if ( $args['post_id'] ) {
+		// Remove the posts aggregation.
+		unset( $query['aggs']['posts'] );
+
+		$query['query']['bool']['filter'][] = [
+			'term' => [
+				'attributes.postId.keyword' => (string) $args['post_id'],
+			],
+		];
+	}
+
+	$key = sprintf( 'views:%s:%s', $block_id, hash( 'crc32', serialize( $args ) ) );
+	$cache = wp_cache_get( $key, 'altis-xbs' );
+	if ( $cache ) {
+		return $cache;
+	}
+
+	$result = Utils\query( $query );
+
+	if ( ! $result ) {
+		$data = [
+			'start' => date( 'Y-m-d H:i:s', $start ),
+			'end' => date( 'Y-m-d H:i:s', $end ),
+			'loads' => 0,
+			'views' => 0,
+			'conversions' => 0,
+			'audiences' => [],
+		];
+		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
+		return $data;
+	}
+
+	// Collect metrics.
+	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
+
+	// Add the post ID or posts aggregation.
+	if ( $args['post_id'] ) {
+		$data['post_id'] = $args['post_id'];
+	} else {
+		$data['posts'] = [];
+		foreach ( $result['aggregations']['posts']['buckets'] as $posts_bucket ) {
+			$post_metrics = map_aggregations( $posts_bucket['events']['buckets'] );
+			$post_metrics = [ 'id' => absint( $posts_bucket['key'] ) ] + $post_metrics;
+			$data['posts'][] = $post_metrics;
+		}
+	}
+
+	$data['start'] = date( 'Y-m-d H:i:s', $start );
+	$data['end'] = date( 'Y-m-d H:i:s', $end );
+
+	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
+
+	return $data;
 }

@@ -305,10 +305,10 @@ function delete_old_indexes() {
 	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 14 );
 
 	// If age has been set out of the 60-day limit, default to 7 days and warn user.
-	if ( $max_age < 1 || $max_age > 60 ) {
-		$max_age = 14;
+	if ( $max_age < 7 || $max_age > 90 ) {
+		$max_age = max( 7, min( 90, $max_age ) );
 		trigger_error(
-			'Analytics data retention period must be between 1 and 60 days, defaulting to 14.',
+			sprintf( 'Analytics data retention period must be between 7 and 90 days, defaulting to %d.', $max_age ),
 			E_USER_WARNING
 		);
 	}

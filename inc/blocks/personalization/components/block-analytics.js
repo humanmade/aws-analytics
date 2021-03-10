@@ -19,8 +19,8 @@ const BlockAnalytics = ( { clientId } ) => {
 
 	// Fetch the stats.
 	const data = useSelect( select => {
-		return select( 'analytics/xbs' ).getViews( clientId, postId );
-	}, [ clientId, postId ] );
+		return select( 'analytics/xbs' ).getViews( clientId );
+	}, [ clientId ] );
 	const isLoading = useSelect( select => {
 		return select( 'analytics/xbs' ).getIsLoading();
 	}, [ data ] );
@@ -38,7 +38,7 @@ const BlockAnalytics = ( { clientId } ) => {
 	return (
 		<div className="altis-experience-block-analytics">
 			<h4>{ __( 'Block Insights', 'altis-experiments' ) }</h4>
-			<p>{ __( 'Statistics shown are for the configured data retention period.', 'altis-experiments' ) }</p>
+			<p>{ __( 'Statistics shown are for the last 7 days.', 'altis-experiments' ) }</p>
 			<Views
 				conversions={ uniqueViews }
 				conversionsLabel={ sprintf( __( '%d unique block views, %d total', 'altis-experiments' ), uniqueViews, totalViews ) }

@@ -28,14 +28,26 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Undocumented function
+	 * Replace default rest routes for the XBs post type.
 	 *
 	 * @return void
 	 */
 	public function register_routes() {
-		parent::register_routes();
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base,
+			[
+				[
+					'methods' => WP_REST_Server::READABLE,
+					'callback' => [ $this, 'get_items' ],
+					'permission_callback' => [ $this, 'get_items_permissions_check' ],
+					'args' => $this->get_collection_params(),
+				],
+				'schema' => [ $this, 'get_public_item_schema' ],
+			]
+		);
 
-		// Add a route that allows for matching XBs by client ID.
+		// Add a route that allows for matching XBs by client ID. API is read-only.
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base . '/(?P<id>[a-z\d-]+)',
@@ -43,7 +55,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 				'args'   => [
 					'id' => [
 						'description' => __( 'Unique identifier for the object.' ),
-						'type' => 'integer',
+						'type' => [ 'integer', 'string' ],
 					],
 				],
 				[
@@ -54,27 +66,38 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 						'context' => $this->get_context_param( [ 'default' => 'view' ] ),
 					],
 				],
-				[
-					'methods' => WP_REST_Server::EDITABLE,
-					'callback' => [ $this, 'update_item' ],
-					'permission_callback' => [ $this, 'update_item_permissions_check' ],
-					'args' => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
-				],
-				[
-					'methods' => WP_REST_Server::DELETABLE,
-					'callback' => [ $this, 'delete_item' ],
-					'permission_callback' => [ $this, 'delete_item_permissions_check' ],
-					'args' => [
-						'force' => [
-							'type' => 'boolean',
-							'default' => false,
-							'description' => __( 'Whether to bypass Trash and force deletion.' ),
-						],
-					],
-				],
 				'schema' => [ $this, 'get_public_item_schema' ],
 			]
 		);
+
+		register_rest_field( Blocks\POST_TYPE, 'subtype', [
+			'get_callback' => [ $this, 'get_subtype' ],
+			'schema' => [
+				'type' => 'string',
+				'description' => __( 'The type of experience block', 'altis-analytics' ),
+			],
+		] );
+
+		register_rest_field( Blocks\POST_TYPE, 'variants', [
+			'get_callback' => [ $this, 'get_variants' ],
+			'schema' => [
+				'type' => 'array',
+				'items' => [
+					'type' => 'object',
+					'properties' => [
+						'audience' => [
+							'type' => 'object',
+							'properties' => [
+								'id' => [ 'type' => 'number' ],
+								'title' => [ 'type' => 'string' ],
+							],
+						],
+						'fallback' => [ 'type' => 'boolean' ],
+						'goal' => [ 'type' => 'string' ],
+					],
+				],
+			],
+		] );
 	}
 
 	/**
@@ -112,6 +135,45 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Add block subtype to API response.
+	 *
+	 * @param array $post The XB post data array.
+	 * @return string|null
+	 */
+	public function get_subtype( array $post ) : ?string {
+		$post = get_post( $post['id'] );
+		$blocks = parse_blocks( $post->post_content );
+		return $blocks[0]['blockName'] ?? null;
+	}
+
+	/**
+	 * Add block variants data to API response.
+	 *
+	 * @param array $post The XB data object.
+	 * @return array
+	 */
+	public function get_variants( array $post ) : array {
+		$post = get_post( $post['id'] );
+		$variants = [];
+		$blocks = parse_blocks( $post->post_content );
+
+		foreach ( $blocks as $block ) {
+			foreach ( $block['innerBlocks'] as $variant ) {
+				if ( isset( $variant['attrs']['audience'] ) ) {
+					$audience_id = (int) $variant['attrs']['audience'];
+					$variant['attrs']['audience'] = [
+						'id' => $audience_id,
+						'title' => get_the_title( $audience_id ),
+					];
+				}
+				$variants[] = $variant['attrs'];
+			}
+		}
+
+		return $variants;
+	}
+
+	/**
 	 * Get the post, if the ID is valid.
 	 *
 	 * Support XB client ID as well.
@@ -130,17 +192,39 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 			if ( (int) $id <= 0 ) {
 				return $error;
 			}
-			$post = get_post( $id );
+			$post = get_post( (int) $id );
 		} else {
 			$post = Blocks\get_block_post( $id );
 		}
 
-		$post = get_post( (int) $id );
 		if ( empty( $post ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return $error;
 		}
 
 		return $post;
+	}
+
+	/**
+	 * Add custom links to XB post type API data.
+	 *
+	 * @param WP_Post $post The post object to get links for.
+	 * @return array
+	 */
+	protected function prepare_links( $post ) {
+		$links = parent::prepare_links( $post );
+
+		// Override self link.
+		$links['self'] = [
+			'href' => rest_url( $this->namespace . '/' . $this->rest_base . '/' . $post->post_name ),
+		];
+
+		// Add anlaytics data link.
+		$links['wp:analytics'] = [
+			'href' => rest_url( $this->namespace . '/' . $this->rest_base . '/' . $post->post_name . '/views' ),
+			'embeddable' => true,
+		];
+
+		return $links;
 	}
 
 }
