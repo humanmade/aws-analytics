@@ -8,6 +8,7 @@
 namespace Altis\Analytics\Dashboard;
 
 use function Altis\Analytics\Blocks\get_views as get_block_views;
+use function Altis\Analytics\Blocks\map_aggregations;
 use function Altis\Analytics\Utils\query;
 
 function setup() {
@@ -135,5 +136,24 @@ function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
 		'size' => 0,
 	];
 
+	// 1: Sort order, asc or desc. 2: Start date to query by. 3: End date to query by.
+	$key = sprintf( 'views:list:%1$s:%2$d:%3$d', 'desc', $start_datestamp, $end_datestamp );
+	$cache = wp_cache_get( $key, 'altis-xbs' );
+
+	if ( $cache ) {
+		return $cache;
+	}
+
 	$result = query( $query );
+
+	if ( ! $result ) {
+		// load in some default empty data here.
+		$data = [];
+		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
+	}
+
+	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
+	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
+
+	return $data;
 }
