@@ -7,7 +7,7 @@
 
 namespace Altis\Analytics\Dashboard;
 
-use function Altis\Analytics\Blocks\get_views;
+use function Altis\Analytics\Blocks\get_views as get_block_views;
 
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
@@ -76,7 +76,7 @@ function render_last_modified_author() {
 
 function render_views() {
 	global $post;
-	$views = get_views( $post->post_name )['views'];
+	$views = get_block_views( $post->post_name )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -91,7 +91,7 @@ function render_average_conversion_rate() {
 }
 
 function calculate_average_conversion_rate( $post ) : float {
-	$data = get_views( $post->post_name );
+	$data = get_block_views( $post->post_name );
 	$conversions = $data['conversions'];
 	$views = $data['views'];
 	return $conversions / $views;
