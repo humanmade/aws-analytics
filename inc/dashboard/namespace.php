@@ -123,7 +123,7 @@ function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
 		'aggs' => [
 			'events' => [
 				'terms' => [
-					// Get the block data.
+					// Get the block data. This will give us the key for the block, which is stored as the post slug.
 					'field' => 'attributes.clientId.keyword',
 					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
 					'order' => [
