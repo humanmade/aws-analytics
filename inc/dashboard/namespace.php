@@ -19,6 +19,8 @@ function setup() {
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', '__return_null' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
+
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 }
 
 function remove_default_columns( $columns, $post_type ) : array {
@@ -156,4 +158,18 @@ function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
 	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
 
 	return $data;
+}
+
+function modify_views_list_query( $query ) {
+	if (
+		// Bail if we arent' in the admin.
+		! is_admin() ||
+		// Bail if we aren't looking at the XB Insights page.
+		$query->get( 'post_type' ) !== 'xb' ||
+		// Bail if we aren't ordering by views.
+		$query->get( 'orderby' ) !== 'views'
+	) {
+		return $query;
+	}
+	return $query;
 }
