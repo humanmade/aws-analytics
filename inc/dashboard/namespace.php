@@ -8,6 +8,7 @@
 namespace Altis\Analytics\Dashboard;
 
 use function Altis\Analytics\Blocks\get_views as get_block_views;
+use function Altis\Analytics\Utils\query;
 
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
@@ -95,4 +96,44 @@ function calculate_average_conversion_rate( $post ) : float {
 	$conversions = $data['conversions'];
 	$views = $data['views'];
 	return $conversions / $views;
+}
+
+function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
+	$query = [
+		'query' => [
+			'bool' => [
+				'filter' => [
+					[
+						// Query from the current site.
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+					[
+						// We're just interested in views.
+						'terms' => [
+							'event_type.keyword' => [
+								'experienceView',
+							],
+						],
+					],
+				],
+			],
+		],
+		'aggs' => [
+			'events' => [
+				'terms' => [
+					// Get the block data.
+					'field' => 'attributes.clientId.keyword',
+					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
+					'order' => [
+						'_count' => 'desc', // We need to actually get this from the query arguments for the page.
+					],
+				],
+			],
+		],
+		'size' => 0,
+	];
+
+	$result = query( $query );
 }
