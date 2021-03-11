@@ -17,9 +17,6 @@ function setup() {
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', '__return_null' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
-	add_action( 'admin_enqueue_scripts', function() {
-		wp_enqueue_script( 'altis-dashboard', plugin_dir_url( __FILE__ ) . '/assets/dashboard.js', [ 'jquery' ], time(), true );
-	} );
 }
 
 function remove_default_columns( $columns, $post_type ) : array {
