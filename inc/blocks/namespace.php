@@ -304,7 +304,7 @@ function add_block_admin_page() {
 			printf(
 				'<div class="alignright" style="margin:60px 60px 20px;"><a class="button button-primary" href="%s">%s</a></div>' .
 				'<div id="altis-analytics-xb-block" data-client-id="%s">' .
-				'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
+				'<p class="loading" style="margin:60px 60px 20px;"><span class="spinner is-active"></span> %s</p>' .
 				'<noscript><div class="error msg">%s</div></noscript>' .
 				'</div>',
 				esc_attr( admin_url( 'edit.php?post_type=' . POST_TYPE ) ),
