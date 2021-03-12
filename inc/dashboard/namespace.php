@@ -146,8 +146,10 @@ function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
 		'size' => 0,
 	];
 
-	// 1: Sort order, asc or desc. 2: Start date to query by. 3: End date to query by.
-	$key = sprintf( 'views:list:%1$s:%2$d:%3$d', 'desc', $start_datestamp, $end_datestamp );
+	// 1: Sort order, asc or desc.
+	// 2: Start date to query by.
+	// 3: End date to query by.
+	$key = sprintf( 'views:list:%1$s:%2$d:%3$d', 'desc', date( 'Ymd', $start_datestamp ), date( 'Ymd', $end_datestamp ) );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
 
 	if ( $cache ) {
