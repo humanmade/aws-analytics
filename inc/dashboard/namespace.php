@@ -114,6 +114,10 @@ function get_aggregate_data( $buckets ) {
 
 	return $data;
 }
+
+function get_block_data( string $block_id ) : array {
+	$data = get_views_list();
+	return $data[ $block_id ];
 }
 
 function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
