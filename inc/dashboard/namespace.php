@@ -177,7 +177,7 @@ function get_aggregate_data( array $buckets ) {
 		$data[ $block_id ]['conversions'] = $conversions;
 		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( [
 			'views' => $views,
-			'conversions' => $conversions
+			'conversions' => $conversions,
 		] );
 	}
 
@@ -295,5 +295,8 @@ function modify_views_list_query( $query ) {
 	}
 
 	$order = $query->get( 'order' ) ?: 'desc';
+
+	var_dump( get_views_list( $order, time(), strtotime( '2 weeks ago' ) ) );
+
 	return $query;
 }
