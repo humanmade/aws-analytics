@@ -1,10 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 
+import { defaultPost, defaultAudience } from '../data/defaults';
+
 import AudienceEditor from './components/audience-editor';
 import { DynamicEstimate } from './components/estimate';
 import StatusToggle from './components/status-toggle';
-import { defaultPost, defaultAudience } from '../data/defaults';
 
 const { compose } = wp.compose;
 const {

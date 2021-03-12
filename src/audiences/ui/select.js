@@ -2,6 +2,7 @@ import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 
 import Modal from '../../components/modal';
+
 import Manager from './manager';
 
 const {

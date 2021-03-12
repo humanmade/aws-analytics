@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import Block from './block';
 import Modal from '../../components/modal';
+
+import Block from './block';
 
 const { Button } = wp.components;
 const { useSelect } = wp.data;

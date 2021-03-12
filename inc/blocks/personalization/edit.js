@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import Popup from '../../../src/blocks/ui/popup';
+
 import VariantPanel from './components/variant-panel';
 import VariantTitle from './components/variant-title';
 import VariantToolbar from './components/variant-toolbar';

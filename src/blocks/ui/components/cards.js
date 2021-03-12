@@ -1,8 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import Lift from './lift';
 import { compactMetric } from '../../../utils';
+
+import Lift from './lift';
 
 const { Icon } = wp.components;
 

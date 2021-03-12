@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import Lift from './lift';
-
 import { compactMetric, formatNumber } from '../../../utils';
+
+import Lift from './lift';
 
 const { __ } = wp.i18n;
 

@@ -2,6 +2,7 @@ import React, { Component, createRef } from 'react';
 import styled from 'styled-components';
 
 import { defaultPost } from '../data/defaults';
+
 import Edit from './edit';
 import List from './list';
 
