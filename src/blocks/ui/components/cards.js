@@ -20,10 +20,6 @@ const Card = styled.div`
 	box-shadow: 0 3px 6px rgba( 0, 0, 0, .3 );
 	border-radius: 2px;
 
-	display: flex;
-	flex-wrap: wrap;
-	align-items: baseline;
-
 	h3, p {
 		margin: 0;
 		flex: none;
@@ -39,6 +35,11 @@ const Card = styled.div`
 		border-radius: 100px;
 		padding: 5px;
 		text-align: center;
+	}
+
+	.altis-analytics-card__metrics {
+		display: flex;
+		align-items: baseline;
 	}
 
 	.altis-analytics-card__metric {
@@ -103,10 +104,12 @@ function Cards( { cards = [] } ) {
 			{ cards.map( card => (
 				<Card className={ [ 'altis-analytics-card', card.color ].join( ' ' ) }>
 					<h3>{ card.icon && <Icon icon={ card.icon } /> } { card.title }</h3>
-					<div className="altis-analytics-card__metric">{ card.metric ? compactMetric( card.metric ) : '…' }</div>
-					{ card.lift && (
-						<Lift className="altis-analytics-card__lift" { ...card.lift } />
-					) }
+					<div className="altis-analytics-card__metrics">
+						<div className="altis-analytics-card__metric">{ card.metric ? compactMetric( card.metric ) : '…' }</div>
+						{ card.lift && (
+							<Lift className="altis-analytics-card__lift" { ...card.lift } />
+						) }
+					</div>
 					<p className="description">{ card.description }</p>
 				</Card>
 			) ) }
