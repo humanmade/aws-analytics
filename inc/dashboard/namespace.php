@@ -7,7 +7,9 @@
 
 namespace Altis\Analytics\Dashboard;
 
-use function Altis\Analytics\Blocks\get_views;
+use function Altis\Analytics\Blocks\get_views as get_block_views;
+use function Altis\Analytics\Blocks\map_aggregations;
+use function Altis\Analytics\Utils\query;
 
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
@@ -17,9 +19,8 @@ function setup() {
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', '__return_null' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
-	add_action( 'admin_enqueue_scripts', function() {
-		wp_enqueue_script( 'altis-dashboard', plugin_dir_url( __FILE__ ) . '/assets/dashboard.js', [ 'jquery' ], time(), true );
-	} );
+
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 }
 
 function remove_default_columns( $columns, $post_type ) : array {
@@ -60,7 +61,7 @@ function xb_block_column_orderby( $vars ) : array {
 function render_block_column() {
 	global $post;
 	?>
-	<strong><a href="#"><?php echo esc_attr( $post->post_title ); ?></a></strong>
+	<strong><a href="<?php echo esc_url_raw( '/admin.php?page=xb-analytics&post=' . $post->ID ); ?>"><?php echo esc_attr( $post->post_title ); ?></a></strong>
 	<?php
 }
 
@@ -79,7 +80,7 @@ function render_last_modified_author() {
 
 function render_views() {
 	global $post;
-	$views = get_views( $post->post_name )['views'];
+	$views = get_block_views( $post->post_name )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -94,8 +95,81 @@ function render_average_conversion_rate() {
 }
 
 function calculate_average_conversion_rate( $post ) : float {
-	$data = get_views( $post->post_name );
+	$data = get_block_views( $post->post_name );
 	$conversions = $data['conversions'];
 	$views = $data['views'];
 	return $conversions / $views;
+}
+
+function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
+	$query = [
+		'query' => [
+			'bool' => [
+				'filter' => [
+					[
+						// Query from the current site.
+						'term' => [
+							'attributes.blogId.keyword' => get_current_blog_id(),
+						],
+					],
+					[
+						// We're just interested in views.
+						'terms' => [
+							'event_type.keyword' => [
+								'experienceView',
+							],
+						],
+					],
+				],
+			],
+		],
+		'aggs' => [
+			'events' => [
+				'terms' => [
+					// Get the block data. This will give us the key for the block, which is stored as the post slug.
+					'field' => 'attributes.clientId.keyword',
+					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
+					'order' => [
+						'_count' => 'desc', // We need to actually get this from the query arguments for the page.
+					],
+				],
+			],
+		],
+		'size' => 0,
+	];
+
+	// 1: Sort order, asc or desc. 2: Start date to query by. 3: End date to query by.
+	$key = sprintf( 'views:list:%1$s:%2$d:%3$d', 'desc', $start_datestamp, $end_datestamp );
+	$cache = wp_cache_get( $key, 'altis-xbs' );
+
+	if ( $cache ) {
+		return $cache;
+	}
+
+	$result = query( $query );
+
+	if ( ! $result ) {
+		// load in some default empty data here.
+		$data = [];
+		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
+	}
+
+	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
+	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
+
+	return $data;
+}
+
+function modify_views_list_query( $query ) {
+	if (
+		// Bail if we arent' in the admin.
+		! is_admin() ||
+		// Bail if we aren't looking at the XB Insights page.
+		$query->get( 'post_type' ) !== 'xb' ||
+		// Bail if we aren't ordering by views.
+		$query->get( 'orderby' ) !== 'views'
+	) {
+		return $query;
+	}
+	return $query;
 }
