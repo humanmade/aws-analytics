@@ -16,6 +16,12 @@ const VariantsList = styled.div`
 
 	.altis-analytics-block-variant {
 		margin: 30px 0 40px;
+
+		&--fallback {
+			margin-bottom: 20px;
+			border-bottom: 1px solid rgba( 0, 0, 0, .2 );
+			padding-bottom: 20px;
+		}
 	}
 
 	ul {
@@ -85,7 +91,7 @@ function Variants( props ) {
 			{ variants.map( variant => {
 				const data = ( analytics && analytics.audiences.find( audience => audience.id === ( variant.audience && variant.audience.id ) || 0 ) ) || null;
 				return (
-					<div className="altis-analytics-block-variant">
+					<div className={ `altis-analytics-block-variant ${ variant.fallback ? 'altis-analytics-block-variant--fallback' : '' }` }>
 						<div className="altis-analytics-block-variant__header">
 							<h3>{ variant.fallback ? __( 'Fallback', 'altis-analytics' ) : variant.audience.title }</h3>
 							{ variant.goal && ( <p className="description">{ __( 'Goal', 'altis-analytics' ) }: <strong>{ window.Altis.Analytics.Experiments.Goals[ variant.goal ].label }</strong></p> ) }
