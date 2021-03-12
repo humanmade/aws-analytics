@@ -170,12 +170,15 @@ function get_aggregate_data( array $buckets ) {
 
 	foreach ( $buckets as $block ) {
 		$block_id = $block['key'];
-		$block_data = wp_list_pluck ( $block['events']['buckets'], 'doc_count', 'key' );
+		$block_data = wp_list_pluck( $block['events']['buckets'], 'doc_count', 'key' );
 		$views = $block_data['experienceView'] ?? 0;
 		$conversions = $block_data['conversion'] ?? 0;
 		$data[ $block_id ]['views'] = $views;
 		$data[ $block_id ]['conversions'] = $conversions;
-		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( [ 'views' => $views, 'conversions' => $conversions ] );
+		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( [
+			'views' => $views,
+			'conversions' => $conversions
+		] );
 	}
 
 	return $data;
@@ -220,7 +223,7 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 						'terms' => [
 							'event_type.keyword' => [
 								'experienceView',
-								'conversion'
+								'conversion',
 							],
 						],
 					],

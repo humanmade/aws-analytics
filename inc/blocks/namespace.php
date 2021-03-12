@@ -197,7 +197,7 @@ function register_post_type() {
 				],
 				'details' => [
 					'title' => __( 'Last Modified / Author', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_last_modified_author'
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_last_modified_author',
 				],
 			],
 		],
