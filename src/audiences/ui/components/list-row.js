@@ -151,7 +151,7 @@ const ListRow = props => {
 				) }
 			</td>
 			<td>
-				<Estimate audience={ post.audience } horizontal />
+				<Estimate estimate={ post.estimate } />
 			</td>
 			{ isSelectMode && (
 				<td>

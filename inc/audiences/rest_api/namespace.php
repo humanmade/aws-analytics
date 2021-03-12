@@ -93,23 +93,7 @@ function init() {
 				],
 			],
 		],
-		'schema' => [
-			'type' => 'object',
-			'properties' => [
-				'count' => [ 'type' => 'number' ],
-				'total' => [ 'type' => 'number' ],
-				'histogram' => [
-					'type' => 'array',
-					'items' => [
-						'type' => 'object',
-						'properties' => [
-							'index' => [ 'type' => 'string' ],
-							'count' => [ 'type' => 'number' ],
-						],
-					],
-				],
-			],
-		],
+		'schema' => get_estimate_schema(),
 	] );
 
 	// Handle the audience configuration data retrieval and saving via the REST API.
@@ -121,6 +105,13 @@ function init() {
 			return Audiences\save_audience( $post->ID, (array) $value );
 		},
 		'schema' => get_audience_schema(),
+	] );
+	register_rest_field( Audiences\POST_TYPE, 'estimate', [
+		'get_callback' => function ( array $post ) {
+			$audience = Audiences\get_audience( $post['id'] );
+			return Audiences\get_estimate( $audience );
+		},
+		'schema' => get_estimate_schema(),
 	] );
 }
 
@@ -195,6 +186,31 @@ function get_audience_schema() : array {
 			'groups' => [
 				'type' => 'array',
 				'items' => get_group_schema(),
+			],
+		],
+	];
+}
+
+/**
+ * Get the audience estimate data schema.
+ *
+ * @return array
+ */
+function get_estimate_schema() : array {
+	return [
+		'type' => 'object',
+		'properties' => [
+			'count' => [ 'type' => 'number' ],
+			'total' => [ 'type' => 'number' ],
+			'histogram' => [
+				'type' => 'array',
+				'items' => [
+					'type' => 'object',
+					'properties' => [
+						'index' => [ 'type' => 'string' ],
+						'count' => [ 'type' => 'number' ],
+					],
+				],
 			],
 		],
 	];

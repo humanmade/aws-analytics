@@ -113,3 +113,61 @@ export const prepareMetrics = async metrics => {
 	}
 	return sanitized;
 };
+
+/**
+ * Convert a number into a short string representation eg 3k.
+ *
+ * @param {number} metric The metric to get a condensed version of.
+ * @returns {string} The metric compacted for display.
+ */
+export const compactMetric = metric => {
+	let suffix = '';
+	let value = metric;
+
+	// Thousands.
+	if ( metric >= 1000 ) {
+		suffix = 'k';
+		value = metric / 1000;
+	}
+
+	// Millions.
+	if ( metric >= 1000000 ) {
+		suffix = 'M';
+		value = metric / 1000000;
+	}
+
+	// Below 10 we use a fixed single decimal point eg. 2.3k, 1.4M.
+	if ( value < 10 ) {
+		value = value.toFixed( 2 );
+	} else {
+		value = Math.round( value );
+	}
+
+	// Assume percentage.
+	if ( ! Number.isInteger( metric ) ) {
+		suffix = '%';
+	}
+
+	return `${ value }${ suffix }`;
+};
+
+/**
+ * Get the percentage change between 2 numbers.
+ *
+ * @param {number} current Current value.
+ * @param {*} previous Previous value.
+ * @returns {number} The percentage change between the values.
+ */
+export const getLift = ( current, previous ) => {
+	return ( ( current - previous ) / current ) * 100;
+};
+
+/**
+ * Format a number.
+ *
+ * @param {number} number The number to format.
+ * @returns {string} Formatted number.
+ */
+export const formatNumber = number => {
+	return new Intl.NumberFormat().format( number );
+};

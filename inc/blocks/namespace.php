@@ -8,6 +8,7 @@
 namespace Altis\Analytics\Blocks;
 
 use Altis\Analytics;
+use Altis\Analytics\Experiments;
 use Altis\Analytics\Utils;
 use WP_Post;
 use WP_Query;
@@ -108,6 +109,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
 				'post_title' => $xb['attrs']['title'] ?? $default_title,
+				'post_parent' => $post_ID,
 			] );
 		} else {
 			// Update existing post.
@@ -115,6 +117,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
 				'post_title' => $xb['attrs']['title'] ?? $default_title,
+				'post_parent' => $post_ID,
 			] );
 		}
 	}
@@ -179,7 +182,7 @@ function register_post_type() {
 			'show_in_rest' => true,
 			'rest_base' => 'xbs',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
-			'hierarchical' => false,
+			'hierarchical' => true,
 		],
 		[
 			'singular' => __( 'Experience Block', 'altis-analytics' ),
@@ -299,10 +302,13 @@ function add_block_admin_page() {
 			}
 
 			printf(
+				'<div class="alignright" style="margin:60px 60px 20px;"><a class="button button-primary" href="%s">%s</a></div>' .
 				'<div id="altis-analytics-xb-block" data-client-id="%s">' .
 				'<p class="loading"><span class="spinner is-active"></span> %s</p>' .
 				'<noscript><div class="error msg">%s</div></noscript>' .
 				'</div>',
+				esc_attr( admin_url( 'edit.php?post_type=' . POST_TYPE ) ),
+				esc_html__( 'Back to all blocks', 'altis-analytics' ),
 				esc_attr( $client_id ),
 				esc_html__( 'Loading...', 'altis-analytics' ),
 				esc_html__( 'JavaScript is required to use the block insights view.', 'altis-analytics' )
@@ -345,6 +351,20 @@ function register_scripts() {
 		],
 		null,
 		true
+	);
+
+	wp_add_inline_script(
+		'altis-analytics-xb-ui',
+		sprintf(
+			'window.Altis = window.Altis || {};' .
+			'window.Altis.Analytics = window.Altis.Analytics || {};' .
+			'window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};' .
+			'window.Altis.Analytics.Experiments.BuildURL = %s;' .
+			'window.Altis.Analytics.Experiments.Goals = %s;',
+			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) ),
+			wp_json_encode( (object) Experiments\get_goals() )
+		),
+		'before'
 	);
 }
 

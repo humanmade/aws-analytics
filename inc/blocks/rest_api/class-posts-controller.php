@@ -165,12 +165,19 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 						'id' => $audience_id,
 						'title' => get_the_title( $audience_id ),
 					];
+					$variants[] = $variant['attrs'];
+				} else {
+					$variant['attrs']['audience'] = [
+						'id' => 0,
+						'title' => __( 'Fallback', 'altis-analytics' ),
+					];
+					// Always add the fallback to the start of the array.
+					array_unshift( $variants, $variant['attrs'] );
 				}
-				$variants[] = $variant['attrs'];
 			}
 		}
 
-		return $variants;
+		return array_values( $variants );
 	}
 
 	/**

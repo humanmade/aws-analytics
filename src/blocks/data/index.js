@@ -12,6 +12,14 @@ const initialState = {
 	isLoading: false,
 };
 
+// Add API Fetch middleware to rewrite permissions lookups.
+apiFetch.use( ( options, next ) => {
+	if ( options.path ) {
+		options.path = options.path.replace( 'wp/v2/xbs', 'analytics/v1/xbs' );
+	}
+	return next( options );
+} );
+
 /**
  * Experience block redux store reducer.
  *

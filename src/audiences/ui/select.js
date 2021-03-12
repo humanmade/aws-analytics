@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from 'react';
 import styled from 'styled-components';
 
-import Modal from './components/modal';
+import Modal from '../../components/modal';
 import Manager from './manager';
 
 const {
@@ -145,6 +145,7 @@ class Select extends Component {
 				</div>
 				{ show && (
 					<StyledModal
+						portalId="altis-analytics-audience-modal"
 						onClose={ () => this.setState( { show: false } ) }
 					>
 						<Manager
