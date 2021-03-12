@@ -75,10 +75,20 @@ function xb_table_sorting( $columns ) : array {
 	return $columns;
 }
 
+/**
+ * Update the Block column's orderby value.
+ *
+ * This displays the title, but the column is a custom column called "block", so we need to change the orderby value to "title".
+ *
+ * @param array $vars An array of query variables passed in from the filter.
+ *
+ * @return array The updated query variables.
+ */
 function xb_block_column_orderby( $vars ) : array {
 	if ( isset( $vars['orderby'] ) && 'block' === $vars['orderby'] ) {
 		$vars['orderby'] = 'title';
 	}
+
 	return $vars;
 }
 
