@@ -8,7 +8,6 @@
 namespace Altis\Analytics\Dashboard;
 
 use function Altis\Analytics\Blocks\get_views as get_block_views;
-use function Altis\Analytics\Blocks\map_aggregations;
 use function Altis\Analytics\Utils\query;
 
 function setup() {
@@ -99,6 +98,22 @@ function calculate_average_conversion_rate( $post ) : float {
 	$conversions = $data['conversions'];
 	$views = $data['views'];
 	return $conversions / $views;
+
+function get_aggregate_data( $buckets ) {
+	$data = [];
+
+	foreach ( $buckets as $block ) {
+		$block_id = $block['key'];
+		$block_data = wp_list_pluck ( $block['events']['buckets'], 'doc_count', 'key' );
+		$views = $block_data['experienceView'] ?? 0;
+		$conversions = $block_data['conversion'] ?? 0;
+		$data[ $block_id ]['views'] = $views;
+		$data[ $block_id ]['conversions'] = $conversions;
+		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( [ 'views' => $views, 'conversions' => $conversions ] );
+	}
+
+	return $data;
+}
 }
 
 function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
@@ -164,7 +179,7 @@ function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
 		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 	}
 
-	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
+	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
 	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
 
 	return $data;
