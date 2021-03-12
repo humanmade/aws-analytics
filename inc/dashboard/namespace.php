@@ -296,7 +296,5 @@ function modify_views_list_query( $query ) {
 
 	$order = $query->get( 'order' ) ?: 'desc';
 
-	var_dump( get_views_list( $order, time(), strtotime( '2 weeks ago' ) ) );
-
 	return $query;
 }
