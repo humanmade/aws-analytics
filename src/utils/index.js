@@ -138,7 +138,7 @@ export const compactMetric = metric => {
 
 	// Below 10 we use a fixed single decimal point eg. 2.3k, 1.4M.
 	if ( value < 10 ) {
-		value = value.toFixed( 2 );
+		value = value.toFixed( 1 );
 	} else {
 		value = Math.round( value );
 	}

@@ -13,7 +13,7 @@ const StyledModal = styled( Modal )`
 	margin: 0 auto;
 	max-width: 70rem;
 
-	& .media-frame-content {
+	&& .media-frame-content {
 		top: 0;
 		border: 0;
 	}
