@@ -7,7 +7,6 @@
 
 namespace Altis\Analytics\Dashboard;
 
-use function Altis\Analytics\Blocks\get_views as get_block_views;
 use function Altis\Analytics\Utils\query;
 
 function setup() {
@@ -79,7 +78,7 @@ function render_last_modified_author() {
 
 function render_views() {
 	global $post;
-	$views = get_block_views( $post->post_name )['views'];
+	$views = get_block_data( $post->post_name )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -87,17 +86,21 @@ function render_views() {
 
 function render_average_conversion_rate() {
 	global $post;
-	$rate = round( calculate_average_conversion_rate( $post ) * 100 );
+	$block = get_block_data( $post->post_name );
+	$rate = round( $block['avg_conversion_rate'] * 100 );
 	?>
 	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
 }
 
-function calculate_average_conversion_rate( $post ) : float {
-	$data = get_block_views( $post->post_name );
-	$conversions = $data['conversions'];
-	$views = $data['views'];
-	return $conversions / $views;
+function calculate_average_conversion_rate( array $block_data = [], string $block_id = '' ) : float {
+	$block_data = $block_data ?? $block_id ? get_block_data( $block_id ) : [
+		'conversions' => 0,
+		'views' => 0,
+	];
+
+	return $block_data['conversions'] / $block_data['views'];
+}
 
 function get_aggregate_data( $buckets ) {
 	$data = [];
@@ -120,7 +123,7 @@ function get_block_data( string $block_id ) : array {
 	return $data[ $block_id ];
 }
 
-function get_views_list( int $start_datestamp = 0, int $end_datestamp = 0 ) {
+function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) {
 	$query = [
 		'query' => [
 			'bool' => [
@@ -200,5 +203,7 @@ function modify_views_list_query( $query ) {
 	) {
 		return $query;
 	}
+
+	$order = $query->get( 'order' ) ?: 'desc';
 	return $query;
 }
