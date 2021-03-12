@@ -254,7 +254,6 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 	if ( ! $result ) {
 		// load in some default empty data here.
 		$data = [];
-		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 	}
 
 	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
