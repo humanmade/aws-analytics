@@ -9,6 +9,9 @@ namespace Altis\Analytics\Dashboard;
 
 use function Altis\Analytics\Utils\query;
 
+/**
+ * Set up the Dashboard Analytics page.
+ */
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
@@ -21,6 +24,14 @@ function setup() {
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 }
 
+/**
+ * Remove the default post list columns.
+ *
+ * @param array $columns An array of columns to filter.
+ * @param string $post_type The current post type.
+ *
+ * @return array The filtered columns array.
+ */
 function remove_default_columns( $columns, $post_type ) : array {
 	if ( 'xb' === $post_type ) {
 		unset( $columns['cb'] );
@@ -31,6 +42,14 @@ function remove_default_columns( $columns, $post_type ) : array {
 	return $columns;
 }
 
+/**
+ * Remove the post quick actions.
+ *
+ * @param array $actions An array of actions that can be done on a single post.
+ * @param object $post The WP_Post object
+ *
+ * @return array The filtered array (empty for xbs).
+ */
 function remove_post_row_actions( $actions, $post ) : array {
 	if ( 'xb' === $post->post_type ) {
 		unset( $actions['edit'] );
@@ -42,6 +61,13 @@ function remove_post_row_actions( $actions, $post ) : array {
 	return $actions;
 }
 
+/**
+ * Add custom sort by columns
+ *
+ * @param array $columns An array of post list columns.
+ *
+ * @return array The updated array with sortable columns.
+ */
 function xb_table_sorting( $columns ) : array {
 	$columns['block'] = 'block';
 	$columns['views'] = 'views';
@@ -56,6 +82,9 @@ function xb_block_column_orderby( $vars ) : array {
 	return $vars;
 }
 
+/**
+ * Render the block name column data.
+ */
 function render_block_column() {
 	global $post;
 	?>
@@ -63,6 +92,9 @@ function render_block_column() {
 	<?php
 }
 
+/**
+ * Render the last modified / author column data.
+ */
 function render_last_modified_author() {
 	global $post;
 	?>
@@ -76,6 +108,9 @@ function render_last_modified_author() {
 	<?php
 }
 
+/**
+ * Render the views column data.
+ */
 function render_views() {
 	global $post;
 	$views = get_block_data( $post->post_name )['views'];
@@ -84,6 +119,9 @@ function render_views() {
 	<?php
 }
 
+/**
+ * Render the average conversion rate column data.
+ */
 function render_average_conversion_rate() {
 	global $post;
 	$block = get_block_data( $post->post_name );
@@ -93,6 +131,14 @@ function render_average_conversion_rate() {
 	<?php
 }
 
+/**
+ * Calculate average conversion rate.
+ *
+ * @param array $block_data An array of block data.
+ * @param string $block_id A single block clientID.
+ *
+ * @return float The conversion rate (calculated by conversions / views).
+ */
 function calculate_average_conversion_rate( array $block_data = [], string $block_id = '' ) : float {
 	$block_data = $block_data ?? $block_id ? get_block_data( $block_id ) : [
 		'conversions' => 0,
@@ -102,7 +148,14 @@ function calculate_average_conversion_rate( array $block_data = [], string $bloc
 	return $block_data['conversions'] / $block_data['views'];
 }
 
-function get_aggregate_data( $buckets ) {
+/**
+ * Aggregate and map the data from the ES query.
+ *
+ * @param array $buckets The ElasticSearch query data.
+ *
+ * @return array An array of aggregated data.
+ */
+function get_aggregate_data( array $buckets ) {
 	$data = [];
 
 	foreach ( $buckets as $block ) {
@@ -118,11 +171,29 @@ function get_aggregate_data( $buckets ) {
 	return $data;
 }
 
+/**
+ * Get data from a single block.
+ *
+ * @uses get_views_List()
+ *
+ * @param string $block_id Get a single block's analytics data pulled from the ES query.
+ *
+ * @return array The block's analytics data.
+ */
 function get_block_data( string $block_id ) : array {
 	$data = get_views_list();
 	return $data[ $block_id ];
 }
 
+/**
+ * Get analytics views list data.
+ *
+ * @todo Integrate date range searches.
+ *
+ * @param string $order How to order the data. Accepted values are 'asc' and 'desc'. Defaults to 'desc'.
+ * @param int $start_datestamp The timestamp for the start date to query by.
+ * @param int $end_datestamp The timestamp for the end date to query by.
+ */
 function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) {
 	$query = [
 		'query' => [
@@ -153,7 +224,7 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 					'field' => 'attributes.clientId.keyword',
 					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
 					'order' => [
-						'_count' => $order, // We need to actually get this from the query arguments for the page.
+						'_count' => $order,
 					],
 				],
 				'aggs' => [
@@ -192,6 +263,13 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 	return $data;
 }
 
+/**
+ * Alter the default WP_Query to change the sort order.
+ *
+ * @param WP_Query $query The WP_Query object.
+ *
+ * @return WP_Query The updated WP_Query object.
+ */
 function modify_views_list_query( $query ) {
 	if (
 		// Bail if we arent' in the admin.
