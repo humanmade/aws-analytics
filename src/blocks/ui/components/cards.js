@@ -57,17 +57,6 @@ const Card = styled.div`
 		font-weight: bold;
 		flex: 1;
 		text-align: right;
-
-		span {
-			font-size: 18px;
-		}
-
-		&--up {
-			color: #3FCF8E;
-		}
-		&--down {
-			color: #ED7B9D;
-		}
 	}
 
 	&.yellow .dashicon {
