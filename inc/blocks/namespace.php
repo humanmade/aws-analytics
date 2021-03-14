@@ -254,7 +254,7 @@ function get_block_post( string $client_id ) : ?WP_Post {
 
 	$query = new WP_Query( [
 		'post_type' => POST_TYPE,
-		'post_name' => $client_id,
+		'name' => $client_id,
 		'posts_per_page' => 1,
 		'no_found_rows' => true,
 	] );

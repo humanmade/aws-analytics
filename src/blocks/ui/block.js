@@ -57,7 +57,6 @@ const BlockWrapper = styled.div`
  */
 const Block = ( {
 	clientId,
-	showPosts,
 } ) => {
 	const [ days, setDays ] = useState( 7 );
 	const block = useSelect( select => {
@@ -78,7 +77,7 @@ const Block = ( {
 		};
 	}, [ clientId ] );
 
-	// Ensure we have some data.
+	// Ensure we have a block ID data.
 	if ( ! clientId ) {
 		return (
 			<div className="message error">
@@ -86,10 +85,17 @@ const Block = ( {
 			</div>
 		);
 	}
+	if ( block && block.error ) {
+		return (
+			<div className="message error">
+				<p>{ block.error.message }</p>
+			</div>
+		);
+	}
 
 	// Get percentage of personalised block views.
 	let personalisedCoverage = null;
-	if ( analytics ) {
+	if ( analytics && analytics.audiences.length > 0 ) {
 		const fallback = analytics.audiences.find( audience => audience.id === 0 );
 		personalisedCoverage = 100 - ( ( fallback.unique.views / analytics.unique.views ) * 100 );
 	}

@@ -182,7 +182,7 @@ const selectors = {
 		return state.views[ `${ clientId }:${ btoa( JSON.stringify( args ) ) }` ] || false;
 	},
 	/**
-	 * Get loading state for anlaytics data.
+	 * Get loading state for analytics data.
 	 *
 	 * @param {object} state Redux store state.
 	 * @returns {boolean} True if data is currently loading.
@@ -230,10 +230,17 @@ const resolvers = {
 	 */
 	*getPost( clientId ) {
 		yield actions.setIsLoading( true );
-		const response = yield actions.fetch( {
-			path: `analytics/v1/xbs/${ clientId }`,
-		} );
-		yield actions.addPost( response );
+		try {
+			const response = yield actions.fetch( {
+				path: `analytics/v1/xbs/${ clientId }`,
+			} );
+			yield actions.addPost( response );
+		} catch ( error ) {
+			yield actions.addPost( {
+				slug: clientId,
+				error,
+			} );
+		}
 		return actions.setIsLoading( false );
 	},
 };

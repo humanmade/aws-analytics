@@ -41,7 +41,7 @@ function Popup( { clientId } ) {
 		return select( 'analytics/xbs' ).getPost( clientId );
 	}, [ clientId ] );
 
-	if ( ! block ) {
+	if ( ! block || block.error ) {
 		return null;
 	}
 

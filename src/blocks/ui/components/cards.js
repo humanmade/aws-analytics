@@ -71,16 +71,16 @@ const Card = styled.div`
 	}
 
 	&.yellow .dashicon {
-		color: #F8DA6D;
-		background: rgba(248, 218, 109, .3);
+		color: #EFBD0B;
+		background: rgba(248, 218, 109, .2);
 	}
 	&.green .dashicon {
 		color: #3FCF8E;
-		background: rgba(63, 207, 142, .3);
+		background: rgba(63, 207, 142, .2);
 	}
 	&.blue .dashicon {
 		color: #4767df;
-		background: rgba(67, 108, 255, .3);
+		background: rgba(67, 108, 255, .2);
 	}
 	&.blue .altis-analytics-card__metric {
 		color: #4767df;

@@ -5,7 +5,7 @@ import { compactMetric, getLift } from '../../../utils';
 
 const StyledLift = styled.div`
 	font-weight: bold;
-	color: ${ props => props.lift >= 0 ? '#3FCF8E' : '#ED7B9D' };
+	color: ${ props => props.lift >= 0 ? '#29A36A' : '#E85984' };
 	span {
 		font-size: 80%;
 	}
