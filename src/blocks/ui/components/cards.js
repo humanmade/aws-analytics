@@ -51,7 +51,7 @@ const Card = styled.div`
 	}
 
 	.altis-analytics-card__lift {
-		margin: 20px 0;
+		margin: 20px 0 0;
 		font-size: 24px;
 		line-height: 38px;
 		font-weight: bold;
