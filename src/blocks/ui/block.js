@@ -123,7 +123,7 @@ const Block = ( {
 						{
 							color: 'yellow',
 							icon: 'visibility',
-							title: __( 'Block views', 'altis-analytics' ),
+							title: __( 'Block Views', 'altis-analytics' ),
 							metric: ( analytics && analytics.unique.views ) || null,
 							lift: {
 								current: lift.current && lift.current.unique.views,
@@ -134,7 +134,7 @@ const Block = ( {
 						{
 							color: 'green',
 							icon: 'thumbs-up',
-							title: __( 'Conversion rate', 'altis-analytics' ),
+							title: __( 'Conversion Rate', 'altis-analytics' ),
 							metric: ( analytics && ( ( analytics.unique.conversions / analytics.unique.views ) * 100 ) ) || null,
 							lift: {
 								current: lift.current && ( lift.current.unique.conversions / lift.current.unique.views ),
