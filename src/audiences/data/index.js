@@ -19,14 +19,13 @@ const initialState = {
 	isDeleting: false,
 };
 
-// Hydrate from server side.
-if ( window.Altis.Analytics.Audiences.Fields ) {
-	initialState.fields = window.Altis.Analytics.Audiences.Fields;
-}
-if ( window.Altis.Analytics.Audiences.Current ) {
-	initialState.posts.push( window.Altis.Analytics.Audiences.Current );
-	initialState.post = window.Altis.Analytics.Audiences.Current;
-}
+// Add API Fetch middleware to rewrite permissions lookups.
+apiFetch.use( ( options, next ) => {
+	if ( options.path ) {
+		options.path = options.path.replace( 'wp/v2/audiences', 'analytics/v1/audiences' );
+	}
+	return next( options );
+} );
 
 const controls = {
 	/**
@@ -206,7 +205,7 @@ const actionGenerators = {
 	*createPost( post ) {
 		yield actions.setIsUpdating( true );
 		const newPost = yield actions.fetch( {
-			path: 'wp/v2/audiences',
+			path: 'analytics/v1/audiences',
 			method: 'POST',
 			data: post,
 		} );
@@ -230,7 +229,7 @@ const actionGenerators = {
 			post.title.raw = post.title.rendered;
 		}
 		const updatedPost = yield actions.fetch( {
-			path: `wp/v2/audiences/${ post.id }`,
+			path: `analytics/v1/audiences/${ post.id }`,
 			method: 'PATCH',
 			data: post,
 		} );
@@ -246,7 +245,7 @@ const actionGenerators = {
 	*deletePost( id ) {
 		yield actions.setIsDeleting( true );
 		yield actions.fetch( {
-			path: `wp/v2/audiences/${ id }`,
+			path: `analytics/v1/audiences/${ id }`,
 			method: 'DELETE',
 		} );
 		yield actions.removePost( id );
@@ -399,7 +398,7 @@ const resolvers = {
 
 		try {
 			const post = yield actions.fetch( {
-				path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
+				path: addQueryArgs( `analytics/v1/audiences/${ id }`, queryArgs ),
 			} );
 			if ( post.status === 'auto-draft' ) {
 				post.title.rendered = '';
@@ -437,7 +436,7 @@ const resolvers = {
 		}, queryArgs );
 
 		const post = yield actions.fetch( {
-			path: addQueryArgs( `wp/v2/audiences/${ id }`, queryArgs ),
+			path: addQueryArgs( `analytics/v1/audiences/${ id }`, queryArgs ),
 		} );
 		if ( post.status === 'auto-draft' ) {
 			post.title.rendered = '';
@@ -467,7 +466,7 @@ const resolvers = {
 		}, queryArgs );
 
 		const response = yield actions.fetch( {
-			path: addQueryArgs( 'wp/v2/audiences', queryArgs ),
+			path: addQueryArgs( 'analytics/v1/audiences', queryArgs ),
 			headers: {
 				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
 			},

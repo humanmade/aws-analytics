@@ -5,7 +5,7 @@ import {
 	useCanEdit,
 	useDeletePost,
 	useUpdatePost,
-} from '../data/hooks';
+} from '../../data/hooks';
 
 import ActionLink from './action-link';
 import AudienceSort from './audience-sort';
@@ -151,7 +151,7 @@ const ListRow = props => {
 				) }
 			</td>
 			<td>
-				<Estimate audience={ post.audience } horizontal />
+				<Estimate estimate={ post.estimate } />
 			</td>
 			{ isSelectMode && (
 				<td>

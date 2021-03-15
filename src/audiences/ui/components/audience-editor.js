@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import {
 	defaultAudience,
 	defaultGroup,
-} from '../data/defaults';
+} from '../../data/defaults';
 
 import Group from './group';
 import SelectInclude from './select-include';
