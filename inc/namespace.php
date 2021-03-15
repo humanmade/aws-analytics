@@ -304,7 +304,7 @@ function delete_old_indexes() {
 	 */
 	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 14 );
 
-	// If age has been set out of the 60-day limit, default to 7 days and warn user.
+	// If age has been set out of the 90-day limit, default to 7 days and warn user.
 	if ( $max_age < 7 || $max_age > 90 ) {
 		$max_age = max( 7, min( 90, $max_age ) );
 		trigger_error(

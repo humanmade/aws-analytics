@@ -52,7 +52,6 @@ const BlockWrapper = styled.div`
  *
  * @param {object} props The component props.
  * @param {string} props.clientId The block client ID.
- * @param {boolean} props.showPosts Whether to show posts this XB is shown on.
  * @returns {React.ReactNode} The block view component.
  */
 const Block = ( {
@@ -105,7 +104,7 @@ const Block = ( {
 			<h1>{ __( 'Experience Insights', 'altis-analytics' ) }</h1>
 			<h2>
 				{ ( block && block.title.rendered ) || __( 'Loading…', 'altis-analytics' ) }
-				{ block && block.parent && (
+				{ block && Number( block.parent ) > 0 && (
 					<>
 						{ ' ' }
 						<a href={ `post.php?post=${ block.parent }&action=edit` }>
