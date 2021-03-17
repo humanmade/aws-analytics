@@ -295,9 +295,9 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
  *
  * @todo Finish this function.
  *
- * @param WP_Query $query The WP_Query object.
+ * @param \WP_Query $query The WP_Query object.
  *
- * @return WP_Query The updated WP_Query object.
+ * @return \WP_Query The updated WP_Query object.
  */
 function modify_views_list_query( $query ) {
 	if (
