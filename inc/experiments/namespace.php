@@ -704,7 +704,7 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
 			return $default_output;
 		}
 
-		$winner = $results['winner'] - 1;
+		$winner = $results['winner'];
 		return call_user_func_array(
 			$test['variant_callback'],
 			[ $variants[ $winner ], $post_id, $args ]
