@@ -684,9 +684,9 @@ function save_ab_test_results_for_post( string $test_id, int $post_id, array $da
  * @param integer $post_id The post ID for the test.
  * @param string $default_output The fallback / control variant output.
  * @param array $args Optional array of args to pass through to the `variant_callback`.
- * @return string
+ * @return string|null
  */
-function output_ab_test_html_for_post( string $test_id, int $post_id, string $default_output, array $args = [] ) : string {
+function output_ab_test_html_for_post( string $test_id, int $post_id, string $default_output, array $args = [] ) : ?string {
 	$test = get_post_ab_test( $test_id );
 
 	// Check post type is supported.
