@@ -279,12 +279,10 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 
 	$result = query( $query );
 
-	if ( ! $result ) {
-		// load in some default empty data here.
-		$data = [];
-	}
+	// Check for a result before getting aggregated data.
+	$data = ( $result ) ? get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] ) : [];
 
-	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
+	// Don't cache anything if we didnt' get a result.
 	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
 
 	return $data;
