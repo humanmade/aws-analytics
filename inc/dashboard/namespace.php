@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\Dashboard;
 
+use function Altis\Analytics\Blocks\get_views as get_block_views;
 use function Altis\Analytics\Utils\query;
 
 /**
@@ -123,7 +124,7 @@ function render_last_modified_author() {
  */
 function render_views() {
 	global $post;
-	$views = get_block_data( $post->post_name )['views'];
+	$views = get_block_views( $post->post_name )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -134,8 +135,13 @@ function render_views() {
  */
 function render_average_conversion_rate() {
 	global $post;
-	$block = get_block_data( $post->post_name );
-	$rate = round( $block['avg_conversion_rate'] * 100 );
+	$block = get_block_views( $post->post_name );
+	$conversions = $block['conversions'];
+	$views = $block['views'];
+	$rate = round( calculate_average_conversion_rate( [
+		'conversions' => $conversions,
+		'views' => $views,
+	] ) * 100 );
 	?>
 	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
@@ -150,10 +156,16 @@ function render_average_conversion_rate() {
  * @return float The conversion rate (calculated by conversions / views).
  */
 function calculate_average_conversion_rate( array $block_data = [], string $block_id = '' ) : float {
-	$block_data = $block_data ?? $block_id ? get_block_data( $block_id ) : [
-		'conversions' => 0,
-		'views' => 0,
-	];
+	if ( empty( $block_data ) ) {
+		$block_data = [
+			'conversions' => 0,
+			'views' => 0,
+		];
+
+		if ( ! empty( $block_id ) ) {
+			$block_data = get_block_data( $block_id );
+		}
+	}
 
 	return $block_data['conversions'] / $block_data['views'];
 }
