@@ -320,12 +320,20 @@ function modify_views_list_query( $query ) {
 
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';
-	$list = get_views_list( $order, time(), strtotime( '2 weeks ago' ) ); var_dump($list);
+
+	$list = get_views_list( $order, time(), strtotime( '1 week ago' ) );
+
+	// If we're ordering by conversion, update the list.
+	if ( $orderby === 'conversion' ) {
+		$list = sort_by_conversion_rate( $list, $order );
+	}
+
+	// Pluck the client ids out of the list.
 	$client_ids = array_keys( $list );
 
+	// Order by client ID (stored as post slug).
 	$query->set( 'post_name__in', $client_ids );
 	$query->set( 'orderby', 'post_name__in' );
-
 
 	return $query;
 }
