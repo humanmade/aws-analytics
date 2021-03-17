@@ -19,7 +19,7 @@ function setup() {
 	add_filter( 'manage_edit-xb_sortable_columns', __NAMESPACE__ . '\\xb_table_sorting' );
 	add_filter( 'request', __NAMESPACE__ . '\\xb_block_column_orderby' );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
-	add_filter( 'views_edit-xb', '__return_null' );
+	add_filter( 'views_edit-xb', __NAMESPACE__ . '\\render_date_range_links' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
@@ -91,6 +91,45 @@ function xb_block_column_orderby( $vars ) : array {
 	}
 
 	return $vars;
+}
+
+/**
+ * Render links for date range data.
+ */
+function render_date_range_links() {
+	$start_datestamp = time();
+	$ranges = [
+		[
+			'timestamp' => strtotime( '7 days ago' ),
+			'label' => __( '7 days', 'altis-analytics' ),
+		],
+		[
+			'timestamp' => strtotime( '30 days ago' ),
+			'label' => __( '30 days', 'altis-analytics' ),
+		],
+		[
+			'timestamp' => strtotime( '90 days ago' ),
+			'label' => __( '90 days', 'altis-analytics' ),
+		],
+	];
+
+	$current_end_datestamp = wp_unslash( sanitize_text_field( $_GET['end_datestamp'] ) );
+	$selected = '';
+	?>
+	<div class="xb-analytics-date-range">
+		<?php
+		foreach ( $ranges as $current ) {
+			// Compare the timestamp of the range we're looking at with the current end pulled from the url query variables.
+			if ( date( 'Ymd', $current['timestamp'] ) === date( 'Ymd', $current_end_datestamp ) ) {
+				$selected = 'selected';
+			} ?>
+			<a href="<?php echo esc_url_raw( add_query_arg( [
+				'start_datestamp' => $start_datestamp,
+				'end_datestamp' => $current['timestamp'],
+			] ) ); ?>" class="<?php echo "date-range-button $selected"; ?>"><?php echo esc_html( $current['label'] ); ?></a>
+		<?php } ?>
+	</div>
+	<?php
 }
 
 /**
