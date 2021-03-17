@@ -14,11 +14,14 @@ const sharedConfig = {
 	mode: mode,
 	entry: {
 		analytics: path.resolve( __dirname, 'src/analytics.js' ),
-		audiences: path.resolve( __dirname, 'src/audiences/index.js' ),
+		'audiences/data': path.resolve( __dirname, 'src/audiences/data/index.js' ),
+		'audiences/preview': path.resolve( __dirname, 'src/audiences/preview/index.js' ),
+		'audiences/ui': path.resolve( __dirname, 'src/audiences/index.js' ),
+		'blocks/data': path.resolve( __dirname, 'src/blocks/data/index.js' ),
+		'blocks/ui': path.resolve( __dirname, 'src/blocks/index.js' ),
 		'blocks/personalization': path.resolve( __dirname, 'inc/blocks/personalization/index.js' ),
 		'blocks/personalization-variant': path.resolve( __dirname, 'inc/blocks/personalization-variant/index.js' ),
 		experiments: path.resolve( __dirname, 'src/experiments.js' ),
-		preview: path.resolve( __dirname, 'src/preview/index.js' ),
 		titles: path.resolve( __dirname, 'src/titles/index.js' ),
 	},
 	output: {
@@ -77,7 +80,7 @@ const sharedConfig = {
 if ( mode === 'production' ) {
 	sharedConfig.plugins.push( new DynamicPublicPathPlugin( {
 		externalGlobal: 'window.Altis.Analytics.BuildURL',
-		chunkName: 'audiences',
+		chunkName: 'audiences/ui',
 	} ) );
 	sharedConfig.plugins.push( new DynamicPublicPathPlugin( {
 		externalGlobal: 'window.Altis.Analytics.Experiments.BuildURL',

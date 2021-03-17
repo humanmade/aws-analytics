@@ -50,7 +50,7 @@ function enqueue_assets() : void {
 	// Enqueue the script and pass through data.
 	wp_enqueue_script(
 		'altis-analytics-preview',
-		Utils\get_asset_url( 'preview.js' ),
+		Utils\get_asset_url( 'audiences/preview.js' ),
 		[
 			'altis-analytics',
 			'wp-element',

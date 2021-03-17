@@ -56,14 +56,13 @@ const StyledEstimate = styled.div`
  */
 export default function Estimate( props ) {
 	const {
-		audience,
+		estimate,
+		showTotals,
 		sparkline,
 		title,
 	} = props;
 
-	const estimate = useSelect( select => select( 'audience' ).getEstimate( audience ), [ audience ] );
-
-	if ( ! audience ) {
+	if ( ! estimate ) {
 		return null;
 	}
 
@@ -89,18 +88,20 @@ export default function Estimate( props ) {
 						<SparklinesLine color="rgb(0, 124, 186)" style={ { strokeWidth: 5 } } />
 					</Sparklines>
 				) }
-				<p className="audience-estimate__count">
-					{ estimate.isLoading && (
-						<span>{ __( 'Loading estimate', 'altis-analytics' ) }…</span>
-					) }
-					{ ! estimate.isLoading && (
-						<>
-							<strong>{ estimate.count }</strong>
-							{ ' ' }
-							<span>{ __( 'uniques in the last 7 days', 'altis-analytics' ) }</span>
-						</>
-					) }
-				</p>
+				{ showTotals && (
+					<p className="audience-estimate__count">
+						{ estimate.isLoading && (
+							<span>{ __( 'Loading estimate', 'altis-analytics' ) }…</span>
+						) }
+						{ ! estimate.isLoading && (
+							<>
+								<strong>{ estimate.count }</strong>
+								{ ' ' }
+								<span>{ __( 'uniques in the last 7 days', 'altis-analytics' ) }</span>
+							</>
+						) }
+					</p>
+				) }
 			</div>
 		</StyledEstimate>
 	);
@@ -108,6 +109,28 @@ export default function Estimate( props ) {
 
 Estimate.defaultProps = {
 	audience: null,
+	estimate: null,
+	showTotals: true,
 	sparkline: false,
 	title: '',
 };
+
+/**
+ * Dynamic Audience size estimator with data fetching.
+ *
+ * @param {object} props Component props.
+ * @returns {React.ReactNode} Estimation component.
+ */
+export function DynamicEstimate( props ) {
+	const {
+		audience,
+	} = props;
+
+	const estimate = useSelect( select => select( 'audience' ).getEstimate( audience ), [ audience ] );
+
+	if ( ! audience ) {
+		return null;
+	}
+
+	return <Estimate { ...props } estimate={ estimate } />;
+}

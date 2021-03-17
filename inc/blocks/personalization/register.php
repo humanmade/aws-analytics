@@ -46,8 +46,8 @@ function enqueue_assets() {
 			'wp-i18n',
 			'wp-editor',
 			'wp-components',
-			'wp-core-data',
 			'wp-edit-post',
+			'altis-analytics-xb-data',
 			'altis-experiments-features-blocks-personalization-variant',
 			// Exports the audience UI modal component.
 			'altis-analytics-audience-ui',

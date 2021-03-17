@@ -16,6 +16,16 @@ use WP_REST_Posts_Controller;
 class Posts_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * API constructor.
+	 *
+	 * @param string $post_type Endpoint base.
+	 */
+	public function __construct( $post_type ) {
+		parent::__construct( $post_type );
+		$this->namespace = 'analytics/v1';
+	}
+
+	/**
 	 * Check whether the posts can be read or not.
 	 *
 	 * @param WP_Post $post The post object to check read permission for.

@@ -3,7 +3,7 @@ import React from 'react';
 import {
 	NUMERIC_OPERATIONS,
 	STRING_OPERATIONS,
-} from '../data/constants';
+} from '../../data/constants';
 
 /**
  * Operator selector.

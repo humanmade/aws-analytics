@@ -16,7 +16,7 @@ const StyledModal = styled.div`
 class Modal extends Component {
 	constructor( props ) {
 		super( props );
-		this.modalRoot = document.getElementById( 'altis-analytics-audience-modal' );
+		this.modalRoot = document.getElementById( props.portalId );
 		this.el = document.createElement( 'div' );
 	}
 
