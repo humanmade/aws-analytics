@@ -205,6 +205,11 @@ function get_aggregate_data( array $buckets ) : array {
  * @return array The sorted array.
  */
 function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array {
+	// If an invalid value was passed to $order, default to 'desc'.
+	if ( ! in_array( $order, [ 'asc', 'desc' ] ) ) {
+		$order = 'desc';
+	}
+
 	$avg_conversion_rate = array_column( $list, 'avg_conversion_rate' );
 	$sort_order = 'SORT_' . strtoupper( $order );
 
