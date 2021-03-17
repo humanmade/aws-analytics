@@ -220,6 +220,9 @@ function get_block_data( string $block_id ) : array {
  * @param int $end_datestamp The timestamp for the end date to query by.
  */
 function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) : array {
+	$start_datestamp = $start_datestamp ?: time();
+	$end_datestamp = $end_datestamp ?: strtotime( '7 days ago' );
+
 	$query = [
 		'query' => [
 			'bool' => [
