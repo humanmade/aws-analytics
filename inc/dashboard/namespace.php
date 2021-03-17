@@ -196,6 +196,14 @@ function get_aggregate_data( array $buckets ) : array {
 	return $data;
 }
 
+/**
+ * Sort data by conversion rate.
+ *
+ * @param array $list The array of analytics data by block id.
+ * @param string $order The order to sort by. Accepted values are 'asc' or 'desc'.
+ *
+ * @return array The sorted array.
+ */
 function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array {
 	$avg_conversion_rate = array_column( $list, 'avg_conversion_rate' );
 	$sort_order = 'SORT_' . strtoupper( $order );
