@@ -377,8 +377,10 @@ function modify_views_list_query( $query ) {
 
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';
+	$start_datestamp = isset( $_GET['start_datestamp'] ) ? wp_unslash( sanitize_text_field( $_GET['start_datestamp'] ) ) : time();
+	$end_datestamp = isset( $_GET['end_datestamp'] ) ? wp_unslash( sanitize_text_field( $_GET['end_datestamp'] ) ) : strtotime( '1 week ago' );
 
-	$list = get_views_list( $order, time(), strtotime( '1 week ago' ) );
+	$list = get_views_list( $order, $start_datestamp, $end_datestamp );
 
 	// If we're ordering by conversion, update the list.
 	if ( $orderby === 'conversion' ) {
