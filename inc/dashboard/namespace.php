@@ -311,6 +311,12 @@ function modify_views_list_query( $query ) {
 
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';
+	$list = get_views_list( $order, time(), strtotime( '2 weeks ago' ) ); var_dump($list);
+	$client_ids = array_keys( $list );
+
+	$query->set( 'post_name__in', $client_ids );
+	$query->set( 'orderby', 'post_name__in' );
+
 
 	return $query;
 }
