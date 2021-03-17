@@ -196,6 +196,15 @@ function get_aggregate_data( array $buckets ) : array {
 	return $data;
 }
 
+function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array {
+	$avg_conversion_rate = array_column( $list, 'avg_conversion_rate' );
+	$sort_order = 'SORT_' . strtoupper( $order );
+
+	array_multisort( $avg_conversion_rate, $sort_order, $list );
+
+	return $list;
+}
+
 /**
  * Get data from a single block.
  *
