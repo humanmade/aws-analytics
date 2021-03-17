@@ -177,7 +177,7 @@ function calculate_average_conversion_rate( array $block_data = [], string $bloc
  *
  * @return array An array of aggregated data.
  */
-function get_aggregate_data( array $buckets ) {
+function get_aggregate_data( array $buckets ) : array {
 	$data = [];
 
 	foreach ( $buckets as $block ) {
@@ -219,7 +219,7 @@ function get_block_data( string $block_id ) : array {
  * @param int $start_datestamp The timestamp for the start date to query by.
  * @param int $end_datestamp The timestamp for the end date to query by.
  */
-function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) {
+function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) : array {
 	$query = [
 		'query' => [
 			'bool' => [
