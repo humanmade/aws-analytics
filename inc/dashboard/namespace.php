@@ -304,14 +304,13 @@ function modify_views_list_query( $query ) {
 		// Bail if we arent' in the admin.
 		! is_admin() ||
 		// Bail if we aren't looking at the XB Insights page.
-		$query->get( 'post_type' ) !== 'xb' ||
-		// Bail if we aren't ordering by views.
-		$query->get( 'orderby' ) !== 'views'
+		$query->get( 'post_type' ) !== 'xb'
 	) {
 		return $query;
 	}
 
 	$order = $query->get( 'order' ) ?: 'desc';
+	$orderby = $query->get( 'orderby' ) ?: 'views';
 
 	return $query;
 }
