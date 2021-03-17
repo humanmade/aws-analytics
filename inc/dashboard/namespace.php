@@ -206,6 +206,11 @@ function calculate_average_conversion_rate( array $block_data = [], string $bloc
 		}
 	}
 
+	// Avoid division by zero.
+	if ( $block_data['views'] === 0 ) {
+		return 0;
+	}
+
 	return $block_data['conversions'] / $block_data['views'];
 }
 
