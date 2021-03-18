@@ -5,7 +5,8 @@
 
 .xb-analytics-date-range a.date-range-button,
 .xb-analytics-date-range a.date-range-button:visited,
-.xb-analytics-date-range a.date-range-button:hover {
+.xb-analytics-date-range a.date-range-button:hover,
+.xb-analytics-date-range a.date-range-button:active {
     cursor: pointer;
     border: 1px solid transparent;
     border-radius: 100px;
