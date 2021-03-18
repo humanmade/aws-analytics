@@ -163,7 +163,7 @@ function render_last_modified_author() {
  */
 function render_views() {
 	global $post;
-	$views = get_block_views( $post->post_name )['views'];
+	$views = get_block_views( $post->post_name, [ 'days' => get_days_view() ] )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -174,7 +174,7 @@ function render_views() {
  */
 function render_average_conversion_rate() {
 	global $post;
-	$block = get_block_views( $post->post_name );
+	$block = get_block_views( $post->post_name, [ 'days' => get_days_view() ] );
 	$conversions = $block['conversions'];
 	$views = $block['views'];
 	$rate = round( calculate_average_conversion_rate( [
@@ -382,10 +382,9 @@ function modify_views_list_query( $query ) {
 
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';
-	$start_datestamp = isset( $_GET['start_datestamp'] ) ? wp_unslash( sanitize_text_field( $_GET['start_datestamp'] ) ) : time();
-	$end_datestamp = isset( $_GET['end_datestamp'] ) ? wp_unslash( sanitize_text_field( $_GET['end_datestamp'] ) ) : strtotime( '1 week ago' );
+	$days = get_days_view();
 
-	$list = get_views_list( $order, $start_datestamp, $end_datestamp );
+	$list = get_views_list( $order, $days );
 
 	// If we're ordering by conversion, update the list.
 	if ( $orderby === 'conversion' ) {
