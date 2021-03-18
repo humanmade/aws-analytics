@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import { defaultVariantAnalytics } from '../data/shapes';
+
 import Cards from './components/cards';
 import DateRange from './components/date-range';
 import Variants from './components/variants';
@@ -94,8 +96,8 @@ const Block = ( {
 
 	// Get percentage of personalised block views.
 	let personalisedCoverage = null;
-	if ( analytics && analytics.audiences.length > 0 ) {
-		const fallback = analytics.audiences.find( audience => audience.id === 0 );
+	if ( analytics ) {
+		const fallback = analytics.audiences.find( audience => audience.id === 0 ) || defaultVariantAnalytics;
 		personalisedCoverage = 100 - ( ( fallback.unique.views / analytics.unique.views ) * 100 );
 	}
 
@@ -123,7 +125,7 @@ const Block = ( {
 							color: 'yellow',
 							icon: 'visibility',
 							title: __( 'Block Views', 'altis-analytics' ),
-							metric: ( analytics && analytics.unique.views ) || null,
+							metric: analytics ? analytics.unique.views : null,
 							lift: {
 								current: lift.current && lift.current.unique.views,
 								previous: lift.previous && lift.previous.unique.views,
@@ -134,7 +136,7 @@ const Block = ( {
 							color: 'green',
 							icon: 'thumbs-up',
 							title: __( 'Conversion Rate', 'altis-analytics' ),
-							metric: ( analytics && ( ( analytics.unique.conversions / analytics.unique.views ) * 100 ) ) || null,
+							metric: analytics ? ( ( analytics.unique.conversions / analytics.unique.views ) * 100 ) : null,
 							lift: {
 								current: lift.current && ( lift.current.unique.conversions / lift.current.unique.views ),
 								previous: lift.previous && ( lift.previous.unique.conversions / lift.previous.unique.views ),

@@ -121,6 +121,10 @@ export const prepareMetrics = async metrics => {
  * @returns {string} The metric compacted for display.
  */
 export const compactMetric = metric => {
+	if ( isNaN( metric ) ) {
+		return 0;
+	}
+
 	let suffix = '';
 	let value = metric;
 
@@ -137,7 +141,7 @@ export const compactMetric = metric => {
 	}
 
 	// Below 10 we use a fixed single decimal point eg. 2.3k, 1.4M.
-	if ( value < 10 ) {
+	if ( value < 10 && value > 0 ) {
 		value = value.toFixed( 1 );
 	} else {
 		value = Math.round( value );

@@ -111,23 +111,3 @@
 .wp-block[data-type="altis/personalization-variant"] .wp-block {
 	max-width: none;
 }
-
-.altis-experience-block-analytics {
-	margin-bottom: 16px;
-}
-
-.altis-experience-block-analytics h4 {
-	margin-bottom: 4px;
-	margin-top: 0;
-}
-
-.components-panel__body .altis-analytics-views {
-	margin-top: 4px;
-	/* stylelint-disable-next-line declaration-property-unit-blacklist */
-	font-size: 11px;
-}
-
-.altis-analytics-views .dashicon {
-	margin-right: 4px;
-	margin-top: -1px;
-}
