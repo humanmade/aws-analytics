@@ -138,7 +138,7 @@ function render_date_range_links() {
 function render_block_column() {
 	global $post;
 	?>
-	<strong><a href="<?php echo esc_url_raw( '/admin.php?page=xb-analytics&post=' . $post->ID ); ?>"><?php echo esc_attr( $post->post_title ); ?></a></strong>
+	<strong><a href="<?php echo esc_url_raw( admin_url( '/admin.php?page=xb-analytics&post=' . $post->ID ) ); ?>"><?php echo esc_attr( $post->post_title ); ?></a></strong>
 	<?php
 }
 
