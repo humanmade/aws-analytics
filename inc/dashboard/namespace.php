@@ -121,14 +121,15 @@ function render_date_range_links() {
 	];
 
 	$days = get_days_view();
-	$selected = '';
 	?>
 	<div class="xb-analytics-date-range">
 		<?php
 		foreach ( $ranges as $current ) {
 			// Compare the current days value with the current days value pulled from the url query variables.
-			if ( $current['days'] === $days ) {
+			if ( $days === $current['days'] ) {
 				$selected = 'selected';
+			} else {
+				$selected = '';
 			} ?>
 			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo "date-range-button $selected"; ?>"><?php echo esc_html( $current['label'] ); ?></a>
 		<?php } ?>
