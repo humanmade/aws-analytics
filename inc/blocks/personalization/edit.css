@@ -44,6 +44,14 @@
 	color: inherit;
 }
 
+.altis-experience-block-header__toolbar .components-button .dashicon {
+	margin-right: 0;
+}
+
+.altis-experience-block-header__toolbar .components-button.has-text .dashicon {
+	margin-right: 5px;
+}
+
 .block-editor-block-contextual-toolbar[data-type="altis/personalization"]
 .block-editor-block-toolbar__slot {
 	flex-shrink: 0;
