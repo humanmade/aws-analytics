@@ -23,6 +23,14 @@ function setup() {
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
+	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_styles' );
+}
+
+/**
+ * Enqueue styles.
+ */
+function enqueue_styles() {
+	wp_enqueue_style( 'xb-insights', plugin_dir_url( __FILE__ ) . '/assets/style.css', [], '18-03-2021', 'screen' );
 }
 
 /**
