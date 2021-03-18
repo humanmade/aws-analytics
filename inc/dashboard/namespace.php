@@ -187,6 +187,15 @@ function render_average_conversion_rate() {
 }
 
 /**
+ * Return the days url query string.
+ *
+ * @return int The number of days to show insights for. Defaults to 7.
+ */
+function get_days_view() : int {
+	return isset( $_GET['days'] ) ? wp_unslash( absint( $_GET['days'] ) ) : 7;
+}
+
+/**
  * Calculate average conversion rate.
  *
  * @param array $block_data An array of block data.
