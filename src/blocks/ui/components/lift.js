@@ -22,20 +22,16 @@ const StyledLift = styled.div`
  */
 export default function Lift( props ) {
 	const {
-		current,
-		previous,
+		current = 0,
+		previous = 0,
 		className = 'altis-analytics-lift',
 	} = props;
-
-	if ( ! current || ! previous ) {
-		return null;
-	}
 
 	const lift = getLift( current, previous );
 
 	return (
 		<StyledLift className={ className } lift={ lift }>
-			<span>{ lift >= 0 ? '⬆' : '⬇' }</span>
+			<span>{ lift >= 0 || isNaN( lift ) ? '⬆' : '⬇' }</span>
 			{ compactMetric( lift ) }
 		</StyledLift>
 	);

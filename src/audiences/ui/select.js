@@ -63,6 +63,10 @@ const StyledSelect = styled.div`
 				}
 			}
 		}
+
+		.dashicon {
+			margin-right: 3px;
+		}
 	}
 	.audience-select__clear {
 		margin-left: -2px;
