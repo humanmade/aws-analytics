@@ -51,6 +51,7 @@ const StyledSelect = styled.div`
 		button {
 			padding-left: 0;
 			padding-right: 0;
+			text-align: left;
 
 			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):hover,
 			&:not(:disabled):not([aria-disabled=true]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link):focus {
