@@ -44,6 +44,14 @@
 	color: inherit;
 }
 
+.altis-experience-block-header__toolbar .components-button .dashicon {
+	margin-right: 0;
+}
+
+.altis-experience-block-header__toolbar .components-button.has-text .dashicon {
+	margin-right: 5px;
+}
+
 .block-editor-block-contextual-toolbar[data-type="altis/personalization"]
 .block-editor-block-toolbar__slot {
 	flex-shrink: 0;
@@ -110,24 +118,4 @@
 
 .wp-block[data-type="altis/personalization-variant"] .wp-block {
 	max-width: none;
-}
-
-.altis-experience-block-analytics {
-	margin-bottom: 16px;
-}
-
-.altis-experience-block-analytics h4 {
-	margin-bottom: 4px;
-	margin-top: 0;
-}
-
-.components-panel__body .altis-analytics-views {
-	margin-top: 4px;
-	/* stylelint-disable-next-line declaration-property-unit-blacklist */
-	font-size: 11px;
-}
-
-.altis-analytics-views .dashicon {
-	margin-right: 4px;
-	margin-top: -1px;
 }

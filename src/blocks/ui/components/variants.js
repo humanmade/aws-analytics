@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { compactMetric, formatNumber } from '../../../utils';
+import { defaultVariantAnalytics } from '../../data/shapes';
 
 import Lift from './lift';
 
@@ -83,13 +84,13 @@ function Variants( props ) {
 	}
 
 	const fallback = ( variants && variants.find( variant => variant.fallback ) ) || {};
-	const fallbackData = ( analytics && analytics.audiences.find( audience => audience.id === 0 ) ) || null;
+	const fallbackData = analytics ? ( analytics.audiences.find( audience => audience.id === 0 ) || defaultVariantAnalytics ) : null;
 
 	return (
 		<VariantsList>
 			<h2>{ __( 'Block Variants', 'altis-analytics' ) }</h2>
 			{ variants.map( variant => {
-				const data = ( analytics && analytics.audiences.find( audience => audience.id === ( variant.audience && variant.audience.id ) || 0 ) ) || null;
+				const data = ( analytics && analytics.audiences.find( audience => audience.id === ( variant.audience && variant.audience.id ) || 0 ) ) || defaultVariantAnalytics;
 				return (
 					<div className={ `altis-analytics-block-variant ${ variant.fallback ? 'altis-analytics-block-variant--fallback' : '' }` }>
 						<div className="altis-analytics-block-variant__header">
@@ -126,7 +127,7 @@ function Variants( props ) {
 							{ ! variant.fallback && (
 								<li>
 									<p className="description">{ __( 'Audience coverage', 'altis-analytics' ) }</p>
-									<div className="altis-analytics-block-variant__metric blue">{ analytics ? compactMetric( ( data.unique.views / analytics.unique.views ) * 100 ) : '…' }</div>
+									<div className="altis-analytics-block-variant__metric blue">{ ( analytics && data ) ? compactMetric( ( data.unique.views / analytics.unique.views ) * 100 ) : '…' }</div>
 								</li>
 							) }
 						</ul>
