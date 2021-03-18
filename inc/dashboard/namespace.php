@@ -291,13 +291,9 @@ function get_block_data( string $block_id ) : array {
  * @todo Integrate date range searches.
  *
  * @param string $order How to order the data. Accepted values are 'asc' and 'desc'. Defaults to 'desc'.
- * @param int $start_datestamp The timestamp for the start date to query by.
- * @param int $end_datestamp The timestamp for the end date to query by.
+ * @param int $days How many days worth of analytics to fetch. Defaults to 7.
  */
-function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $end_datestamp = 0 ) : array {
-	$start_datestamp = $start_datestamp ?: time();
-	$end_datestamp = $end_datestamp ?: strtotime( '7 days ago' );
-
+function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 	$query = [
 		'query' => [
 			'bool' => [
@@ -345,7 +341,7 @@ function get_views_list( string $order = 'desc', int $start_datestamp = 0, int $
 	// 1: Sort order, asc or desc.
 	// 2: Start date to query by.
 	// 3: End date to query by.
-	$key = sprintf( 'views:list:%1$s:%2$d:%3$d', $order, date( 'Ymd', $start_datestamp ), date( 'Ymd', $end_datestamp ) );
+	$key = sprintf( 'views:list:%1$s:days:%2$d', $order, $days );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
 
 	if ( $cache ) {
