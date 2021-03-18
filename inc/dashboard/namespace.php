@@ -97,36 +97,32 @@ function xb_block_column_orderby( $vars ) : array {
  * Render links for date range data.
  */
 function render_date_range_links() {
-	$start_datestamp = time();
 	$ranges = [
 		[
-			'timestamp' => strtotime( '7 days ago' ),
+			'days' => 7,
 			'label' => __( '7 days', 'altis-analytics' ),
 		],
 		[
-			'timestamp' => strtotime( '30 days ago' ),
+			'days' => 30,
 			'label' => __( '30 days', 'altis-analytics' ),
 		],
 		[
-			'timestamp' => strtotime( '90 days ago' ),
+			'days' => 90,
 			'label' => __( '90 days', 'altis-analytics' ),
 		],
 	];
 
-	$current_end_datestamp = wp_unslash( sanitize_text_field( $_GET['end_datestamp'] ) );
+	$days = get_days_view();
 	$selected = '';
 	?>
 	<div class="xb-analytics-date-range">
 		<?php
 		foreach ( $ranges as $current ) {
-			// Compare the timestamp of the range we're looking at with the current end pulled from the url query variables.
-			if ( date( 'Ymd', $current['timestamp'] ) === date( 'Ymd', $current_end_datestamp ) ) {
+			// Compare the current days value with the current days value pulled from the url query variables.
+			if ( $current['days'] === $days ) {
 				$selected = 'selected';
 			} ?>
-			<a href="<?php echo esc_url_raw( add_query_arg( [
-				'start_datestamp' => $start_datestamp,
-				'end_datestamp' => $current['timestamp'],
-			] ) ); ?>" class="<?php echo "date-range-button $selected"; ?>"><?php echo esc_html( $current['label'] ); ?></a>
+			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo "date-range-button $selected"; ?>"><?php echo esc_html( $current['label'] ); ?></a>
 		<?php } ?>
 	</div>
 	<?php
