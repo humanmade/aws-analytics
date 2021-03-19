@@ -105,7 +105,8 @@ function add_microcopy_to_column_titles( array $xb_columns ) : array {
 	];
 
 	foreach ( $xb_columns as $column => $title ) {
-		$xb_columns[ $column ] = '<span title="' . esc_html( $microcopy[ $column ] ) . '">' . esc_html( $title ) . '</span>';
+		$xb_columns[ $column ] = '<span title="' . esc_html( $microcopy[ $column ] ) . '">' . esc_html( $title ) . '</span>
+			<span class="screen-reader-text">' . esc_html( $microcopy[ $column ] ) . '</span>';
 	}
 
 	return $xb_columns;
