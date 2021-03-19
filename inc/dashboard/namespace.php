@@ -158,8 +158,9 @@ function render_date_range_links() {
 				$selected = 'selected';
 			} else {
 				$selected = '';
-			} ?>
-			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo "date-range-button $selected"; ?>"><?php echo esc_html( $current['label'] ); ?></a>
+			}
+		?>
+			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo sanitize_text_field( "date-range-button $selected" ); ?>"><?php echo esc_html( $current['label'] ); ?></a>
 		<?php } ?>
 	</div>
 	<?php
@@ -292,7 +293,7 @@ function get_aggregate_data( array $buckets ) : array {
  */
 function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array {
 	// If an invalid value was passed to $order, default to 'desc'.
-	if ( ! in_array( $order, [ 'asc', 'desc' ] ) ) {
+	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
 		$order = 'desc';
 	}
 
