@@ -159,8 +159,8 @@ function render_date_range_links() {
 			} else {
 				$selected = '';
 			}
-		?>
-			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo sanitize_text_field( "date-range-button $selected" ); ?>"><?php echo esc_html( $current['label'] ); ?></a>
+			?>
+			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo esc_html( "date-range-button $selected" ); ?>"><?php echo esc_html( $current['label'] ); ?></a>
 		<?php } ?>
 	</div>
 	<?php
