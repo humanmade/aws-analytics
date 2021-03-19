@@ -125,6 +125,11 @@ export const compactMetric = metric => {
 		return 0;
 	}
 
+	// Infinity can happen with percentage calculations.
+	if ( ! isFinite( metric ) ) {
+		return metric >= 0 ? '∞%' : '-∞%';
+	}
+
 	let suffix = '';
 	let value = metric;
 
