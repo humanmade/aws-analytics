@@ -21,6 +21,7 @@ function setup() {
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', __NAMESPACE__ . '\\render_date_range_links' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
+	add_filter( 'manage_xb_posts_columns', __NAMESPACE__ . '\\add_microcopy_to_column_titles', 99 );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_styles' );
@@ -82,6 +83,32 @@ function xb_table_sorting( $columns ) : array {
 	$columns['views'] = 'views';
 	$columns['conversion'] = 'conversion';
 	return $columns;
+}
+
+/**
+ * Add additional microcopy to column titles.
+ *
+ * Note: This adds an additional span around the column title as there is no current way to filter the column title span itself.
+ *
+ * @see https://github.com/WordPress/WordPress/blob/643888dfc6697877609672087b4d3b4e5bf545ff/wp-admin/includes/class-wp-posts-list-table.php#L1059
+ *
+ * @param array $xb_columns An array of columns for the XB post type.
+ *
+ * @return array The filtered array of columns.
+ */
+function add_microcopy_to_column_titles( array $xb_columns ) : array {
+	$microcopy = [
+		'block' => __( 'List of XBs modified in the selected date range', 'altis-analytics' ),
+		'views' => __( 'Total unique views of the XBs during the selected date range', 'altis-analytics' ),
+		'conversion' => __( 'Average conversion is calculated as the total conversion expressed as a % of total unique views of the XB during the selected date range', 'altis-analytics' ),
+		'details' => __( 'Block last modified date and author', 'altis-analytics' ),
+	];
+
+	foreach ( $xb_columns as $column => $title ) {
+		$xb_columns[ $column ] = '<span title="' . esc_html( $microcopy[ $column ] ) . '">' . esc_html( $title ) . '</span>';
+	}
+
+	return $xb_columns;
 }
 
 /**
