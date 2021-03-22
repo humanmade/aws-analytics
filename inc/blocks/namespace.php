@@ -33,6 +33,9 @@ function setup() {
 	// Register experience block category.
 	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 9 );
 
+	// Change the default edit post link for XB posts.
+	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
+
 	// Register API endpoints for getting XB analytics data.
 	REST_API\setup();
 
@@ -215,6 +218,25 @@ function register_post_type() {
 			'plural' => __( 'Experience Blocks', 'altis-analytics' ),
 		]
 	);
+}
+
+/**
+ * Update the edit post link for XBs to be the parent post.
+ *
+ * @param string $link The original edit post link.
+ * @param int $post_id The post ID.
+ *
+ * @return string The updated edit post link.
+ */
+function update_xb_edit_post_link( string $link, int $post_id ) : string {
+	if ( get_post_type( $post_id ) !== POST_TYPE ) {
+		return $link;
+	}
+
+	$parent_id = wp_get_post_parent_id( $post_id );
+	$updated_link = $parent_id ? str_replace( $post_id, $parent_id, $link ) : $link;
+
+	return $updated_link;
 }
 
 /**
