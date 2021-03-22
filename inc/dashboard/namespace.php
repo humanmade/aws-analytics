@@ -41,7 +41,7 @@ function enqueue_styles( $pagenow ) {
 		return;
 	}
 
-	wp_enqueue_style( 'xb-insights', plugin_dir_url( __FILE__ ) . '/assets/style.css', [], '18-03-2021', 'screen' );
+	wp_enqueue_style( 'xb-insights', plugin_dir_url( __FILE__ ) . '/assets/style.css', [], '2021-03-22', 'screen' );
 }
 
 /**
