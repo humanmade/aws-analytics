@@ -22,6 +22,7 @@ function setup() {
 	add_filter( 'views_edit-xb', __NAMESPACE__ . '\\render_date_range_links' );
 	add_filter( 'months_dropdown_results', '__return_empty_array' );
 	add_filter( 'manage_xb_posts_columns', __NAMESPACE__ . '\\add_microcopy_to_column_titles', 99 );
+	add_filter( 'altis.publication-checklist.show_tasks_column', '__return_false' );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_styles' );
@@ -60,7 +61,6 @@ function remove_default_columns( $columns, $post_type ) : array {
 
 	unset( $columns['title'] );
 	unset( $columns['cb'] );
-	unset( $columns['altis_publication_checklist_status'] );
 
 	return $columns;
 }
