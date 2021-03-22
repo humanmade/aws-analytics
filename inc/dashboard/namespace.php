@@ -15,7 +15,7 @@ use Altis\Analytics\Utils;
  */
 function setup() {
 	add_filter( 'manage_posts_columns', __NAMESPACE__ . '\\remove_default_columns', 10, 2 );
-	add_filter( 'post_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
+	add_filter( 'page_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
 	add_filter( 'manage_edit-xb_sortable_columns', __NAMESPACE__ . '\\xb_table_sorting' );
 	add_filter( 'request', __NAMESPACE__ . '\\xb_block_column_orderby' );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
