@@ -82,7 +82,7 @@ function remove_post_row_actions( $actions, $post ) : array {
 }
 
 /**
- * Add custom sort by columns
+ * Add custom sort by columns.
  *
  * @param array $columns An array of post list columns.
  *
@@ -110,7 +110,7 @@ function add_microcopy_to_column_titles( array $xb_columns ) : array {
 	$microcopy = [
 		'block' => __( 'List of XBs modified in the selected date range', 'altis-analytics' ),
 		'views' => __( 'Total unique views of the XBs during the selected date range', 'altis-analytics' ),
-		'conversion' => __( 'Average conversion is calculated as the total conversion expressed as a % of total unique views of the XB during the selected date range', 'altis-analytics' ),
+		'conversion' => __( 'Average conversion rate is calculated as the total unique conversions divided by total unique views of the XB during the selected date range,  expressed as a percentage.', 'altis-analytics' ),
 		'details' => __( 'Block last modified date and author', 'altis-analytics' ),
 	];
 
@@ -308,7 +308,7 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
 	}
 
 	$avg_conversion_rate = array_column( $list, 'avg_conversion_rate' );
-	$sort_order = 'SORT_' . strtoupper( $order );
+	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
 
 	array_multisort( $avg_conversion_rate, $sort_order, $list );
 
@@ -318,7 +318,7 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
 /**
  * Get data from a single block.
  *
- * @uses get_views_List()
+ * @uses get_views_list()
  *
  * @param string $block_id Get a single block's analytics data pulled from the ES query.
  *
@@ -376,6 +376,11 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 							'field' => 'event_type.keyword',
 						],
 					],
+					'aggs' => [
+						'uniques' => [
+							'cardinality' => 'endpoint.Id.keyword',
+						],
+					],
 				],
 			],
 		],
@@ -395,7 +400,7 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 	$result = Utils\query( $query );
 
 	// Check for a result before getting aggregated data.
-	$data = ( $result ) ? get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] ) : [];
+	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
 
 	// Don't cache anything if we didnt' get a result.
 	if ( ! empty( $data ) ) {
