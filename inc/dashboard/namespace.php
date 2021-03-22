@@ -7,8 +7,8 @@
 
 namespace Altis\Analytics\Dashboard;
 
-use function Altis\Analytics\Blocks\get_views as get_block_views;
-use function Altis\Analytics\Utils\query;
+use Altis\Analytics\Blocks;
+use Altis\Analytics\Utils;
 
 /**
  * Set up the Dashboard Analytics page.
@@ -197,7 +197,7 @@ function render_last_modified_author() {
  */
 function render_views() {
 	global $post;
-	$views = get_block_views( $post->post_name, [ 'days' => get_days_view() ] )['views'];
+	$views = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] )['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -208,7 +208,7 @@ function render_views() {
  */
 function render_average_conversion_rate() {
 	global $post;
-	$block = get_block_views( $post->post_name, [ 'days' => get_days_view() ] );
+	$block = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] );
 	$conversions = $block['conversions'];
 	$views = $block['views'];
 	$rate = round( calculate_average_conversion_rate( [
@@ -382,7 +382,7 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 		return $cache;
 	}
 
-	$result = query( $query );
+	$result = Utils\query( $query );
 
 	// Check for a result before getting aggregated data.
 	$data = ( $result ) ? get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] ) : [];
