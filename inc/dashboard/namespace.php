@@ -366,6 +366,11 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 							'field' => 'event_type.keyword',
 						],
 					],
+					'aggs' => [
+						'uniques' => [
+							'cardinality' => 'endpoint.Id.keyword',
+						],
+					],
 				],
 			],
 		],
