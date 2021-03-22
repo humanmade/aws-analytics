@@ -53,11 +53,14 @@ function enqueue_styles( $pagenow ) {
  * @return array The filtered columns array.
  */
 function remove_default_columns( $columns, $post_type ) : array {
-	if ( Blocks\POST_TYPE === $post_type ) {
-		unset( $columns['cb'] );
-		unset( $columns['title'] );
-		unset( $columns['altis_publication_checklist_status'] );
+	// Bail early if we aren't in the right place.
+	if ( Blocks\POST_TYPE !== $post_type ) {
+		return $columns;
 	}
+
+	unset( $columns['title'] );
+	unset( $columns['cb'] );
+	unset( $columns['altis_publication_checklist_status'] );
 
 	return $columns;
 }
