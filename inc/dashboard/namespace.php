@@ -385,7 +385,7 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 	$result = query( $query );
 
 	// Check for a result before getting aggregated data.
-	$data = ( $result ) ? get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] ) : [];
+	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
 
 	// Don't cache anything if we didnt' get a result.
 	if ( ! empty( $data ) ) {
