@@ -235,10 +235,7 @@ function render_average_conversion_rate() {
 	$block = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] );
 	$conversions = $block['conversions'];
 	$views = $block['views'];
-	$rate = round( calculate_average_conversion_rate( [
-		'conversions' => $conversions,
-		'views' => $views,
-	] ) * 100 );
+	$rate = round( calculate_average_conversion_rate( $conversions, $views ) * 100 );
 	?>
 	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
@@ -288,10 +285,7 @@ function get_aggregate_data( array $buckets ) : array {
 		$conversions = $block_data['conversion'] ?? 0;
 		$data[ $block_id ]['views'] = $views;
 		$data[ $block_id ]['conversions'] = $conversions;
-		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( [
-			'views' => $views,
-			'conversions' => $conversions,
-		] );
+		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( $conversions, $views );
 	}
 
 	return $data;
