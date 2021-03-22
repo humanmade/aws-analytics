@@ -330,25 +330,6 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
 }
 
 /**
- * Get data from a single block.
- *
- * @uses get_views_list()
- *
- * @param string $block_id Get a single block's analytics data pulled from the ES query.
- *
- * @return array The block's analytics data.
- */
-function get_block_data( string $block_id ) : array {
-	$data = get_views_list();
-
-	return isset( $data[ $block_id ] ) ? $data[ $block_id ] : [
-		'views' => 0,
-		'conversions' => 0,
-		'avg_conversion_rate' => 0,
-	];
-}
-
-/**
  * Get analytics views list data.
  *
  * @todo Integrate date range searches.
