@@ -340,7 +340,12 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
  */
 function get_block_data( string $block_id ) : array {
 	$data = get_views_list();
-	return $data[ $block_id ];
+
+	return isset( $data[ $block_id ] ) ? $data[ $block_id ] : [
+		'views' => 0,
+		'conversions' => 0,
+		'avg_conversion_rate' => 0,
+	];
 }
 
 /**
