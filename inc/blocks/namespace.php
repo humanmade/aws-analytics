@@ -183,7 +183,7 @@ function register_post_type() {
 			'show_in_menu' => 'index.php',
 			'rest_base' => 'xbs',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
-			'hierarchical' => false,
+			'hierarchical' => true,
 			'capabilities' => [
 				'create_posts' => 'do_not_allow',
 			],
