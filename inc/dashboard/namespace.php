@@ -72,7 +72,7 @@ function remove_post_row_actions( $actions, $post ) : array {
 }
 
 /**
- * Add custom sort by columns
+ * Add custom sort by columns.
  *
  * @param array $columns An array of post list columns.
  *
