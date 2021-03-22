@@ -43,7 +43,7 @@ function enqueue_styles() {
  * @return array The filtered columns array.
  */
 function remove_default_columns( $columns, $post_type ) : array {
-	if ( 'xb' === $post_type ) {
+	if ( Blocks\POST_TYPE === $post_type ) {
 		unset( $columns['cb'] );
 		unset( $columns['title'] );
 		unset( $columns['altis_publication_checklist_status'] );
@@ -61,7 +61,7 @@ function remove_default_columns( $columns, $post_type ) : array {
  * @return array The filtered array (empty for xbs).
  */
 function remove_post_row_actions( $actions, $post ) : array {
-	if ( 'xb' === $post->post_type ) {
+	if ( Blocks\POST_TYPE === $post->post_type ) {
 		unset( $actions['edit'] );
 		unset( $actions['view'] );
 		unset( $actions['trash'] );
@@ -405,12 +405,8 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
  * @return \WP_Query The updated WP_Query object.
  */
 function modify_views_list_query( $query ) {
-	if (
-		// Bail if we arent' in the admin.
-		! is_admin() ||
-		// Bail if we aren't looking at the XB Insights page.
-		$query->get( 'post_type' ) !== 'xb'
-	) {
+	// Bail if we aren't looking at the XB Insights page.
+	if ( $query->get( 'post_type' ) !== Blocks\POST_TYPE ) {
 		return $query;
 	}
 
