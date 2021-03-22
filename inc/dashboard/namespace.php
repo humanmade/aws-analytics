@@ -18,10 +18,10 @@ function setup() {
 	add_filter( 'page_row_actions', __NAMESPACE__ . '\\remove_post_row_actions', 10, 2 );
 	add_filter( 'manage_edit-xb_sortable_columns', __NAMESPACE__ . '\\xb_table_sorting' );
 	add_filter( 'request', __NAMESPACE__ . '\\xb_block_column_orderby' );
-	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
 	add_filter( 'views_edit-xb', __NAMESPACE__ . '\\render_date_range_links' );
-	add_filter( 'months_dropdown_results', '__return_empty_array' );
 	add_filter( 'manage_xb_posts_columns', __NAMESPACE__ . '\\add_microcopy_to_column_titles', 99 );
+	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
+	add_filter( 'months_dropdown_results', '__return_empty_array' );
 	add_filter( 'altis.publication-checklist.show_tasks_column', '__return_false' );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
@@ -390,11 +390,11 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 							'field' => 'event_type.keyword',
 						],
 					],
-					'aggs' => [
-						'uniques' => [
-							'cardinality' => 'endpoint.Id.keyword',
-						],
-					],
+					// 'aggs' => [
+					// 	'uniques' => [
+					// 		'cardinality' => 'endpoint.Id.keyword',
+					// 	],
+					// ],
 				],
 			],
 		],
