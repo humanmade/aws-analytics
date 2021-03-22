@@ -308,7 +308,7 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
 /**
  * Get data from a single block.
  *
- * @uses get_views_List()
+ * @uses get_views_list()
  *
  * @param string $block_id Get a single block's analytics data pulled from the ES query.
  *
