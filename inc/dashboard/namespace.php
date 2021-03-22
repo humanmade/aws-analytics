@@ -74,12 +74,14 @@ function remove_default_columns( $columns, $post_type ) : array {
  * @return array The filtered array (empty for xbs).
  */
 function remove_post_row_actions( $actions, $post ) : array {
-	if ( Blocks\POST_TYPE === $post->post_type ) {
-		unset( $actions['edit'] );
-		unset( $actions['view'] );
-		unset( $actions['trash'] );
-		unset( $actions['inline hide-if-no-js'] );
+	// Bail early if we aren't in the right place.
+	if ( Blocks\POST_TYPE !== $post->post_type ) {
+		return $actions;
 	}
+
+	unset( $actions['view'] );
+	unset( $actions['trash'] );
+	unset( $actions['inline hide-if-no-js'] );
 
 	return $actions;
 }
