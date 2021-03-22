@@ -177,9 +177,15 @@ function render_date_range_links() {
 			} else {
 				$selected = '';
 			}
-			?>
-			<a href="<?php echo esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ); ?>" class="<?php echo esc_html( "date-range-button $selected" ); ?>"><?php echo esc_html( $current['label'] ); ?></a>
-		<?php } ?>
+
+			printf(
+				wp_kses_post( '<a href="%1$s" class="date-range-button %2$s">%3$s</a>' ),
+				esc_url_raw( add_query_arg( [ 'days' => $current['days'] ] ) ),
+				$selected,
+				esc_html( $current['label'] )
+			);
+		}
+		?>
 	</div>
 	<?php
 }
