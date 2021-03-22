@@ -108,7 +108,7 @@ function xb_table_sorting( $columns ) : array {
  *
  * Note: This adds an additional span around the column title as there is no current way to filter the column title span itself.
  *
- * @see https://github.com/WordPress/WordPress/blob/643888dfc6697877609672087b4d3b4e5bf545ff/wp-admin/includes/class-wp-posts-list-table.php#L1059
+ * @see https://github.com/WordPress/WordPress/blob/5.7-branch/wp-admin/includes/class-wp-posts-list-table.php#L1049
  *
  * @param array $xb_columns An array of columns for the XB post type.
  *
