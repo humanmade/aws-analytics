@@ -256,29 +256,19 @@ function get_days_view() : int {
 /**
  * Calculate average conversion rate.
  *
- * @param array $block_data An array of block data.
- * @param string $block_id A single block clientID.
+ * @param int $conversions The number of conversions for a block.
+ * @param int $views The number of views for a block.
  *
  * @return float The conversion rate (calculated by conversions / views).
  */
-function calculate_average_conversion_rate( array $block_data = [], string $block_id = '' ) : float {
-	if ( empty( $block_data ) ) {
-		$block_data = [
-			'conversions' => 0,
-			'views' => 0,
-		];
-
-		if ( ! empty( $block_id ) ) {
-			$block_data = get_block_data( $block_id );
-		}
-	}
+function calculate_average_conversion_rate( int $conversions = 0, int $views = 0 ) : float {
 
 	// Avoid division by zero.
-	if ( $block_data['views'] === 0 ) {
+	if ( $views === 0 ) {
 		return 0;
 	}
 
-	return $block_data['conversions'] / $block_data['views'];
+	return $conversions / $views;
 }
 
 /**
