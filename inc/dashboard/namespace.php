@@ -30,7 +30,17 @@ function setup() {
 /**
  * Enqueue styles.
  */
-function enqueue_styles() {
+function enqueue_styles( $pagenow ) {
+	// Bail early if we aren't on an edit page.
+	if ( $pagenow !== 'edit.php' ) {
+		return;
+	}
+
+	// Bail if we aren't on the XB edit page, specifically.
+	if ( get_query_var( 'post_type' ) !== Blocks\POST_TYPE ) {
+		return;
+	}
+
 	wp_enqueue_style( 'xb-insights', plugin_dir_url( __FILE__ ) . '/assets/style.css', [], '18-03-2021', 'screen' );
 }
 
