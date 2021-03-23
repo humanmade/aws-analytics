@@ -435,7 +435,7 @@ function modify_views_list_query( $query ) {
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';
 	$days = $query->get( 'days' ) ?: get_days_view();
-	$list = get_views_list( $order, $days );
+	$list = get_views_list( $days );
 
 	// If we're ordering by conversion, update the list.
 	if ( $orderby === 'conversion' ) {
