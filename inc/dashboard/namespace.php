@@ -30,8 +30,10 @@ function setup() {
 
 /**
  * Enqueue styles.
+ *
+ * @param string $pagenow The page we are currently viewing.
  */
-function enqueue_styles( $pagenow ) {
+function enqueue_styles( string $pagenow ) {
 	// Bail early if we aren't on an edit page.
 	if ( $pagenow !== 'edit.php' ) {
 		return;
