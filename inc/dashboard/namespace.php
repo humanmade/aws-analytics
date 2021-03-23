@@ -319,11 +319,19 @@ function get_views_list( int $days = 7 ) : array {
 						],
 					],
 					[
-						// We're just interested in views.
+						// We're interested in views and conversions.
 						'terms' => [
 							'event_type.keyword' => [
 								'experienceView',
 								'conversion',
+							],
+						],
+					],
+					[
+						// Limit to date range.
+						'range' => [
+							'event_timestamp' => [
+								'gte' => $date_start * 1000,
 							],
 						],
 					],
@@ -336,14 +344,13 @@ function get_views_list( int $days = 7 ) : array {
 					// Get the block data. This will give us the key for the block, which is stored as the post slug.
 					'field' => 'attributes.clientId.keyword',
 					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
-					'order' => [
-						'_count' => $order,
-					],
 				],
 				'aggs' => [
-					'events' => [
-						'terms' => [
-							'field' => 'event_type.keyword',
+					'views' => [
+						'filter' => [
+							'term' => [
+								'event_type.keyword' => 'experienceView',
+							]
 						],
 						'aggs' => [
 							'uniques' => [
@@ -353,10 +360,36 @@ function get_views_list( int $days = 7 ) : array {
 							],
 						],
 					],
+					'conversions' => [
+						'filter' => [
+							'term' => [
+								'event_type.keyword' => 'conversion',
+							],
+						],
+						'aggs' => [
+							'uniques' => [
+								'cardinality' => [
+									'field' => 'endpoint.Id.keyword',
+								],
+							],
+						],
+					],
+					'conversionRate' => [
+						'bucket_script' => [
+							'buckets_path' => [
+								'views' => 'views>uniques',
+								'conversions' => 'conversions>uniques',
+							],
+							'script' => 'params.conversions / params.views',
+						],
+					],
 				],
 			],
 		],
 		'size' => 0,
+		'sort' => [
+			'event_timestamp' => 'desc',
+		],
 	];
 
 	// 1: Sort order, asc or desc.
