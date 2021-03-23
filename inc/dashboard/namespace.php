@@ -392,10 +392,7 @@ function get_views_list( int $days = 7 ) : array {
 		],
 	];
 
-	// 1: Sort order, asc or desc.
-	// 2: Start date to query by.
-	// 3: End date to query by.
-	$key = sprintf( 'views:list:%1$s:days:%2$d', $order, $days );
+	$key = sprintf( 'views:list:days:%d', $days );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
 
 	if ( $cache ) {
