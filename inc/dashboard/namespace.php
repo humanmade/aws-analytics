@@ -411,7 +411,7 @@ function modify_views_list_query( $query ) {
 	// Bail if we aren't looking at the XB Insights page or if we're ordering by block title.
 	if (
 		$query->get( 'post_type' ) !== Blocks\POST_TYPE ||
-		$query->get( 'orderby' ) === 'title'
+		in_array( $query->get( 'orderby' ), [ 'title', 'author', 'last_modified' ], true )
 	) {
 		return $query;
 	}
