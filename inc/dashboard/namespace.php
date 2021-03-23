@@ -223,7 +223,7 @@ function render_last_modified_author() {
  */
 function render_views() {
 	global $post;
-	$views = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] )['views'];
+	$views = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] )['unique']['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
