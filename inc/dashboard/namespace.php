@@ -102,6 +102,7 @@ function xb_table_sorting( $columns ) : array {
 	$columns['block'] = 'block';
 	$columns['views'] = 'views';
 	$columns['conversion'] = 'conversion';
+	$columns['author'] = 'author';
 	return $columns;
 }
 
