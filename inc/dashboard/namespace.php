@@ -417,8 +417,6 @@ function get_views_list( int $days = 7 ) : array {
 /**
  * Alter the default WP_Query to change the sort order.
  *
- * @todo Finish this function.
- *
  * @param \WP_Query $query The WP_Query object.
  *
  * @return \WP_Query The updated WP_Query object.
