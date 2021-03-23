@@ -266,12 +266,13 @@ function get_aggregate_data( array $buckets ) : array {
 
 	foreach ( $buckets as $block ) {
 		$block_id = $block['key'];
-		$block_data = wp_list_pluck( $block['events']['buckets'], 'doc_count', 'key' );
-		$views = $block_data['experienceView'] ?? 0;
-		$conversions = $block_data['conversion'] ?? 0;
+		$views = $block['views']['uniques']['value'] ?? 0;
+		$conversions = $block['conversions']['uniques']['value'] ?? 0;
+		$conversion_rate = $block['conversionRate']['value'] ?? 0;
+
 		$data[ $block_id ]['views'] = $views;
 		$data[ $block_id ]['conversions'] = $conversions;
-		$data[ $block_id ]['avg_conversion_rate'] = calculate_average_conversion_rate( $conversions, $views );
+		$data[ $block_id ]['avg_conversion_rate'] = $conversion_rate;
 	}
 
 	return $data;
