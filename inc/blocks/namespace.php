@@ -234,7 +234,13 @@ function update_xb_edit_post_link( string $link, int $post_id ) : string {
 	}
 
 	$parent_id = wp_get_post_parent_id( $post_id );
-	$updated_link = $parent_id ? str_replace( $post_id, $parent_id, $link ) : $link;
+
+	// Bail and return an empty string if there was no parent.
+	if ( ! $parent_id ) {
+		return '';
+	}
+
+	$updated_link = add_query_arg( [ 'post' => $parent_id ], $link );
 
 	return $updated_link;
 }
