@@ -208,7 +208,8 @@ function render_block_column() {
  */
 function render_views() {
 	global $post;
-	$views = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] )['unique']['views'];
+	$list = get_views_list( get_days_view() );
+	$views = $list[ $post->post_name ]['views'];
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
@@ -219,10 +220,8 @@ function render_views() {
  */
 function render_average_conversion_rate() {
 	global $post;
-	$block = Blocks\get_views( $post->post_name, [ 'days' => get_days_view() ] );
-	$conversions = $block['unique']['conversions'];
-	$views = $block['unique']['views'];
-	$rate = round( calculate_average_conversion_rate( $conversions, $views ) * 100 );
+	$list = get_views_list( get_days_view() );
+	$rate = round( $list[ $post->post_name ]['avg_conversion_rate'] * 100 );
 	?>
 	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
