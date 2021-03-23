@@ -284,10 +284,11 @@ function get_aggregate_data( array $buckets ) : array {
  *
  * @param array $list The array of analytics data by block id.
  * @param string $order The order to sort by. Accepted values are 'asc' or 'desc'.
+ * @param string $sort The parameter to sort by. Accepted values are 'views' and 'avg_conversion_rate'. Default is 'views'.
  *
  * @return array The sorted array.
  */
-function sort_by( array $list, string $order = 'desc', string $sort = 'views'  ) : array {
+function sort_by( array $list, string $order = 'desc', string $sort = 'views' ) : array {
 	// If an invalid value was passed to $order, default to 'desc'.
 	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
 		$order = 'desc';
@@ -356,12 +357,12 @@ function get_views_list( int $days = 7 ) : array {
 						'filter' => [
 							'term' => [
 								'event_type.keyword' => 'experienceView',
-							]
+							],
 						],
 						'aggs' => [
 							'uniques' => [
 								'cardinality' => [
-									'field' => 'endpoint.Id.keyword'
+									'field' => 'endpoint.Id.keyword',
 								],
 							],
 						],
