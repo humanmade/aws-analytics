@@ -303,12 +303,11 @@ function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array 
 /**
  * Get analytics views list data.
  *
- * @todo Integrate date range searches.
- *
- * @param string $order How to order the data. Accepted values are 'asc' and 'desc'. Defaults to 'desc'.
  * @param int $days How many days worth of analytics to fetch. Defaults to 7.
  */
-function get_views_list( string $order = 'desc', int $days = 7 ) : array {
+function get_views_list( int $days = 7 ) : array {
+	$date_start = time() - ( $days * DAY_IN_SECONDS );
+
 	$query = [
 		'query' => [
 			'bool' => [
