@@ -384,13 +384,7 @@ function get_views_list( string $order = 'desc', int $days = 7 ) : array {
 	$result = Utils\query( $query );
 
 	if ( ! $result ) {
-		$data = [
-			'aggregations' => [
-				'blocks' => [
-					'buckets' => []
-				]
-			]
-		];
+		$data = [];
 
 		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 		return $data;
