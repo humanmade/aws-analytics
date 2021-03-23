@@ -287,16 +287,21 @@ function get_aggregate_data( array $buckets ) : array {
  *
  * @return array The sorted array.
  */
-function sort_by_conversion_rate( array $list, string $order = 'desc' ) : array {
+function sort_by( array $list, string $order = 'desc', string $sort = 'views'  ) : array {
 	// If an invalid value was passed to $order, default to 'desc'.
 	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
 		$order = 'desc';
 	}
 
-	$avg_conversion_rate = array_column( $list, 'avg_conversion_rate' );
-	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
+	// If an invalid value was passed to $sort, default to 'views'.
+	if ( ! in_array( $sort, [ 'avg_conversion_rate', 'views' ], true ) ) {
+		$sort = 'views';
+	}
 
-	array_multisort( $avg_conversion_rate, $sort_order, $list );
+	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
+	$sort = array_column( $list, $sort );
+
+	array_multisort( $sort, $sort_order, $list );
 
 	return $list;
 }
