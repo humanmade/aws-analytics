@@ -31,7 +31,7 @@ function setup() {
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
 
 	// Register experience block category.
-	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 9 );
+	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 100 );
 
 	// Register API endpoints for getting XB analytics data.
 	REST_API\setup();
@@ -198,10 +198,10 @@ function register_post_type() {
  * @return array The modified block categories array.
  */
 function add_block_category( array $categories ) : array {
-	$categories[] = [
+	array_unshift( $categories, [
 		'slug' => 'altis-experience-blocks',
 		'title' => __( 'Experience Blocks', 'altis-experiments' ),
-	];
+	] );
 
 	return $categories;
 }
