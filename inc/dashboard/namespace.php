@@ -122,7 +122,8 @@ function add_microcopy_to_column_titles( array $xb_columns ) : array {
 		'block' => __( 'List of XBs with associated analytics data from the selected date range', 'altis-analytics' ),
 		'views' => __( 'Total unique views of the XBs during the selected date range', 'altis-analytics' ),
 		'conversion' => __( 'Average conversion rate is calculated as the total unique conversions divided by total unique views of the XB during the selected date range,  expressed as a percentage.', 'altis-analytics' ),
-		'details' => __( 'Block last modified date and author', 'altis-analytics' ),
+		'author' => __( 'Block author', 'altis-analytics' ),
+		'last_modified' => __( 'Block last modified date', 'altis-analytics' ),
 	];
 
 	foreach ( $xb_columns as $column => $title ) {
