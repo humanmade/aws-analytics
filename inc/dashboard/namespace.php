@@ -204,22 +204,6 @@ function render_block_column() {
 }
 
 /**
- * Render the last modified / author column data.
- */
-function render_last_modified_author() {
-	global $post;
-	?>
-	<div class="post--last-modified">
-		<span class="post--last-modified-date"><?php echo esc_attr( get_the_modified_date( '', $post ) ); ?></span>
-		<span class="post--last-modified-time"><?php echo esc_attr( get_the_modified_time( '', $post ) ); ?></span>
-	</div>
-	<div class="post--author">
-		<?php echo esc_attr( get_the_author_meta( 'display_name', $post->post_author ) ); ?>
-	</div>
-	<?php
-}
-
-/**
  * Render the views column data.
  */
 function render_views() {
