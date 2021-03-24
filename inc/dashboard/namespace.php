@@ -283,11 +283,6 @@ function sort_by( array $list, string $order = 'desc', string $sort = 'views' ) 
 		$order = 'desc';
 	}
 
-	// If an invalid value was passed to $sort, default to 'views'.
-	if ( ! in_array( $sort, [ 'avg_conversion_rate', 'views' ], true ) ) {
-		$sort = 'views';
-	}
-
 	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
 	$sort = array_column( $list, $sort );
 
