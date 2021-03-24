@@ -269,29 +269,6 @@ function get_aggregate_data( array $buckets ) : array {
 }
 
 /**
- * Sort data by conversion rate.
- *
- * @param array $list The array of analytics data by block id.
- * @param string $order The order to sort by. Accepted values are 'asc' or 'desc'.
- * @param string $sort The parameter to sort by. Accepted values are 'views' and 'conversion_rate'. Default is 'views'.
- *
- * @return array The sorted array.
- */
-function sort_by( array $list, string $order = 'desc', string $sort = 'views' ) : array {
-	// If an invalid value was passed to $order, default to 'desc'.
-	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
-		$order = 'desc';
-	}
-
-	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
-	$sort = array_column( $list, $sort );
-
-	array_multisort( $sort, $sort_order, $list );
-
-	return $list;
-}
-
-/**
  * Get analytics views list data.
  *
  * @param int $days How many days worth of analytics to fetch. Defaults to 7.

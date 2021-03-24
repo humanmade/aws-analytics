@@ -466,3 +466,27 @@ function find_best_accept_header_match( array $parsed, array $available ) : ?str
 	// Return highest score.
 	return array_keys( $scores )[0];
 }
+
+
+/**
+ * Sort data by conversion rate.
+ *
+ * @param array $list The array of analytics data by block id.
+ * @param string $orderby The parameter to sort by.
+ * @param string $order The order to sort by. Accepted values are 'asc' or 'desc'.
+ *
+ * @return array The sorted array.
+ */
+function sort_by( array $list, string $orderby, string $order = 'desc' ) : array {
+	// If an invalid value was passed to $order, default to 'desc'.
+	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
+		$order = 'desc';
+	}
+
+	$sort_order = ( $order === 'desc' ) ? SORT_DESC : SORT_ASC;
+	$orderby = array_column( $list, $orderby );
+
+	array_multisort( $orderby, $sort_order, $list );
+
+	return $list;
+}
