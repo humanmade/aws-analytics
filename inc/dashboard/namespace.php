@@ -318,6 +318,8 @@ function sort_by( array $list, string $order = 'desc', string $sort = 'views' ) 
  * Get analytics views list data.
  *
  * @param int $days How many days worth of analytics to fetch. Defaults to 7.
+ *
+ * @return array The array of list data from ElasticSearch.
  */
 function get_views_list( int $days = 7 ) : array {
 	$date_start = time() - ( $days * DAY_IN_SECONDS );
