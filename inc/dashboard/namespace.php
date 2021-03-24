@@ -408,7 +408,7 @@ function modify_views_list_query( $query ) {
 	$list = get_views_list( $days );
 
 	// Sort by conversion or views.
-	$list = ( $orderby === 'conversion' ) ? sort_by( $list, $order, 'conversion_rate' ) : sort_by( $list, $order );
+	$list = ( $orderby === 'conversion' ) ? sort_by( $list, $order, 'conversion_rate' ) : Utils\sort_by( $list, $orderby, $order );
 
 	// Pluck the client ids out of the list.
 	$client_ids = array_keys( $list );
