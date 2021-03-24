@@ -438,11 +438,13 @@ function get_views_list( int $days = 7 ) : array {
  * @return \WP_Query The updated WP_Query object.
  */
 function modify_views_list_query( $query ) {
-	// Bail if we aren't looking at the XB Insights page or if we're ordering by block title.
-	if (
-		$query->get( 'post_type' ) !== Blocks\POST_TYPE ||
-		in_array( $query->get( 'orderby' ), [ 'title', 'author', 'last_modified' ], true )
-	) {
+	// Bail if we aren't looking at the XB Insights page.
+	if ( $query->get( 'post_type' ) !== Blocks\POST_TYPE ) {
+		return $query;
+	}
+
+	// Bail for queries that aren't ordered by views or conversions (so we don't need to run an ES query).
+	if ( ! in_array( $query->get( 'orderby' ), [ 'views', 'conversions' ], true ) ) {
 		return $query;
 	}
 
