@@ -210,7 +210,7 @@ function render_block_column() {
 function render_views() {
 	global $post;
 	$list = get_views_list( get_days_view() );
-	$views = $list[ $post->post_name ]['views'];
+	$views = $list[ $post->post_name ]['views'] ?? 0;
 	?>
 	<div class="post--views"><?php echo number_format_i18n( $views ); ?></div>
 	<?php
