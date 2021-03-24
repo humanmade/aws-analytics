@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const registeredGoals = Altis.Analytics.Experiments.Goals || {};
 
@@ -6,6 +6,24 @@ const { serverSideRender: ServerSideRender } = wp;
 const { serialize } = wp.blocks;
 const { Disabled, Spinner, withNotices } = wp.components;
 const { __ } = wp.i18n;
+
+const MemoisedSSR = React.memo( ( { clientId, content } ) => (
+	<ServerSideRender
+		attributes={ {
+			clientId,
+			content,
+		} }
+		block="altis/shim"
+		httpMethod="POST"
+		LoadingResponsePlaceholder={ () => (
+			<div className="altis-variant-validation__loading">
+				<Spinner />
+				{ ' ' }
+				{ __( 'Validating...', 'altis-analytics' ) }
+			</div>
+		) }
+	/>
+) );
 
 /**
  * Validation component for variants.
@@ -65,20 +83,9 @@ const VariantValidation = ( {
 	return (
 		<div className="altis-variant-validation">
 			<Disabled>
-				<ServerSideRender
-					attributes={ {
-						clientId,
-						content: serialize( blocks ),
-					} }
-					block="altis/shim"
-					httpMethod="POST"
-					LoadingResponsePlaceholder={ () => (
-						<p>
-							<Spinner />
-							{ ' ' }
-							{ __( 'Validating...', 'altis-analytics' ) }
-						</p>
-					) }
+				<MemoisedSSR
+					clientId={ clientId }
+					content={ serialize( blocks ) }
 				/>
 			</Disabled>
 			{ noticeUI }
