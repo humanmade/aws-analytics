@@ -74,7 +74,7 @@ function enqueue_assets() {
 		'altis-experiments-features-blocks-personalization',
 		plugins_url( 'inc/blocks/personalization/edit.css', Analytics\ROOT_FILE ),
 		[],
-		'2021-03-24-2'
+		'2021-03-24-3'
 	);
 }
 

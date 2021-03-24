@@ -45,13 +45,13 @@ function setup() {
 		'label' => __( 'Click on any link', 'altis-analytics' ),
 		'event' => 'click',
 		'selector' => 'a',
-		'validation_message' => __( 'You need to add at least one link to the content to track this goal.', 'altis-anlaytics' ),
+		'validation_message' => __( 'You need to add at least one link to this content to track conversions.', 'altis-anlaytics' ),
 	] );
 	register_goal( 'submit_form', [
 		'label' => __( 'Submit a form', 'altis-analytics' ),
 		'event' => 'submit',
 		'selector' => 'form',
-		'validation_message' => __( 'You need to add a form to the content to track this goal.', 'altis-anlaytics' ),
+		'validation_message' => __( 'You need to add a form to this content to track conversions.', 'altis-anlaytics' ),
 	] );
 }
 

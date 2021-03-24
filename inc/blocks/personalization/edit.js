@@ -6,6 +6,7 @@ import Popup from '../../../src/blocks/ui/popup';
 import VariantPanel from './components/variant-panel';
 import VariantTitle from './components/variant-title';
 import VariantToolbar from './components/variant-toolbar';
+import VariantValidation from './components/variant-validation';
 import withData from './data/edit';
 
 const {

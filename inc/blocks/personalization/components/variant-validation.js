@@ -1,11 +1,16 @@
-import React, { useEffect, useRef } from 'react';
-
-const registeredGoals = Altis.Analytics.Experiments.Goals || {};
+import React, { useCallback, useEffect, useState } from 'react';
 
 const { serverSideRender: ServerSideRender } = wp;
 const { serialize } = wp.blocks;
 const { Disabled, Spinner, withNotices } = wp.components;
-const { __ } = wp.i18n;
+const { __, sprintf } = wp.i18n;
+
+const watcher = new MutationObserver( mutations => {
+	for ( const mutation of mutations ) {
+		const event = new CustomEvent( 'updated' );
+		mutation.target.dispatchEvent( event );
+	}
+} );
 
 const MemoisedSSR = React.memo( ( { clientId, content } ) => (
 	<ServerSideRender
@@ -43,50 +48,72 @@ const VariantValidation = ( {
 	noticeOperations,
 	noticeUI,
 } ) => {
-	const debounce = useRef();
+	const [ container, setContainer ] = useState( null );
+
+	// Use a callback ref for the useEffect hook.
+	const containerRef = useCallback( node => {
+		setContainer( node );
+	}, [] );
 
 	useEffect( () => {
-		const registeredGoal = registeredGoals[ goal ] || null;
+		if ( ! container ) {
+			return;
+		}
 
-		if ( ! registeredGoal.selector ) {
+		const registeredGoal = Altis.Analytics.Experiments.Goals[ goal ] || null;
+
+		if ( ! registeredGoal || ! registeredGoal.selector ) {
 			noticeOperations.removeAllNotices();
 			return;
 		}
 
-		clearInterval( debounce.current );
+		// Store a ref pointer.
+		const ssrContainer = container;
 
-		// Poll for the element existing.
-		debounce.current = setInterval( () => {
-			const el = document.querySelector( `[data-block-validation="${ clientId }"]` );
+		/**
+		 * Check if our current content is valid.
+		 */
+		const checkValidity = () => {
+			const el = ssrContainer.querySelector( `[data-block-validation="${ clientId }"]` );
 			if ( el ) {
-				clearInterval( debounce.current );
+				// clearInterval( debounce.current );
 				if ( el.querySelector( registeredGoal.selector ) ) {
 					noticeOperations.removeAllNotices();
 				} else {
 					noticeOperations.createErrorNotice(
 						( registeredGoal.args && registeredGoal.args.validation_message ) ||
-						__( 'This variant does not meet the requirements for this conversion goal yet.', 'altis-analytics' )
+						sprintf( __( 'This variant does not meet the requirements for the "%s" conversion goal yet.', 'altis-analytics' ), registeredGoal.label )
 					);
 				}
 			}
-		}, 500 );
+		};
+
+		// Do an initial check incase the SSR component exists with no changes.
+		checkValidity();
+
+		// Listen for changes.
+		const listener = ssrContainer.addEventListener( 'updated', checkValidity );
+		watcher.observe( ssrContainer, { childList: true } );
 
 		return () => {
-			clearInterval( debounce.current );
+			watcher.disconnect();
+			ssrContainer.removeEventListener( 'update', listener );
 		};
-	}, [ clientId, goal, noticeOperations ] );
+	}, [ clientId, container, goal, noticeOperations ] );
 
-	if ( ! goal ) {
+	if ( ! goal || goal === '' ) {
 		return null;
 	}
 
 	return (
 		<div className="altis-variant-validation">
 			<Disabled>
-				<MemoisedSSR
-					clientId={ clientId }
-					content={ serialize( blocks ) }
-				/>
+				<div ref={ containerRef }>
+					<MemoisedSSR
+						clientId={ clientId }
+						content={ serialize( blocks ) }
+					/>
+				</div>
 			</Disabled>
 			{ noticeUI }
 		</div>

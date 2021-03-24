@@ -2,7 +2,6 @@ import React from 'react';
 
 import GoalPicker from './goal-picker';
 import VariantTitle from './variant-title';
-import VariantValidation from './variant-validation';
 
 const { AudiencePicker } = Altis.Analytics.components;
 
@@ -31,11 +30,6 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 					goal={ variant.attributes.goal }
 					onChange={ goal => updateBlockAttributes( variant.clientId, { goal } ) }
 				/>
-				<VariantValidation
-					blocks={ variant.innerBlocks }
-					clientId={ variant.clientId }
-					goal={ variant.attributes.goal }
-				/>
 			</PanelBody>
 		);
 	}
@@ -55,11 +49,6 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 			<GoalPicker
 				goal={ variant.attributes.goal }
 				onChange={ goal => updateBlockAttributes( variant.clientId, { goal } ) }
-			/>
-			<VariantValidation
-				blocks={ variant.innerBlocks }
-				clientId={ variant.clientId }
-				goal={ variant.attributes.goal }
 			/>
 		</PanelBody>
 	);
