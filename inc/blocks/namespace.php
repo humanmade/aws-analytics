@@ -43,6 +43,10 @@ function setup() {
 	// Register an admin page for the block anlaytics view.
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_block_admin_page' );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
+
+	// Shim server side render block to allow passing inner blocks as attribute.
+	add_filter( 'render_block_data', __NAMESPACE__ . '\\ssr_inner_blocks_shim' );
+	register_ssr_inner_blocks_shim();
 }
 
 /**
@@ -632,4 +636,47 @@ function get_views( string $block_id, $args = [] ) {
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 
 	return $data;
+}
+
+/**
+ * Extract inner blocks from attributes.
+ *
+ * @param array $block The block configuration.
+ * @return array
+ */
+function ssr_inner_blocks_shim( array $block ) : array {
+	if ( $block['blockName'] !== 'altis/shim' ) {
+		return $block;
+	}
+
+	$block['innerBlocks'] = parse_blocks( $block['attrs']['content'] ?? [] );
+	$block['innerContent'] = array_fill( 0, count( $block['innerBlocks'] ), null );
+
+	return $block;
+}
+
+/**
+ * Registers an inner blocks SSR shim.
+ *
+ * @return void
+ */
+function register_ssr_inner_blocks_shim() {
+	register_block_type( 'altis/shim', [
+		'attributes' => [
+			'clientId' => [
+				'type' => 'string',
+			],
+			'content' => [
+				'type' => 'string',
+			],
+		],
+		'render_callback' => function ( array $attributes, ?string $inner_content ) : ?string {
+			$client_id = $attributes['clientId'];
+			return sprintf(
+				'<div style="display:none;position:absolute;" data-block-validation="%s">%s</div>',
+				$client_id,
+				$inner_content
+			);
+		},
+	] );
 }

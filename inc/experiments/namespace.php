@@ -41,18 +41,18 @@ function setup() {
 	}
 
 	// Register default conversion goals.
-	register_goal(
-		'click_any_link',
-		__( 'Click on any link', 'altis-experiments' ),
-		'click',
-		'a'
-	);
-	register_goal(
-		'submit_form',
-		__( 'Submit a form', 'altis-experiments' ),
-		'submit',
-		'form'
-	);
+	register_goal( 'click_any_link', [
+		'label' => __( 'Click on any link', 'altis-analytics' ),
+		'event' => 'click',
+		'selector' => 'a',
+		'validation_message' => __( 'You need to add at least one link to the content to track this goal.', 'altis-anlaytics' ),
+	] );
+	register_goal( 'submit_form', [
+		'label' => __( 'Submit a form', 'altis-analytics' ),
+		'event' => 'submit',
+		'selector' => 'form',
+		'validation_message' => __( 'You need to add a form to the content to track this goal.', 'altis-anlaytics' ),
+	] );
 }
 
 /**
@@ -92,26 +92,43 @@ function enqueue_scripts() {
  * Registers a new conversion goal for front end tracking.
  *
  * @param string $name A reference name for the goal.
- * @param string $label A human readable label for the goal.
- * @param string $event The JS event to trigger on.
- * @param string|null $selector An optional CSS selector to scope the event to.
- * @param string|null $closest An optional CSS selector for finding the closest matching parent to bind the event to.
+ * @param array $args An array of configuration options.
+ *   - string $args['label'] A human readable label for the goal. Defaults to $name.
+ *   - string $args['event'] The JS event to trigger on. Defaults to $name.
+ *   - string $args['selector'] An optional CSS selector to scope the event to.
+ *   - string $args['closest'] An optional CSS selector for finding the closest matching parent to bind the event to.
+ *   - string $args['validation_message'] An optional message to show if the variant is missing the selector.
  * @return void
  */
-function register_goal( string $name, string $label, string $event, ?string $selector = null, ?string $closest = null ) : void {
+function register_goal( string $name, array $args = [] ) : void {
 	global $altis_analytics_goals;
 
 	if ( ! is_array( $altis_analytics_goals ) ) {
 		$altis_analytics_goals = [];
 	}
 
+	$args = wp_parse_args( $args, [
+		'event' => strtolower( $name ),
+		'label' => ucwords( $name ),
+		'selector' => null,
+		'closest' => null,
+	] );
+
 	$altis_analytics_goals[ $name ] = [
 		'name' => $name,
-		'event' => sanitize_key( $event ),
-		'label' => $label,
-		'selector' => $selector,
-		'closest' => $closest,
+		'event' => sanitize_key( $args['event'] ),
+		'label' => $args['label'],
+		'selector' => $args['selector'],
+		'closest' => $args['closest'],
 	];
+
+	// Remove key properties from args before appending general args.
+	unset( $args['event'] );
+	unset( $args['label'] );
+	unset( $args['selector'] );
+	unset( $args['closest'] );
+
+	$altis_analytics_goals[ $name ]['args'] = $args;
 }
 
 /**

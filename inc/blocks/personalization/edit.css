@@ -119,3 +119,19 @@
 .wp-block[data-type="altis/personalization-variant"] .wp-block {
 	max-width: none;
 }
+
+.altis-variant-validation .components-notice {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.altis-variant-validation .components-notice.is-dismissible {
+	padding-right: 12px;
+}
+
+.altis-variant-validation .components-notice-list .components-notice__content {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-right: 4px;
+	line-height: 1.5;
+}
