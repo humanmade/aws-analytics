@@ -258,7 +258,7 @@ function get_aggregate_data( array $buckets ) : array {
 		$block_id = $block['key'];
 		$views = $block['views']['uniques']['value'] ?? 0;
 		$conversions = $block['conversions']['uniques']['value'] ?? 0;
-		$conversion_rate = $block['conversionRate']['value'] ?? 0;
+		$conversion_rate = $block['conversion_rate']['value'] ?? 0;
 
 		$data[ $block_id ]['views'] = $views;
 		$data[ $block_id ]['conversions'] = $conversions;
@@ -372,7 +372,7 @@ function get_views_list( int $days = 7 ) : array {
 							],
 						],
 					],
-					'conversionRate' => [
+					'conversion_rate' => [
 						'bucket_script' => [
 							'buckets_path' => [
 								'views' => 'views>uniques',
