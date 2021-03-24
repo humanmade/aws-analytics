@@ -245,24 +245,6 @@ function get_days_view() : int {
 }
 
 /**
- * Calculate average conversion rate.
- *
- * @param int $conversions The number of conversions for a block.
- * @param int $views The number of views for a block.
- *
- * @return float The conversion rate (calculated by conversions / views).
- */
-function calculate_average_conversion_rate( int $conversions = 0, int $views = 0 ) : float {
-
-	// Avoid division by zero.
-	if ( $views === 0 ) {
-		return 0;
-	}
-
-	return $conversions / $views;
-}
-
-/**
  * Aggregate and map the data from the ES query.
  *
  * @param array $buckets The ElasticSearch query data.
