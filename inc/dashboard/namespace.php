@@ -85,8 +85,15 @@ function remove_post_row_actions( $actions, $post ) : array {
 	unset( $actions['trash'] );
 	unset( $actions['inline hide-if-no-js'] );
 
-	// Change the default edit quick action to link to the originating post the block was created on. This should link to a reusable block if it was created as one.
-	$actions['edit'] = sprintf( wp_kses_post( __( '<a href="%1$s">Edit original post</a> (%2$s)', 'altis-analytics' ) ), get_edit_post_link(), get_the_title( $post->post_parent ) );
+	// Change the default edit quick action to link to the originating post the block was created on.
+	// This will link to a reusable block if it was saved to one.
+	$actions['edit'] = sprintf(
+		// Translators: 1: The edit post link, 2: The linked text, 3: The block title.
+		'<a href="%1$s">%2$s</a> (%3$s)',
+		get_edit_post_link(),
+		__( 'Edit original post', 'altis-analytics' ),
+		get_the_title( $post->post_parent )
+	);
 
 	return $actions;
 }
