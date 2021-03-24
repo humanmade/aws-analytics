@@ -222,7 +222,7 @@ function render_views() {
 function render_average_conversion_rate() {
 	global $post;
 	$list = get_views_list( get_days_view() );
-	$rate = round( $list[ $post->post_name ]['avg_conversion_rate'] * 100 );
+	$rate = round( ( $list[ $post->post_name ]['avg_conversion_rate'] ?? 0 ) * 100 );
 	?>
 	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
