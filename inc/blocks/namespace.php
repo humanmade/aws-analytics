@@ -205,8 +205,8 @@ function register_post_type() {
 					'default' => 'DESC',
 				],
 				'conversion' => [
-					'title' => __( 'Avg. Conversion', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_average_conversion_rate',
+					'title' => __( 'Conversion Rate', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_conversion_rate',
 				],
 				'author' => [
 					'title' => __( 'Author', 'altis-analytics' ),

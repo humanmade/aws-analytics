@@ -128,7 +128,7 @@ function add_microcopy_to_column_titles( array $xb_columns ) : array {
 	$microcopy = [
 		'block' => __( 'List of XBs with associated analytics data from the selected date range', 'altis-analytics' ),
 		'views' => __( 'Total unique views of the XBs during the selected date range', 'altis-analytics' ),
-		'conversion' => __( 'Average conversion rate is calculated as the total unique conversions divided by total unique views of the XB during the selected date range,  expressed as a percentage.', 'altis-analytics' ),
+		'conversion' => __( 'Conversion rate is calculated as the total unique conversions divided by total unique views of the XB during the selected date range,  expressed as a percentage.', 'altis-analytics' ),
 		'author' => __( 'Block author', 'altis-analytics' ),
 		'last_modified' => __( 'Block last modified date', 'altis-analytics' ),
 	];
@@ -224,14 +224,14 @@ function render_views() {
 }
 
 /**
- * Render the average conversion rate column data.
+ * Render the conversion rate column data.
  */
-function render_average_conversion_rate() {
+function render_conversion_rate() {
 	global $post;
 	$list = get_views_list( get_days_view() );
-	$rate = round( ( $list[ $post->post_name ]['avg_conversion_rate'] ?? 0 ) * 100 );
+	$rate = round( ( $list[ $post->post_name ]['conversion_rate'] ?? 0 ) * 100 );
 	?>
-	<div class="post--avg-conversion-rate"><?php echo absint( $rate ); ?>%
+	<div class="post--conversion-rate"><?php echo absint( $rate ); ?>%
 	<?php
 }
 
@@ -262,7 +262,7 @@ function get_aggregate_data( array $buckets ) : array {
 
 		$data[ $block_id ]['views'] = $views;
 		$data[ $block_id ]['conversions'] = $conversions;
-		$data[ $block_id ]['avg_conversion_rate'] = $conversion_rate;
+		$data[ $block_id ]['conversion_rate'] = $conversion_rate;
 	}
 
 	return $data;
@@ -273,7 +273,7 @@ function get_aggregate_data( array $buckets ) : array {
  *
  * @param array $list The array of analytics data by block id.
  * @param string $order The order to sort by. Accepted values are 'asc' or 'desc'.
- * @param string $sort The parameter to sort by. Accepted values are 'views' and 'avg_conversion_rate'. Default is 'views'.
+ * @param string $sort The parameter to sort by. Accepted values are 'views' and 'conversion_rate'. Default is 'views'.
  *
  * @return array The sorted array.
  */
@@ -431,7 +431,7 @@ function modify_views_list_query( $query ) {
 	$list = get_views_list( $days );
 
 	// Sort by conversion or views.
-	$list = ( $orderby === 'conversion' ) ? sort_by( $list, $order, 'avg_conversion_rate' ) : sort_by( $list, $order );
+	$list = ( $orderby === 'conversion' ) ? sort_by( $list, $order, 'conversion_rate' ) : sort_by( $list, $order );
 
 	// Pluck the client ids out of the list.
 	$client_ids = array_keys( $list );
