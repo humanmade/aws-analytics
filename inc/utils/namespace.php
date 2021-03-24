@@ -467,7 +467,6 @@ function find_best_accept_header_match( array $parsed, array $available ) : ?str
 	return array_keys( $scores )[0];
 }
 
-
 /**
  * Sort data by conversion rate.
  *
