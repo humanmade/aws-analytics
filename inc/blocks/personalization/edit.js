@@ -15,6 +15,7 @@ const {
 } = wp.blockEditor;
 const {
 	Button,
+	Icon,
 	PanelBody,
 	TextControl,
 	Toolbar,
@@ -52,6 +53,7 @@ const Edit = ( {
 	onAddVariant,
 	onCopyVariant,
 	onRemoveVariant,
+	onSelect,
 	setAttributes,
 	variants,
 } ) => {
@@ -80,6 +82,27 @@ const Edit = ( {
 	// Track currently selected variant.
 	const defaultVariantClientId = ( variants.length > 0 && variants[ 0 ].clientId ) || null;
 	const [ activeVariant, setVariant ] = useState( defaultVariantClientId );
+
+	// Allow focusing and selecting XB and variant externally.
+	useEffect( () => {
+		const listener = window.addEventListener( 'altis-xb-set-variant', event => {
+			if ( event.detail.clientId !== attributes.clientId ) {
+				return;
+			}
+			// Select this XB.
+			onSelect();
+			// Select the variant.
+			if ( Object.prototype.hasOwnProperty.call( event.detail, 'variantIndex' ) && variants[ event.detail.variantIndex ] ) {
+				setVariant( variants[ event.detail.variantIndex ].clientId );
+			}
+			if ( Object.prototype.hasOwnProperty.call( event.detail, 'variantClientId' ) ) {
+				setVariant( event.detail.variantClientId );
+			}
+		} );
+		return () => {
+			window.removeEventListener( 'altis-xb-set-variant', listener );
+		};
+	}, [ attributes.clientId, onSelect, setVariant, variants ] );
 
 	// Track previous client ID for undo button.
 	const [ prevClientId, setPrevClientId ] = useState();
@@ -168,6 +191,7 @@ const Edit = ( {
 						className={ `variant-settings-${ variant.clientId }` }
 						placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) }
 						variant={ variant }
+						onMouseDown={ () => setVariant( variant.clientId ) }
 					/>
 				) ) }
 				<PanelBody title={ __( 'Reset Analytics Data', 'altis-experiments' ) }>
@@ -210,6 +234,7 @@ const Edit = ( {
 			<div className={ className }>
 				<div className="wp-core-ui altis-experience-block-header">
 					<span className="altis-experience-block-header__title">
+						<Icon icon="groups" />
 						{ ! attributes.title && __( 'Personalized Content', 'altis-experiments' ) }
 						{ attributes.title }
 						{ ' ・ ' }

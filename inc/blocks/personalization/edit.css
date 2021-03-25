@@ -31,6 +31,10 @@
 	font-weight: 600;
 }
 
+.altis-experience-block-header__title .dashicon {
+	margin-right: 8px;
+}
+
 .altis-experience-block-header__toolbar {
 	flex: 0;
 	border: 0;
@@ -118,4 +122,56 @@
 
 .wp-block[data-type="altis/personalization-variant"] .wp-block {
 	max-width: none;
+}
+
+.altis-variant-validation .components-notice {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.altis-variant-validation .components-notice.is-dismissible {
+	padding-right: 12px;
+}
+
+.altis-variant-validation .components-notice-list .components-notice__content {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-right: 4px;
+	line-height: 1.5;
+}
+
+.altis-variant-validation__loading {
+	/* stylelint-disable-next-line declaration-property-unit-blacklist */
+	font-size: 14px;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
+	margin: 8px 0;
+}
+
+.altis-variant-validation__loading .components-spinner {
+	margin-left: 0;
+	margin-top: 0;
+	margin-right: 6px;
+	vertical-align: text-bottom;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions {
+	flex-direction: column;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-checklist-message {
+	display: flex;
+	line-height: 1.5;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-selector {
+	margin: 5px 0;
 }

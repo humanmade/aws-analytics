@@ -10,6 +10,8 @@ namespace Altis\Analytics\Blocks;
 use Altis\Analytics;
 use Altis\Analytics\Experiments;
 use Altis\Analytics\Utils;
+use Altis\Workflow\PublicationChecklist;
+use Altis\Workflow\PublicationChecklist\Status;
 use WP_Post;
 use WP_Query;
 
@@ -46,6 +48,13 @@ function setup() {
 	// Register an admin page for the block anlaytics view.
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_block_admin_page' );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
+
+	// Shim server side render block to allow passing inner blocks as attribute.
+	add_filter( 'render_block_data', __NAMESPACE__ . '\\ssr_inner_blocks_shim' );
+	register_ssr_inner_blocks_shim();
+
+	// Publication checklist integration.
+	add_action( 'altis.publication-checklist.register_prepublish_checks', __NAMESPACE__ . '\\check_conversion_goals' );
 }
 
 /**
@@ -691,4 +700,100 @@ function get_views( string $block_id, $args = [] ) {
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 
 	return $data;
+}
+
+/**
+ * Extract inner blocks from attributes.
+ *
+ * @param array $block The block configuration.
+ * @return array
+ */
+function ssr_inner_blocks_shim( array $block ) : array {
+	if ( $block['blockName'] !== 'altis/shim' ) {
+		return $block;
+	}
+
+	// Populate inner blocks by parsing content.
+	$block['innerBlocks'] = parse_blocks( $block['attrs']['content'] ?? [] );
+
+	// Populate inner content with an array of null placeholders so inner blocks are processed.
+	$block['innerContent'] = array_fill( 0, count( $block['innerBlocks'] ), null );
+
+	return $block;
+}
+
+/**
+ * Registers an inner blocks SSR shim.
+ *
+ * @return void
+ */
+function register_ssr_inner_blocks_shim() {
+	register_block_type( 'altis/shim', [
+		'attributes' => [
+			'content' => [
+				'type' => 'string',
+			],
+		],
+		'render_callback' => function ( array $attributes, ?string $inner_content ) : string {
+			return sprintf( '<div>%s</div>', $inner_content );
+		},
+	] );
+}
+
+/**
+ * Register conversion goal validation check.
+ *
+ * @return void
+ */
+function check_conversion_goals() {
+	$post_types = get_post_types_by_support( 'editor' );
+	$post_types = array_filter( $post_types, function ( $post_type ) : bool {
+		$post_type_object = get_post_type_object( $post_type );
+		return (bool) apply_filters( 'use_block_editor_for_post_type', $post_type_object->show_in_rest, $post_type );
+	} );
+
+	PublicationChecklist\register_prepublish_check( 'xbs-valid-conversions', [
+		'type' => $post_types,
+		'run_check' => function ( array $post ) : Status {
+			if ( ! has_blocks( $post['ID'] ) ) {
+				return new Status( Status::INFO, '' );
+			}
+
+			$xbs = find_xbs( parse_blocks( $post['post_content'] ) );
+
+			// No XBs to validate.
+			if ( empty( $xbs ) ) {
+				return new Status( Status::INFO, '' );
+			}
+
+			// Track invalid XB variants.
+			$invalid = [];
+
+			// Collect invalid XB client IDs and variant indexes.
+			foreach ( $xbs as $xb ) {
+				foreach ( $xb['innerBlocks'] as $index => $variant ) {
+					if ( ! isset( $variant['attrs']['isValid'] ) ) {
+						continue;
+					}
+					if ( $variant['attrs']['isValid'] ) {
+						continue;
+					}
+					if ( ! isset( $invalid[ $xb['attrs']['clientId'] ] ) ) {
+						$invalid[ $xb['attrs']['clientId'] ] = [];
+					}
+					$invalid[ $xb['attrs']['clientId'] ][] = $index;
+				}
+			}
+
+			if ( empty( $invalid ) ) {
+				return new Status( Status::COMPLETE, __( 'Experience Block conversion goals are valid', 'altis-analytics' ) );
+			}
+
+			// Check if this will block publishing.
+			// In some situations the validation check could be wrong so we shouldn't prevent publication.
+			$status = PublicationChecklist\should_block_publish() ? Status::INFO : Status::INCOMPLETE;
+
+			return new Status( $status, __( 'Experience Blocks with invalid conversion goals found', 'altis-analytics' ), $invalid );
+		},
+	] );
 }

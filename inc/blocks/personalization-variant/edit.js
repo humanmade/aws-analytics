@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 
+import VariantValidation from '../personalization/components/variant-validation';
+
 const { InnerBlocks } = wp.blockEditor;
 const { compose } = wp.compose;
 const { withSelect, withDispatch } = wp.data;
@@ -8,6 +10,8 @@ const { withSelect, withDispatch } = wp.data;
  * Personalized content variant edit mode component.
  *
  * @param {React.ComponentProps} props The component props.
+ * @param {object} props.attributes The block attributes.
+ * @param {Array} props.blocks The inner blocks.
  * @param {string} props.clientId The block client ID.
  * @param {boolean} props.hasChildBlocks True if the block has children.
  * @param {boolean} props.isSelected True if the block currently selected.
@@ -15,6 +19,8 @@ const { withSelect, withDispatch } = wp.data;
  * @returns {React.ReactNode} The variant edit mode component.
  */
 const Edit = ( {
+	attributes,
+	blocks,
 	clientId,
 	hasChildBlocks,
 	isSelected,
@@ -42,6 +48,11 @@ const Edit = ( {
 			data-block={ clientId }
 			data-type="altis/personalization-variant"
 		>
+			<VariantValidation
+				blocks={ blocks }
+				clientId={ clientId }
+				goal={ attributes.goal }
+			/>
 			<InnerBlocks
 				{ ...props }
 			/>
@@ -52,9 +63,10 @@ const Edit = ( {
 export default compose(
 	withSelect( ( select, ownProps ) => {
 		const { clientId } = ownProps;
-		const { getBlockOrder } = select( 'core/block-editor' );
+		const { getBlockOrder, getBlocks } = select( 'core/block-editor' );
 
 		return {
+			blocks: getBlocks( clientId ),
 			hasChildBlocks: getBlockOrder( clientId ).length > 0,
 		};
 	} ),
