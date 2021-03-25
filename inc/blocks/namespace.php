@@ -187,9 +187,6 @@ function register_post_type() {
 			'rest_base' => 'xbs',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
 			'hierarchical' => true,
-			'capabilities' => [
-				'create_posts' => 'do_not_allow',
-			],
 			'labels' => [
 				'name' => __( 'Experience Insights', 'altis-analytics' ),
 				'all_items' => __( 'Insights', 'altis-analytics' ),
@@ -222,6 +219,10 @@ function register_post_type() {
 			'plural' => __( 'Experience Blocks', 'altis-analytics' ),
 		]
 	);
+
+	// Disallow post creation.
+	$post_type_object = get_post_type_object( POST_TYPE );
+	$post_type_object->cap->create_posts = 'do_not_allow';
 }
 
 /**
