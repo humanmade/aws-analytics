@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 const { Button } = wp.components;
 const { Fragment } = wp.element;

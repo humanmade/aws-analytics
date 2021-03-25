@@ -141,6 +141,7 @@
 }
 
 .altis-variant-validation__loading {
+	/* stylelint-disable-next-line declaration-property-unit-blacklist */
 	font-size: 14px;
 	font-family:
 		-apple-system,

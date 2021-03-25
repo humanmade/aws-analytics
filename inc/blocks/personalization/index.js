@@ -1,8 +1,7 @@
 import blockData from './block.json';
+import Status from './components/status';
 import edit from './edit';
 import save from './save';
-
-import Status from './components/status';
 
 const { registerBlockType } = wp.blocks;
 const { addFilter } = wp.hooks;
