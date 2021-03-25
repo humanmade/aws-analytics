@@ -477,6 +477,8 @@ function find_best_accept_header_match( array $parsed, array $available ) : ?str
  * @return array The sorted array.
  */
 function sort_by( array $list, string $orderby, string $order = 'desc' ) : array {
+	$order = strtolower( $order );
+
 	// If an invalid value was passed to $order, default to 'desc'.
 	if ( ! in_array( $order, [ 'asc', 'desc' ], true ) ) {
 		$order = 'desc';

@@ -9,6 +9,7 @@ namespace Altis\Analytics\Dashboard;
 
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
+use WP_Query;
 
 /**
  * Set up the Dashboard Analytics page.
@@ -231,7 +232,7 @@ function render_conversion_rate() {
 	$list = get_views_list( get_days_view() );
 	$rate = round( ( $list[ $post->post_name ]['conversion_rate'] ?? 0 ) * 100 );
 	?>
-	<div class="post--conversion-rate"><?php echo absint( $rate ); ?>%
+	<div class="post--conversion-rate"><?php echo absint( $rate ); ?>%</div>
 	<?php
 }
 
@@ -387,19 +388,18 @@ function get_views_list( int $days = 7 ) : array {
 /**
  * Alter the default WP_Query to change the sort order.
  *
- * @param \WP_Query $query The WP_Query object.
- *
- * @return \WP_Query The updated WP_Query object.
+ * @param WP_Query $query The WP_Query object.
+ * @return void
  */
-function modify_views_list_query( $query ) {
+function modify_views_list_query( WP_Query $query ) {
 	// Bail if we aren't looking at the XB Insights page.
 	if ( $query->get( 'post_type' ) !== Blocks\POST_TYPE ) {
-		return $query;
+		return;
 	}
 
 	// Bail for queries that aren't ordered by views or conversions (so we don't need to run an ES query).
-	if ( ! in_array( $query->get( 'orderby' ), [ 'views', 'conversions' ], true ) ) {
-		return $query;
+	if ( ! in_array( $query->get( 'orderby' ), [ 'views', 'conversion' ], true ) ) {
+		return;
 	}
 
 	$order = $query->get( 'order' ) ?: 'desc';
@@ -408,7 +408,10 @@ function modify_views_list_query( $query ) {
 	$list = get_views_list( $days );
 
 	// Sort by conversion or views.
-	$list = ( $orderby === 'conversion' ) ? sort_by( $list, $order, 'conversion_rate' ) : Utils\sort_by( $list, $orderby, $order );
+	if ( $orderby === 'conversion' ) {
+		$orderby .= '_rate';
+	}
+	$list = Utils\sort_by( $list, $orderby, $order );
 
 	// Pluck the client ids out of the list.
 	$client_ids = array_keys( $list );
@@ -416,6 +419,4 @@ function modify_views_list_query( $query ) {
 	// Order by client ID (stored as post slug).
 	$query->set( 'post_name__in', $client_ids );
 	$query->set( 'orderby', 'post_name__in' );
-
-	return $query;
 }
