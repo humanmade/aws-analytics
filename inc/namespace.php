@@ -32,6 +32,9 @@ function setup() {
 	// Enable Experience Blocks.
 	Blocks\setup();
 
+	// Set up the Analytics Dashboard.
+	Dashboard\setup();
+
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
 	// Load analytics scripts super early.

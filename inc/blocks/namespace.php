@@ -33,6 +33,9 @@ function setup() {
 	// Register experience block category.
 	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 100 );
 
+	// Change the default edit post link for XB posts.
+	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
+
 	// Register API endpoints for getting XB analytics data.
 	REST_API\setup();
 
@@ -170,7 +173,7 @@ function register_post_type() {
 		POST_TYPE,
 		[
 			'public' => false,
-			'show_ui' => false,
+			'show_ui' => true,
 			'dashboard_glance' => false,
 			'block_editor' => true,
 			'supports' => [
@@ -180,15 +183,70 @@ function register_post_type() {
 			'menu_icon' => 'dashicons-networking',
 			'menu_position' => 152,
 			'show_in_rest' => true,
+			'show_in_menu' => 'index.php',
 			'rest_base' => 'xbs',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
 			'hierarchical' => true,
+			'capabilities' => [
+				'create_posts' => 'do_not_allow',
+			],
+			'labels' => [
+				'name' => __( 'Experience Insights', 'altis-analytics' ),
+				'all_items' => __( 'Insights', 'altis-analytics' ),
+			],
+			'admin_cols' => [
+				'block' => [
+					'title' => __( 'Block', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
+				],
+				'views' => [
+					'title' => __( 'Views', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_views',
+					'default' => 'DESC',
+				],
+				'conversion' => [
+					'title' => __( 'Conversion Rate', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_conversion_rate',
+				],
+				'author' => [
+					'title' => __( 'Author', 'altis-analytics' ),
+				],
+				'last_modified' => [
+					'title' => __( 'Last Modified', 'altis-analytics' ),
+					'post_field' => 'post_modified',
+				],
+			],
 		],
 		[
 			'singular' => __( 'Experience Block', 'altis-analytics' ),
 			'plural' => __( 'Experience Blocks', 'altis-analytics' ),
 		]
 	);
+}
+
+/**
+ * Update the edit post link for XBs to be the parent post.
+ *
+ * @param string $link The original edit post link.
+ * @param int $post_id The post ID.
+ *
+ * @return string The updated edit post link.
+ */
+function update_xb_edit_post_link( string $link, int $post_id ) : string {
+	if ( get_post_type( $post_id ) !== POST_TYPE ) {
+		return $link;
+	}
+
+	$parent_id = wp_get_post_parent_id( $post_id );
+
+	// Bail and return an empty string if there was no parent.
+	if ( ! $parent_id ) {
+		return '';
+	}
+
+	$updated_link = add_query_arg( [ 'post' => $parent_id ], $link );
+
+	return $updated_link;
 }
 
 /**
