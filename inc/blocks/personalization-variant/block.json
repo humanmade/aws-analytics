@@ -20,6 +20,10 @@
             "goal": {
                 "type": "string",
                 "default": ""
+            },
+            "isValid": {
+                "type": "boolean",
+                "default": true
             }
         }
     }

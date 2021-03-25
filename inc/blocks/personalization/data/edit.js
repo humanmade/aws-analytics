@@ -117,6 +117,14 @@ const withData = Component => compose(
 				// Update the inner blocks.
 				replaceInnerBlocks( clientId, innerBlocks );
 			},
+			/**
+			 * Select & focus the block.
+			 */
+			onSelect() {
+				const { clientId } = ownProps;
+				const { selectBlock } = dispatch( 'core/block-editor' );
+				selectBlock( clientId );
+			},
 		};
 	} )
 )( Component );

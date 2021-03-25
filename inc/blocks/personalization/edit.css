@@ -31,6 +31,10 @@
 	font-weight: 600;
 }
 
+.altis-experience-block-header__title .dashicon {
+	margin-right: 8px;
+}
+
 .altis-experience-block-header__toolbar {
 	flex: 0;
 	border: 0;
@@ -156,4 +160,17 @@
 	margin-top: 0;
 	margin-right: 6px;
 	vertical-align: text-bottom;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions {
+	flex-direction: column;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-checklist-message {
+	display: flex;
+	line-height: 1.5;
+}
+
+.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-selector {
+	margin: 5px 0;
 }

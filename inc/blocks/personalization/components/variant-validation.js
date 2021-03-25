@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 const { serverSideRender: ServerSideRender } = wp;
 const { serialize } = wp.blocks;
 const { Disabled, Spinner, withNotices } = wp.components;
+const { useDispatch } = wp.data;
 const { __, sprintf } = wp.i18n;
 
 const watcher = new MutationObserver( mutations => {
@@ -12,12 +13,9 @@ const watcher = new MutationObserver( mutations => {
 	}
 } );
 
-const MemoisedSSR = React.memo( ( { clientId, content } ) => (
+const MemoisedSSR = React.memo( ( { content } ) => (
 	<ServerSideRender
-		attributes={ {
-			clientId,
-			content,
-		} }
+		attributes={ { content } }
 		block="altis/shim"
 		httpMethod="POST"
 		LoadingResponsePlaceholder={ () => (
@@ -49,6 +47,7 @@ const VariantValidation = ( {
 	noticeUI,
 } ) => {
 	const [ container, setContainer ] = useState( null );
+	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
 	// Use a callback ref for the useEffect hook.
 	const containerRef = useCallback( node => {
@@ -64,27 +63,23 @@ const VariantValidation = ( {
 
 		if ( ! registeredGoal || ! registeredGoal.selector ) {
 			noticeOperations.removeAllNotices();
+			updateBlockAttributes( clientId, { isValid: true } );
 			return;
 		}
-
-		// Store a ref pointer.
-		const ssrContainer = container;
 
 		/**
 		 * Check if our current content is valid.
 		 */
 		const checkValidity = () => {
-			const el = ssrContainer.querySelector( `[data-block-validation="${ clientId }"]` );
-			if ( el ) {
-				// clearInterval( debounce.current );
-				if ( el.querySelector( registeredGoal.selector ) ) {
-					noticeOperations.removeAllNotices();
-				} else {
-					noticeOperations.createErrorNotice(
-						( registeredGoal.args && registeredGoal.args.validation_message ) ||
-						sprintf( __( 'This variant does not meet the requirements for the "%s" conversion goal yet.', 'altis-analytics' ), registeredGoal.label )
-					);
-				}
+			noticeOperations.removeAllNotices();
+			if ( container.querySelector( registeredGoal.selector ) ) {
+				updateBlockAttributes( clientId, { isValid: true } );
+			} else {
+				noticeOperations.createErrorNotice(
+					( registeredGoal.args && registeredGoal.args.validation_message ) ||
+					sprintf( __( 'This variant does not meet the requirements for the "%s" conversion goal yet.', 'altis-analytics' ), registeredGoal.label )
+				);
+				updateBlockAttributes( clientId, { isValid: false } );
 			}
 		};
 
@@ -92,14 +87,14 @@ const VariantValidation = ( {
 		checkValidity();
 
 		// Listen for changes.
-		const listener = ssrContainer.addEventListener( 'updated', checkValidity );
-		watcher.observe( ssrContainer, { childList: true } );
+		const listener = container.addEventListener( 'updated', checkValidity );
+		watcher.observe( container, { childList: true } );
 
 		return () => {
 			watcher.disconnect();
-			ssrContainer.removeEventListener( 'update', listener );
+			container.removeEventListener( 'update', listener );
 		};
-	}, [ clientId, container, goal, noticeOperations ] );
+	}, [ clientId, container, goal, noticeOperations, updateBlockAttributes ] );
 
 	if ( ! goal || goal === '' ) {
 		return null;
@@ -108,11 +103,14 @@ const VariantValidation = ( {
 	return (
 		<div className="altis-variant-validation">
 			<Disabled>
-				<div ref={ containerRef }>
-					<MemoisedSSR
-						clientId={ clientId }
-						content={ serialize( blocks ) }
-					/>
+				<div
+					ref={ containerRef }
+					style={ {
+						display: 'none',
+						position: 'absolute',
+					} }
+				>
+					<MemoisedSSR content={ serialize( blocks ) } />
 				</div>
 			</Disabled>
 			{ noticeUI }
