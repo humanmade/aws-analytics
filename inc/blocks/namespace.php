@@ -792,7 +792,7 @@ function check_conversion_goals() {
 			// In some situations the validation check could be wrong so we shouldn't prevent publication.
 			$status = PublicationChecklist\should_block_publish() ? Status::INFO : Status::INCOMPLETE;
 
-			return new Status( $status, __( 'Experience Blocks with invalid conversion goals', 'altis-analytics' ), $invalid );
+			return new Status( $status, __( 'Experience Blocks with invalid conversion goals found', 'altis-analytics' ), $invalid );
 		},
 	] );
 }

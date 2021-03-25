@@ -83,7 +83,7 @@ const VariantValidation = ( {
 			}
 		};
 
-		// Do an initial check incase the SSR component exists with no changes.
+		// Do an initial check in case the SSR component exists with no changes.
 		checkValidity();
 
 		// Listen for changes.
