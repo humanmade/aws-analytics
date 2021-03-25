@@ -31,7 +31,7 @@ function setup() {
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
 
 	// Register experience block category.
-	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 9 );
+	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 100 );
 
 	// Change the default edit post link for XB posts.
 	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
@@ -256,10 +256,10 @@ function update_xb_edit_post_link( string $link, int $post_id ) : string {
  * @return array The modified block categories array.
  */
 function add_block_category( array $categories ) : array {
-	$categories[] = [
+	array_unshift( $categories, [
 		'slug' => 'altis-experience-blocks',
 		'title' => __( 'Experience Blocks', 'altis-experiments' ),
-	];
+	] );
 
 	return $categories;
 }
