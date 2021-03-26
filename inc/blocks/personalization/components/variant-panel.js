@@ -22,9 +22,9 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 
 	if ( variant.attributes.fallback ) {
 		return (
-			<PanelBody title={ __( 'Fallback', 'altis-experiments' ) }>
+			<PanelBody title={ __( 'Fallback', 'altis-analytics' ) }>
 				<p className="description">
-					{ __( 'This variant will be shown as a fallback if no audiences are matched.', 'altis-experiments' ) }
+					{ __( 'This variant will be shown as a fallback if no audiences are matched.', 'altis-analytics' ) }
 					{ ' ' }
 					{ __( 'Add fallback content to compare its performance against personalized content.', 'altis-analytics' ) }
 				</p>
@@ -45,7 +45,7 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 			/>
 			{ ! variant.attributes.audience && (
 				<p className="description">
-					{ __( 'You must select an audience for this variant.', 'altis-experiments' ) }
+					{ __( 'You must select an audience for this variant.', 'altis-analytics' ) }
 				</p>
 			) }
 			<GoalPicker

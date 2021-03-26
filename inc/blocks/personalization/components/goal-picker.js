@@ -22,7 +22,7 @@ const GoalPicker = ( { goal, onChange } ) => {
 
 	const options = [
 		{
-			label: __( 'Impressions', 'altis-experiments' ),
+			label: __( 'Impressions', 'altis-analytics' ),
 			value: '',
 		},
 		...goals.map( ( [ name, data ] ) => ( {
@@ -33,7 +33,7 @@ const GoalPicker = ( { goal, onChange } ) => {
 
 	return (
 		<SelectControl
-			label={ __( 'Choose a conversion goal', 'altis-experiments' ) }
+			label={ __( 'Choose a conversion goal', 'altis-analytics' ) }
 			options={ options }
 			value={ goal }
 			onChange={ onChange }

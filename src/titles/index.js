@@ -6,8 +6,8 @@ const { createElement } = wp.element;
 const { dispatch } = wp.data;
 const { __ } = wp.i18n;
 
-registerPlugin( 'altis-experiments', {
-	title: __( 'Experiments', 'altis-experiments' ),
+registerPlugin( 'altis-analytics', {
+	title: __( 'Experiments', 'altis-analytics' ),
 	icon: createElement( PluginIcon ),
 	render: Plugin,
 } );

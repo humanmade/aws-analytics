@@ -50,18 +50,18 @@ const Plugin = props => {
 			<PluginSidebarMoreMenuItem
 				target="altis-experiments"
 			>
-				{ __( 'Experiments', 'altis-experiments' ) }
+				{ __( 'Experiments', 'altis-analytics' ) }
 			</PluginSidebarMoreMenuItem>
 			<PluginSidebar
 				name="altis-experiments"
-				title={ __( 'Experiments', 'altis-experiments' ) }
+				title={ __( 'Experiments', 'altis-analytics' ) }
 			>
 				<Panel>
 					<PanelBody
 						className={ classNames }
 						icon={ paused ? 'controls-pause' : 'chart-line' }
 						initialOpen
-						title={ __( 'Post Titles', 'altis-experiments' ) }
+						title={ __( 'Post Titles', 'altis-analytics' ) }
 					>
 						{ ( winner !== null || hasEnded ) && (
 							<Results />

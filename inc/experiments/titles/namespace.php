@@ -111,7 +111,7 @@ function init() {
 	Experiments\register_post_ab_test(
 		'titles',
 		[
-			'label' => __( 'Titles', 'altis-experiments' ),
+			'label' => __( 'Titles', 'altis-analytics' ),
 			'goal' => 'click',
 			'closest' => 'a',
 			// Exclude all events from the target post page.

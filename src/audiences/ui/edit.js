@@ -250,7 +250,7 @@ class Edit extends Component {
 									disabled={ ! isPublished }
 									onClick={ () => onSelect( post ) }
 								>
-									{ __( 'Select', 'altis-experiments' ) }
+									{ __( 'Select', 'altis-analytics' ) }
 								</Button>
 							</Fragment>
 						) }

@@ -21,16 +21,16 @@ const VariantToolbar = props => {
 		<div className="altis-experience-block-header__toolbar">
 			<IconButton
 				icon="migrate"
-				title={ __( 'Copy variant', 'altis-experiments' ) }
+				title={ __( 'Copy variant', 'altis-analytics' ) }
 				onClick={ onCopy }
 			>
-				{ __( 'Copy', 'altis-experiments' ) }
+				{ __( 'Copy', 'altis-analytics' ) }
 			</IconButton>
 			{ ! isFallback && (
 				<IconButton
 					disabled={ ! canRemove }
 					icon="trash"
-					title={ __( 'Remove variant', 'altis-experiments' ) }
+					title={ __( 'Remove variant', 'altis-analytics' ) }
 					onClick={ onRemove }
 				/>
 			) }

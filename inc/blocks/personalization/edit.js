@@ -123,7 +123,7 @@ const Edit = ( {
 	const variantsToolbarControls = [
 		{
 			icon: 'plus',
-			title: __( 'Add a variant', 'altis-experiments' ),
+			title: __( 'Add a variant', 'altis-analytics' ),
 			className: 'altis-add-variant-button',
 			/**
 			 * Adds a new variant.
@@ -158,10 +158,10 @@ const Edit = ( {
 							<Button
 								key={ `variant-select-${ variant.clientId }` }
 								className={ `altis-variant-button components-icon-button has-text ${ activeVariant === variant.clientId && 'is-active' }` }
-								title={ __( 'Select variant', 'altis-experiments' ) }
+								title={ __( 'Select variant', 'altis-analytics' ) }
 								onClick={ () => setVariant( variant.clientId ) }
 							>
-								<VariantTitle placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) } variant={ variant } />
+								<VariantTitle placeholder={ sprintf( __( 'Variant %d', 'altis-analytics' ), index + 1 ) } variant={ variant } />
 							</Button>
 						) ) }
 					</div>
@@ -182,19 +182,19 @@ const Edit = ( {
 						isSecondary
 						onClick={ () => setVariant( onAddVariant() ) }
 					>
-						{ __( 'Add a variant', 'altis-experiments' ) }
+						{ __( 'Add a variant', 'altis-analytics' ) }
 					</Button>
 				</div>
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }
 						className={ `variant-settings-${ variant.clientId }` }
-						placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), index + 1 ) }
+						placeholder={ sprintf( __( 'Variant %d', 'altis-analytics' ), index + 1 ) }
 						variant={ variant }
 						onMouseDown={ () => setVariant( variant.clientId ) }
 					/>
 				) ) }
-				<PanelBody title={ __( 'Reset Analytics Data', 'altis-experiments' ) }>
+				<PanelBody title={ __( 'Reset Analytics Data', 'altis-analytics' ) }>
 					<p><em>{ __( 'Editing an experience block may make the existing analytics data meaningless, for example when changing conversion goals or making significant changes to the content.' ) }</em></p>
 					<p>{ __( 'You can reset the tracking data for this block to ensure it is relevant by clicking the button below.' ) }</p>
 					<Button
@@ -204,7 +204,7 @@ const Edit = ( {
 							setAttributes( { clientId: uuid() } );
 						} }
 					>
-						{ __( 'Reset', 'altis-experiments' ) }
+						{ __( 'Reset', 'altis-analytics' ) }
 					</Button>
 					{ ' ' }
 					{ prevClientId && (
@@ -216,7 +216,7 @@ const Edit = ( {
 								setAttributes( { clientId: prevClientId } );
 							} }
 						>
-							{ __( 'Undo', 'altis-experiments' ) }
+							{ __( 'Undo', 'altis-analytics' ) }
 						</Button>
 					) }
 				</PanelBody>
@@ -235,12 +235,12 @@ const Edit = ( {
 				<div className="wp-core-ui altis-experience-block-header">
 					<span className="altis-experience-block-header__title">
 						<Icon icon="groups" />
-						{ ! attributes.title && __( 'Personalized Content', 'altis-experiments' ) }
+						{ ! attributes.title && __( 'Personalized Content', 'altis-analytics' ) }
 						{ attributes.title }
 						{ ' ・ ' }
 						{ variants.length > 0 && (
 							<VariantTitle
-								placeholder={ sprintf( __( 'Variant %d', 'altis-experiments' ), activeVariantIndex + 1 ) }
+								placeholder={ sprintf( __( 'Variant %d', 'altis-analytics' ), activeVariantIndex + 1 ) }
 								variant={ variants[ activeVariantIndex ] }
 							/>
 						) }

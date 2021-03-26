@@ -74,7 +74,7 @@ const VariantAnalytics = ( { variant } ) => {
 	return (
 		<Views
 			isLoading={ isLoading }
-			label={ sprintf( _n( '%d unique view, %d total', '%d unique views, %d total', audienceData.unique.views, 'altis-experiments' ), audienceData.unique.views, audienceData.views ) }
+			label={ sprintf( _n( '%d unique view, %d total', '%d unique views, %d total', audienceData.unique.views, 'altis-analytics' ), audienceData.unique.views, audienceData.views ) }
 			total={ audienceData.views }
 			uniques={ audienceData.unique.views }
 		/>

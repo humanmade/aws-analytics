@@ -6,8 +6,8 @@ const { registerBlockType } = wp.blocks;
 const { __ } = wp.i18n;
 
 const settings = {
-	title: __( 'Personalized Content Variant', 'altis-experiments' ),
-	description: __( 'Personalized content block items', 'altis-experiments' ),
+	title: __( 'Personalized Content Variant', 'altis-analytics' ),
+	description: __( 'Personalized content block items', 'altis-analytics' ),
 	edit,
 	save,
 	...blockData.settings,
