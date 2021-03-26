@@ -28,7 +28,7 @@ const SelectXB = ( { clientId, indexes, instance } ) => {
 					window.dispatchEvent( event );
 				} }
 			>
-				{ sprintf( __( 'Go to invalid block %s', 'altis-analytics' ), instance.current ) }
+				{ sprintf( __( 'Go to block %d', 'altis-analytics' ), instance ) }
 			</Button>
 		</div>
 	);
