@@ -101,7 +101,7 @@ const dispatchHandler = ( dispatch, props ) => {
 		 * @param {string} message Confirmation message to show when resetting test data.
 		 */
 		resetTest: message => {
-			const confirmation = message || __( 'Are you sure you want to reset the test?', 'altis-experiments' );
+			const confirmation = message || __( 'Are you sure you want to reset the test?', 'altis-analytics' );
 
 			if ( ! window.confirm( confirmation ) ) {
 				return;

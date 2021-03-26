@@ -34,14 +34,14 @@ function init() : void {
 			'permission_callback' => __NAMESPACE__ . '\\check_views_permission',
 			'args' => [
 				'id' => [
-					'description' => __( 'The experience block client ID', 'altis-experiments' ),
+					'description' => __( 'The experience block client ID', 'altis-analytics' ),
 					'required' => true,
 					'type' => 'string',
 					'validate_callback' => __NAMESPACE__ . '\\validate_id',
 					'sanitize_callback' => __NAMESPACE__ . '\\sanitize_id',
 				],
 				'post_id' => [
-					'description' => __( 'An optional post ID to filter by.', 'altis-experiments' ),
+					'description' => __( 'An optional post ID to filter by.', 'altis-analytics' ),
 					'type' => 'number',
 				],
 				'days' => [

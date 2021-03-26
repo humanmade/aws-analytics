@@ -62,7 +62,7 @@ function enqueue_scripts() {
 	global $wp_scripts;
 
 	wp_enqueue_script(
-		'altis-experiments',
+		'altis-analytics',
 		Utils\get_asset_url( 'experiments.js' ),
 		[
 			'altis-analytics',
@@ -71,7 +71,7 @@ function enqueue_scripts() {
 	);
 
 	wp_add_inline_script(
-		'altis-experiments',
+		'altis-analytics',
 		sprintf(
 			'window.Altis = window.Altis || {};' .
 			'window.Altis.Analytics = window.Altis.Analytics || {};' .
@@ -85,7 +85,7 @@ function enqueue_scripts() {
 	);
 
 	// Load async.
-	$wp_scripts->add_data( 'altis-experiments', 'async', true );
+	$wp_scripts->add_data( 'altis-analytics', 'async', true );
 }
 
 /**
@@ -266,27 +266,27 @@ function register_post_ab_tests_rest_fields() {
 										'properties' => [
 											'value' => [
 												'type' => [ 'number', 'string' ],
-												'description' => __( 'Variant value', 'altis-experiments' ),
+												'description' => __( 'Variant value', 'altis-analytics' ),
 											],
 											'size' => [
 												'type' => 'number',
 												'default' => 0,
-												'description' => __( 'Variant sample size', 'altis-experiments' ),
+												'description' => __( 'Variant sample size', 'altis-analytics' ),
 											],
 											'hits' => [
 												'type' => 'number',
 												'default' => 0,
-												'description' => __( 'Variant conversion count', 'altis-experiments' ),
+												'description' => __( 'Variant conversion count', 'altis-analytics' ),
 											],
 											'rate' => [
 												'type' => 'number',
 												'default' => 0,
-												'description' => __( 'Variant conversion rate', 'altis-experiments' ),
+												'description' => __( 'Variant conversion rate', 'altis-analytics' ),
 											],
 											'p' => [
 												'type' => 'number',
 												'default' => 1,
-												'description' => __( 'Variant p-value', 'altis-experiments' ),
+												'description' => __( 'Variant p-value', 'altis-analytics' ),
 											],
 										],
 									],
@@ -394,13 +394,13 @@ function send_post_ab_test_notification( string $test_id, int $post_id ) {
 
 	$subject = sprintf(
 		// translators: %1$s = test name, %2$s = post title.
-		__( 'Your test %1$s on "%2$s" has ended', 'altis-experiments' ),
+		__( 'Your test %1$s on "%2$s" has ended', 'altis-analytics' ),
 		$test['label'],
 		$post->post_title
 	);
 	$message = sprintf(
 		// translators: %s is replaced by an link to edit the post.
-		__( "Click the link below to view the results:\n\n%s", 'altis-experiments' ),
+		__( "Click the link below to view the results:\n\n%s", 'altis-analytics' ),
 		get_edit_post_link( $post_id, 'db' ) . '#experiments-' . $test_id
 	);
 

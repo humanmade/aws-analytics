@@ -28,7 +28,7 @@ const Views = ( {
 			<p className="altis-analytics-views">
 				<Icon icon="visibility" />
 				{ ' ' }
-				{ __( 'Loading...', 'altis-experiments' ) }
+				{ __( 'Loading...', 'altis-analytics' ) }
 			</p>
 		);
 	}
@@ -38,7 +38,7 @@ const Views = ( {
 			<p className="altis-analytics-views">
 				<Icon icon="visibility" />
 				{ ' ' }
-				{ __( 'No views yet', 'altis-experiments' ) }
+				{ __( 'No views yet', 'altis-analytics' ) }
 			</p>
 		);
 	}
@@ -47,12 +47,12 @@ const Views = ( {
 		<div className="altis-analytics-views">
 			<div className="altis-analytics-views__total">
 				<Icon icon="visibility" />
-				{ label || sprintf( _n( '%d unique view, %d total', '%d unique views, %d total', uniques, 'altis-experiments' ), uniques, total ) }
+				{ label || sprintf( _n( '%d unique view, %d total', '%d unique views, %d total', uniques, 'altis-analytics' ), uniques, total ) }
 			</div>
 			{ conversions !== null && (
 				<div className="altis-analytics-views__conversions">
 					<Icon icon="yes" />
-					{ conversionsLabel || sprintf( _n( '%d conversion', '%d conversions', conversions, 'altis-experiments' ), conversions ) }
+					{ conversionsLabel || sprintf( _n( '%d conversion', '%d conversions', conversions, 'altis-analytics' ), conversions ) }
 					{ ' ' }
 					({ ( ( conversions / uniques ) * 100 ).toFixed( 1 ) }%)
 				</div>

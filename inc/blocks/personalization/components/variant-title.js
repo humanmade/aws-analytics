@@ -27,14 +27,14 @@ const VariantTitle = ( { variant, placeholder = null } ) => {
 	}
 
 	if ( variant.attributes.fallback ) {
-		return __( 'Fallback', 'altis-experiments' );
+		return __( 'Fallback', 'altis-analytics' );
 	}
 
 	if ( ! variant.attributes.audience ) {
 		if ( placeholder ) {
 			return placeholder;
 		}
-		return __( 'Select audience', 'altis-experiments' );
+		return __( 'Select audience', 'altis-analytics' );
 	}
 
 	const status = ( audience && audience.status ) || 'draft';
@@ -47,7 +47,7 @@ const VariantTitle = ( { variant, placeholder = null } ) => {
 
 	// Audience has been deleted.
 	if ( status === 'trash' ) {
-		return __( '(deleted)', 'altis-experiments' );
+		return __( '(deleted)', 'altis-analytics' );
 	}
 
 	// Check if audience reponse is a REST API error.
@@ -56,7 +56,7 @@ const VariantTitle = ( { variant, placeholder = null } ) => {
 	}
 
 	if ( isLoading ) {
-		return __( 'Loading...', 'altis-experiments' );
+		return __( 'Loading...', 'altis-analytics' );
 	}
 
 	return '';

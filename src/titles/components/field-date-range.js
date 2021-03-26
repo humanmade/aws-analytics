@@ -40,7 +40,7 @@ const DateRange = props => {
 		<StyledDateRange className="altis-experiments-date-range">
 			<div className="altis-experiments-date-range__field">
 				<div className="altis-experiments-date-range__label">
-					<label>{ __( 'Start date', 'altis-experiments' ) }</label>
+					<label>{ __( 'Start date', 'altis-analytics' ) }</label>
 				</div>
 				<TimePicker
 					currentTime={ startDate.toISOString() }
@@ -52,10 +52,10 @@ const DateRange = props => {
 			</div>
 			<div className="altis-experiments-date-range__field">
 				<div className="altis-experiments-date-range__label">
-					<label>{ __( 'End date', 'altis-experiments' ) }</label>
+					<label>{ __( 'End date', 'altis-analytics' ) }</label>
 				</div>
 				{ showTimeRecommendation && (
-					<Notice>{ __( 'It is recommended to allow at least two weeks to achieve statistically significant results.', 'altis-experiments' ) }</Notice>
+					<Notice>{ __( 'It is recommended to allow at least two weeks to achieve statistically significant results.', 'altis-analytics' ) }</Notice>
 				) }
 				<TimePicker
 					currentTime={ endDate.toISOString() }

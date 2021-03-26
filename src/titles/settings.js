@@ -86,10 +86,10 @@ const Settings = props => {
 		<Fragment>
 			<PanelRow>
 				{ paused && (
-					<Notice>{ __( 'Your test is paused', 'altis-experiments' ) }</Notice>
+					<Notice>{ __( 'Your test is paused', 'altis-analytics' ) }</Notice>
 				) }
 				{ isActive && ! paused && (
-					<Notice>{ __( 'Your test is running', 'altis-experiments' ) }</Notice>
+					<Notice>{ __( 'Your test is running', 'altis-analytics' ) }</Notice>
 				) }
 				{ ! paused && startTime >= Date.now() && (
 					<Notice>
@@ -107,15 +107,15 @@ const Settings = props => {
 								return setPaused( ! paused );
 							}
 
-							if ( paused && window.confirm( __( 'Are you sure? Editing the titles will reset the current test results.', 'altis-experiments' ) ) ) {
+							if ( paused && window.confirm( __( 'Are you sure? Editing the titles will reset the current test results.', 'altis-analytics' ) ) ) {
 								return setPaused( ! paused );
 							}
 
 							setPaused( ! paused );
 						} }
 					>
-						{ paused && __( 'Resume test', 'altis-experiments' ) }
-						{ ! paused && __( 'Pause test', 'altis-experiments' ) }
+						{ paused && __( 'Resume test', 'altis-analytics' ) }
+						{ ! paused && __( 'Pause test', 'altis-analytics' ) }
 					</CenteredButton>
 				) }
 				{ ! started && (
@@ -124,7 +124,7 @@ const Settings = props => {
 						isBusy={ isSaving }
 						onClick={ startTest }
 					>
-						{ __( 'Run test', 'altis-experiments' ) }
+						{ __( 'Run test', 'altis-analytics' ) }
 					</CenteredButton>
 				) }
 				{ started && paused && ! arrayEquals( titles, prevTitles ) && (
@@ -136,13 +136,13 @@ const Settings = props => {
 							isLink
 							onClick={ resetTitles }
 						>
-							{ __( 'Undo changes', 'altis-experiments' ) }
+							{ __( 'Undo changes', 'altis-analytics' ) }
 						</Button>
 					</Fragment>
 				) }
 			</PanelRow>
 			<PanelRow>
-				<p>{ __( 'Add multiple post titles and see which one has a higher conversion rate.', 'altis-experiments' ) }</p>
+				<p>{ __( 'Add multiple post titles and see which one has a higher conversion rate.', 'altis-analytics' ) }</p>
 				<TitleTextField
 					defaultTitle={ title }
 					isEditable={ paused }
@@ -160,7 +160,7 @@ const Settings = props => {
 			</PanelRow>
 			<PanelRow>
 				<DateRangeField
-					description={ __( 'The test will stop automatically when it reaches statistical significance.', 'altis-experiments' ) }
+					description={ __( 'The test will stop automatically when it reaches statistical significance.', 'altis-analytics' ) }
 					endTime={ endTime || Date.now() + ( 30 * 24 * 60 * 60 * 1000 ) }
 					startTime={ startTime || Date.now() }
 					onChangeEnd={ time => updateTest( { end_time: time } ) }
@@ -171,14 +171,14 @@ const Settings = props => {
 				<PanelRow>
 					<DestructivedButton
 						onClick={ () => {
-							if ( window.confirm( __( 'Are you sure you want to cancel the test?', 'altis-experiments' ) ) ) {
+							if ( window.confirm( __( 'Are you sure you want to cancel the test?', 'altis-analytics' ) ) ) {
 								updateTest( {
 									end_time: Date.now(),
 								}, false, true );
 							}
 						} }
 					>
-						{ __( 'Cancel test', 'altis-experiments' ) }
+						{ __( 'Cancel test', 'altis-analytics' ) }
 					</DestructivedButton>
 				</PanelRow>
 			) }

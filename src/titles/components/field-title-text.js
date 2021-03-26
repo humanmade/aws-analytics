@@ -114,11 +114,11 @@ const TitleTextField = props => {
 							key={ index }
 							autoFocus={ allTitles.length - 1 === index }
 							label={ `
-								${ __( 'Title', 'altis-experiments' ) }
+								${ __( 'Title', 'altis-analytics' ) }
 								${ getLetter( index ) }
-								${ index === 0 ? __( '(original)', 'altis-experiments' ) : '' }
+								${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }
 							` }
-							placeholder={ __( 'Enter another title here.', 'altis-experiments' ) }
+							placeholder={ __( 'Enter another title here.', 'altis-analytics' ) }
 							readOnly={ ! isEditable }
 							rows={ 3 }
 							value={ title }
@@ -146,7 +146,7 @@ const TitleTextField = props => {
 									<Icon icon="visibility" />
 									{ variant.size }
 									{ ' ' }
-									<span className="screen-reader-text">{ __( 'views', 'altis-experiments' ) }</span>
+									<span className="screen-reader-text">{ __( 'views', 'altis-analytics' ) }</span>
 								</Views>
 							) }
 							{ ! isEditable && (
@@ -154,7 +154,7 @@ const TitleTextField = props => {
 									href={ `/?p=${ postId }&set_test=test_titles_${ postId }:${ index }` }
 									target="_ab_test_preview"
 								>
-									{ __( 'Preview', 'altis-experiments' ) }
+									{ __( 'Preview', 'altis-analytics' ) }
 									<Icon icon="external" />
 								</Preview>
 							) }
@@ -165,8 +165,8 @@ const TitleTextField = props => {
 			{ isEditable && allTitles.length < 26 && (
 				<TextareaControl
 					autoFocus={ allTitles.length <= 1 }
-					label={ `${ __( 'Title', 'altis-experiments' ) } ${ getLetter( allTitles.length ) }` }
-					placeholder={ __( 'Enter another title here.', 'altis-experiments' ) }
+					label={ `${ __( 'Title', 'altis-analytics' ) } ${ getLetter( allTitles.length ) }` }
+					placeholder={ __( 'Enter another title here.', 'altis-analytics' ) }
 					rows={ 3 }
 					value=""
 					onChange={ value => onChange( editTitles( allTitles, value, allTitles.length ) ) }

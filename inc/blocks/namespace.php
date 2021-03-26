@@ -268,7 +268,7 @@ function update_xb_edit_post_link( string $link, int $post_id ) : string {
 function add_block_category( array $categories ) : array {
 	array_unshift( $categories, [
 		'slug' => 'altis-experience-blocks',
-		'title' => __( 'Experience Blocks', 'altis-experiments' ),
+		'title' => __( 'Experience Blocks', 'altis-analytics' ),
 	] );
 
 	return $categories;

@@ -37,13 +37,13 @@ const BlockAnalytics = ( { clientId } ) => {
 
 	return (
 		<div className="altis-experience-block-analytics">
-			<h4>{ __( 'Block Insights', 'altis-experiments' ) }</h4>
-			<p>{ __( 'Statistics shown are for the last 7 days.', 'altis-experiments' ) }</p>
+			<h4>{ __( 'Block Insights', 'altis-analytics' ) }</h4>
+			<p>{ __( 'Statistics shown are for the last 7 days.', 'altis-analytics' ) }</p>
 			<Views
 				conversions={ uniqueViews }
-				conversionsLabel={ sprintf( __( '%d unique block views, %d total', 'altis-experiments' ), uniqueViews, totalViews ) }
+				conversionsLabel={ sprintf( __( '%d unique block views, %d total', 'altis-analytics' ), uniqueViews, totalViews ) }
 				isLoading={ isLoading }
-				label={ sprintf( __( '%d unique page views, %d total', 'altis-experiments' ), uniqueLoads, totalLoads ) }
+				label={ sprintf( __( '%d unique page views, %d total', 'altis-analytics' ), uniqueLoads, totalLoads ) }
 				total={ totalLoads }
 				uniques={ uniqueLoads }
 			/>

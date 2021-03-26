@@ -8,14 +8,14 @@ const { addFilter } = wp.hooks;
 const { __ } = wp.i18n;
 
 const settings = {
-	title: __( 'Personalized Content', 'altis-experiments' ),
-	description: __( 'Deliver personalized content to different audiences', 'altis-experiments' ),
+	title: __( 'Personalized Content', 'altis-analytics' ),
+	description: __( 'Deliver personalized content to different audiences', 'altis-analytics' ),
 	keywords: [
-		__( 'experience', 'altis-experiments' ),
-		__( 'personalize', 'altis-experiments' ),
-		__( 'conditional', 'altis-experiments' ),
-		__( 'audience', 'altis-experiments' ),
-		__( 'analytics', 'altis-experiments' ),
+		__( 'experience', 'altis-analytics' ),
+		__( 'personalize', 'altis-analytics' ),
+		__( 'conditional', 'altis-analytics' ),
+		__( 'audience', 'altis-analytics' ),
+		__( 'analytics', 'altis-analytics' ),
 	],
 	edit,
 	save,
