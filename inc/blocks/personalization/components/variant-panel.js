@@ -25,6 +25,8 @@ const VariantPanel = ( { variant, placeholder = null } ) => {
 			<PanelBody title={ __( 'Fallback', 'altis-experiments' ) }>
 				<p className="description">
 					{ __( 'This variant will be shown as a fallback if no audiences are matched.', 'altis-experiments' ) }
+					{ ' ' }
+					{ __( 'Add fallback content to compare its performance against personalized content.', 'altis-analytics' ) }
 				</p>
 				<GoalPicker
 					goal={ variant.attributes.goal }
