@@ -701,7 +701,7 @@ const Analytics = {
 
 		// Trigger event recorded event.
 		const recordEvent = new CustomEvent( 'altis.analytics.record', {
-			detail: Event,
+			detail: Event[ EventId ],
 		} );
 		window.dispatchEvent( recordEvent );
 
