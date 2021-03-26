@@ -29,3 +29,6 @@ registerBlockType( blockData.name, settings );
 addFilter( 'altis-publishing-workflow.item.xbs-valid-conversions', 'altis/xbs', () => {
 	return Status;
 } );
+addFilter( 'altis-publishing-workflow.item.xbs-valid-fallback', 'altis/xbs', () => {
+	return Status;
+} );

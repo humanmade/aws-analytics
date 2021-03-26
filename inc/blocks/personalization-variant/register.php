@@ -75,7 +75,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	// for easier and more specific targeting by document.querySelector().
 	if ( $fallback ) {
 		return sprintf(
-			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-goal="%s">%s</template>',
+			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-goal="%1$s">%2$s</template><noscript>%2$s</noscript>',
 			esc_attr( $goal ),
 			$inner_content
 		);

@@ -163,15 +163,15 @@
 	vertical-align: text-bottom;
 }
 
-.altis-publication-checklist__item--xbs-valid-conversions {
+[class*="altis-publication-checklist__item--xbs"] {
 	flex-direction: column;
 }
 
-.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-checklist-message {
+[class*="altis-publication-checklist__item--xbs"] .altis-xb-checklist-message {
 	display: flex;
 	line-height: 1.5;
 }
 
-.altis-publication-checklist__item--xbs-valid-conversions .altis-xb-selector {
+[class*="altis-publication-checklist__item--xbs"] .altis-xb-selector {
 	margin: 5px 0;
 }

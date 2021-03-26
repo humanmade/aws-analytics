@@ -796,4 +796,45 @@ function check_conversion_goals() {
 			return new Status( $status, __( 'Experience Blocks with invalid conversion goals found', 'altis-analytics' ), $invalid );
 		},
 	] );
+
+	PublicationChecklist\register_prepublish_check( 'xbs-valid-fallback', [
+		'type' => $post_types,
+		'run_check' => function ( array $post ) : Status {
+			if ( ! has_blocks( $post['ID'] ) ) {
+				return new Status( Status::INFO, '' );
+			}
+
+			$xbs = find_xbs( parse_blocks( $post['post_content'] ) );
+
+			// No XBs to validate.
+			if ( empty( $xbs ) ) {
+				return new Status( Status::INFO, '' );
+			}
+
+			// Track empty fallbacks.
+			$empty_fallback = [];
+
+			// Collect XB client IDs with.
+			foreach ( $xbs as $xb ) {
+				foreach ( $xb['innerBlocks'] as $index => $variant ) {
+					if ( ! isset( $variant['attrs']['fallback'] ) ) {
+						continue;
+					}
+					if ( ! $variant['attrs']['fallback'] ) {
+						continue;
+					}
+					if ( ! empty( $variant['innerBlocks'] ) ) {
+						continue;
+					}
+					$empty_fallback[ $xb['attrs']['clientId'] ] = [ $index ];
+				}
+			}
+
+			if ( empty( $empty_fallback ) ) {
+				return new Status( Status::COMPLETE, __( 'Experience Blocks all have fallback content', 'altis-analytics' ) );
+			}
+
+			return new Status( Status::INFO, __( 'Experience Blocks without fallback content found', 'altis-analytics' ), $empty_fallback );
+		},
+	] );
 }

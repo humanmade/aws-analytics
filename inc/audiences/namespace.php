@@ -148,7 +148,7 @@ function pre_get_posts( WP_Query $query ) {
  */
 function register_default_event_data_maps() {
 	// Traffic source data.
-	register_field( 'endpoint.Attributes.initialReferer', __( 'Original Referrer', 'altis-analytics' ), __( 'The first external website a visitor arrived from', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initialReferer', __( 'First Referrer', 'altis-analytics' ), __( 'The first external website a visitor arrived from', 'altis-analytics' ) );
 	register_field( 'endpoint.Attributes.referer', __( 'Referrer', 'altis-analytics' ), __( 'Any external website a visitor has ever arrived from', 'altis-analytics' ) );
 	register_field( 'attributes.referer', __( 'Current Referrer', 'altis-analytics' ), __( 'The previous URL a visitor came from for the current page view only', 'altis-analytics' ) );
 
@@ -163,11 +163,11 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 
 	// UTM Campaign parameters.
-	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'Original UTM Campaign', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_source', __( 'Original UTM Source', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_medium', __( 'Original UTM Medium', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_term', __( 'Original UTM Term', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_content', __( 'Original UTM Content', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'First UTM Campaign', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_source', __( 'First UTM Source', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_medium', __( 'First UTM Medium', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_term', __( 'First UTM Term', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_content', __( 'First UTM Content', 'altis-analytics' ) );
 	register_field( 'endpoint.Attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
 	register_field( 'endpoint.Attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
 	register_field( 'endpoint.Attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
