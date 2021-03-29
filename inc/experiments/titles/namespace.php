@@ -94,9 +94,9 @@ function register_default_post_type_support() {
  *
  * @param string $title The current title text.
  * @param integer $post_id The post ID.
- * @return string
+ * @return string|null
  */
-function add_title_ab_test_to_title( string $title, int $post_id ) : string {
+function add_title_ab_test_to_title( string $title, int $post_id ) : ?string {
 	return Experiments\output_ab_test_html_for_post( 'titles', $post_id, $title );
 }
 
