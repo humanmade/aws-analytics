@@ -42,7 +42,7 @@ function enqueue_assets() : void {
 
 	wp_enqueue_style(
 		'altis-analytics-preview',
-		plugins_url( 'src/preview/index.css', Analytics\ROOT_DIR . '/plugin.php' ),
+		plugins_url( 'src/audiences/preview/index.css', Analytics\ROOT_DIR . '/plugin.php' ),
 		[],
 		'2020-05-27-1'
 	);
