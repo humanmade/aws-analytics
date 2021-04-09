@@ -8,8 +8,9 @@ import DateRange from './components/date-range';
 import Variants from './components/variants';
 
 const { Icon } = wp.components;
-const { __ } = wp.i18n;
 const { useSelect } = wp.data;
+const { decodeEntities } = wp.htmlEntities;
+const { __ } = wp.i18n;
 
 const BlockWrapper = styled.div`
 	padding: 40px 60px;
@@ -105,7 +106,7 @@ const Block = ( {
 		<BlockWrapper className="altis-analytics-block">
 			<h1>{ __( 'Experience Insights', 'altis-analytics' ) }</h1>
 			<h2>
-				{ ( block && block.title.rendered ) || __( 'Loading…', 'altis-analytics' ) }
+				{ ( block && decodeEntities( block.title.rendered ) ) || __( 'Loading…', 'altis-analytics' ) }
 				{ block && Number( block.parent ) > 0 && (
 					<>
 						{ ' ' }
