@@ -416,6 +416,7 @@ function register_scripts() {
 			'altis-analytics-xb-data',
 			'wp-components',
 			'wp-i18n',
+			'wp-html-entities',
 		],
 		null,
 		true
