@@ -20,6 +20,7 @@ const {
 	TextControl,
 	Toolbar,
 } = wp.components;
+const { decodeEntities } = wp.htmlEntities;
 const { __, sprintf } = wp.i18n;
 
 /**
@@ -173,8 +174,8 @@ const Edit = ( {
 						<TextControl
 							label={ <strong>{ __( 'Block Title', 'altis-analytics' ) }</strong> }
 							placeholder={ sprintf( __( '%s (XB %d)', 'atlis-analytics' ), currentPost.title, instance.current ) }
-							value={ attributes.title || '' }
-							onChange={ title => setAttributes( { title } ) }
+							value={ decodeEntities( attributes.title || '' ) }
+							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
 					) }
 					<Popup clientId={ attributes.clientId } />
@@ -236,7 +237,7 @@ const Edit = ( {
 					<span className="altis-experience-block-header__title">
 						<Icon icon="groups" />
 						{ ! attributes.title && __( 'Personalized Content', 'altis-analytics' ) }
-						{ attributes.title }
+						{ decodeEntities( attributes.title ) }
 						{ ' ・ ' }
 						{ variants.length > 0 && (
 							<VariantTitle
