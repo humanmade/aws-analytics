@@ -207,7 +207,7 @@ function get_estimate_schema() : array {
 				'items' => [
 					'type' => 'object',
 					'properties' => [
-						'index' => [ 'type' => 'string' ],
+						'index' => [ 'type' => 'number' ],
 						'count' => [ 'type' => 'number' ],
 					],
 				],
