@@ -499,7 +499,7 @@ function get_estimate( array $audience ) : ?array {
 
 	$histogram = array_map( function ( array $bucket ) {
 		return [
-			'index' => $bucket['key'],
+			'index' => intval( $bucket['key'] ),
 			'count' => $bucket['doc_count'],
 		];
 	}, $result['aggregations']['histogram']['buckets'] );
