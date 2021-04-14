@@ -305,7 +305,7 @@ function delete_old_indexes() {
 	 *
 	 * @param int $max_age Maximum number of days to keep analytics data for.
 	 */
-	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 14 );
+	$max_age = (int) apply_filters( 'altis.analytics.max_index_age', 90 );
 
 	// If age has been set out of the 90-day limit, default to 7 days and warn user.
 	if ( $max_age < 7 || $max_age > 90 ) {

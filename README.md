@@ -154,7 +154,7 @@ Returning `false` from this filter will prevent any events or updated endpoint d
 
 **`altis.analytics.max_index_age <int>`**
 
-Filter the maximum number of days to keep real time stats available for. The default number of days is 14, after which data is removed. This is important for streamlining your user's privacy.
+Filter the maximum number of days to keep real time stats available for. The default number of days is the maximum of 90, after which data is removed. This is important for streamlining your user's privacy.
 
 Insights and aggregated analytics data can be calculated, updated and stored in the database in cases where you wish to retain information for longer periods of time such as number of page views.
 
