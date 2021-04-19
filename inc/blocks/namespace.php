@@ -111,6 +111,9 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 
 		// Generate a default using the current post title and instance number in the content.
 		$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
+		if ( ! isset( $xb['attrs']['title'] ) ) {
+			$xb['attrs']['title'] = '';
+		}
 
 		if ( empty( $posts ) ) {
 			// Create new shadow XB post.
@@ -120,7 +123,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_content' => serialize_block( $xb ),
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
-				'post_title' => $xb['attrs']['title'] ?? $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $default_title,
 				'post_parent' => $post_ID,
 			] );
 		} else {
@@ -128,7 +131,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 			wp_update_post( [
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
-				'post_title' => $xb['attrs']['title'] ?? $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $default_title,
 				'post_parent' => $post_ID,
 			] );
 		}
