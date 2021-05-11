@@ -34,7 +34,7 @@
     "react-select": "^3.0.8",
     "react-sparklines": "^1.7.0",
     "styled-components": "^5.0.1",
-    "ua-parser-js": "^0.7.21",
+    "ua-parser-js": "^0.7.24",
     "uuid": "^8.3.0",
     "webpack": "^4.41.6",
     "webpack-bundle-analyzer": "^3.6.0",
