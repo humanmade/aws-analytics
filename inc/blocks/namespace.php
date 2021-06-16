@@ -66,7 +66,7 @@ function setup() {
  */
 function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 	// Allow external plugins to hook in early to override updating the XB shadow post.
-	if ( apply_filters( 'altis.analytics.blocks.override_xb_save_post_hook', '__return_false', $post_ID, $post ) ) {
+	if ( apply_filters( 'altis.analytics.blocks.override_xb_save_post_hook', false, $post_ID, $post ) ) {
 		return;
 	}
 
