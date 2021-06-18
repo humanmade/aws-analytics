@@ -760,14 +760,14 @@ function check_conversion_goals() {
 		'type' => $post_types,
 		'run_check' => function ( array $post ) : Status {
 			if ( ! has_blocks( $post['ID'] ) ) {
-				return new Status( Status::INFO, '' );
+				return new Status( Status::INFO, __( 'No Experience Blocks found to validate conversion goals for', 'altis-analytics' ) );
 			}
 
 			$xbs = find_xbs( parse_blocks( $post['post_content'] ) );
 
 			// No XBs to validate.
 			if ( empty( $xbs ) ) {
-				return new Status( Status::INFO, '' );
+				return new Status( Status::INFO, __( 'No Experience Blocks found to validate conversion goals for', 'altis-analytics' ) );
 			}
 
 			// Track invalid XB variants.
@@ -805,14 +805,14 @@ function check_conversion_goals() {
 		'type' => $post_types,
 		'run_check' => function ( array $post ) : Status {
 			if ( ! has_blocks( $post['ID'] ) ) {
-				return new Status( Status::INFO, '' );
+				return new Status( Status::INFO, __( 'No Experience Blocks found to validate fallback content for', 'altis-analytics' ) );
 			}
 
 			$xbs = find_xbs( parse_blocks( $post['post_content'] ) );
 
 			// No XBs to validate.
 			if ( empty( $xbs ) ) {
-				return new Status( Status::INFO, '' );
+				return new Status( Status::INFO, __( 'No Experience Blocks found to validate fallback content for', 'altis-analytics' ) );
 			}
 
 			// Track empty fallbacks.
