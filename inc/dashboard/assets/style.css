@@ -1,0 +1,26 @@
+.xb-analytics-date-range {
+	position: relative;
+	top: 20px;
+}
+
+.xb-analytics-date-range a.date-range-button,
+.xb-analytics-date-range a.date-range-button:visited,
+.xb-analytics-date-range a.date-range-button:hover,
+.xb-analytics-date-range a.date-range-button:active {
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: 100px;
+	padding: 1px 8px;
+	margin-right: 2px;
+	text-decoration: none;
+	color: #152a4e;
+}
+
+.xb-analytics-date-range a.date-range-button.selected {
+	font-weight: 700;
+	border-color: rgba( 0, 0, 0, 0.3 );
+}
+
+.post-type-xb .wp-list-table td.block .row-actions {
+	color: #152a4e;
+}
