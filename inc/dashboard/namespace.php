@@ -22,7 +22,7 @@ function setup() {
 	add_filter( 'views_edit-xb', __NAMESPACE__ . '\\render_date_range_links' );
 	add_filter( 'manage_xb_posts_columns', __NAMESPACE__ . '\\add_microcopy_to_column_titles', 99 );
 	add_filter( 'bulk_actions-edit-xb', '__return_empty_array' );
-	add_filter( 'months_dropdown_results', '__return_empty_array' );
+	add_filter( 'months_dropdown_results', __NAMESPACE__ . '\\remove_months_dropdown', 10, 2 );
 	add_filter( 'altis.publication-checklist.show_tasks_column', '__return_false' );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
@@ -419,4 +419,19 @@ function modify_views_list_query( WP_Query $query ) {
 	// Order by client ID (stored as post slug).
 	$query->set( 'post_name__in', $client_ids );
 	$query->set( 'orderby', 'post_name__in' );
+}
+
+/**
+ * Remove the months dropdown for this post type.
+ *
+ * @param array $months The months data.
+ * @param string $post_type The post type.
+ * @return array
+ */
+function remove_months_dropdown( $months, $post_type ) {
+	if ( $post_type !== Blocks\POST_TYPE ) {
+		return $months;
+	}
+
+	return [];
 }
