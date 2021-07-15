@@ -426,10 +426,9 @@ function modify_views_list_query( WP_Query $query ) {
  *
  * @param array $months The months data.
  * @param string $post_type The post type.
- * 
  * @return array
  */
-function remove_months_dropdown( $months, $post_type ){
+function remove_months_dropdown( $months, $post_type ) {
 	if ( $post_type !== Blocks\POST_TYPE ) {
 		return $months;
 	}
