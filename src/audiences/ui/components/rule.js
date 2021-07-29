@@ -64,14 +64,22 @@ const RuleInput = props => {
 	} = props;
 
 	// Get the currently available values for the field.
-	const data = ( currentField.data && currentField.data.map( datum => datum.value ) ) || [];
+	const options = ( currentField.data && currentField.data.map( option => ( {
+		value: option.value,
+		label: ( option?.label ? `${ option.label } (${ option.value })` : option.value ), // + String( option?.count ? ` -> ${ option.count }` : '' ),
+		count: Number( option?.count ) || 0,
+	} ) ) ) || [];
+	// Sort options by their size/hits.
+	options.sort( ( a, b ) => b.count - a.count );
+	// Check if the filter doesn't allow free text.
+	const allowFreeText = ! currentField?.options?.disable_free_text;
 
 	// Get input refs to manage focus.
 	const inputEl = useRef( null );
 	const dropdownRef = useRef( null );
 
 	// Default to display of the dropdown if the value is in existing data or empty.
-	const defaultDropdownState = value === '' || data.indexOf( value ) >= 0;
+	const defaultDropdownState = value === '' || options.find( option => option.value === value );
 	const [ showDropdown, setShowDropdown ] = useState( defaultDropdownState );
 	useEffect( () => {
 		if ( showDropdown ) {
@@ -163,15 +171,17 @@ const RuleInput = props => {
 									} }
 								>
 									<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-									{ data.map( datum => datum !== '' && (
+									{ options.map( option => option.value !== '' && (
 										<option
-											key={ datum }
-											value={ datum }
+											key={ option.value }
+											value={ option.value }
 										>
-											{ datum }
+											{ option.label }
 										</option>
 									) ) }
-									<option value="___">{ __( 'Other, please specify...', 'altis-analytics' ) }</option>
+									{ allowFreeText && (
+										<option value="___">{ __( 'Other, please specify...', 'altis-analytics' ) }</option>
+									) }
 								</select>
 							) }
 						</Fragment>
