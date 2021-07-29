@@ -335,6 +335,7 @@ function get_fields() : array {
  * @param string $field The elasticsearch field name.
  * @param string $label A human readable label for the field.
  * @param string $description An optional long description for the field.
+ * @param array $options An optional object with further field attributes.
  */
 function register_field( string $field, string $label, ?string $description = null, array $options = [] ) {
 	global $altis_analytics_event_data_maps;
