@@ -1,5 +1,6 @@
-import blockData from './block.json';
 import variantBlockData from '../personalization-variant/block.json';
+
+import blockData from './block.json';
 
 const { createBlock } = wp.blocks;
 const { select } = wp.data;
