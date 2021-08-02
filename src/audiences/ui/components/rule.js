@@ -66,11 +66,14 @@ const RuleInput = props => {
 	// Get the currently available values for the field.
 	const options = ( currentField.data && currentField.data.map( option => ( {
 		value: option.value,
-		label: ( option?.label ? `${ option.label } (${ option.value })` : option.value ), // + String( option?.count ? ` -> ${ option.count }` : '' ),
+		label: ( option?.label ? `${ option.label } (${ option.value })` : option.value ) + String( option?.percent ? ` ~${ option.percent }%` : '' ),
 		count: Number( option?.count ) || 0,
+		percent: Number( option?.percent ) || 0,
 	} ) ) ) || [];
 	// Sort options by their size/hits.
-	options.sort( ( a, b ) => b.count - a.count );
+	const topHits = options.filter( option => option.percent );
+	topHits.sort( ( a, b ) => b.percent - a.percent );
+	const otherHits = options.filter( option => ! option.percent );
 	// Check if the filter doesn't allow free text.
 	const allowFreeText = ! currentField?.options?.disable_free_text;
 
@@ -171,6 +174,18 @@ const RuleInput = props => {
 									} }
 								>
 									<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
+									{ topHits.length && (
+										<optgroup label={ __( 'Top hits', 'siemens' ) }>
+											{ topHits.map( option => option.value !== '' && (
+												<option
+													key={ option.value }
+													value={ option.value }
+												>
+													{ option.label }
+												</option>
+											) ) }
+										</optgroup>
+									) }
 									{ options.map( option => option.value !== '' && (
 										<option
 											key={ option.value }
