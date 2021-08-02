@@ -717,19 +717,21 @@ function get_field_data() : ?array {
 			}
 			if ( is_array( $options ) ) {
 				$buckets = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'doc_count', 'key' );
-				$field_data = array_map( function( $value, $label ) use ( $buckets ) {
+				$field_data = array_map( function( $value, $label ) use ( $buckets, $total ) {
 					return [
 						'value' => $value,
 						'label' => $label,
-						'count' => $buckets[ $value ] ?? strlen( $label ),
+						'count' => $buckets[ $value ] ?? 0,
+						'percent' => isset( $buckets[ $value ] ) ? intval( $buckets[ $value ] / $total * 100 ) : 0,
 					];
 				}, array_keys( $options ), $options );
 				unset( $field['options']['options'] );
 			} else {
-				$field_data = array_map( function ( $bucket ) {
+				$field_data = array_map( function ( $bucket ) use ( $total ) {
 					return [
 						'value' => $bucket['key'],
 						'count' => $bucket['doc_count'],
+						'percent' => $bucket['doc_count'] ? $bucket['doc_count'] / $total : 0,
 					];
 				}, $aggregations[ $field_name ]['buckets'] );
 			}
