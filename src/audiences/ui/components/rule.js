@@ -71,9 +71,8 @@ const RuleInput = props => {
 		percent: Number( option?.percent ) || 0,
 	} ) ) ) || [];
 	// Sort options by their size/hits.
-	const topHits = options.filter( option => option.percent );
+	const topHits = options.filter( option => option.percent ).slice( 0, 10 );
 	topHits.sort( ( a, b ) => b.percent - a.percent );
-	const otherHits = options.filter( option => ! option.percent );
 	// Check if the filter doesn't allow free text.
 	const allowFreeText = ! currentField?.options?.disable_free_text;
 
