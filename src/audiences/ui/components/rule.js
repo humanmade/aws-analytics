@@ -173,7 +173,7 @@ const RuleInput = props => {
 									} }
 								>
 									<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-									{ topHits.length && (
+									{ topHits.length > 0 && (
 										<optgroup label={ __( 'Top hits', 'siemens' ) }>
 											{ topHits.map( option => option.value !== '' && (
 												<option
