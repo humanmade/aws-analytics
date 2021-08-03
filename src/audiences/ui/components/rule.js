@@ -64,14 +64,24 @@ const RuleInput = props => {
 	} = props;
 
 	// Get the currently available values for the field.
-	const data = ( currentField.data && currentField.data.map( datum => datum.value ) ) || [];
+	const options = ( currentField.data && currentField.data.map( option => ( {
+		value: option.value,
+		label: ( option.label ? `${ option.label } (${ option.value })` : option.value ) + String( option.percent ? ` ~${ option.percent }%` : '' ),
+		count: Number( option?.count ) || 0,
+		percent: Number( option?.percent ) || 0,
+	} ) ) ) || [];
+	// Sort options by their size/hits.
+	const topHits = options.filter( option => option.percent ).slice( 0, 10 );
+	topHits.sort( ( a, b ) => b.percent - a.percent );
+	// Check if the filter doesn't allow free text.
+	const allowFreeText = ! currentField?.options?.disable_free_text;
 
 	// Get input refs to manage focus.
 	const inputEl = useRef( null );
 	const dropdownRef = useRef( null );
 
 	// Default to display of the dropdown if the value is in existing data or empty.
-	const defaultDropdownState = value === '' || data.indexOf( value ) >= 0;
+	const defaultDropdownState = value === '' || !! options.find( option => option.value === value );
 	const [ showDropdown, setShowDropdown ] = useState( defaultDropdownState );
 	useEffect( () => {
 		if ( showDropdown ) {
@@ -163,15 +173,29 @@ const RuleInput = props => {
 									} }
 								>
 									<option value="">{ __( 'Empty', 'altis-analytics' ) }</option>
-									{ data.map( datum => datum !== '' && (
+									{ topHits.length > 0 && (
+										<optgroup label={ __( 'Top hits', 'altis-analytics' ) }>
+											{ topHits.map( option => option.value !== '' && (
+												<option
+													key={ option.value }
+													value={ option.value }
+												>
+													{ option.label }
+												</option>
+											) ) }
+										</optgroup>
+									) }
+									{ options.map( option => option.value !== '' && (
 										<option
-											key={ datum }
-											value={ datum }
+											key={ option.value }
+											value={ option.value }
 										>
-											{ datum }
+											{ option.label }
 										</option>
 									) ) }
-									<option value="___">{ __( 'Other, please specify...', 'altis-analytics' ) }</option>
+									{ allowFreeText && (
+										<option value="___">{ __( 'Other, please specify...', 'altis-analytics' ) }</option>
+									) }
 								</select>
 							) }
 						</Fragment>
