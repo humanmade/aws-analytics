@@ -2,6 +2,7 @@ import blockData from './block.json';
 import Status from './components/status';
 import edit from './edit';
 import save from './save';
+import transforms from './transforms';
 
 const { registerBlockType } = wp.blocks;
 const { addFilter } = wp.hooks;
@@ -19,6 +20,7 @@ const settings = {
 	],
 	edit,
 	save,
+	transforms,
 	...blockData.settings,
 };
 
