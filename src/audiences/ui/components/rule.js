@@ -66,7 +66,7 @@ const RuleInput = props => {
 	// Get the currently available values for the field.
 	const options = ( currentField.data && currentField.data.map( option => ( {
 		value: option.value,
-		label: ( option?.label ? `${ option.label } (${ option.value })` : option.value ) + String( option?.percent ? ` ~${ option.percent }%` : '' ),
+		label: ( option.label ? `${ option.label } (${ option.value })` : option.value ) + String( option.percent ? ` ~${ option.percent }%` : '' ),
 		count: Number( option?.count ) || 0,
 		percent: Number( option?.percent ) || 0,
 	} ) ) ) || [];
