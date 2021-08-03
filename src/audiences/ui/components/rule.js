@@ -81,7 +81,7 @@ const RuleInput = props => {
 	const dropdownRef = useRef( null );
 
 	// Default to display of the dropdown if the value is in existing data or empty.
-	const defaultDropdownState = value === '' || options.find( option => option.value === value );
+	const defaultDropdownState = value === '' || !! options.find( option => option.value === value );
 	const [ showDropdown, setShowDropdown ] = useState( defaultDropdownState );
 	useEffect( () => {
 		if ( showDropdown ) {
