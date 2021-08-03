@@ -346,16 +346,25 @@ use function Altis\Analytics\Audiences\register_field;
 
 add_action( 'init', function () {
   register_field(
-    'endpoint.Location.City', // The Elasticsearch field to query.
-    __( 'City' ), // A label for the field.
-    __( 'The closest metropolitan area.' ) // Optional description for the field.
+    'endpoint.Location.Country', // The Elasticsearch field to query.
+    __( 'Country' ), // A label for the field.
+    __( 'The visitor country.' ) // Optional description for the field.
+    [ // Optional field arguments
+      'options' => '\\Altis\\Analytics\\Utils\\get_countries', // A callback to provide prepopulated list of options.
+      'disable_free_text' => false, // Whether to allow free text to be used or to restrict to available options.
+    ]
   );
 } );
 ```
 
-In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.qv_utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+In the above example the 1st parameter `endpoint.Location.Country` represents the field in the event record to query against. Other examples include `attributes.qv_utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
 
-The 2nd parameter is a human readable label for the audience field.
+The 2nd parameter is a human readable label for the audience field, and the 3rd is the human readable description that goes below the field UI.
+
+The 4th parameter is an optional arguments array, which can include:
+
+- `options` which is a callback that returns a list of valid options, that will complement existing data for that field.
+- `disable_free_text` is a boolean to allow/restrict the user to set custom strings rather than choose from the list.
 
 ## Required Infrastructure
 
