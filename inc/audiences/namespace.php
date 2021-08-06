@@ -731,7 +731,7 @@ function get_field_data() : ?array {
 					return [
 						'value' => $bucket['key'],
 						'count' => $bucket['doc_count'],
-						'percent' => $bucket['doc_count'] ? $bucket['doc_count'] / $total * 100 : 0,
+						'percent' => $bucket['doc_count'] ? intval( $bucket['doc_count'] / $total * 100 ) : 0,
 					];
 				}, $aggregations[ $field_name ]['buckets'] );
 			}
