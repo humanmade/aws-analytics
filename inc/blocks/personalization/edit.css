@@ -1,0 +1,177 @@
+/**
+ * Experience block editor CSS.
+ */
+
+.altis-experience-block-header {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
+	/* stylelint-disable-next-line declaration-property-unit-blacklist */
+	font-size: 13px;
+	color: #1e1e1e;
+	padding: 12px;
+	border-radius: 2px;
+	background-color: #fff;
+	box-shadow: 0 0 0 1px #1e1e1e;
+	outline: 1px solid transparent;
+}
+
+.altis-experience-block-header__title {
+	flex: 1;
+	font-weight: 600;
+}
+
+.altis-experience-block-header__title .dashicon {
+	margin-right: 8px;
+}
+
+.altis-experience-block-header__toolbar {
+	flex: 0;
+	border: 0;
+	padding: 0;
+	margin: -7px 0;
+	display: flex;
+}
+
+.altis-experience-block-header__toolbar .components-button {
+	margin-left: 3px;
+	color: inherit;
+}
+
+.altis-experience-block-header__toolbar .components-button .dashicon {
+	margin-right: 0;
+}
+
+.altis-experience-block-header__toolbar .components-button.has-text .dashicon {
+	margin-right: 5px;
+}
+
+.block-editor-block-contextual-toolbar[data-type="altis/personalization"]
+.block-editor-block-toolbar__slot {
+	flex-shrink: 0;
+}
+
+.altis-variants-toolbar {
+	flex-shrink: 1;
+}
+
+.altis-variants-toolbar .altis-variants-toolbar__tabs {
+	max-width: 400px;
+	overflow-x: auto;
+	margin-left: 0;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+}
+
+.altis-variants-toolbar .altis-variant-button {
+	width: auto;
+	flex-shrink: 0;
+	padding: 0 11px;
+}
+
+/* stylelint-disable max-line-length */
+.altis-variants-toolbar .altis-variant-button.is-active,
+.altis-variants-toolbar .altis-variant-button.is-pressed,
+.altis-variants-toolbar .altis-variant-button.is-active:hover,
+.altis-variants-toolbar .altis-variant-button.is-pressed:hover,
+.altis-variants-toolbar .altis-variant-button.is-active:focus,
+.altis-variants-toolbar .altis-variant-button.is-pressed:focus,
+.altis-variants-toolbar .altis-variant-button:not(:disabled):not([aria-disabled="true"]):not(.is-default).is-active,
+.altis-variants-toolbar .altis-variant-button:not(:disabled):not([aria-disabled="true"]):not(.is-default).is-pressed,
+.altis-variants-toolbar .altis-variant-button:not(:disabled):not([aria-disabled="true"]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link).is-active,
+.altis-variants-toolbar .altis-variant-button:not(:disabled):not([aria-disabled="true"]):not(.is-secondary):not(.is-primary):not(.is-tertiary):not(.is-link).is-pressed {
+	outline: none;
+	color: #fff;
+	box-shadow: none;
+	margin: 3px;
+	height: 30px;
+	padding: 0 8px;
+	background: #555d66;
+	background: var( --wp-admin-theme-color );
+}
+/* stylelint-enable max-line-length */
+
+.altis-variants-toolbar .altis-variant-button::before {
+	left: 0;
+	right: 0;
+}
+
+.altis-variants-toolbar .altis-add-variant-button svg {
+	padding: 6px 5px 4px 5px;
+}
+
+.audience-picker-control .audience-picker-control__value {
+	margin-top: 6px;
+	margin-bottom: 4px;
+}
+
+.wp-block[data-type="altis/personalization-variant"] {
+	max-width: none;
+}
+
+.wp-block[data-type="altis/personalization-variant"] .wp-block {
+	max-width: none;
+}
+
+.altis-variant-validation .components-notice {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.altis-variant-validation .components-notice.is-dismissible {
+	padding-right: 12px;
+}
+
+.altis-variant-validation .components-notice-list .components-notice__content {
+	margin-top: 0;
+	margin-bottom: 0;
+	margin-right: 4px;
+	line-height: 1.5;
+}
+
+.altis-variant-validation__loading {
+	/* stylelint-disable-next-line declaration-property-unit-blacklist */
+	font-size: 14px;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
+	margin: 8px 0;
+}
+
+.altis-variant-validation__loading .components-spinner {
+	margin-left: 0;
+	margin-top: 0;
+	margin-right: 6px;
+	vertical-align: text-bottom;
+}
+
+[class*="altis-publication-checklist__item--xbs"] {
+	flex-direction: column;
+}
+
+[class*="altis-publication-checklist__item--xbs"] .altis-xb-checklist-message {
+	display: flex;
+	line-height: 1.5;
+}
+
+[class*="altis-publication-checklist__item--xbs"] .altis-xb-selector {
+	margin: 5px 0;
+}
