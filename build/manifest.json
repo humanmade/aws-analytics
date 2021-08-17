@@ -1,0 +1,12 @@
+{
+  "analytics.js": "/analytics.b50ad195.js",
+  "audiences/data.js": "/audiences/data.b50ad195.js",
+  "audiences/preview.js": "/audiences/preview.b50ad195.js",
+  "audiences/ui.js": "/audiences/ui.b50ad195.js",
+  "blocks/data.js": "/blocks/data.b50ad195.js",
+  "blocks/personalization.js": "/blocks/personalization.b50ad195.js",
+  "blocks/personalization-variant.js": "/blocks/personalization-variant.b50ad195.js",
+  "blocks/ui.js": "/blocks/ui.b50ad195.js",
+  "experiments.js": "/experiments.b50ad195.js",
+  "titles.js": "/titles.b50ad195.js"
+}
