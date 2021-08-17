@@ -109,7 +109,7 @@ function init() {
 	register_rest_field( Audiences\POST_TYPE, 'estimate', [
 		'get_callback' => function ( array $post ) {
 			$audience = Audiences\get_audience( $post['id'] );
-			return Audiences\get_estimate( $audience );
+			return $audience ? Audiences\get_estimate( $audience ) : null;
 		},
 		'schema' => get_estimate_schema(),
 	] );
