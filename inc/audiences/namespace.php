@@ -429,7 +429,7 @@ function admin_enqueue_scripts() {
  * @param array $audience Audience configuration array.
  * @return array|null
  */
-function get_estimate( ?array $audience ) : ?array {
+function get_estimate( array $audience ) : ?array {
 	$query = [
 		'query' => [
 			'bool' => [
