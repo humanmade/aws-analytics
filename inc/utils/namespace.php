@@ -247,7 +247,7 @@ function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int
 	$since_epoch = strtotime( $point_in_time );
 
 	if ( ! $since_epoch ) {
-		trigger_error( 'Analytics: Point in time string cannot be resolved.', E_USER_WARNING );
+		trigger_error( sprintf( 'Analytics: Point in time string "%s" cannot be resolved.', $point_in_time ), E_USER_WARNING );
 		return null;
 	}
 
