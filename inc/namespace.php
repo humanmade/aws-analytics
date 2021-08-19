@@ -144,7 +144,7 @@ function get_client_side_data() : array {
 
 		if ( is_search() ) {
 			$data['Attributes']['archiveType'] = 'search';
-			$data['Attributes']['search'] = get_search_query();
+			$data['Attributes']['search'] = mb_strtolower( get_search_query() );
 		}
 
 		if ( is_post_type_archive() ) {
