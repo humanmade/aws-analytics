@@ -236,6 +236,31 @@ function milliseconds() : int {
 }
 
 /**
+ * Get a point in time in milliseconds, optionally rounded to the nearest time block.
+ *
+ * @param string $point_in_time strtotime-safe string, eg: '-1 week'
+ * @param integer $round_to Round the result to the nearest time block in seconds, eg: HOUR_IN_SECONDS.
+ *
+ * @return integer|null
+ */
+function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int {
+	$since_epoch = strtotime( $point_in_time );
+
+	if ( ! $since_epoch ) {
+		trigger_error( sprintf( 'Analytics: Point in time string "%s" cannot be resolved.', $point_in_time ), E_USER_WARNING );
+		return null;
+	}
+
+	// Round if needed.
+	if ( $round_to ) {
+		$since_epoch = floor( $since_epoch / $round_to ) * $round_to;
+	}
+
+	// Convert to milliseconds.
+	return $since_epoch * 1000;
+}
+
+/**
  * Merge aggregations from ES results.
  *
  * @todo work out how to merge percentiles & percentile ranks.
