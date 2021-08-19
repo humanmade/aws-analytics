@@ -8,7 +8,6 @@
 namespace Altis\Analytics\Audiences;
 
 use Altis\Analytics\Utils;
-use function Altis\Analytics\Utils\time_ago_in_milliseconds;
 use WP_Query;
 
 const COMPARISON_OPERATORS = [
@@ -425,7 +424,7 @@ function admin_enqueue_scripts() {
  * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
-	$since = time_ago_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
+	$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
 
 	$query = [
 		'query' => [
@@ -531,7 +530,7 @@ function get_estimate( array $audience ) : ?array {
  */
 function get_unique_endpoint_count( int $since = null, bool $force_update = false ) : ?int {
 	if ( $since === null ) {
-		$since = time_ago_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
+		$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
 	}
 
 	$query = [
