@@ -597,7 +597,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 
 	$count = intval( $result['aggregations']['count']['value'] );
 
-	wp_cache_set( $key, $count, 'altis-audiences', HOUR_IN_SECONDS );
+	wp_cache_set( $key, $count, 'altis-audiences', MINUTE_IN_SECONDS );
 
 	return $count;
 }
