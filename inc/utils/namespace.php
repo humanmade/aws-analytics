@@ -236,28 +236,28 @@ function milliseconds() : int {
 }
 
 /**
- * Get past point in time in milliseconds, optionally rounded to the nearest time block.
+ * Get a point in time in milliseconds, optionally rounded to the nearest time block.
  *
  * @param string $point_in_time strtotime-safe string, eg: '-1 week'
  * @param integer $round_to Round the result to the nearest time block in seconds, eg: HOUR_IN_SECONDS.
  *
  * @return integer|null
  */
-function time_ago_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int {
-	$time_ago = strtotime( $point_in_time );
+function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int {
+	$since_epoch = strtotime( $point_in_time );
 
-	if ( ! $time_ago ) {
+	if ( ! $since_epoch ) {
 		trigger_error( 'Analytics: Point in time string cannot be resolved.', E_USER_WARNING );
 		return null;
 	}
 
 	// Round if needed.
 	if ( $round_to ) {
-		$time_ago = floor( $time_ago / $round_to ) * $round_to;
+		$since_epoch = floor( $since_epoch / $round_to ) * $round_to;
 	}
 
 	// Convert to milliseconds.
-	return $time_ago * 1000;
+	return $since_epoch * 1000;
 }
 
 /**
