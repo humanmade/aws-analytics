@@ -124,7 +124,7 @@ const getAttributes = ( extra = {} ) => ( {
 	pageSession: pageSession,
 	url: window.location.origin + window.location.pathname,
 	host: window.location.hostname,
-	search: window.location.search,
+	queryString: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
 	...qvParams,
