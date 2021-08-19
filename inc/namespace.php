@@ -247,6 +247,15 @@ function enqueue_scripts() {
 	 */
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
+	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
+	wp_enqueue_script(
+		'polyfill.io',
+		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		[],
+		'3',
+		false
+	);
+
 	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
 	wp_add_inline_script(
 		'altis-analytics',
