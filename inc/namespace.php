@@ -371,26 +371,7 @@ function delete_old_indexes() {
 	$max_age_date = $date->format( 'U' );
 
 	// Get indices.
-	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
-	if ( is_wp_error( $indices_response ) ) {
-		trigger_error( sprintf(
-			'Analytics: Could not fetch analytics indexes: %s',
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			$indices_response->get_error_message()
-		), E_USER_WARNING );
-		return;
-	}
-	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
-		trigger_error( sprintf(
-			"Analytics: ElasticSearch index deletion failed:\n%s",
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			wp_remote_retrieve_body( $indices_response )
-		), E_USER_WARNING );
-		return;
-	}
-
-	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
-	$index_names = array_keys( $indices );
+	$index_names = Utils\get_indices();
 
 	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
 		$date = trim( str_replace( 'analytics', '', $name ), '-' );
