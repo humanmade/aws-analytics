@@ -370,7 +370,9 @@ function get_views_list( int $days = 7 ) : array {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$data = [];
