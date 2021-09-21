@@ -143,6 +143,45 @@ function get_elasticsearch_version() : ?string {
 }
 
 /**
+ * Fetch available analytics indices.
+ *
+ * @return array
+ */
+function get_indices() : array {
+	$cache = wp_cache_get( 'analytics-indices', 'altis' );
+	if ( $cache ) {
+		return $cache;
+	}
+
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
+
+	if ( is_wp_error( $indices_response ) ) {
+		trigger_error( sprintf(
+			'Analytics: Could not fetch analytics indexes: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$indices_response->get_error_message()
+		), E_USER_WARNING );
+		return [];
+	}
+
+	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch indexes not found:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $indices_response )
+		), E_USER_WARNING );
+		return [];
+	}
+
+	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
+	$indices = array_keys( $indices );
+
+	wp_cache_set( 'analytics-indices', $indices, 'altis', MINUTE_IN_SECONDS );
+
+	return $indices;
+}
+
+/**
  * Query Analytics data in Elasticsearch.
  *
  * @param array $query A full elasticsearch Query DSL array.
@@ -155,8 +194,60 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
+	$index_paths = [ 'analytics-*' ];
+
+	// Try to extract specific index names to query if possible.
+	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
+		foreach ( $query['query']['bool']['filter'] as $filter ) {
+			if ( ! isset( $filter['range']['event_timestamp'] ) ) {
+				continue;
+			}
+
+			// Reset index paths.
+			$index_paths = [];
+
+			// Prevent fatal errors if an index doesn't exist.
+			$params['ignore_unavailable'] = 'true';
+
+			$from = absint( $filter['range']['event_timestamp']['gte'] ?? $filter['range']['event_timestamp']['gt'] ?? 0 );
+			$to = absint( $filter['range']['event_timestamp']['lte'] ?? $filter['range']['event_timestamp']['lt'] ?? milliseconds() );
+
+			$available_indices = get_indices();
+
+			foreach ( $available_indices as $index ) {
+				$day = strtotime( str_replace( 'analytics-', '', $index ) ) * 1000;
+				if ( $day >= $from && $day <= $to ) {
+					$index_paths[] = $index;
+				}
+			}
+
+			// Revert to all index if there are no matches.
+			if ( empty( $index_paths ) ) {
+				$index_paths[] = 'analytics-*';
+			}
+
+			break;
+		}
+	}
+
 	// Get URL.
-	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/' . $path );
+	$url = add_query_arg( $params, sprintf(
+		'%s/%s/%s',
+		get_elasticsearch_url(),
+		implode( ',', $index_paths ),
+		$path
+	) );
+
+	// Elasticsearch supports up to 4kb URLs by default so we can revert to the wildcard in this instance.
+	// Note it should never happen as 90 indexes would be 1889 bytes total.
+	if ( strlen( $url ) > 4 * 1024 ) {
+		$url = add_query_arg( $params, sprintf(
+			'%s/%s/%s',
+			get_elasticsearch_url(),
+			'analytics-*',
+			$path
+		) );
+	}
 
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
