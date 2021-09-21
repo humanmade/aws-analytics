@@ -1,0 +1,12 @@
+{
+  "analytics.js": "/analytics.82088e31.js",
+  "audiences/data.js": "/audiences/data.82088e31.js",
+  "audiences/preview.js": "/audiences/preview.82088e31.js",
+  "audiences/ui.js": "/audiences/ui.82088e31.js",
+  "blocks/data.js": "/blocks/data.82088e31.js",
+  "blocks/personalization.js": "/blocks/personalization.82088e31.js",
+  "blocks/personalization-variant.js": "/blocks/personalization-variant.82088e31.js",
+  "blocks/ui.js": "/blocks/ui.82088e31.js",
+  "experiments.js": "/experiments.82088e31.js",
+  "titles.js": "/titles.82088e31.js"
+}
