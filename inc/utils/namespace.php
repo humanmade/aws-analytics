@@ -238,6 +238,17 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		$path
 	) );
 
+	// Elasticsearch supports up to 4kb URLs by default so we can revert to the wildcard in this instance.
+	// Note it should never happen as 90 indexes would be 1889 bytes total.
+	if ( strlen( $url ) > 4 * 1024 ) {
+		$url = add_query_arg( $params, sprintf(
+			'%s/%s/%s',
+			get_elasticsearch_url(),
+			'analytics-*',
+			$path
+		) );
+	}
+
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
