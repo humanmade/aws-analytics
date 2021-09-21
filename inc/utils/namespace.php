@@ -166,7 +166,7 @@ function get_indices() : array {
 
 	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
 		trigger_error( sprintf(
-			"Analytics: ElasticSearch index deletion failed:\n%s",
+			"Analytics: ElasticSearch indexes not found:\n%s",
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			wp_remote_retrieve_body( $indices_response )
 		), E_USER_WARNING );
