@@ -673,7 +673,9 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$data = [
