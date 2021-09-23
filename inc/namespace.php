@@ -275,7 +275,6 @@ function enqueue_scripts() {
 	 */
 	$exclude_bots = (bool) apply_filters( 'altis.analytics.exclude_bots', true );
 
-
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
