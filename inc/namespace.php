@@ -268,6 +268,13 @@ function enqueue_scripts() {
 	 */
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
+	/**
+	 * Filters whether to exclude bot traffic or not.
+	 *
+	 * @param string $exclude_bots If set to true allows bots that execute JavaScript to be tracked.
+	 */
+	$exclude_bots = (bool) apply_filters( 'altis.analytics.exclude_bots', true );
+
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
@@ -311,6 +318,7 @@ function enqueue_scripts() {
 						'CognitoId' => defined( 'ALTIS_ANALYTICS_COGNITO_ID' ) ? ALTIS_ANALYTICS_COGNITO_ID : null,
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
+						'ExcludeBots' => $exclude_bots,
 					],
 					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),

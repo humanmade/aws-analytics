@@ -126,7 +126,7 @@ The plugin provides a few hooks for you to control the default endpoint data and
 
 **`altis.analytics.consent_enabled <bool>`**
 
-This defaults to if the WP Consent API plugin or a derivative is installed and active by checking if the constant `WP_CONSENT_API_URL` is defined.
+This defaults to true if the WP Consent API plugin or a derivative is installed and active by checking if the constant `WP_CONSENT_API_URL` is defined.
 
 **`altis.analytics.data.endpoint <array>`**
 
@@ -161,6 +161,12 @@ Insights and aggregated analytics data can be calculated, updated and stored in 
 **`altis.analytics.max_s3_backup_age <int>`**
 
 Filter the maximum number of days to keep backup data for. The default number of days is 90, in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your users' privacy. There is no upper limit on this value, however you should make sure any long term data storage is explained to users when opting in to tracking.
+
+**`altis.analytics.exclude_bots <bool>`**
+
+This defaults to true but can switched off to allow tracking bots that can run JavaScript, note this will affect your data.
+
+You can check if a recorded event was created by a bot by checking if the `attributes.isBot` value exists.
 
 ### Functions
 
