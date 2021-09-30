@@ -1,4 +1,7 @@
+
+import shimBlockData from '../shim/block.json';
 import blockData from './block.json';
+
 import Status from './components/status';
 import edit from './edit';
 import save from './save';
@@ -26,6 +29,12 @@ const settings = {
 
 // Register block.
 registerBlockType( blockData.name, settings );
+
+// Register shim.
+registerBlockType( shimBlockData.name, {
+	title: 'shim',
+	...shimBlockData.settings,
+} );
 
 // Enhance publication checklist if available.
 addFilter( 'altis-publishing-workflow.item.xbs-valid-conversions', 'altis/xbs', () => {
