@@ -1,0 +1,14 @@
+{
+    "name": "altis/shim",
+    "settings": {
+        "category": "altis-experience-blocks",
+        "supports": {
+            "inserter": false
+        },
+        "attributes": {
+            "content": {
+                "type": "string"
+            }
+        }
+    }
+}
