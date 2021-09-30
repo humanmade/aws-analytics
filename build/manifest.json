@@ -1,0 +1,12 @@
+{
+  "analytics.js": "/analytics.67ca7279.js",
+  "audiences/data.js": "/audiences/data.67ca7279.js",
+  "audiences/preview.js": "/audiences/preview.67ca7279.js",
+  "audiences/ui.js": "/audiences/ui.67ca7279.js",
+  "blocks/data.js": "/blocks/data.67ca7279.js",
+  "blocks/personalization.js": "/blocks/personalization.67ca7279.js",
+  "blocks/personalization-variant.js": "/blocks/personalization-variant.67ca7279.js",
+  "blocks/ui.js": "/blocks/ui.67ca7279.js",
+  "experiments.js": "/experiments.67ca7279.js",
+  "titles.js": "/titles.67ca7279.js"
+}
