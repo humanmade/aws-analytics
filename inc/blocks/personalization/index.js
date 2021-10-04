@@ -1,5 +1,5 @@
-
 import shimBlockData from '../shim/block.json';
+
 import blockData from './block.json';
 
 import Status from './components/status';
