@@ -1,0 +1,46 @@
+{
+    "name": "altis/ab-test",
+    "settings": {
+        "category": "altis-experience-blocks",
+        "icon": "lightbulb",
+        "supports": {
+            "alignWide": true,
+            "html": false,
+            "align": true
+        },
+        "attributes": {
+            "clientId": {
+                "type": "string",
+                "required": true
+            },
+            "end": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "paused": {
+                "type": "boolean",
+                "default": true
+            },
+            "percentage": {
+                "type": "number",
+                "default": 100,
+                "minimum": 0,
+                "maximum": 100
+            },
+            "start": {
+                "type": "string",
+                "format": "date-time"
+            },
+            "started": {
+                "type": "boolean",
+                "default": true
+            },
+            "title": {
+                "type": "string"
+            },
+            "winner": {
+                "type": "number"
+            }
+        }
+    }
+}

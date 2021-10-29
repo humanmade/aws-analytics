@@ -854,10 +854,10 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'term' => [ 'event_type.keyword' => $goal[0] ],
 	];
 	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventTestId' => $test_id ],
+		'term' => [ 'attributes.eventTestId.keyword' => $test_id ],
 	];
 	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventPostId' => $post_id ],
+		'term' => [ 'attributes.eventPostId.keyword' => $post_id ],
 	];
 
 	// Collect aggregates for statistical analysis.

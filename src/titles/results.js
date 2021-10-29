@@ -14,7 +14,7 @@ import {
 	getLetter,
 	getDateString,
 	getDurationString,
-} from './utils';
+} from '../utils';
 
 const { withDispatch } = wp.data;
 const { compose } = wp.compose;

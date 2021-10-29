@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import styled from 'styled-components';
 
-import { getLetter } from '../utils';
+import { getLetter } from '../../utils';
 
 const {
 	Button,

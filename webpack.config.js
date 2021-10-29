@@ -21,6 +21,8 @@ const sharedConfig = {
 		'blocks/ui': path.resolve( __dirname, 'src/blocks/index.js' ),
 		'blocks/personalization': path.resolve( __dirname, 'inc/blocks/personalization/index.js' ),
 		'blocks/personalization-variant': path.resolve( __dirname, 'inc/blocks/personalization-variant/index.js' ),
+		'blocks/ab-test': path.resolve( __dirname, 'inc/blocks/ab-test/index.js' ),
+		'blocks/ab-test-variant': path.resolve( __dirname, 'inc/blocks/ab-test-variant/index.js' ),
 		experiments: path.resolve( __dirname, 'src/experiments.js' ),
 		titles: path.resolve( __dirname, 'src/titles/index.js' ),
 	},
