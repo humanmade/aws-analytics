@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { getLetter } from '../../../src/utils';
-
+import TestSettings from './components/test-settings';
 import VariantPanel from './components/variant-panel';
 import VariantToolbar from './components/variant-toolbar';
 import withData from './data/edit';
@@ -72,6 +72,7 @@ const Edit = ( {
 	onCopyVariant,
 	onRemoveVariant,
 	onSelect,
+	onSetPaused,
 	setAttributes,
 	variants,
 } ) => {
@@ -195,14 +196,6 @@ const Edit = ( {
 							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
 					) }
-					<RangeControl
-						description={ __( 'The amount of traffic to include in the test. If the test is risky use a lower number, a higher number will yield results more quickly.', 'altis-analytics' ) }
-						label={ __( 'Traffic percentage', 'altis-analytics' ) }
-						max={ 100 }
-						min={ 0 }
-						value={ attributes.percentage }
-						onChange={ percentage => setAttributes( { percentage } ) }
-					/>
 					<Button
 						isSecondary
 						onClick={ () => setVariant( onAddVariant() ) }
@@ -210,6 +203,12 @@ const Edit = ( {
 						{ __( 'Add a variant', 'altis-analytics' ) }
 					</Button>
 				</div>
+				<TestSettings
+					paused={ attributes.paused }
+					percentage={ attributes.percentage }
+					onSetPaused={ paused => setAttributes( { paused } ) }
+					onSetPercentage={ percentage => setAttributes( { percentage } ) }
+				/>
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }

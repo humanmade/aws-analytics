@@ -1,6 +1,12 @@
 import React, { Fragment } from 'react';
 
 import {
+	getLetter,
+	getDateString,
+	getDurationString,
+} from '../utils';
+
+import {
 	Button,
 	CenteredButton,
 	Notice,
@@ -10,11 +16,6 @@ import {
 	Variant,
 } from './components';
 import withTestData from './data/with-test-data';
-import {
-	getLetter,
-	getDateString,
-	getDurationString,
-} from '../utils';
 
 const { withDispatch } = wp.data;
 const { compose } = wp.compose;

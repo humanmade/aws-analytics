@@ -94,6 +94,8 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 						],
 						'fallback' => [ 'type' => 'boolean' ],
 						'goal' => [ 'type' => 'string' ],
+						'title' => [ 'type' => 'string' ],
+						'percent' => [ 'type' => 'number' ],
 					],
 				],
 			],
@@ -159,20 +161,29 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 
 		foreach ( $blocks as $block ) {
 			foreach ( $block['innerBlocks'] as $variant ) {
-				if ( isset( $variant['attrs']['audience'] ) ) {
-					$audience_id = (int) $variant['attrs']['audience'];
-					$variant['attrs']['audience'] = [
-						'id' => $audience_id,
-						'title' => get_the_title( $audience_id ),
-					];
-					$variants[] = $variant['attrs'];
-				} else {
-					$variant['attrs']['audience'] = [
-						'id' => 0,
-						'title' => __( 'Fallback', 'altis-analytics' ),
-					];
-					// Always add the fallback to the start of the array.
-					array_unshift( $variants, $variant['attrs'] );
+				$subtype = str_replace( 'altis/', '', $block['name'] );
+
+				// Handle variant output for different block types.
+				switch ( $subtype ) {
+					case Blocks\Personalization\BLOCK:
+						if ( isset( $variant['attrs']['audience'] ) ) {
+							$audience_id = (int) $variant['attrs']['audience'];
+							$variant['attrs']['audience'] = [
+								'id' => $audience_id,
+								'title' => get_the_title( $audience_id ),
+							];
+							$variants[] = $variant['attrs'];
+						} else {
+							$variant['attrs']['audience'] = [
+								'id' => 0,
+								'title' => __( 'Fallback', 'altis-analytics' ),
+							];
+							// Always add the fallback to the start of the array.
+							array_unshift( $variants, $variant['attrs'] );
+						}
+						break;
+					default:
+						$variants[] = $variant['attrs'];
 				}
 			}
 		}

@@ -93,6 +93,7 @@ const withData = Component => compose(
 				const fromVariant = getBlock( variantClientId );
 				const newVariant = cloneBlock( fromVariant, {
 					fallback: false,
+					goal: '',
 					title: '',
 				} );
 

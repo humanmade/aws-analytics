@@ -19,7 +19,7 @@
             },
             "paused": {
                 "type": "boolean",
-                "default": true
+                "default": false
             },
             "percentage": {
                 "type": "number",
