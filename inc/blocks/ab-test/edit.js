@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { getLetter } from '../../../src/utils';
+
 import TestSettings from './components/test-settings';
 import VariantPanel from './components/variant-panel';
 import VariantToolbar from './components/variant-toolbar';
@@ -18,7 +19,6 @@ const {
 	PanelBody,
 	TextControl,
 	Toolbar,
-	RangeControl,
 } = wp.components;
 const { decodeEntities } = wp.htmlEntities;
 const { __, sprintf } = wp.i18n;

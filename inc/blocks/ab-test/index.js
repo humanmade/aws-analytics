@@ -1,5 +1,4 @@
 import blockData from './block.json';
-
 import edit from './edit';
 import save from './save';
 import transforms from './transforms';

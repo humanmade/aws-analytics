@@ -1,5 +1,7 @@
 import React, { Fragment, useEffect } from 'react';
 
+import { arrayEquals } from '../utils';
+
 import {
 	Button,
 	CenteredButton,
@@ -14,7 +16,6 @@ import TitleTextField from './components/field-title-text';
 import TrafficPercentageField from './components/field-traffic-percentage';
 import { DEFAULT_TEST } from './data/shapes';
 import withTestData from './data/with-test-data';
-import { arrayEquals } from '../utils';
 
 const { __ } = wp.i18n;
 
