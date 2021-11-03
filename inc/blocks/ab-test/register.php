@@ -36,7 +36,7 @@ function setup() {
 	add_action( 'altis.analytics.blocks.save_post', __NAMESPACE__ . '\\process_xb_attrs', 10, 2 );
 
 	// Register A/B tests with experiments framework.
-	add_action( 'init', __NAMESPACE__ . '\\register_tests' );
+	add_action( 'init', __NAMESPACE__ . '\\register_test' );
 }
 
 /**
