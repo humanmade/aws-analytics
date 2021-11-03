@@ -24,7 +24,7 @@ const TestSettings = ( {
 	onSetPercentage,
 } ) => {
 	return (
-		<PanelBody initialOpen={ false } title={ __( 'Advanced settings' ) }>
+		<PanelBody initialOpen={ false } title={ __( 'Advanced settings', 'altis-analytics' ) }>
 			<ToggleControl
 				checked={ paused }
 				label={ __( 'Paused', 'altis-analytics' ) }

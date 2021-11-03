@@ -47,7 +47,7 @@ const getVariantTitle = ( index, variant ) => {
 };
 
 /**
- * Audience picker input.
+ * Variant picker input.
  *
  * @param {React.ComponentProps} props The component props.
  * @param {object} props.attributes Block attributes object.
