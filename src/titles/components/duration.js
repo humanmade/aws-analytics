@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { getDurationString } from '../utils';
+import { getDurationString } from '../../utils';
 
 /**
  * Shows the test duration and counts down.

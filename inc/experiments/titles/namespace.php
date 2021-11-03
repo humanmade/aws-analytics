@@ -118,6 +118,9 @@ function init() {
 			'query_filter' => function ( $test_id, $post_id ) : array {
 				$url = get_the_permalink( $post_id );
 				return [
+					'filter' => [
+						[ 'terms' => [ 'event_type.keyword' => [ 'click', 'pageView' ] ] ],
+					],
 					'must_not' => [
 						[ 'prefix' => [ 'attributes.url.keyword' => $url ] ],
 					],

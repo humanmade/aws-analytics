@@ -24,11 +24,15 @@ function setup() {
 	require_once __DIR__ . '/personalization/register.php';
 	require_once __DIR__ . '/personalization-variant/register.php';
 	require_once __DIR__ . '/shim/register.php';
+	require_once __DIR__ . '/ab-test/register.php';
+	require_once __DIR__ . '/ab-test-variant/register.php';
 
 	// Register blocks.
 	Personalization\setup();
 	Personalization_Variant\setup();
 	Shim\setup();
+	AB_Test\setup();
+	AB_Test_Variant\setup();
 
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
@@ -120,7 +124,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 
 		if ( empty( $posts ) ) {
 			// Create new shadow XB post.
-			wp_insert_post( [
+			$xb_post_id = wp_insert_post( [
 				'post_type' => POST_TYPE,
 				'post_status' => 'publish',
 				'post_content' => serialize_block( $xb ),
@@ -129,8 +133,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_title' => $xb['attrs']['title'] ?: $default_title,
 				'post_parent' => $post_ID,
 			] );
+			// Store XB type.
+			update_post_meta( $xb_post_id, '_xb_type', $xb['name'] );
+			update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['name'] ), true );
 		} else {
 			// Update existing post.
+			$xb_post_id = $posts[0]->ID;
 			wp_update_post( [
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
@@ -138,6 +146,14 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_parent' => $post_ID,
 			] );
 		}
+
+		/**
+		 * Allow further processing after the XB post is created or updated.
+		 *
+		 * @param int $post_id The XB post ID.
+		 * @param array $xb The unserialised block data.
+		 */
+		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
 }
 
@@ -152,9 +168,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 function find_xbs( array $blocks ) : array {
 	// Supported block types.
 	$xb_types = [
-		'altis/personalization',
-		'altis/experiment',
+		Personalization\BLOCK,
+		AB_Test\BLOCK,
 	];
+	$xb_types = array_map( function ( $type ) {
+		return "altis/{$type}";
+	}, $xb_types );
 
 	$xbs = [];
 
@@ -342,6 +361,20 @@ function get_block_post( string $client_id ) : ?WP_Post {
 	$block_posts[ $client_id ] = $query->posts[0];
 
 	return $block_posts[ $client_id ];
+}
+
+/**
+ * Get the XB type, excluding the altis/ namespace prefix.
+ *
+ * Falls back to 'personalization' for backlwards compatibility.
+ *
+ * @param int|WP_Post $post Post object or ID for the XB.
+ * @return string
+ */
+function get_block_type( $post ) : string {
+	$post = get_post( $post );
+	$type = get_post_meta( $post->ID, '_xb_type', true ) ?: Personalization\BLOCK;
+	return str_replace( 'altis/', '', $type );
 }
 
 /**
