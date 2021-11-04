@@ -662,6 +662,13 @@ function update_ab_test_traffic_percentage_for_post( string $test_id, int $post_
  * @param float[] $percents Array of percentages of traffic to run for each variant (indexed).
  */
 function update_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id, array $percents ) {
+	// If there are no provided percentages then store an empty array.
+	if ( empty( $percents ) ) {
+		update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', [] );
+		return;
+	}
+	// Sanitize data.
+	$percents = array_map( 'floatval', $percents );
 	// If there's some data error then redistribute the percentages.
 	// Allow an error margin of 1 below 100 in the calculations to accomodate precision / rounding issues.
 	$total = array_sum( $percents );
