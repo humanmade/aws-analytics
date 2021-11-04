@@ -186,6 +186,7 @@ function register_post_ab_tests_rest_fields() {
 					'start_time' => get_ab_test_start_time_for_post( $test_id, $post['id'] ),
 					'end_time' => get_ab_test_end_time_for_post( $test_id, $post['id'] ),
 					'traffic_percentage' => get_ab_test_traffic_percentage_for_post( $test_id, $post['id'] ),
+					'variant_traffic_percentage' => get_ab_test_variant_traffic_percentage_for_post( $test_id, $post['id'] ),
 					'paused' => is_ab_test_paused_for_post( $test_id, $post['id'] ),
 					'results' => (object) get_ab_test_results_for_post( $test_id, $post['id'] ),
 				];
@@ -213,6 +214,9 @@ function register_post_ab_tests_rest_fields() {
 				if ( isset( $test['traffic_percentage'] ) ) {
 					update_ab_test_traffic_percentage_for_post( $test_id, $post->ID, $test['traffic_percentage'] );
 				}
+				if ( isset( $test['variant_traffic_percentage'] ) ) {
+					update_ab_test_variant_traffic_percentage_for_post( $test_id, $post->ID, $test['variant_traffic_percentage'] );
+				}
 				if ( isset( $test['paused'] ) ) {
 					update_is_ab_test_paused_for_post( $test_id, $post->ID, $test['paused'] );
 				}
@@ -235,6 +239,16 @@ function register_post_ab_tests_rest_fields() {
 						],
 						'traffic_percentage' => [
 							'type' => 'number',
+							'minimum' => 0,
+							'maximum' => 100,
+						],
+						'variant_traffic_percentage' => [
+							'type' => 'array',
+							'items' => [
+								'type' => 'number',
+								'minimum' => 0,
+								'maximum' => 100,
+							],
 						],
 						'paused' => [
 							'type' => 'boolean',
@@ -528,6 +542,17 @@ function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id 
  *
  * @param string $test_id The test ID.
  * @param int $post_id Post ID to get test data for.
+ * @return float[] Array of percentages.
+ */
+function get_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id ) : array {
+	return (array) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', true );
+}
+
+/**
+ * Get the percentage of traffic to run the test for.
+ *
+ * @param string $test_id The test ID.
+ * @param int $post_id Post ID to get test data for.
  * @return array Results array
  */
 function get_ab_test_results_for_post( string $test_id, int $post_id ) : array {
@@ -627,6 +652,24 @@ function update_is_ab_test_started_for_post( string $test_id, int $post_id, bool
  */
 function update_ab_test_traffic_percentage_for_post( string $test_id, int $post_id, int $percent ) {
 	update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', $percent );
+}
+
+/**
+ * Update the percentage of traffic to run for each variant.
+ *
+ * @param string $test_id The test ID.
+ * @param int $post_id Post ID to set test data for.
+ * @param float[] $percents Array of percentages of traffic to run for each variant (indexed).
+ */
+function update_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id, array $percents ) {
+	// If there's some data error then redistribute the percentages.
+	// Allow an error margin of 1 below 100 in the calculations to accomodate precision / rounding issues.
+	$total = array_sum( $percents );
+	if ( $total > 100 || $total < 99 ) {
+		$percents = array_fill( 0, count( $percents ), 100 / count( $percents ) );
+	}
+	$percents = array_values( $percents );
+	update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', $percents );
 }
 
 /**
