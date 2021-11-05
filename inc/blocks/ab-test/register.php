@@ -160,6 +160,12 @@ function process_xb_attrs( int $xb_post_id, array $xb ) {
 	// Set traffic percentage.
 	Experiments\update_ab_test_traffic_percentage_for_post( $client_id, $xb_post_id, $xb['attrs']['percentage'] ?? 100 );
 
+	// Set variant traffic percentages.
+	$percents = array_map( function ( $variant ) use ( $xb ) {
+		return $variant['attrs']['percentage'] ?? ( 100 / count( $xb['innerBlocks'] ) );
+	}, $xb['innerBlocks'] );
+	Experiments\update_ab_test_variant_traffic_percentage_for_post( $client_id, $xb_post_id, $percents );
+
 	// Start the test if parent post is published or a reusable block.
 	$is_public_or_reusable = is_post_publicly_viewable( $post->post_parent ) || get_post_type( $post->post_parent ) === 'wp_block';
 	Experiments\update_is_ab_test_paused_for_post( $client_id, $xb_post_id, $xb['attrs']['paused'] ?? false );
