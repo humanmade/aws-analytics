@@ -102,14 +102,16 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$class_name .= sprintf( 'align%s', $align );
 	}
 
-	$post = Blocks\get_block_post( $client_id );
-
 	// Get a unique ID for the block and apply it to the templates in $inner_content.
 	$inner_content = str_replace( '__PARENT_CLIENT_ID__', $client_id, $inner_content );
 
 	// Get the results / winner if any.
-	$results = Experiments\get_ab_test_results_for_post( 'xb', $post->ID );
-	$winner = $results['winner'] ?? false;
+	$post = Blocks\get_block_post( $client_id );
+	$winner = false;
+	if ( ! empty( $post ) ) {
+		$results = Experiments\get_ab_test_results_for_post( 'xb', $post->ID );
+		$winner = $results['winner'] ?? false;
+	}
 
 	return sprintf(
 		'%s<ab-test-block class="%s" client-id="%s" post-id="%s" traffic-percentage="%s"%s%s></ab-test-block>',
