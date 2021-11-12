@@ -114,7 +114,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	}
 
 	return sprintf(
-		'%s<ab-test-block class="%s" client-id="%s" post-id="%s" traffic-percentage="%s"%s%s></ab-test-block>',
+		'%s<ab-test-block class="%s" client-id="%s" post-id="%s" test-id="xb" traffic-percentage="%s"%s%s></ab-test-block>',
 		$inner_content,
 		$class_name,
 		$client_id,

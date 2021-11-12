@@ -75,7 +75,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	// for easier and more specific targeting by document.querySelector().
 	if ( $fallback ) {
 		return sprintf(
-			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-goal="%1$s" data-traffic-percentage="%2$s">%3$s</template><noscript>%3$s</noscript>',
+			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-goal="%1$s" data-weight="%2$s">%3$s</template><noscript>%3$s</noscript>',
 			esc_attr( $goal ),
 			$percentage,
 			$inner_content
@@ -83,7 +83,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	}
 
 	return sprintf(
-		'<template data-parent-id="__PARENT_CLIENT_ID__" data-goal="%s" data-traffic-percentage="%s">%s</template>',
+		'<template data-parent-id="__PARENT_CLIENT_ID__" data-goal="%s" data-weight="%s">%s</template>',
 		esc_attr( $goal ),
 		$percentage,
 		$inner_content
