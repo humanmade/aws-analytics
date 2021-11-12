@@ -214,6 +214,10 @@ class ABTestBlock extends Test {
 		return this.hasAttribute( 'paused' );
 	}
 
+	get testId() {
+		return 'xb';
+	}
+
 	get variants() {
 		return document.querySelectorAll( `template[data-parent-id="${ this.clientId }"]` );
 	}
