@@ -542,10 +542,11 @@ function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id 
  *
  * @param string $test_id The test ID.
  * @param int $post_id Post ID to get test data for.
- * @return float[] Array of percentages.
+ * @return array $traffic_percent array
  */
 function get_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id ) : array {
-	return (array) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', true );
+	$traffic_percent = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', true );
+	return is_array( $traffic_percent ) ? $traffic_percent : [];
 }
 
 /**
