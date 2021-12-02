@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 
 import GoalPicker from '../../personalization/components/goal-picker';
 
@@ -6,9 +7,32 @@ const {
 	PanelBody,
 	TextControl,
 	RangeControl,
+	Button,
+	Icon,
 } = wp.components;
 const { useDispatch } = wp.data;
 const { __ } = wp.i18n;
+
+const Preview = styled( Button ).attrs( {
+	isLink: true,
+} )`
+	text-align: right;
+	flex: 0;
+	align-self: flex-end;
+	font-size: inherit;
+
+	.dashicon {
+		width: auto;
+		font-size: inherit;
+		line-height: inherit;
+		vertical-align: baseline;
+	}
+
+	svg.dashicon, .dashicon svg {
+		width: 0.9rem;
+		margin-left: 2px;
+	}
+`;
 
 /**
  * Variant settings panel.
@@ -18,7 +42,7 @@ const { __ } = wp.i18n;
  * @param {React.ReactNode} props.placeholder Placeholder text for the variant title while loading.
  * @returns {React.ReactNode} Variant settings panel.
  */
-const VariantPanel = ( { title, variant, variants, onMouseDown } ) => {
+const VariantPanel = ( { postId, title, variant, variants, onMouseDown } ) => {
 	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
 	const defaultPercentage = 100 / variants.length;
@@ -60,6 +84,13 @@ const VariantPanel = ( { title, variant, variants, onMouseDown } ) => {
 					} );
 				} }
 			/>
+			<Preview
+				href={ `/?p=${ postId }&set_test=ab_block_${ postId }:${ variant.clientId }` }
+				target="_ab_test_preview"
+			>
+				{ __( 'Preview', 'altis-analytics' ) }
+				<Icon icon="external" />
+			</Preview>
 		</PanelBody>
 	);
 };
