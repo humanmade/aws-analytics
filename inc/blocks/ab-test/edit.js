@@ -213,6 +213,7 @@ const Edit = ( {
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }
 						className={ `variant-settings-${ variant.clientId }` }
+						index={ index }
 						postId={ currentPost.id }
 						title={ getVariantTitle( index, variant ) }
 						variant={ variant }
