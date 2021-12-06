@@ -113,6 +113,17 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$winner = $results['winner'] ?? false;
 	}
 
+	if ( is_preview() ) {
+		return sprintf(
+			'%s<div class="ab-test-xb-preview %s" data-client-id="%s"><div class="ab-test-xb-preview__tabs" data-client-tabs="%s"></div><div class="ab-test-xb-preview__content" data-client-content="%s"></div></div>', 
+			$inner_content,
+			$class_name, 
+			$client_id,
+			$client_id,
+			$client_id
+		);
+	}
+
 	return sprintf(
 		'%s<ab-test-block class="%s" client-id="%s" post-id="%s" traffic-percentage="%s"%s%s></ab-test-block>',
 		$inner_content,
