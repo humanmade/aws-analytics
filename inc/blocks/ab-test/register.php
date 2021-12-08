@@ -113,8 +113,13 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$winner = $results['winner'] ?? false;
 	}
 	
-	if ( is_preview() ) {
-
+	if ( is_preview() || isset( $_GET[ 'set_test' ] ) ) {
+		wp_enqueue_style(
+			'altis-experiments-features-blocks-abtest',
+			plugins_url( 'inc/blocks/ab-test/edit.css', Analytics\ROOT_FILE ),
+			[],
+			null
+		);
 		wp_enqueue_script(
 			'ab-test-preview',
 			Utils\get_asset_url( 'abtestpreview.js' ),

@@ -20,6 +20,7 @@ const {
 	TextControl,
 	Toolbar,
 } = wp.components;
+const { useSelect } = wp.data;
 const { decodeEntities } = wp.htmlEntities;
 const { __, sprintf } = wp.i18n;
 
@@ -212,6 +213,7 @@ const Edit = ( {
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }
+						blockId= { attributes.clientId }
 						className={ `variant-settings-${ variant.clientId }` }
 						index={ index }
 						postId={ currentPost.id }
