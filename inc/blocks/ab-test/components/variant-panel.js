@@ -42,7 +42,7 @@ const Preview = styled( Button ).attrs( {
  * @param {React.ReactNode} props.placeholder Placeholder text for the variant title while loading.
  * @returns {React.ReactNode} Variant settings panel.
  */
-const VariantPanel = ( { index, postId, title, variant, variants, onMouseDown } ) => {
+const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMouseDown } ) => {
 	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
 	const defaultPercentage = 100 / variants.length;
@@ -86,7 +86,7 @@ const VariantPanel = ( { index, postId, title, variant, variants, onMouseDown } 
 			/>
 			{ !! postId && (
 				<Preview
-					href={ `/?p=${ postId }&set_test=ab_block_${ postId }:${ index }` }
+					href={ `/?p=${ postId }&set_test=${ blockId }&i=${ index }` }
 					target="_ab_test_preview"
 				>
 					{ __( 'Preview', 'altis-analytics' ) }
