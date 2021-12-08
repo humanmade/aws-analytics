@@ -112,16 +112,23 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$results = Experiments\get_ab_test_results_for_post( 'xb', $post->ID );
 		$winner = $results['winner'] ?? false;
 	}
-
+	
 	if ( is_preview() ) {
+
+		wp_enqueue_script(
+			'ab-test-preview',
+			Utils\get_asset_url( 'abtestpreview.js' ),
+			[],
+			null
+		);
+
 		return sprintf(
-			'%s<div class="ab-test-xb-preview %s" data-client-id="%s"><div class="ab-test-xb-preview__tabs" data-client-tabs="%s"></div><div class="ab-test-xb-preview__content" data-client-content="%s"></div></div>', 
+			'%s<div class="ab-test-xb-preview %s" data-client-id="%s"><div class="ab-test-xb-preview__tabs" data-client-tabs="%3$s"></div><div class="ab-test-xb-preview__content" data-client-content="%3$s"></div></div>', 
 			$inner_content,
 			$class_name, 
-			$client_id,
-			$client_id,
 			$client_id
 		);
+
 	}
 
 	return sprintf(

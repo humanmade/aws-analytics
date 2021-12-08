@@ -616,15 +616,3 @@ window.Altis.Analytics.onReady( () => {
 // Fire a ready event once userland API has been exported.
 const readyEvent = new CustomEvent( 'altis.experiments.ready' );
 window.dispatchEvent( readyEvent );
-
-document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
-	let templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
-	let tabCount = 1;
-	for ( let i = 0; i < templates.length; i++ ) {
-		document.querySelector( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"]' ).innerHTML += ( '<button data-tab="' + tabCount + '" class="variant">Variant ' + tabCount + '</button>' );
-		let innherHTML = templates[i].innerHTML;
-		document.querySelector( '.ab-test-xb-preview__content[data-client-content="' + xb.dataset.clientId + '"]' ).innerHTML += ( '<div class="variant-content">' + innherHTML + '</div>' );
-		tabCount++;
-	}
-} );
-
