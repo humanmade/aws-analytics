@@ -84,13 +84,15 @@ const VariantPanel = ( { index, postId, title, variant, variants, onMouseDown } 
 					} );
 				} }
 			/>
-			<Preview
-				href={ `/?p=${ postId }&set_test=ab_block_${ postId }:${ index }` }
-				target="_ab_test_preview"
-			>
-				{ __( 'Preview', 'altis-analytics' ) }
-				<Icon icon="external" />
-			</Preview>
+			{ !! postId && (
+				<Preview
+					href={ `/?p=${ postId }&set_test=ab_block_${ postId }:${ index }` }
+					target="_ab_test_preview"
+				>
+					{ __( 'Preview', 'altis-analytics' ) }
+					<Icon icon="external" />
+				</Preview>
+			) }
 		</PanelBody>
 	);
 };
