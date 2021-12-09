@@ -191,7 +191,6 @@ const Edit = ( {
 						key={ `variant-settings-${ variant.clientId }` }
 						className={ `variant-settings-${ variant.clientId }` }
 						placeholder={ sprintf( __( 'Variant %d', 'altis-analytics' ), index + 1 ) }
-						postId= { sprintf( __( 'Variant %d', 'altis-analytics' ), index + 1 ) }
 						variant={ variant }
 						onMouseDown={ () => setVariant( variant.clientId ) }
 					/>
