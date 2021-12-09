@@ -25,7 +25,7 @@ const sharedConfig = {
 		'blocks/ab-test-variant': path.resolve( __dirname, 'inc/blocks/ab-test-variant/index.js' ),
 		experiments: path.resolve( __dirname, 'src/experiments.js' ),
 		titles: path.resolve( __dirname, 'src/titles/index.js' ),
-		abtestpreview: path.resolve( __dirname, 'src/ab-test-preview.js' ),
+		'blocks/ab-test-preview': path.resolve( __dirname, 'src/ab-test-preview.js' ),
 	},
 	output: {
 		path: path.resolve( __dirname, 'build' ),
