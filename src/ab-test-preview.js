@@ -14,7 +14,6 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 	for ( let i = 0; i < templates.length; i++ ) {
 
 		const tab = document.createElement( 'button' );
-
 		if ( i === 0 || i === abIndex && xb.dataset.clientId === abtest ){
 			const variant = templates[i].content.cloneNode( true );
 			tab.className = 'ab-test-xb-preview__tab active';
@@ -25,7 +24,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 		}
 
 		tab.setAttribute( 'data-tab', i );
-		tab.innerHTML = 'Variant ' + getLetter( i );
+		tab.innerHTML = templates[i].dataset.title;
 
 		tab.addEventListener( 'click', function ( e ) {
 			const variant = templates[i].content.cloneNode( true );
