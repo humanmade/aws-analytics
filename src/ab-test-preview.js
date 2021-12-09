@@ -7,8 +7,8 @@ const abIndex = parseFloat( urlParams.get( 'i' ) );
 
 document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 
-	let templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
-	let tabContainer = document.querySelector( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"]' );
+	const templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
+	const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
 	const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
 
 	for ( let i = 0; i < templates.length; i++ ) {
@@ -29,7 +29,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 
 		tab.addEventListener( 'click', function ( e ) {
 			const variant = templates[i].content.cloneNode( true );
-			document.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( function ( el ){
+			xb.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( function ( el ){
 				el.classList.remove( 'active' );
 			} );
 			tab.className = 'ab-test-xb-preview__tab';
