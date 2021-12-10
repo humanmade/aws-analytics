@@ -20,7 +20,6 @@ const {
 	TextControl,
 	Toolbar,
 } = wp.components;
-const { useSelect } = wp.data;
 const { decodeEntities } = wp.htmlEntities;
 const { __, sprintf } = wp.i18n;
 

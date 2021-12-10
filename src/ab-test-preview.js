@@ -1,44 +1,58 @@
 import { getLetter } from '../src/utils';
 
 const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-const abtest = urlParams.get( 'set_test' );
-const abIndex = parseFloat( urlParams.get( 'i' ) );
+const urlParams = new URLSearchParams(queryString).get( 'set_test' );
+const abtest = urlParams.get( 'set_test' ).replace( 'ab_block_', '' ).split( ':', 2 );
 
 document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 
+	const xbPostId = xb.getAttribute( 'post-id' );
 	const templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
 	const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
 	const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
 
 	for ( let i = 0; i < templates.length; i++ ) {
-
+		// create a button element
 		const tab = document.createElement( 'button' );
-		if ( i === 0 || i === abIndex && xb.dataset.clientId === abtest ){
-			const variant = templates[i].content.cloneNode( true );
-			tab.className = 'ab-test-xb-preview__tab active';
-			tabContent.innerHTML = '';
-			tabContent.appendChild( variant );
-		} else {
-			tab.className = 'ab-test-xb-preview__tab';
-		}
 
-		tab.setAttribute( 'data-tab', i );
+		// set the button inner html to the test title
 		tab.innerHTML = templates[i].dataset.title;
 
+		// if the title is empty the set the title based on the index
+		if ( templates[i].dataset.title === '' ) {
+			tab.innerHTML = 'Variant ' + getLetter( i );
+		}
+
+		// set the class for the button
+		tab.className = 'ab-test-xb-preview__tab';
+
 		tab.addEventListener( 'click', function ( e ) {
+			// clone the correspnding data for the tab clicked
 			const variant = templates[i].content.cloneNode( true );
+
+			// remove the active class from any tab
 			xb.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( function ( el ){
 				el.classList.remove( 'active' );
 			} );
-			tab.className = 'ab-test-xb-preview__tab';
-			tab.className += ' active';
+
+			// add the active class
+			tab.classList.add( 'active' );
 			tabContent.innerHTML = '';
+
+			// append the data
 			tabContent.appendChild( variant );
 		} );
 
+		// append the created tab
 		tabContainer.appendChild( tab );
+	}
 
+	// determine if a specific tab should be clicked
+	// else click the first tab
+	if ( !! abtest && xbPostId === abtest[0] ){
+		tabContainer.children[abtest[1]].click();
+	} else {
+		tabContainer.firstElementChild.click();
 	}
 
 } );

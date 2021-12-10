@@ -10,7 +10,10 @@ const {
 	Button,
 	Icon,
 } = wp.components;
-const { useDispatch } = wp.data;
+const {
+	useDispatch,
+	useSelect,
+} = wp.data;
 const { __ } = wp.i18n;
 
 const Preview = styled( Button ).attrs( {
@@ -48,6 +51,11 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 	const defaultPercentage = 100 / variants.length;
 	const minPercentage = variants.length > 1 ? 0 : 100;
 
+	// Get A/B Test Block Id
+	const ab_post = useSelect( select => {
+		return select( 'analytics/xbs' ).getPost( blockId );
+	}, [ blockId ] );
+
 	return (
 		<PanelBody title={ title } onMouseDown={ onMouseDown }>
 			<TextControl
@@ -84,9 +92,9 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 					} );
 				} }
 			/>
-			{ !! postId && (
+			{ !! ab_post && (
 				<Preview
-					href={ `/?p=${ postId }&set_test=${ blockId }&i=${ index }` }
+					href={ `/?p=${ postId }&set_test=ab_block_${ ab_post.id }:${ index }` }
 					target="_ab_test_preview"
 				>
 					{ __( 'Preview', 'altis-analytics' ) }
