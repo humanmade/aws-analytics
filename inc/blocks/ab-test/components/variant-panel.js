@@ -94,7 +94,7 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 			/>
 			{ !! ab_post && (
 				<Preview
-					href={ `/?p=${ postId }&set_test=ab_block_${ ab_post.id }:${ index }` }
+					href={ `/?p=${ postId }&set_test=test_xb_${ ab_post.id }:${ index }` }
 					target="_ab_test_preview"
 				>
 					{ __( 'Preview', 'altis-analytics' ) }
