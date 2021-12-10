@@ -1,15 +1,14 @@
 import { getLetter } from '../src/utils';
 
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString).get( 'set_test' );
-const abtest = urlParams.get( 'set_test' ).replace( 'ab_block_', '' ).split( ':', 2 );
-
-document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
+document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 	const xbPostId = xb.getAttribute( 'post-id' );
 	const templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
 	const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
 	const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
+
+	const regex = new RegExp( `(utm_campaign|set_test)=test_xb_${ xbPostId }:(\\d+)`, 'i' );
+	const url_test = unescape( window.location.search ).match( regex );
 
 	for ( let i = 0; i < templates.length; i++ ) {
 		// create a button element
@@ -31,7 +30,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 			const variant = templates[i].content.cloneNode( true );
 
 			// remove the active class from any tab
-			xb.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( function ( el ){
+			xb.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( el => {
 				el.classList.remove( 'active' );
 			} );
 
@@ -49,8 +48,8 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( function ( xb ) {
 
 	// determine if a specific tab should be clicked
 	// else click the first tab
-	if ( !! abtest && xbPostId === abtest[0] ){
-		tabContainer.children[abtest[1]].click();
+	if ( url_test ){
+		tabContainer.children[url_test[2]].click();
 	} else {
 		tabContainer.firstElementChild.click();
 	}
