@@ -212,7 +212,10 @@ const Edit = ( {
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }
+						blockId={ attributes.clientId }
 						className={ `variant-settings-${ variant.clientId }` }
+						index={ index }
+						postId={ currentPost.id }
 						title={ getVariantTitle( index, variant ) }
 						variant={ variant }
 						variants={ variants }

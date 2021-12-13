@@ -70,22 +70,25 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	$fallback = $attributes['fallback'] ?? false;
 	$goal = $attributes['goal'] ?? '';
 	$percentage = $attributes['percentage'] ?? '';
+	$title = $attributes['title'] ?? '';
 
 	// If this is the fallback variant output the template with different attributes
 	// for easier and more specific targeting by document.querySelector().
 	if ( $fallback ) {
 		return sprintf(
-			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-goal="%1$s" data-weight="%2$s">%3$s</template><noscript>%3$s</noscript>',
+			'<template data-fallback data-parent-id="__PARENT_CLIENT_ID__" data-title="%4$s" data-goal="%1$s" data-weight="%2$s">%3$s</template><noscript>%3$s</noscript>',
 			esc_attr( $goal ),
 			$percentage,
-			$inner_content
+			$inner_content,
+			esc_attr( $title )
 		);
 	}
 
 	return sprintf(
-		'<template data-parent-id="__PARENT_CLIENT_ID__" data-goal="%s" data-weight="%s">%s</template>',
+		'<template data-parent-id="__PARENT_CLIENT_ID__" data-title="%4$s" data-goal="%s" data-weight="%s">%s</template>',
 		esc_attr( $goal ),
 		$percentage,
-		$inner_content
+		$inner_content,
+		esc_attr( $title )
 	);
 }
