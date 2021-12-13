@@ -123,7 +123,9 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		wp_enqueue_script(
 			'ab-test-preview',
 			Utils\get_asset_url( 'blocks/ab-test-preview.js' ),
-			[],
+			[
+				'wp-i18n',
+			],
 			null
 		);
 
