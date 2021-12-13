@@ -52,7 +52,7 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 	const minPercentage = variants.length > 1 ? 0 : 100;
 
 	// Get A/B Test Block Id
-	const ab_post = useSelect( select => {
+	const abPost = useSelect( select => {
 		return select( 'analytics/xbs' ).getPost( blockId );
 	}, [ blockId ] );
 
@@ -92,9 +92,9 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 					} );
 				} }
 			/>
-			{ !! ab_post && (
+			{ !! abPost && (
 				<Preview
-					href={ `/?p=${ postId }&set_test=test_xb_${ ab_post.id }:${ index }` }
+					href={ `/?p=${ postId }&set_test=test_xb_${ abPost.id }:${ index }` }
 					target="_ab_test_preview"
 				>
 					{ __( 'Preview', 'altis-analytics' ) }
