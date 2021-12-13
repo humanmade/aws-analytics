@@ -1,13 +1,28 @@
+.ab-test-xb-preview__tabs {
+    margin: 0.5rem 0rem;
+    line-height: 1em;
+}
+
 .ab-test-xb-preview__tab {
-	background-color: #4667de;
+	background: #4667de;
 	padding: 0.25rem 0.5rem;
 	font-size: 0.75rem;
-	margin-right: 0.25rem;
+	margin: 0 0.25rem 0 0;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
 }
 
 .ab-test-xb-preview__tab.active,
 .ab-test-xb-preview__tab:hover,
 .ab-test-xb-preview__tab:focus {
-	background-color: #152a4e;
+	background: #152a4e;
 	cursor: pointer;
 }
