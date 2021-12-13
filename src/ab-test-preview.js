@@ -50,7 +50,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 	// determine if a specific tab should be clicked
 	// else click the first tab
-	if ( url_test ){
+	if ( url_test ) {
 		tabContainer.children[url_test[2]].click();
 	} else {
 		tabContainer.firstElementChild.click();
