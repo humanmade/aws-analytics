@@ -2,7 +2,7 @@ import { getLetter } from '../src/utils';
 
 document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
-	const xbPostId = xb.getAttribute( 'post-id' );
+	const xbPostId = xb.getAttribute( 'data-post-id' );
 	const templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
 	const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
 	const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
