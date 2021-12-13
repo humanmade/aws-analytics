@@ -30,7 +30,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 			const variant = templates[i].content.cloneNode( true );
 
 			// remove the active class from any tab
-			xb.querySelectorAll( '.ab-test-xb-preview__tabs[data-client-tabs="' + xb.dataset.clientId + '"] .ab-test-xb-preview__tab' ).forEach( el => {
+			xb.querySelectorAll( '.ab-test-xb-preview__tabs .ab-test-xb-preview__tab' ).forEach( el => {
 				el.classList.remove( 'active' );
 			} );
 
