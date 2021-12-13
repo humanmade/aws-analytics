@@ -1,13 +1,13 @@
-button.ab-test-xb-preview__tab {
+.ab-test-xb-preview__tab {
 	background-color: #4667de;
 	padding: 0.25rem 0.5rem;
 	font-size: 0.75rem;
 	margin-right: 0.25rem;
 }
 
-button.ab-test-xb-preview__tab.active,
-button.ab-test-xb-preview__tab:hover,
-button.ab-test-xb-preview__tab:focus {
+.ab-test-xb-preview__tab.active,
+.ab-test-xb-preview__tab:hover,
+.ab-test-xb-preview__tab:focus {
 	background-color: #152a4e;
 	cursor: pointer;
 }
