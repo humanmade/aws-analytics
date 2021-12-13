@@ -1,13 +1,13 @@
 .ab-test-xb-preview__tabs {
-    margin: 0.5rem 0rem;
-    line-height: 1em;
+	margin: 0.5rem 0 !important;
+	line-height: 1;
 }
 
 .ab-test-xb-preview__tab {
 	background: #4667de;
 	padding: 0.25rem 0.5rem;
 	font-size: 0.75rem;
-	margin: 0 0.25rem 0 0;
+	margin: 0 0.25rem 0.25rem 0;
 	font-family:
 		-apple-system,
 		BlinkMacSystemFont,

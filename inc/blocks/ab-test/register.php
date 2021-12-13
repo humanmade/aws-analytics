@@ -113,31 +113,33 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$winner = $results['winner'] ?? false;
 	}
 
-	if ( is_preview() || isset( $_GET['set_test'] ) ) {
-		wp_enqueue_style(
-			'altis-experiments-features-blocks-abtest',
-			plugins_url( 'inc/blocks/ab-test/edit.css', Analytics\ROOT_FILE ),
-			[],
-			null
-		);
-		wp_enqueue_script(
-			'ab-test-preview',
-			Utils\get_asset_url( 'blocks/ab-test-preview.js' ),
-			[
-				'wp-i18n',
-			],
-			null
-		);
+	if ( current_user_can( 'edit_posts' ) ) {
+		if ( is_preview() || isset( $_GET['set_test'] ) ) {
+			wp_enqueue_style(
+				'altis-experiments-features-blocks-abtest',
+				plugins_url( 'inc/blocks/ab-test/edit.css', Analytics\ROOT_FILE ),
+				[],
+				null
+			);
 
-		return sprintf(
-			'%s<div class="ab-test-xb-preview %s" data-client-id="%s" data-post-id="%s"><div class="ab-test-xb-preview__tabs"></div><div class="ab-test-xb-preview__content"></div></div>',
-			$inner_content,
-			$class_name,
-			$client_id,
-			$post->ID ?? ''
-		);
+			wp_enqueue_script(
+				'ab-test-preview',
+				Utils\get_asset_url( 'blocks/ab-test-preview.js' ),
+				[
+					'wp-i18n',
+				],
+				null
+			);
 
-	}
+			return sprintf(
+				'%s<div class="ab-test-xb-preview %s" data-client-id="%s" data-post-id="%s"><div class="ab-test-xb-preview__tabs"></div><div class="ab-test-xb-preview__content"></div></div>',
+				$inner_content,
+				$class_name,
+				$client_id,
+				$post->ID ?? ''
+			);
+		}
+	};
 
 	return sprintf(
 		'%s<ab-test-block class="%s" client-id="%s" post-id="%s" traffic-percentage="%s"%s%s></ab-test-block>',
