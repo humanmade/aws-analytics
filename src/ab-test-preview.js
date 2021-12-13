@@ -1,5 +1,7 @@
 import { getLetter } from '../src/utils';
 
+const { __, sprintf } = wp.i18n;
+
 document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 	const xbPostId = xb.getAttribute( 'data-post-id' );
@@ -19,7 +21,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 		// if the title is empty the set the title based on the index
 		if ( templates[i].dataset.title === '' ) {
-			tab.innerHTML = 'Variant ' + getLetter( i );
+			tab.innerHTML = sprintf( __( 'Variant %s', 'altis-analytics' ), getLetter( i ) );
 		}
 
 		// set the class for the button
