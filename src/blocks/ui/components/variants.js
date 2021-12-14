@@ -36,7 +36,7 @@ function Variants( props ) {
 				return (
 					<div className={ `altis-analytics-block-variant ${ variant.fallback ? 'altis-analytics-block-variant--fallback' : '' }` }>
 						<div className="altis-analytics-block-variant__header">
-							<h3>{ variant.fallback ? __( 'Fallback', 'altis-analytics' ) : decodeEntities( variant.title ) }</h3>
+							<h3>{ ! variant.title && variant.fallback ? __( 'Fallback', 'altis-analytics' ) : decodeEntities( variant.title ) }</h3>
 							{ variant.goal && ( <p className="description">{ __( 'Goal', 'altis-analytics' ) }: <strong>{ window.Altis.Analytics.Experiments.Goals[ variant.goal ].label }</strong></p> ) }
 						</div>
 						<ul>
