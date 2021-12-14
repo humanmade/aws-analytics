@@ -3,6 +3,8 @@ import { v4 as uuid } from 'uuid';
 
 import { getLetter } from '../../../src/utils';
 
+import Popup from '../../../src/blocks/ui/popup';
+
 import TestSettings from './components/test-settings';
 import VariantPanel from './components/variant-panel';
 import VariantToolbar from './components/variant-toolbar';
@@ -196,6 +198,7 @@ const Edit = ( {
 							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
 					) }
+					<Popup clientId={ attributes.clientId } />
 					<Button
 						isSecondary
 						onClick={ () => setVariant( onAddVariant() ) }
