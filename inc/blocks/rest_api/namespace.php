@@ -70,17 +70,17 @@ function init() : void {
 				'loads' => [ 'type' => 'number' ],
 				'views' => [ 'type' => 'number' ],
 				'conversions' => [ 'type' => 'number' ],
-				'audiences' => [
+				'variants' => [
 					'type' => 'array',
-					'items' => get_audiences_data_schema(),
+					'items' => get_variants_data_schema(),
 				],
 				'posts' => [
 					'type' => 'array',
 					'items' => [
 						'type' => 'object',
 						'properties' => array_merge(
-							get_audiences_data_schema()['properties'],
-							[ 'audiences' => get_audiences_data_schema() ]
+							get_variants_data_schema()['properties'],
+							[ 'variants' => get_variants_data_schema() ]
 						),
 					],
 				],
@@ -91,11 +91,11 @@ function init() : void {
 }
 
 /**
- * Get the schema for XB analytics audience metrics.
+ * Get the schema for XB analytics variant metrics.
  *
  * @return array
  */
-function get_audiences_data_schema() : array {
+function get_variants_data_schema() : array {
 	return [
 		'type' => 'object',
 		'properties' => [
