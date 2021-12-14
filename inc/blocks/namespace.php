@@ -195,8 +195,7 @@ function on_widgets_save( $instance, $new_instance ) {
 		$posts = array_values( $posts ); // Reset keys.
 
 		// Generate a default using the current post title and instance number in the content.
-		//$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
-		$default_title = sprintf( 'Hello' );
+		$default_title = sprintf( '(XB %s)', $index + 1 );
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
