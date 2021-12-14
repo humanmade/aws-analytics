@@ -579,8 +579,18 @@ function get_views( string $block_id, $args = [] ) {
 		'post_id' => null,
 		'days' => 7,
 		'offset' => 0,
-		'vary_on' => 'attributes.audience.keyword',
 	] );
+
+	// Set default vary key for back compat.
+	$vary_on = 'attributes.audience.id';
+
+	// Determine index value to get variants on by block type.
+	$block_post = get_block_post( $block_id );
+	if ( ! empty( $block_post ) ) {
+		$block_type = get_block_type( $block_post );
+		$block_settings = get_block_settings( $block_type );
+		$vary_on = $block_settings['varyOn'] ?? $vary_on;
+	}
 
 	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
@@ -638,7 +648,7 @@ function get_views( string $block_id, $args = [] ) {
 					// Get the split by variant.
 					'variants' => [
 						'terms' => [
-							'field' => $args['vary_on'],
+							'field' => $vary_on,
 						],
 						'aggs' => [
 							'uniques' => [
@@ -672,7 +682,7 @@ function get_views( string $block_id, $args = [] ) {
 							// Get the split by variant.
 							'variants' => [
 								'terms' => [
-									'field' => $args['vary_on'],
+									'field' => $vary_on,
 								],
 								'aggs' => [
 									'uniques' => [
