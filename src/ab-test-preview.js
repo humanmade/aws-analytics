@@ -12,16 +12,18 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 	const regex = new RegExp( `(utm_campaign|set_test)=test_xb_${ xbPostId }:(\\d+)`, 'i' );
 	const url_test = unescape( window.location.search ).match( regex );
 
-	for ( let i = 0; i < templates.length; i++ ) {
+	const total_templates = templates.length;
+
+	for ( let i = 0; i < total_templates; i++ ) {
 		// create a button element
 		const tab = document.createElement( 'button' );
-
-		// set the button inner html to the test title
-		tab.innerHTML = templates[i].dataset.title;
 
 		// if the title is empty the set the title based on the index
 		if ( templates[i].dataset.title === '' ) {
 			tab.innerHTML = sprintf( __( 'Variant %s', 'altis-analytics' ), getLetter( i ) );
+		} else {
+			// set the button inner html to the test title
+			tab.innerHTML = templates[i].dataset.title;
 		}
 
 		// set the class for the button
@@ -50,7 +52,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 	// determine if a specific tab should be clicked
 	// else click the first tab
-	if ( url_test ) {
+	if ( url_test && ( url_test[2] < total_templates ) ) {
 		tabContainer.children[url_test[2]].click();
 	} else {
 		tabContainer.firstElementChild.click();
