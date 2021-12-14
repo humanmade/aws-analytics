@@ -43,7 +43,7 @@ function setup() {
 	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
 
 	// Change the default edit post link for XB posts.
-	//add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
+	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
 
 	// Register API endpoints for getting XB analytics data.
 	REST_API\setup();
