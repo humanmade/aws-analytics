@@ -230,6 +230,10 @@ function register_post_type() {
 					'title' => __( 'Block', 'altis-analytics' ),
 					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
 				],
+				'type' => [
+					'title' => __( 'Type', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_type_column',
+				],
 				'views' => [
 					'title' => __( 'Views', 'altis-analytics' ),
 					'function' => '\\Altis\\Analytics\\Dashboard\\render_views',
