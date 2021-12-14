@@ -37,12 +37,13 @@ function setup() {
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
+	add_filter( 'widget_update_callback', __NAMESPACE__ . '\\on_widgets_save', 100, 2 );
 
 	// Register experience block category.
 	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
 
 	// Change the default edit post link for XB posts.
-	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
+	//add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
 
 	// Register API endpoints for getting XB analytics data.
 	REST_API\setup();
@@ -155,6 +156,85 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		 */
 		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
+}
+
+/**
+ * Synchronise any XBs on the widget page with a shadow post type.
+ *
+ * @param instance $instance Widget Object.
+ * @param new_instance $new_instance Widget Object.
+ * @return object
+ */
+function on_widgets_save( $instance, $new_instance ) {
+
+	// Scan for XBs in the post content.
+	$blocks = parse_blocks( $new_instance['content'] );
+	$xbs = find_xbs( $blocks );
+
+	// Find referenced XBs.
+	$existing_posts = new WP_Query( [
+		'post_type' => POST_TYPE,
+		'post_status' => 'any',
+		'post_name__in' => array_filter( array_map( function ( array $xb ) : string {
+			return $xb['attrs']['clientId'];
+		}, $xbs ) ),
+		'posts_per_page' => 100,
+		'no_found_rows' => true,
+	] );
+
+	// Update or create XB posts.
+	foreach ( $xbs as $index => $xb ) {
+		if ( empty( $xb['attrs']['clientId'] ) ) {
+			continue;
+		}
+
+		// Extract existing post if found.
+		$posts = wp_list_filter( $existing_posts->posts, [
+			'post_name' => $xb['attrs']['clientId'],
+		] );
+		$posts = array_values( $posts ); // Reset keys.
+
+		// Generate a default using the current post title and instance number in the content.
+		//$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
+		$default_title = sprintf( 'Hello' );
+		if ( ! isset( $xb['attrs']['title'] ) ) {
+			$xb['attrs']['title'] = '';
+		}
+
+		if ( empty( $posts ) ) {
+			// Create new shadow XB post.
+			$xb_post_id = wp_insert_post( [
+				'post_type' => POST_TYPE,
+				'post_status' => 'publish',
+				'post_content' => serialize_block( $xb ),
+				'post_name' => $xb['attrs']['clientId'],
+				'post_author' => get_current_user_id(),
+				'post_title' => $xb['attrs']['title'] ?: $default_title,
+			] );
+			// Store XB type.
+			$xb_name = ( isset( $xb['name'] ) ? $xb['name'] : 'XB' );
+			update_post_meta( $xb_post_id, '_xb_type', $xb_name );
+			update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb_name ), true );
+		} else {
+			// Update existing post.
+			$xb_post_id = $posts[0]->ID;
+			wp_update_post( [
+				'ID' => $posts[0]->ID,
+				'post_content' => serialize_block( $xb ),
+				'post_title' => $xb['attrs']['title'] ?: $default_title,
+			] );
+		}
+
+		/**
+		 * Allow further processing after the XB post is created or updated.
+		 *
+		 * @param int $post_id The XB post ID.
+		 * @param array $xb The unserialised block data.
+		 */
+		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
+	}
+
+	return $new_instance;
 }
 
 /**
