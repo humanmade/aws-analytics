@@ -1,8 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import { FieldLabel } from '.';
-
 const {
 	MediaPlaceholder,
 } = wp.blockEditor;
@@ -39,8 +37,7 @@ const ImageInput = props => {
 		noticeOperations,
 		value,
 		onChange,
-		label,
-		isDisabled,
+		isEditable,
 	} = props;
 
 	const media = useSelect(
@@ -51,8 +48,7 @@ const ImageInput = props => {
 
 	return (
 		<ImageSelectInputContainer>
-			<FieldLabel>{ label }</FieldLabel>
-			{ ( ! isDisabled ) && (
+			{ ( isEditable ) && (
 				<MediaPlaceholder
 					accept="image/*"
 					allowedTypes={ [ 'image' ] }

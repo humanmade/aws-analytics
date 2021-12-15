@@ -30,8 +30,10 @@ const dispatchHandler = ( dispatch, props ) => {
 		post,
 		postType,
 		setState,
-		testId,
+		experiment,
 	} = props;
+
+	const testId = experiment?.id;
 
 	/**
 	 * @param {object} data Test data to save.
@@ -132,7 +134,7 @@ const withTestData = compose(
 		error: false,
 	} ),
 	withSelect( ( select, props ) => {
-		const testId = props.testId;
+		const testId = props.experiment?.id;
 
 		return applyFilters( `altis.experiments.${ testId }.data.selectors`, {
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),

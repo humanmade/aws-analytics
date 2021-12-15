@@ -1,13 +1,13 @@
 import { registerExperiment } from '../experiment';
-
-import Field from './field';
+import ImageInput from '../components/field-image-input';
 
 const { __ } = wp.i18n;
 
 registerExperiment( {
 	id: 'featured_images',
 	title: __( 'Featured Images', 'altis.analytics' ),
-	component: Field,
+	singleTitle: __( 'Featured Image', 'altis.analytics' ),
+	component: ImageInput,
 
 	/**
 	 * Add/replace dispatchers available to the experiment panel.
