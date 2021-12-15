@@ -1,10 +1,11 @@
 import React from 'react';
 
-import { Panel } from '.';
 import { DEFAULT_TEST } from '../data/shapes';
 import withTestData from '../data/with-test-data';
+
 import Results from './results';
 import Settings from './settings';
+import { Panel } from '.';
 
 const { PanelBody } = wp.components;
 

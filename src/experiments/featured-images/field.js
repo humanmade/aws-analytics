@@ -1,8 +1,9 @@
 import React, { Fragment } from 'react';
 
-import ImageInput from '../components/field-image-input';
 import { getLetter, replaceElement } from '../../utils';
 import { Info, Preview, VariantContainer, Views } from '../components';
+
+import ImageInput from '../components/field-image-input';
 
 const { Icon } = wp.components;
 const { __ } = wp.i18n;

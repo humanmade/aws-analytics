@@ -1,3 +1,5 @@
+import React from 'react';
+
 import TestPanel from './components/panel';
 
 const { addFilter } = wp.hooks;

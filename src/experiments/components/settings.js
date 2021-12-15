@@ -1,6 +1,11 @@
 import React, { Fragment, useEffect } from 'react';
 
 import { arrayEquals } from '../../utils';
+import { DEFAULT_TEST } from '../data/shapes';
+import withTestData from '../data/with-test-data';
+
+import DateRangeField from './field-date-range';
+import TrafficPercentageField from './field-traffic-percentage';
 
 import {
 	Button,
@@ -11,10 +16,6 @@ import {
 	PanelRow,
 	Warning,
 } from '.';
-import DateRangeField from './field-date-range';
-import TrafficPercentageField from './field-traffic-percentage';
-import { DEFAULT_TEST } from '../data/shapes';
-import withTestData from '../data/with-test-data';
 
 const { __ } = wp.i18n;
 const { applyFilters } = wp.hooks;
