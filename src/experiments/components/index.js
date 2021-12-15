@@ -160,9 +160,15 @@ export const Preview = styled( Button ).attrs( {
 	}
 `;
 
-export const FieldLabel = styled.label.attrs( {
-	className: 'components-base-control__label',
+export const VariantLabelContainer = styled.label.attrs( {
+	className: '',
 } )`
-	margin-bottom: 8px;
-	display: inline-block;
+	.components-base-control__label {
+		margin-bottom: 8px;
+		display: inline-block;
+	}
+
+	.components-base-control__icon {
+		float: right;
+	}
 `;

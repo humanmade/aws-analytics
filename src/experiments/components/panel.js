@@ -20,8 +20,7 @@ const TestPanel = props => {
 	const {
 		post,
 		test,
-		testId,
-		title,
+		experiment,
 	} = props;
 	const {
 		started,
@@ -41,7 +40,7 @@ const TestPanel = props => {
 	// Opt the editing user out of the test.
 	// This effectively resets their variant after previewing.
 	const tests = JSON.parse( window.localStorage.getItem( '_altis_ab_tests' ) || '{}' );
-	tests[ `${ testId }_${ post.id }` ] = false;
+	tests[ `${ experiment.id }_${ post.id }` ] = false;
 	window.localStorage.setItem( '_altis_ab_tests', JSON.stringify( tests ) );
 
 	return (
@@ -50,13 +49,13 @@ const TestPanel = props => {
 				className={ classNames }
 				icon={ paused ? 'controls-pause' : 'chart-line' }
 				initialOpen
-				title={ title }
+				title={ experiment.title }
 			>
 				{ ( winner !== null || hasEnded ) && (
-					<Results testId={ testId } />
+					<Results experiment={ experiment } />
 				) }
 				{ ( winner === null && ! hasEnded ) && (
-					<Settings testId={ testId } />
+					<Settings experiment={ experiment } />
 				) }
 			</PanelBody>
 		</Panel>

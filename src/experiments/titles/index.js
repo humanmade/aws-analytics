@@ -1,13 +1,14 @@
 import { registerExperiment } from '../experiment';
 
-import Field from './field';
+import TextInput from '../components/field-text-input';
 
 const { __ } = wp.i18n;
 
 registerExperiment( {
 	id: 'titles',
 	title: __( 'Post titles', 'altis.analytics' ),
-	component: Field,
+	singleTitle: __( 'Title', 'altis-analytics' ),
+	component: TextInput,
 
 	/**
 	 * Add/replace dispatchers available to the experiment panel.

@@ -10,11 +10,14 @@ const { addFilter } = wp.hooks;
  * @param {object} experiment Experiement options.
  * @param {int} experiment.id Experiement test ID.
  * @param {string} experiment.title Experiement test title.
+ * @param {string} experiment.singleTitle Experiement test single entry title.
  * @param {React.ReactNode} experiment.component Experiement test panel field component.
  * @param {object} experiment.dispatcher Experiement test panel dispatch handler.
  * @param {object} experiment.selector Experiement test panel select handler.
  */
-export const registerExperiment = ( { id, title, component, dispatcher, selector } ) => {
+export const registerExperiment = experiment => {
+	const { id, component, dispatcher, selector } = experiment;
+
 	// Hooks namespace
 	const namespace = `altis.experiments.${ id }`;
 
@@ -24,8 +27,7 @@ export const registerExperiment = ( { id, title, component, dispatcher, selector
 			...panels,
 			props => (
 				<TestPanel
-					testId={ id }
-					title={ title }
+					experiment={ experiment }
 					{ ...props }
 				/>
 			),

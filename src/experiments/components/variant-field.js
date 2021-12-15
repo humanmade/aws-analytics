@@ -1,8 +1,8 @@
 import React, { Fragment } from 'react';
 
-import { getLetter, replaceElement } from '../../utils';
+import { getLetter, removeElement, replaceElement } from '../../utils';
 import { Info, Preview, VariantContainer, Views } from '../components';
-import ImageInput from '../components/field-image-input';
+import VariantLabel from '../components/variant-label';
 
 const { Icon } = wp.components;
 const { __ } = wp.i18n;
@@ -13,8 +13,9 @@ const { __ } = wp.i18n;
  * @param {React.ComponentProps} props The component props.
  * @returns {React.ReactNode} Featured images field component.
  */
-const FeaturedImageField = props => {
+const VariantField = props => {
 	const {
+		experiment,
 		defaultValue,
 		isEditable,
 		onChange,
@@ -22,6 +23,8 @@ const FeaturedImageField = props => {
 		values,
 		variants,
 	} = props;
+
+	const { component: Component } = experiment;
 
 	// Use the current post value if we have no values yet.
 	const allValues = values.length > 0 ? values : [ defaultValue ];
@@ -34,16 +37,24 @@ const FeaturedImageField = props => {
 
 				return (
 					<VariantContainer key={ index }>
-						<ImageInput
-							key={ index }
-							isDisabled={ ! isEditable }
+						<VariantLabel
+							isEditable={ isEditable }
 							label={ `
-								${ __( 'Featured image', 'altis-analytics' ) }
+								${ experiment.title }
 								${ getLetter( index ) }
 								${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }
 							` }
+							onRemove={ () => onChange( removeElement( allValues, index ) ) }
+						/>
+						<Component
+							key={ index }
+							allValues={ allValues }
+							index={ index }
+							isEditable={ isEditable }
+							label={ null }
 							value={ value }
-							onChange={ value => onChange( replaceElement( allValues, value, allValues.length ) ) }
+							onChange={ value => onChange( replaceElement( allValues, value, index ) ) }
+							onRemove={ () => onChange( removeElement( allValues, index ) ) }
 						/>
 						<Info>
 							{ variant.size > 0 && (
@@ -56,7 +67,7 @@ const FeaturedImageField = props => {
 							) }
 							{ ! isEditable && (
 								<Preview
-									href={ `/?p=${ postId }&set_test=test_featured_images_${ postId }:${ index }` }
+									href={ `/?p=${ postId }&set_test=test_${ experiment.id }_${ postId }:${ index }` }
 									target="_ab_test_preview"
 								>
 									{ __( 'Preview', 'altis-analytics' ) }
@@ -68,13 +79,21 @@ const FeaturedImageField = props => {
 				);
 			} ) }
 			{ isEditable && allValues.length < 26 && (
-				<ImageInput
-					label={ ` ${ __( 'Featured image', 'altis-analytics' ) } ${ getLetter( allValues.length ) }` }
-					onChange={ value => onChange( replaceElement( allValues, value, allValues.length ) ) }
-				/>
+				<>
+					<VariantLabel
+						isEditable={ false }
+						label={ `${ experiment.singleTitle } ${ getLetter( allValues.length ) }` }
+					/>
+					<Component
+						isEditable
+						label={ null }
+						value={ null }
+						onChange={ value => onChange( replaceElement( allValues, value, allValues.length ) ) }
+					/>
+				</>
 			) }
 		</Fragment>
 	);
 };
 
-export default FeaturedImageField;
+export default VariantField;

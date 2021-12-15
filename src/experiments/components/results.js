@@ -28,11 +28,11 @@ const { applyFilters } = wp.hooks;
  */
 export const Results = props => {
 	const {
+		experiment,
 		test = {},
 		values = [],
 		resetTest,
 		revertValue,
-		testId,
 	} = props;
 	const {
 		results,
@@ -47,7 +47,7 @@ export const Results = props => {
 
 	const hasEnded = endTime < Date.now();
 
-	const TestFieldValue = applyFilters( `altis.experiments.${ testId }.value.display`, value => value );
+	const TestFieldValue = applyFilters( `altis.experiments.${ experiment.id }.value.display`, value => value );
 
 	return (
 		<StyledResults>
