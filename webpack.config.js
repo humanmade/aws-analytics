@@ -23,6 +23,7 @@ const sharedConfig = {
 		'blocks/personalization-variant': path.resolve( __dirname, 'inc/blocks/personalization-variant/index.js' ),
 		'blocks/ab-test': path.resolve( __dirname, 'inc/blocks/ab-test/index.js' ),
 		'blocks/ab-test-variant': path.resolve( __dirname, 'inc/blocks/ab-test-variant/index.js' ),
+		'blocks/ab-test-preview': path.resolve( __dirname, 'src/ab-test-preview.js' ),
 		'experiments': path.resolve( __dirname, 'src/experiments.js' ),
 		'experiments/sidebar': path.resolve( __dirname, 'src/experiments/index.js' ),
 		'experiment': path.resolve( __dirname, 'src/experiments/index.js' ),
