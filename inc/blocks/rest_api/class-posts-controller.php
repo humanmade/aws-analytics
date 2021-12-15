@@ -177,7 +177,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 					default:
 						$default_title = sprintf( __( 'Variant %s', 'altis-analytics' ), Utils\get_letter( $id ) );
 						$variant['attrs']['id'] = $id;
-						$variant['attrs']['title'] = $variant['attrs']['title'] ?: $default_title;
+						$variant['attrs']['title'] = $variant['attrs']['title'] ?? $default_title;
 						$variants[] = $variant['attrs'];
 				}
 			}

@@ -1,4 +1,6 @@
 import React from 'react';
+import { compactMetric, getLift } from '../../../utils';
+import { defaultVariantAnalytics } from '../../data/shapes';
 
 import Cards from './cards';
 import Timeline from './timeline';
@@ -24,6 +26,19 @@ const BlockABTest = ( {
 	}, [ clientId ] );
 
 	const test = block.ab_tests?.xb;
+
+	// Calculate aggregated data.
+	const originalData = ( analytics?.variants && analytics.variants[0]?.unique ) || defaultVariantAnalytics.unique;
+	const variantsData = ( analytics?.variants || [] ).reduce( ( carry, variant, index ) => {
+		if ( index === 0 ) {
+			return carry;
+		}
+
+		carry.loads += variant.unique.loads;
+		carry.views += variant.unique.views;
+		carry.conversions += variant.unique.conversions;
+		return carry;
+	}, defaultVariantAnalytics.unique );
 
 	return (
 		<>
@@ -52,19 +67,29 @@ const BlockABTest = ( {
 								? __( 'There are no conversions recorded yet, you may need to choose a conversion goal other than impressions for your variants.' )
 								: __( 'Average conversion of the block as a percentage of total unique views of the block.', 'altis-analytics' ),
 						},
-						// {
-						// 	color: 'blue',
-						// 	icon: 'groups',
-						// 	title: __( 'Personalization Coverage', 'altis-analytics' ),
-						// 	metric: personalisedCoverage,
-						// 	description: __( 'The percentage of visitors who are seeing personalised content.', 'altis-analytics' ),
-						// },
+						{
+							color: 'blue',
+							icon: 'chart-line',
+							title: __( 'Lift', 'altis-analytics' ),
+							metric: getLift( variantsData.conversions / variantsData.views, originalData.conversions / originalData.views ),
+							description: __( 'The aggregated lift of all variants versus the original.', 'altis-analytics' ),
+						},
 					] }
 				/>
 			</div>
 
 			<Variants
 				analytics={ analytics }
+				append={ variant => {
+					const result = test?.results[ variant.id ] || {};
+					const pValue = result.p || 1;
+					return (
+						<li>
+							<p className="description">{ __( 'Probability of best', 'altis-analytics' ) }</p>
+							<div className="altis-analytics-block-variant__metric blue">{ compactMetric( ( 1 - pValue ) * 100 ) }</div>
+						</li>
+					);
+				} }
 				variants={ ( block && block.variants ) || null }
 			/>
 
