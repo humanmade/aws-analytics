@@ -1,6 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import { FieldLabel } from '.';
+
 const {
 	MediaPlaceholder,
 } = wp.blockEditor;
@@ -49,12 +51,13 @@ const ImageInput = props => {
 
 	return (
 		<ImageSelectInputContainer>
+			<FieldLabel>{ label }</FieldLabel>
 			{ ( ! isDisabled ) && (
 				<MediaPlaceholder
 					accept="image/*"
 					allowedTypes={ [ 'image' ] }
 					labels={ {
-						title: label,
+						title: null,
 						instructions: __( 'Upload a media file or pick one from your media library.', 'altis-analytics' ),
 					} }
 					notices={ noticeUI }
