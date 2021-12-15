@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect } from 'react';
 
-import { arrayEquals } from '../utils';
+import { arrayEquals } from '../../utils';
 
 import {
 	Button,
@@ -10,33 +10,34 @@ import {
 	Notice,
 	PanelRow,
 	Warning,
-} from './components';
-import DateRangeField from './components/field-date-range';
-import TitleTextField from './components/field-title-text';
-import TrafficPercentageField from './components/field-traffic-percentage';
-import { DEFAULT_TEST } from './data/shapes';
-import withTestData from './data/with-test-data';
+} from '.';
+import DateRangeField from './field-date-range';
+import TrafficPercentageField from './field-traffic-percentage';
+import { DEFAULT_TEST } from '../data/shapes';
+import withTestData from '../data/with-test-data';
 
 const { __ } = wp.i18n;
+const { applyFilters } = wp.hooks;
 
 /**
- * Titles A/B test settings form component.
+ * A/B test settings form component.
  *
  * @param {React.ComponentProps} props The settings component props.
  * @returns {React.ReactNode} The A/B test settings form.
  */
 const Settings = props => {
 	const {
+		testId,
 		isSaving,
-		originalTitles,
+		originalValues,
 		post,
-		prevTitles,
-		title,
-		titles,
+		prevValues,
+		defaultValue,
+		values,
 		test,
 		setState,
 		updateTest,
-		updateTitles,
+		updateValues,
 	} = props;
 	const {
 		paused,
@@ -50,35 +51,37 @@ const Settings = props => {
 		variants = [],
 	} = results;
 
-	// Set the initial prevTitles value if it's empty.
+	const TestValueFieldComponent = applyFilters( `altis.experiments.${ testId }.component`, null );
+
+	// Set the initial prevValues value if it's empty.
 	useEffect( () => {
-		if ( originalTitles.length && ! prevTitles.length ) {
-			setState( { prevTitles: originalTitles } );
+		if ( originalValues.length && ! prevValues.length ) {
+			setState( { prevValues: originalValues } );
 		}
-	}, [ originalTitles, prevTitles, setState ] );
+	}, [ originalValues, prevValues, setState ] );
 
 	/**
 	 * @param {boolean} paused True to pause the test.
 	 */
 	const setPaused = paused => {
-		setState( { prevTitles: titles } );
-		updateTest( { paused }, titles, true );
+		setState( { prevValues: values } );
+		updateTest( { paused }, values, true );
 	};
 	/**
 	 * Start the test running.
 	 */
 	const startTest = () => {
-		setState( { prevTitles: titles } );
+		setState( { prevValues: values } );
 		updateTest( {
 			started: true,
 			paused: false,
-		}, titles, true );
+		}, values, true );
 	};
 	/**
-	 * Set the titles back to the values stored in the db.
+	 * Set the values back to the values stored in the db.
 	 */
-	const resetTitles = () => {
-		updateTitles( prevTitles );
+	const resetValues = () => {
+		updateValues( prevValues );
 	};
 
 	const isActive = started && startTime <= Date.now() && endTime >= Date.now();
@@ -101,14 +104,14 @@ const Settings = props => {
 				) }
 				{ started && (
 					<CenteredButton
-						disabled={ titles.length < 2 }
+						disabled={ values.length < 2 }
 						isBusy={ isSaving }
 						onClick={ () => {
-							if ( arrayEquals( titles, prevTitles ) ) {
+							if ( arrayEquals( values, prevValues ) ) {
 								return setPaused( ! paused );
 							}
 
-							if ( paused && window.confirm( __( 'Are you sure? Editing the titles will reset the current test results.', 'altis-analytics' ) ) ) {
+							if ( paused && window.confirm( __( 'Are you sure? Editing the values will reset the current test results.', 'altis-analytics' ) ) ) {
 								return setPaused( ! paused );
 							}
 
@@ -121,21 +124,21 @@ const Settings = props => {
 				) }
 				{ ! started && (
 					<CenteredButton
-						disabled={ titles.length < 2 }
+						disabled={ values.length < 2 }
 						isBusy={ isSaving }
 						onClick={ startTest }
 					>
 						{ __( 'Run test', 'altis-analytics' ) }
 					</CenteredButton>
 				) }
-				{ started && paused && ! arrayEquals( titles, prevTitles ) && (
+				{ started && paused && ! arrayEquals( values, prevValues ) && (
 					<Fragment>
 						<Warning>
-							{ __( 'Editing the titles now will reset the test and delete the previous results.' ) }
+							{ __( 'Editing the values now will reset the test and delete the previous results.' ) }
 						</Warning>
 						<Button
 							isLink
-							onClick={ resetTitles }
+							onClick={ resetValues }
 						>
 							{ __( 'Undo changes', 'altis-analytics' ) }
 						</Button>
@@ -143,14 +146,14 @@ const Settings = props => {
 				) }
 			</PanelRow>
 			<PanelRow>
-				<p>{ __( 'Add multiple post titles and see which one has a higher conversion rate.', 'altis-analytics' ) }</p>
-				<TitleTextField
-					defaultTitle={ title }
+				<p>{ __( 'Add multiple values and see which one has a higher conversion rate.', 'altis-analytics' ) }</p>
+				<TestValueFieldComponent
+					defaultValue={ defaultValue }
 					isEditable={ paused }
 					postId={ post.id }
-					titles={ titles }
+					values={ values }
 					variants={ variants }
-					onChange={ updateTitles }
+					onChange={ updateValues }
 				/>
 			</PanelRow>
 			<PanelRow>

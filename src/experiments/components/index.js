@@ -113,3 +113,49 @@ export const PercentageChange = styled.div.attrs( {
 	right: 0;
 	font-size: 90%;
 `;
+
+export const VariantContainer = styled.div`
+	margin-bottom: 5px;
+	position: relative;
+`;
+
+export const Info = styled.div`
+	font-size: 85%;
+	color: #666;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+`;
+
+export const Views = styled.div`
+	flex: 1;
+
+	.dashicon {
+		margin-right: 4px;
+		vertical-align: middle;
+		position: relative;
+		width: 0.9rem;
+		top: -1px;
+	}
+`;
+
+export const Preview = styled( Button ).attrs( {
+	isLink: true,
+} )`
+	text-align: right;
+	flex: 0;
+	align-self: flex-end;
+	font-size: inherit;
+
+	.dashicon {
+		width: auto;
+		font-size: inherit;
+		line-height: inherit;
+		vertical-align: baseline;
+	}
+
+	svg.dashicon, .dashicon svg {
+		width: 0.9rem;
+		margin-left: 2px;
+	}
+`;

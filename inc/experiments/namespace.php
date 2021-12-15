@@ -40,6 +40,16 @@ function setup() {
 		Titles\setup();
 	}
 
+	/**
+	 * Enable Featured images AB Tests.
+	 *
+	 * @param bool $enabled Whether to enable this feature or not.
+	 */
+	$featured_images_feature = apply_filters( 'altis.experiments.features.featured_images', true );
+	if ( $featured_images_feature ) {
+		FeaturedImages\setup();
+	}
+
 	// Register default conversion goals.
 	register_goal( 'click_any_link', [
 		'label' => __( 'Click on any link', 'altis-analytics' ),
@@ -362,7 +372,18 @@ function register_post_ab_test( string $test_id, array $options ) {
 			'post',
 			'page',
 		],
+		'editor_scripts' => [],
 	] );
+
+	// Handle post type support filtering and registration.
+	$options['post_types'] = apply_filters( "altis.experiments.features.{ $test_id }.post_types", array_filter( (array) $options['post_types'] ) );
+	foreach ( $options['post_types'] as $post_type ) {
+		add_post_type_support( $post_type, "altis.experiments.{ $test_id }" );
+	}
+
+	if ( $options['editor_scripts'] ) {
+		add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_experiments_editor_scripts' );
+	}
 
 	$post_ab_tests[ $test_id ] = $options;
 
@@ -392,6 +413,73 @@ function register_post_ab_test( string $test_id, array $options ) {
 	if ( ( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) && ! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] ) ) {
 		wp_schedule_event( time(), 'hourly', 'altis_post_ab_test_cron', [ $test_id ] );
 	}
+}
+
+/**
+ * Register block editor scripts requird for registered tests.
+ *
+ * @param string $hook Current screen hook.
+ *
+ * @return void
+ */
+function enqueue_experiments_editor_scripts( string $hook ) : void {
+	global $post_ab_tests;
+
+	$register_experiments_framework = apply_filters( 'altis.experiments.frontend.framework.enabled', false );
+
+	wp_register_script(
+		'altis-experiments-features',
+		Utils\get_asset_url( 'experiment.js' ),
+		[
+			'wp-plugins',
+			'wp-blocks',
+			'wp-i18n',
+			'wp-editor',
+			'wp-components',
+			'wp-core-data',
+			'wp-edit-post',
+			'moment',
+		],
+	);
+
+	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+		return;
+	}
+
+	foreach ( $post_ab_tests as $test_id => $test ) {
+		if ( empty( $test['editor_scripts'] ) ) {
+			continue;
+		}
+
+		// Get supported post types.
+		$supported_post_types = get_post_types_by_support( "altis.experiments.{ $test_id }" );
+
+		if ( ! in_array( get_current_screen()->post_type, $supported_post_types, true ) ) {
+			continue;
+		}
+
+		$register_experiments_framework = true;
+
+		foreach ( $test['editor_scripts'] as $script => $deps ) {
+			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, $deps, null );
+		}
+	}
+
+	if ( $register_experiments_framework ) {
+		wp_enqueue_script( 'altis-experiments-features' );
+	}
+
+	wp_add_inline_script(
+		'altis-experiments-features',
+		sprintf(
+			'window.Altis = window.Altis || {};' .
+			'window.Altis.Analytics = window.Altis.Analytics || {};' .
+			'window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};' .
+			'window.Altis.Analytics.Experiments.BuildURL = %s;',
+			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) )
+		),
+		'before'
+	);
 }
 
 /**

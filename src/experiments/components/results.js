@@ -4,7 +4,7 @@ import {
 	getLetter,
 	getDateString,
 	getDurationString,
-} from '../utils';
+} from '../../utils';
 
 import {
 	Button,
@@ -14,12 +14,11 @@ import {
 	PercentageChange,
 	StyledResults,
 	Variant,
-} from './components';
-import withTestData from './data/with-test-data';
+} from '.';
+import withTestData from '../data/with-test-data';
 
-const { withDispatch } = wp.data;
-const { compose } = wp.compose;
 const { __ } = wp.i18n;
+const { applyFilters } = wp.hooks;
 
 /**
  * A/B test results display component.
@@ -30,9 +29,10 @@ const { __ } = wp.i18n;
 export const Results = props => {
 	const {
 		test = {},
-		titles = [],
+		values = [],
 		resetTest,
-		revertTitle,
+		revertValue,
+		testId,
 	} = props;
 	const {
 		results,
@@ -46,6 +46,8 @@ export const Results = props => {
 	} = results;
 
 	const hasEnded = endTime < Date.now();
+
+	const TestFieldValue = applyFilters( `altis.experiments.${ testId }.value.display`, value => value );
 
 	return (
 		<StyledResults>
@@ -65,28 +67,30 @@ export const Results = props => {
 				</CenteredButton>
 			</PanelRow>
 			<PanelRow>
-				{ titles.map( ( title, index ) => {
+				{ values.map( ( value, index ) => {
 					// Get variant data.
 					const variant = variants[ index ] || { rate: 0.0 };
 
 					return (
 						<Variant key={ index } highlight={ index === winner }>
-							<h3>{ `${ __( 'Title', 'altis-analytics' ) } ${ getLetter( index ) } ${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }` }</h3>
-							<p>{ title }</p>
+							<h3>{ `${ __( 'Variant', 'altis-analytics' ) } ${ getLetter( index ) } ${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }` }</h3>
+							<p>
+								<TestFieldValue value={ value } />
+							</p>
 							<PercentageChange>
 								{ ( variant.rate * 100 ).toFixed( 2 ) }%
 							</PercentageChange>
 							{ winner === 0 && winner === index && (
-								<p className="description">{ __( 'The original title performed better than the others!', 'altis-analytics' ) }</p>
+								<p className="description">{ __( 'The original variant performed better than the others!', 'altis-analytics' ) }</p>
 							) }
 							{ winner !== 0 && winner === index && (
 								<Fragment>
-									<p className="description">{ __( 'This title performed better than the others and is now the title of this post!', 'altis-analytics' ) }</p>
+									<p className="description">{ __( 'This variant performed better than the others and is now persisted to this post!', 'altis-analytics' ) }</p>
 									<Button
 										isLink
-										onClick={ () => revertTitle() }
+										onClick={ () => revertValue() }
 									>
-										{ __( 'Revert to original title', 'altis-analytics' ) }
+										{ __( 'Revert to original variant', 'altis-analytics' ) }
 									</Button>
 								</Fragment>
 							) }
@@ -111,20 +115,4 @@ export const Results = props => {
 	);
 };
 
-export const ResultsWithData = compose(
-	withTestData,
-	withDispatch( ( dispatch, props ) => {
-		return {
-			/**
-			 * Resets the first title back to the original post title value.
-			 */
-			revertTitle: () => {
-				dispatch( 'core/editor' ).editPost( {
-					title: props.titles[ 0 ],
-				} );
-			},
-		};
-	} )
-)( Results );
-
-export default ResultsWithData;
+export default withTestData( Results );
