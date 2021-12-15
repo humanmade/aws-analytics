@@ -41,4 +41,8 @@ const PluginIcon = props => {
 	);
 };
 
+PluginIcon.defaultProps = {
+	experiment: DEFAULT_EXPERIMENT,
+};
+
 export default withTestData( PluginIcon );

@@ -118,13 +118,14 @@ const dispatchHandler = ( dispatch, props ) => {
 		// TODO Tests should implement this method, go for an exception if not ?
 	};
 
-	return applyFilters( `altis.experiments.${ testId }.data.dispatchers`, {
+	return {
 		updateTest,
 		updateValues,
 		resetTest,
 		saveTest,
 		revertValue,
-	}, dispatch, props );
+		...experiment.dispatcher( dispatch ),
+	};
 };
 
 const withTestData = compose(
@@ -134,17 +135,18 @@ const withTestData = compose(
 		error: false,
 	} ),
 	withSelect( ( select, props ) => {
-		const testId = props.experiment?.id;
+		const { experiment } = props;
 
-		return applyFilters( `altis.experiments.${ testId }.data.selectors`, {
+		return {
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
 			post: select( 'core/editor' ).getCurrentPost(),
 			postType: select( 'core' ).getPostType( select( 'core/editor' ).getCurrentPostType() ),
-			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ testId ] || DEFAULT_TEST,
-			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ testId }` ) || [],
-			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ testId }` ) || [],
+			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ experiment.id ] || DEFAULT_TEST,
+			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ experiment.id }` ) || [],
+			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ experiment.id }` ) || [],
 			defaultValue: '',
-		}, select, props );
+			...experiment.selectors( select ),
+		};
 	} ),
 	withDispatch( dispatchHandler )
 );
