@@ -1,87 +1,13 @@
 import React, { Fragment } from 'react';
-import styled from 'styled-components';
 
-import { getLetter } from '../../utils';
+import { getLetter, removeElement, replaceElement } from '../../utils';
+import { Info, Preview, VariantContainer, Views } from '../components';
 
 const {
-	Button,
 	TextareaControl,
 	Icon,
 } = wp.components;
 const { __ } = wp.i18n;
-
-const Variant = styled.div`
-	margin-bottom: 5px;
-	position: relative;
-`;
-
-const Info = styled.div`
-	font-size: 85%;
-	color: #666;
-	display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-`;
-
-const Views = styled.div`
-	flex: 1;
-
-	.dashicon {
-		margin-right: 4px;
-		vertical-align: middle;
-		position: relative;
-		width: 0.9rem;
-		top: -1px;
-	}
-`;
-
-const Preview = styled( Button ).attrs( {
-	isLink: true,
-} )`
-	text-align: right;
-	flex: 0;
-	align-self: flex-end;
-	font-size: inherit;
-
-	.dashicon {
-		width: auto;
-		font-size: inherit;
-		line-height: inherit;
-		vertical-align: baseline;
-	}
-
-	svg.dashicon, .dashicon svg {
-		width: 0.9rem;
-		margin-left: 2px;
-	}
-`;
-
-/**
- * Updates a title in the array of titles.
- *
- * @param {Array} titles List of titles to test.
- * @param {string} title The updated title string.
- * @param {number} index The array index of the title to update.
- * @returns {Array} The updated titles array.
- */
-const editTitles = ( titles = [], title = '', index = 0 ) => {
-	const newTitles = [ ...titles ];
-	newTitles[ index ] = title;
-	return newTitles;
-};
-
-/**
- * Remove a title from an array of titles.
- *
- * @param {Array} titles The list of titles.
- * @param {number} index The index of the title to remove.
- * @returns {Array} The updated array of titles.
- */
-const removeTitle = ( titles, index ) => {
-	const newTitles = [ ...titles ];
-	newTitles.splice( index, 1 );
-	return newTitles;
-};
 
 /**
  * Title field component.
@@ -91,16 +17,16 @@ const removeTitle = ( titles, index ) => {
  */
 const TitleTextField = props => {
 	const {
-		defaultTitle,
+		defaultValue,
 		isEditable,
 		onChange,
 		postId,
-		titles,
+		values,
 		variants,
 	} = props;
 
-	// Use the current post title if we have no titles yet.
-	const allTitles = titles.length > 0 ? titles : [ defaultTitle ];
+	// Use the current post title if we have no values yet.
+	const allTitles = values.length > 0 ? values : [ defaultValue ];
 
 	return (
 		<Fragment>
@@ -109,7 +35,7 @@ const TitleTextField = props => {
 				const variant = ( variants && variants[ index ] ) || { size: 0 };
 
 				return (
-					<Variant key={ index }>
+					<VariantContainer key={ index }>
 						<TextareaControl
 							key={ index }
 							autoFocus={ allTitles.length - 1 === index }
@@ -122,7 +48,7 @@ const TitleTextField = props => {
 							readOnly={ ! isEditable }
 							rows={ 3 }
 							value={ title }
-							onChange={ value => onChange( editTitles( allTitles, value, index ) ) }
+							onChange={ value => onChange( replaceElement( allTitles, value, index ) ) }
 							onFocus={ event => {
 								const length = event.target.value.length * 2;
 								event.target.setSelectionRange( length, length );
@@ -136,7 +62,7 @@ const TitleTextField = props => {
 										( event.which && event.which === 8 )
 									)
 								) {
-									onChange( removeTitle( allTitles, index ) );
+									onChange( removeElement( allTitles, index ) );
 								}
 							} }
 						/>
@@ -159,7 +85,7 @@ const TitleTextField = props => {
 								</Preview>
 							) }
 						</Info>
-					</Variant>
+					</VariantContainer>
 				);
 			} ) }
 			{ isEditable && allTitles.length < 26 && (
@@ -169,7 +95,7 @@ const TitleTextField = props => {
 					placeholder={ __( 'Enter another title here.', 'altis-analytics' ) }
 					rows={ 3 }
 					value=""
-					onChange={ value => onChange( editTitles( allTitles, value, allTitles.length ) ) }
+					onChange={ value => onChange( replaceElement( allTitles, value, allTitles.length ) ) }
 				/>
 			) }
 		</Fragment>

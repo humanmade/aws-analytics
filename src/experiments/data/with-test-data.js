@@ -6,6 +6,7 @@ const { apiFetch } = wp;
 const { withSelect, withDispatch } = wp.data;
 const { compose, withState } = wp.compose;
 const { __ } = wp.i18n;
+const { applyFilters } = wp.hooks;
 
 /**
  * Function for handling array merge behaviour. Replaces old array with new.
@@ -29,6 +30,7 @@ const dispatchHandler = ( dispatch, props ) => {
 		post,
 		postType,
 		setState,
+		testId,
 	} = props;
 
 	/**
@@ -53,20 +55,20 @@ const dispatchHandler = ( dispatch, props ) => {
 
 	/**
 	 * @param {object} test Test data to update.
-	 * @param {Array|boolean} titles Array of titles or false if none set yet.
+	 * @param {Array|boolean} values Array of values or false if none set yet.
 	 * @param {boolean} save If true save updates to the database, if false just update redux store.
 	 */
-	const updateTest = async ( test = {}, titles = false, save = false ) => {
+	const updateTest = async ( test = {}, values = false, save = false ) => {
 		const data = {
 			ab_tests: deepmerge( ab_tests, {
-				titles: test,
+				[ testId ]: test,
 			}, {
 				arrayMerge: overwriteMerge,
 			} ),
 		};
 
-		if ( titles !== false ) {
-			data.ab_test_titles = titles;
+		if ( values !== false ) {
+			data[ `ab_test_${ testId }` ] = values;
 		}
 
 		// Send the data to the API if we want to save it.
@@ -78,12 +80,12 @@ const dispatchHandler = ( dispatch, props ) => {
 	};
 
 	/**
-	 * @param {Array} titles List of titles to update.
+	 * @param {Array} values List of values to update.
 	 * @param {boolean} save If true save updates to database, if false only update redux store.
 	 */
-	const updateTitles = async ( titles, save = false ) => {
+	const updateValues = async ( values, save = false ) => {
 		const data = {
-			ab_test_titles: titles,
+			[ `ab_test_${ testId }` ]: values,
 		};
 
 		// Send the data to the API if we want to save it.
@@ -94,43 +96,53 @@ const dispatchHandler = ( dispatch, props ) => {
 		dispatch( 'core/editor' ).editPost( data );
 	};
 
-	return {
-		updateTest,
-		updateTitles,
-		/**
-		 * @param {string} message Confirmation message to show when resetting test data.
-		 */
-		resetTest: message => {
-			const confirmation = message || __( 'Are you sure you want to reset the test?', 'altis-analytics' );
+	/**
+	 * @param {string} message Confirmation message to show when resetting test data.
+	 */
+	const resetTest = message => {
+		const confirmation = message || __( 'Are you sure you want to reset the test?', 'altis-analytics' );
 
-			if ( ! window.confirm( confirmation ) ) {
-				return;
-			}
+		if ( ! window.confirm( confirmation ) ) {
+			return;
+		}
 
-			updateTest( DEFAULT_TEST, [], true );
-		},
-		saveTest,
+		updateTest( DEFAULT_TEST, [], true );
 	};
+
+	/**
+	 * @param {*} value Value to reset to.
+	 */
+	const revertValue = value => {
+		// TODO Tests should implement this method, go for an exception if not ?
+	};
+
+	return applyFilters( `altis.experiments.${ testId }.data.dispatchers`, {
+		updateTest,
+		updateValues,
+		resetTest,
+		saveTest,
+		revertValue,
+	}, dispatch, props );
 };
 
 const withTestData = compose(
 	withState( {
 		isSaving: false,
-		prevTitles: [],
+		prevValues: [],
 		error: false,
 	} ),
-	withSelect( select => {
-		const currentPostType = select( 'core/editor' ).getCurrentPostType();
+	withSelect( ( select, props ) => {
+		const testId = props.testId;
 
-		return {
+		return applyFilters( `altis.experiments.${ testId }.data.selectors`, {
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
-			originalTitles: select( 'core/editor' ).getCurrentPostAttribute( 'ab_test_titles' ) || [],
 			post: select( 'core/editor' ).getCurrentPost(),
-			postType: select( 'core' ).getPostType( currentPostType ),
-			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ).titles || DEFAULT_TEST,
-			title: select( 'core/editor' ).getEditedPostAttribute( 'title' ) || '',
-			titles: select( 'core/editor' ).getEditedPostAttribute( 'ab_test_titles' ) || [],
-		};
+			postType: select( 'core' ).getPostType( select( 'core/editor' ).getCurrentPostType() ),
+			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ testId ] || DEFAULT_TEST,
+			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ testId }` ) || [],
+			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ testId }` ) || [],
+			defaultValue: '',
+		}, select, props );
 	} ),
 	withDispatch( dispatchHandler )
 );
