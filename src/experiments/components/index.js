@@ -159,3 +159,10 @@ export const Preview = styled( Button ).attrs( {
 		margin-left: 2px;
 	}
 `;
+
+export const FieldLabel = styled.label.attrs( {
+	className: 'components-base-control__label',
+} )`
+	margin-bottom: 8px;
+	display: inline-block;
+`;
