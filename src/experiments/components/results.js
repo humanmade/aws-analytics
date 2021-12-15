@@ -1,12 +1,11 @@
 import React, { Fragment } from 'react';
 
-import withTestData from '../data/with-test-data';
-
 import {
 	getLetter,
 	getDateString,
 	getDurationString,
 } from '../../utils';
+import withTestData from '../data/with-test-data';
 
 import {
 	Button,
