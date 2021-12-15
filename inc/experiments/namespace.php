@@ -439,7 +439,7 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 			'wp-core-data',
 			'wp-edit-post',
 			'moment',
-		],
+		]
 	);
 
 	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {

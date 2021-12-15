@@ -1,5 +1,6 @@
-import Field from './field';
 import { registerExperiment } from '../experiment';
+
+import Field from './field';
 
 const { __ } = wp.i18n;
 

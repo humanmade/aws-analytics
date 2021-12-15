@@ -1,5 +1,7 @@
 import React, { Fragment } from 'react';
 
+import withTestData from '../data/with-test-data';
+
 import {
 	getLetter,
 	getDateString,
@@ -15,7 +17,6 @@ import {
 	StyledResults,
 	Variant,
 } from '.';
-import withTestData from '../data/with-test-data';
 
 const { __ } = wp.i18n;
 const { applyFilters } = wp.hooks;

@@ -10,7 +10,6 @@ const { applyFilters } = wp.hooks;
 /**
  * Block Editor sidebar plugin component for A/B tests.
  *
- * @param {React.ComponentProps} props The sidebar plugin component props.
  * @returns {React.ReactNode} The plugin sidebar.
  */
 const Plugin = () => {
