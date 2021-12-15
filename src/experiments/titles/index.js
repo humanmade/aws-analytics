@@ -1,6 +1,5 @@
-import { registerExperiment } from '../experiment';
-
 import TextInput from '../components/field-text-input';
+import { registerExperiment } from '../experiment';
 
 const { __ } = wp.i18n;
 

@@ -6,6 +6,7 @@ import withTestData from '../data/with-test-data';
 
 import DateRangeField from './field-date-range';
 import TrafficPercentageField from './field-traffic-percentage';
+import VariantField from './variant-field';
 
 import {
 	Button,
@@ -16,10 +17,8 @@ import {
 	PanelRow,
 	Warning,
 } from '.';
-import VariantField from './variant-field';
 
 const { __ } = wp.i18n;
-const { applyFilters } = wp.hooks;
 
 /**
  * A/B test settings form component.
