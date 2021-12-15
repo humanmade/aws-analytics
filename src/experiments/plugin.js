@@ -1,5 +1,7 @@
 import React, { Fragment } from 'react';
 
+import TestPanel from './components/panel';
+
 const {
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
@@ -14,10 +16,10 @@ const { applyFilters } = wp.hooks;
  */
 const Plugin = () => {
 	// Allow adding custom panels.
-	const experimentsPanels = applyFilters( 'altis.experiments.panels', [] );
+	const experiments = applyFilters( 'altis.experiments.experiments', [] );
 
 	// Short circuit early if no panels are defined, to disable the sidebar completely.
-	if ( experimentsPanels.length < 1 ) {
+	if ( experiments.length < 1 ) {
 		return ( <></> );
 	}
 
@@ -32,7 +34,9 @@ const Plugin = () => {
 				name="altis-experiments"
 				title={ __( 'Experiments', 'altis-analytics' ) }
 			>
-				{ experimentsPanels && experimentsPanels.map( Panel => <Panel /> ) }
+				{ experiments && experiments.map( experiment => (
+					<TestPanel experiment={ experiment } />
+				) ) }
 			</PluginSidebar>
 		</Fragment>
 	);
