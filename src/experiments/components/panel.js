@@ -5,6 +5,7 @@ import withTestData from '../data/with-test-data';
 
 import Results from './results';
 import Settings from './settings';
+
 import { Panel } from '.';
 
 const { PanelBody } = wp.components;
