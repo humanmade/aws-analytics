@@ -6,7 +6,6 @@ const { apiFetch } = wp;
 const { withSelect, withDispatch } = wp.data;
 const { compose, withState } = wp.compose;
 const { __ } = wp.i18n;
-const { applyFilters } = wp.hooks;
 
 /**
  * Function for handling array merge behaviour. Replaces old array with new.
@@ -124,7 +123,7 @@ const dispatchHandler = ( dispatch, props ) => {
 		resetTest,
 		saveTest,
 		revertValue,
-		...experiment.dispatcher( dispatch ),
+		...experiment?.dispatcher( dispatch ) || {},
 	};
 };
 
@@ -141,11 +140,11 @@ const withTestData = compose(
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
 			post: select( 'core/editor' ).getCurrentPost(),
 			postType: select( 'core' ).getPostType( select( 'core/editor' ).getCurrentPostType() ),
-			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ experiment.id ] || DEFAULT_TEST,
-			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ experiment.id }` ) || [],
-			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ experiment.id }` ) || [],
+			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ experiment?.id ] || DEFAULT_TEST,
+			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ experiment?.id }` ) || [],
+			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ experiment?.id }` ) || [],
 			defaultValue: '',
-			...experiment.selectors( select ),
+			...experiment?.selector( select ) || {},
 		};
 	} ),
 	withDispatch( dispatchHandler )
