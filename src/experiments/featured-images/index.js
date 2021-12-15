@@ -1,5 +1,5 @@
-import { registerExperiment } from '../experiment';
 import ImageInput from '../components/field-image-input';
+import { registerExperiment } from '../experiment';
 
 const { __ } = wp.i18n;
 
