@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import { DEFAULT_EXPERIMENT } from '../data/shapes';
 import withTestData from '../data/with-test-data';
 
 const { __ } = wp.i18n;
