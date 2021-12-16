@@ -1,9 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import { DEFAULT_EXPERIMENT } from '../data/shapes';
-import withTestData from '../data/with-test-data';
-
+const { withSelect } = wp.data;
 const { __ } = wp.i18n;
 
 const Icon = styled.span.attrs( props => ( {
@@ -31,19 +29,18 @@ const Icon = styled.span.attrs( props => ( {
  * @returns {React.ReactNode} The custom plugin icon component.
  */
 const PluginIcon = props => {
-	const { test } = props;
-	const { results } = test || {};
-	const { winner = null } = results || {};
-
 	return (
-		<Icon winner={ Boolean( winner ) }>
+		<Icon winner={ Boolean( props.winner ) }>
 			{ __( 'A/B', 'altis-analytics' ) }
 		</Icon>
 	);
 };
 
-PluginIcon.defaultProps = {
-	experiment: DEFAULT_EXPERIMENT,
-};
+export default withSelect( ( select, props ) => {
+	const tests = select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' );
 
-export default withTestData( PluginIcon );
+	return {
+		// Check if we have any winners.
+		winner: Object.values( tests ).filter( test => test?.results?.winner ).length,
+	};
+} )( PluginIcon );

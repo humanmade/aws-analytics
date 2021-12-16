@@ -15,7 +15,7 @@ const { __ } = wp.i18n;
  */
 const VariantField = props => {
 	const {
-		experiment,
+		abTest,
 		defaultValue,
 		isEditable,
 		onChange,
@@ -24,7 +24,7 @@ const VariantField = props => {
 		variants,
 	} = props;
 
-	const { component: Component } = experiment;
+	const { component: Component } = abTest;
 
 	// Use the current post value if we have no values yet.
 	const allValues = values.length > 0 ? values : [ defaultValue ];
@@ -40,7 +40,7 @@ const VariantField = props => {
 						<VariantLabel
 							isEditable={ isEditable }
 							label={ `
-								${ experiment.title }
+								${ abTest.singleTitle }
 								${ getLetter( index ) }
 								${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }
 							` }
@@ -67,7 +67,7 @@ const VariantField = props => {
 							) }
 							{ ! isEditable && (
 								<Preview
-									href={ `/?p=${ postId }&set_test=test_${ experiment.id }_${ postId }:${ index }` }
+									href={ `/?p=${ postId }&set_test=test_${ abTest.id }_${ postId }:${ index }` }
 									target="_ab_test_preview"
 								>
 									{ __( 'Preview', 'altis-analytics' ) }
@@ -82,12 +82,11 @@ const VariantField = props => {
 				<>
 					<VariantLabel
 						isEditable={ false }
-						label={ `${ experiment.singleTitle } ${ getLetter( allValues.length ) }` }
+						label={ `${ abTest.singleTitle } ${ getLetter( allValues.length ) }` }
 					/>
 					<Component
 						isEditable
 						label={ null }
-						value={ null }
 						onChange={ value => onChange( replaceElement( allValues, value, allValues.length ) ) }
 					/>
 				</>

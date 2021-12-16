@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { getTestsRegistry } from '../data/registry';
 import { DEFAULT_TEST } from '../data/shapes';
 import withTestData from '../data/with-test-data';
 
@@ -20,7 +21,7 @@ const TestPanel = props => {
 	const {
 		post,
 		test,
-		experiment,
+		testId,
 	} = props;
 	const {
 		started,
@@ -29,6 +30,7 @@ const TestPanel = props => {
 		end_time: endTime,
 	} = test;
 	const { winner = null } = results;
+	const abTest = getTestsRegistry().get( testId );
 
 	const classNames = [
 		started && 'is-started',
@@ -40,7 +42,7 @@ const TestPanel = props => {
 	// Opt the editing user out of the test.
 	// This effectively resets their variant after previewing.
 	const tests = JSON.parse( window.localStorage.getItem( '_altis_ab_tests' ) || '{}' );
-	tests[ `${ experiment.id }_${ post.id }` ] = false;
+	tests[ `${ abTest.id }_${ post.id }` ] = false;
 	window.localStorage.setItem( '_altis_ab_tests', JSON.stringify( tests ) );
 
 	return (
@@ -49,13 +51,13 @@ const TestPanel = props => {
 				className={ classNames }
 				icon={ paused ? 'controls-pause' : 'chart-line' }
 				initialOpen
-				title={ experiment.title }
+				title={ abTest.title }
 			>
 				{ ( winner !== null || hasEnded ) && (
-					<Results experiment={ experiment } />
+					<Results testId={ testId } />
 				) }
 				{ ( winner === null && ! hasEnded ) && (
-					<Settings experiment={ experiment } />
+					<Settings testId={ testId } />
 				) }
 			</PanelBody>
 		</Panel>

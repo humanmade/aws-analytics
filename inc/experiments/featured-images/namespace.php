@@ -31,6 +31,8 @@ function init() {
 		'featured_images',
 		[
 			'label' => __( 'Featured Images', 'altis-analytics' ),
+			'singular_label' => __( 'Featured Image', 'altis-analytics' ),
+			'input_type' => 'image',
 			'rest_api_variants_type' => 'int',
 			'goal' => 'click',
 			'closest' => 'a',

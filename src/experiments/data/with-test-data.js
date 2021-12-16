@@ -1,5 +1,6 @@
 import deepmerge from 'deepmerge';
 
+import { getTestsRegistry } from './registry';
 import { DEFAULT_TEST } from './shapes';
 
 const { apiFetch } = wp;
@@ -29,10 +30,10 @@ const dispatchHandler = ( dispatch, props ) => {
 		post,
 		postType,
 		setState,
-		experiment,
+		testId,
 	} = props;
 
-	const testId = experiment?.id;
+	const abTest = getTestsRegistry().get( testId );
 
 	/**
 	 * @param {object} data Test data to save.
@@ -62,14 +63,14 @@ const dispatchHandler = ( dispatch, props ) => {
 	const updateTest = async ( test = {}, values = false, save = false ) => {
 		const data = {
 			ab_tests: deepmerge( ab_tests, {
-				[ testId ]: test,
+				[ abTest.id ]: test,
 			}, {
 				arrayMerge: overwriteMerge,
 			} ),
 		};
 
 		if ( values !== false ) {
-			data[ `ab_test_${ testId }` ] = values;
+			data[ `ab_test_${ abTest.id }` ] = values;
 		}
 
 		// Send the data to the API if we want to save it.
@@ -86,7 +87,7 @@ const dispatchHandler = ( dispatch, props ) => {
 	 */
 	const updateValues = async ( values, save = false ) => {
 		const data = {
-			[ `ab_test_${ testId }` ]: values,
+			[ `ab_test_${ abTest.id }` ]: values,
 		};
 
 		// Send the data to the API if we want to save it.
@@ -114,7 +115,7 @@ const dispatchHandler = ( dispatch, props ) => {
 	 * @param {*} value Value to reset to.
 	 */
 	const revertValue = value => {
-		// TODO Tests should implement this method, go for an exception if not ?
+		// Default no-op.
 	};
 
 	return {
@@ -123,7 +124,7 @@ const dispatchHandler = ( dispatch, props ) => {
 		resetTest,
 		saveTest,
 		revertValue,
-		...experiment?.dispatcher( dispatch ) || {},
+		...abTest.dispatcher( dispatch ) || {},
 	};
 };
 
@@ -134,17 +135,18 @@ const withTestData = compose(
 		error: false,
 	} ),
 	withSelect( ( select, props ) => {
-		const { experiment } = props;
+		const { testId } = props;
+		const abTest = getTestsRegistry().get( testId );
 
 		return {
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
 			post: select( 'core/editor' ).getCurrentPost(),
 			postType: select( 'core' ).getPostType( select( 'core/editor' ).getCurrentPostType() ),
-			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ experiment?.id ] || DEFAULT_TEST,
-			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ experiment?.id }` ) || [],
-			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ experiment?.id }` ) || [],
+			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ abTest.id ] || DEFAULT_TEST,
+			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ abTest.id }` ) || [],
+			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ abTest.id }` ) || [],
 			defaultValue: '',
-			...experiment?.selector( select ) || {},
+			...abTest.selector( select ) || {},
 		};
 	} ),
 	withDispatch( dispatchHandler )

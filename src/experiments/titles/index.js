@@ -1,38 +1,30 @@
-import TextInput from '../components/field-text-input';
-import { registerExperiment } from '../experiment';
-
-const { __ } = wp.i18n;
-
-registerExperiment( {
-	id: 'titles',
-	title: __( 'Post titles', 'altis.analytics' ),
-	singleTitle: __( 'Title', 'altis-analytics' ),
-	component: TextInput,
-
-	/**
-	 * Add/replace dispatchers available to the experiment panel.
-	 *
-	 * @param {Function} dispatch Dispatch function.
-	 * @returns {object} Object with dispatcher callbacks.
-	 */
-	dispatcher: dispatch => ( {
+wp.hooks.addAction( 'altis.experiments.registry.loaded', 'altis.experiments.features.titles', registry => {
+	registry.update( 'titles', {
 		/**
-		 * @param {*} value Value to revert to.
+		 * Add/replace dispatchers available to the experiment panel.
+		 *
+		 * @param {Function} dispatch Dispatch function.
+		 * @returns {object} Object with dispatcher callbacks.
 		 */
-		revertValue: value => {
-			dispatch( 'core/editor' ).editPost( {
-				title: value,
-			} );
-		},
-	} ),
+		dispatcher: dispatch => ( {
+			/**
+			 * @param {*} value Value to revert to.
+			 */
+			revertValue: value => {
+				dispatch( 'core/editor' ).editPost( {
+					title: value,
+				} );
+			},
+		} ),
 
-	/**
-	 * Add/replace selectors available to the experiment panel.
-	 *
-	 * @param {Function} select Select function.
-	 * @returns {object} Object with selector callbacks.
-	 */
-	selector: select => ( {
-		defaultValue: select( 'core/editor' ).getEditedPostAttribute( 'title' ) || '',
-	} ),
+		/**
+		 * Add/replace selectors available to the experiment panel.
+		 *
+		 * @param {Function} select Select function.
+		 * @returns {object} Object with selector callbacks.
+		 */
+		selector: select => ( {
+			defaultValue: select( 'core/editor' ).getEditedPostAttribute( 'title' ) || '',
+		} ),
+	} );
 } );

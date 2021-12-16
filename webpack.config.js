@@ -26,7 +26,6 @@ const sharedConfig = {
 		'blocks/ab-test-preview': path.resolve( __dirname, 'src/ab-test-preview.js' ),
 		'experiments': path.resolve( __dirname, 'src/experiments.js' ),
 		'experiments/sidebar': path.resolve( __dirname, 'src/experiments/index.js' ),
-		'experiment': path.resolve( __dirname, 'src/experiments/index.js' ),
 		'titles': path.resolve( __dirname, 'src/experiments/titles/index.js' ),
 		'featured-images': path.resolve( __dirname, 'src/experiments/featured-images/index.js' ),
 	},

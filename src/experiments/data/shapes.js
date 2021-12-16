@@ -13,12 +13,3 @@ export const DEFAULT_TEST = {
 	started: false,
 	traffic_percentage: 35,
 };
-
-export const DEFAULT_EXPERIMENT = {
-	id: 0,
-	title: '',
-	singleTitle: '',
-	component: () => null,
-	selector: () => ( {} ),
-	dispatcher: () => ( {} ),
-};
