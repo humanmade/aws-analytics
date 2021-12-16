@@ -5,6 +5,7 @@ import {
 	getDateString,
 	getDurationString,
 } from '../../utils';
+import { getTestsRegistry } from '../data/registry';
 import withTestData from '../data/with-test-data';
 
 import {
@@ -18,7 +19,6 @@ import {
 } from '.';
 
 const { __ } = wp.i18n;
-const { applyFilters } = wp.hooks;
 
 /**
  * A/B test results display component.
@@ -28,7 +28,7 @@ const { applyFilters } = wp.hooks;
  */
 export const Results = props => {
 	const {
-		experiment,
+		testId,
 		test = {},
 		values = [],
 		resetTest,
@@ -45,9 +45,9 @@ export const Results = props => {
 		variants = [],
 	} = results;
 
-	const hasEnded = endTime < Date.now();
+	const abTest = getTestsRegistry().get( testId );
 
-	const TestFieldValue = applyFilters( `altis.experiments.${ experiment.id }.value.display`, value => value );
+	const hasEnded = endTime < Date.now();
 
 	return (
 		<StyledResults>
@@ -75,7 +75,7 @@ export const Results = props => {
 						<Variant key={ index } highlight={ index === winner }>
 							<h3>{ `${ __( 'Variant', 'altis-analytics' ) } ${ getLetter( index ) } ${ index === 0 ? __( '(original)', 'altis-analytics' ) : '' }` }</h3>
 							<p>
-								<TestFieldValue value={ value } />
+								{ abTest.displayValue( value ) }
 							</p>
 							<PercentageChange>
 								{ ( variant.rate * 100 ).toFixed( 2 ) }%

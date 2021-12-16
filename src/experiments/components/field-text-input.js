@@ -6,10 +6,10 @@ const {
 const { __ } = wp.i18n;
 
 /**
- * Title field component.
+ * Text field component.
  *
  * @param {React.ComponentProps} props The component props.
- * @returns {React.ReactNode} Title text field component.
+ * @returns {React.ReactNode} Text text field component.
  */
 const TextInput = props => {
 	const {
@@ -17,13 +17,13 @@ const TextInput = props => {
 		isEditable,
 		onChange,
 		onRemove,
-		value,
+		value = '',
 		index,
 	} = props;
 
 	return (
 		<TextareaControl
-			autoFocus={ ( allValues || [] ).length - 1 === index } // autoFocus={ ( allValues || [] ).length <= 1 }
+			autoFocus={ ( allValues || [] ).length - 1 === index }
 			label={ null }
 			placeholder={ __( 'Enter another value here.', 'altis-analytics' ) }
 			readOnly={ ! isEditable }

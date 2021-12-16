@@ -31,6 +31,8 @@ function init() {
 		'titles',
 		[
 			'label' => __( 'Titles', 'altis-analytics' ),
+			'singular_label' => __( 'Title', 'altis-analytics' ),
+			'input_type' => 'text',
 			'goal' => 'click',
 			'closest' => 'a',
 			// Exclude all events from the target post page.

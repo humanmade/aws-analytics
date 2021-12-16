@@ -331,6 +331,8 @@ function register_post_ab_tests_rest_fields() {
  * @param array $options A/B Test configuration options.
  *     $options = [
  *       'label' => (string) A human readable name for the test.
+ *       'singular_label' => (string) A human readable name for one instance of the test.
+ *       'input_type' => (string) Type of the input for this test. ( 'text', 'image', or a custom FQDN JS class name )
  *       'rest_api_variants_field' => (string) REST API field name to return variants on.
  *       'rest_api_variants_type' => (string) REST API field data type.
  *       'goal' => (string) The event handler.
@@ -355,6 +357,8 @@ function register_post_ab_test( string $test_id, array $options ) {
 
 	$options = wp_parse_args( $options, [
 		'label' => $test_id,
+		'singular_label' => $test_id,
+		'input_type' => 'text',
 		'rest_api_variants_field' => 'ab_test_' . $test_id,
 		'rest_api_variants_type' => 'string',
 		'goal' => 'click',
@@ -425,11 +429,13 @@ function register_post_ab_test( string $test_id, array $options ) {
 function enqueue_experiments_editor_scripts( string $hook ) : void {
 	global $post_ab_tests;
 
-	$register_experiments_framework = apply_filters( 'altis.experiments.frontend.framework.enabled', false );
+	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+		return;
+	}
 
-	wp_register_script(
+	wp_enqueue_script(
 		'altis-experiments-features',
-		Utils\get_asset_url( 'experiment.js' ),
+		Utils\get_asset_url( 'experiments/sidebar.js' ),
 		[
 			'wp-plugins',
 			'wp-blocks',
@@ -442,32 +448,25 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 		]
 	);
 
-	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
-		return;
-	}
-
 	foreach ( $post_ab_tests as $test_id => $test ) {
 		if ( empty( $test['editor_scripts'] ) ) {
 			continue;
 		}
 
-		// Get supported post types.
-		$supported_post_types = get_post_types_by_support( "altis.experiments.{ $test_id }" );
-
-		if ( ! in_array( get_current_screen()->post_type, $supported_post_types, true ) ) {
+		if ( ! in_array( get_current_screen()->post_type, $test['post_types'], true ) ) {
 			continue;
 		}
 
-		$register_experiments_framework = true;
-
 		foreach ( $test['editor_scripts'] as $script => $deps ) {
-			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, $deps, null );
+			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, array_merge( $deps, [ 'altis-experiments-features' ] ), null );
 		}
 	}
 
-	if ( $register_experiments_framework ) {
-		wp_enqueue_script( 'altis-experiments-features' );
-	}
+	$js_data = array_map( function( array $test ) {
+		return array_intersect_key( $test, array_flip( [ 'label', 'singular_label', 'input_type' ] ) );
+	}, $post_ab_tests );
+
+	unset( $js_data['xb'] );
 
 	wp_add_inline_script(
 		'altis-experiments-features',
@@ -475,8 +474,10 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 			'window.Altis = window.Altis || {};' .
 			'window.Altis.Analytics = window.Altis.Analytics || {};' .
 			'window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};' .
-			'window.Altis.Analytics.Experiments.BuildURL = %s;',
-			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) )
+			'window.Altis.Analytics.Experiments.BuildURL = %s;' .
+			'window.Altis.Analytics.Experiments.PostABTests = %s;',
+			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) ),
+			wp_json_encode( $js_data )
 		),
 		'before'
 	);

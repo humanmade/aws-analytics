@@ -1,13 +1,13 @@
 import React, { Fragment } from 'react';
 
 import TestPanel from './components/panel';
+import { getTestsRegistry } from './data/registry';
 
 const {
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
 } = wp.editPost;
 const { __ } = wp.i18n;
-const { applyFilters } = wp.hooks;
 
 /**
  * Block Editor sidebar plugin component for A/B tests.
@@ -15,11 +15,10 @@ const { applyFilters } = wp.hooks;
  * @returns {React.ReactNode} The plugin sidebar.
  */
 const Plugin = () => {
-	// Allow adding custom panels.
-	const experiments = applyFilters( 'altis.experiments.experiments', [] );
+	const tests = getTestsRegistry().tests;
 
 	// Short circuit early if no panels are defined, to disable the sidebar completely.
-	if ( experiments.length < 1 ) {
+	if ( tests.length < 1 ) {
 		return ( <></> );
 	}
 
@@ -34,8 +33,8 @@ const Plugin = () => {
 				name="altis-experiments"
 				title={ __( 'Experiments', 'altis-analytics' ) }
 			>
-				{ experiments && experiments.map( experiment => (
-					<TestPanel experiment={ experiment } />
+				{ tests && Object.keys( tests ).map( testId => (
+					<TestPanel testId={ testId } />
 				) ) }
 			</PluginSidebar>
 		</Fragment>
