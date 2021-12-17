@@ -1,7 +1,7 @@
 on:
-  create:
-  repository_dispatch:
-    types: [release]
+  push:
+    tags:
+      - '*'
 
 name: Create Release
 
@@ -13,6 +13,9 @@ jobs:
       - name: Get the version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
       - name: Create Release
         uses: technote-space/release-github-actions@v2
         with:
