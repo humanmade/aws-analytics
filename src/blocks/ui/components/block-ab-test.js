@@ -1,5 +1,5 @@
 import React from 'react';
-import { compactMetric, getLift } from '../../../utils';
+import { compactMetric, getLetter, getLift } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
 
 import Cards from './cards';
@@ -7,7 +7,16 @@ import Timeline from './timeline';
 import Variants from './variants';
 
 const { useSelect } = wp.data;
-const { __ } = wp.i18n;
+const { __, sprintf } = wp.i18n;
+
+/**
+ * Helper to get a variants title.
+ *
+ * @param {string} title The defined title if available.
+ * @param {number} id The variant ID or index.
+ * @returns {string} The variant title.
+ */
+const getABVariantTitle = ( title, id ) => title || sprintf( __( 'Variant %s', 'altis-analytics' ), getLetter( id ) );
 
 /**
  * Personalized Content Block Analytics component.
@@ -30,7 +39,7 @@ const BlockABTest = ( {
 	// Calculate aggregated data.
 	const originalData = ( analytics?.variants && analytics.variants[0]?.unique ) || defaultVariantAnalytics.unique;
 	const variantsData = ( analytics?.variants || [] ).reduce( ( carry, variant, index ) => {
-		if ( index === 0 ) {
+		if ( parseInt( index, 10 ) === 0 ) {
 			return carry;
 		}
 
@@ -39,6 +48,17 @@ const BlockABTest = ( {
 		carry.conversions += variant.unique.conversions;
 		return carry;
 	}, defaultVariantAnalytics.unique );
+
+	// Probability to be best.
+	const maxRate = ( test?.results?.variants || [] ).reduce( ( carry, variant ) => {
+		return variant.rate > carry ? variant.rate : carry;
+	}, 0 );
+
+	// Check end status of test.
+	const hasEnded = ( test?.end_time && test?.end_time <= Date.now() ) || Number.isInteger( test?.results?.winner );
+	const winningVariantId = Number.isInteger( test?.results?.winner ) ? test?.results?.winner : false;
+	const winningVariant = ( winningVariantId !== false && block?.variants[ winningVariantId ] ) || false;
+	const winningVariantData = ( winningVariantId !== false && analytics?.variants && analytics?.variants[ winningVariantId ]?.unique ) || false;
 
 	return (
 		<>
@@ -78,15 +98,54 @@ const BlockABTest = ( {
 				/>
 			</div>
 
+			{ hasEnded && (
+				<div className="altis-analytics-conclusion">
+					<h2>{ __( 'Conclusion', 'altis-analytics' ) }</h2>
+					{ winningVariantId === 0 && (
+						<>
+							<p>{ sprintf(
+								__( '%s is the winner!', 'altis-analytics' ),
+								getABVariantTitle( winningVariant.title, 0 )
+							) }</p>
+							<p>{ sprintf(
+								__( 'Conversion rate: %s, the original version is the best.', 'altis-analytics' ),
+								compactMetric( ( winningVariantData.conversions / winningVariantData.views ) * 100 )
+							) }</p>
+						</>
+					) }
+					{ winningVariantId !== 0 && (
+						<>
+							<p>{ sprintf(
+								__( '%s is the winner!', 'altis-analytics' ),
+								getABVariantTitle( winningVariant.title, winningVariantId )
+							) }</p>
+							<p>{ sprintf(
+								__( 'The conversion rate was %s, %s higher than the original.', 'altis-analytics' ),
+								compactMetric( ( winningVariantData.conversions / winningVariantData.views ) * 100 ),
+								compactMetric( getLift( winningVariantData.conversions / winningVariantData.views, originalData.conversions / originalData.views ) )
+							) }</p>
+						</>
+					) }
+					{ winningVariantId === false && (
+						<>
+							<p>{ __( 'No clear winner was found.', 'altis-analytics' ) }</p>
+							<p>{ __( 'There were no statistically significant differences in the conversion rate between the variants.', 'altis-analytics' ) }</p>
+						</>
+					) }
+				</div>
+			) }
+
 			<Variants
 				analytics={ analytics }
-				append={ variant => {
-					const result = test?.results[ variant.id ] || {};
+				append={ ( { variant } ) => {
+					const result = test?.results?.variants[ variant.id ] || {};
 					const pValue = result.p || 1;
+					const relativeRate = result.rate / maxRate;
+					const p2bb = relativeRate * ( 1 - pValue );
 					return (
 						<li>
 							<p className="description">{ __( 'Probability of best', 'altis-analytics' ) }</p>
-							<div className="altis-analytics-block-variant__metric blue">{ compactMetric( ( 1 - pValue ) * 100 ) }</div>
+							<div className="altis-analytics-block-variant__metric blue">{ compactMetric( p2bb * 100 ) }</div>
 						</li>
 					);
 				} }

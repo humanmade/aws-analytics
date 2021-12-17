@@ -649,6 +649,7 @@ function get_views( string $block_id, $args = [] ) {
 					'variants' => [
 						'terms' => [
 							'field' => $vary_on,
+							'order' => [ '_key' => 'asc' ],
 						],
 						'aggs' => [
 							'uniques' => [
@@ -683,6 +684,7 @@ function get_views( string $block_id, $args = [] ) {
 							'variants' => [
 								'terms' => [
 									'field' => $vary_on,
+									'order' => [ '_key' => 'asc' ],
 								],
 								'aggs' => [
 									'uniques' => [

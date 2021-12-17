@@ -166,38 +166,33 @@ function process_xb_attrs( int $xb_post_id, array $xb ) {
 		return;
 	}
 
-	$client_id = $post->post_name;
-
 	// Set variants.
-	$variants = array_map( function ( $variant ) {
-		return render_block( $variant );
-	}, $xb['innerBlocks'] );
-	$changed = Experiments\update_ab_test_variants_for_post( $client_id, $xb_post_id, $variants ) !== false;
+	$changed = Experiments\update_ab_test_variants_for_post( 'xb', $xb_post_id, $xb['innerBlocks'] ) !== false;
 
 	// Set start and end time (reset if variants have changed).
 	if ( $changed ) {
 		$start_time = Utils\milliseconds();
 		$end_time = $start_time + ( 90 * DAY_IN_SECONDS * 1000 ); // 90 days in the future.
 	} else {
-		$start_time = Experiments\get_ab_test_start_time_for_post( $client_id, $xb_post_id );
-		$end_time = Experiments\get_ab_test_end_time_for_post( $client_id, $xb_post_id );
+		$start_time = Experiments\get_ab_test_start_time_for_post( 'xb', $xb_post_id );
+		$end_time = Experiments\get_ab_test_end_time_for_post( 'xb', $xb_post_id );
 	}
-	Experiments\update_ab_test_start_time_for_post( $client_id, $xb_post_id, $start_time );
-	Experiments\update_ab_test_end_time_for_post( $client_id, $xb_post_id, $end_time );
+	Experiments\update_ab_test_start_time_for_post( 'xb', $xb_post_id, $start_time );
+	Experiments\update_ab_test_end_time_for_post( 'xb', $xb_post_id, $end_time );
 
 	// Set traffic percentage.
-	Experiments\update_ab_test_traffic_percentage_for_post( $client_id, $xb_post_id, $xb['attrs']['percentage'] ?? 100 );
+	Experiments\update_ab_test_traffic_percentage_for_post( 'xb', $xb_post_id, $xb['attrs']['percentage'] ?? 100 );
 
 	// Set variant traffic percentages.
 	$percents = array_map( function ( $variant ) use ( $xb ) {
 		return $variant['attrs']['percentage'] ?? ( 100 / count( $xb['innerBlocks'] ) );
 	}, $xb['innerBlocks'] );
-	Experiments\update_ab_test_variant_traffic_percentage_for_post( $client_id, $xb_post_id, $percents );
+	Experiments\update_ab_test_variant_traffic_percentage_for_post( 'xb', $xb_post_id, $percents );
 
 	// Start the test if parent post is published or a reusable block.
 	$is_public_or_reusable = is_post_publicly_viewable( $post->post_parent ) || get_post_type( $post->post_parent ) === 'wp_block';
-	Experiments\update_is_ab_test_paused_for_post( $client_id, $xb_post_id, $xb['attrs']['paused'] ?? false );
-	Experiments\update_is_ab_test_started_for_post( $client_id, $xb_post_id, $is_public_or_reusable );
+	Experiments\update_is_ab_test_paused_for_post( 'xb', $xb_post_id, $xb['attrs']['paused'] ?? false );
+	Experiments\update_is_ab_test_started_for_post( 'xb', $xb_post_id, $is_public_or_reusable );
 }
 
 /**
@@ -214,10 +209,8 @@ function register_test() {
 			$block = get_post( $post_id );
 			return [
 				'filter' => [
-					[
-						[ 'terms' => [ 'event_type.keyword' => [ 'experienceView', 'conversion' ] ] ],
-						[ 'term' => [ 'attributes.clientId.keyword' => $block->post_name ] ],
-					],
+					[ 'terms' => [ 'event_type.keyword' => [ 'experienceView', 'conversion' ] ] ],
+					[ 'term' => [ 'attributes.clientId.keyword' => $block->post_name ] ],
 				],
 			];
 		},

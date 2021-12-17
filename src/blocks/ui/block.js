@@ -45,6 +45,17 @@ const BlockWrapper = styled.div`
 	.altis-analytics-date-range {
 		margin: 0 0 20px;
 	}
+
+	.altis-analytics-conclusion {
+		margin: 0 0 40px;
+		h2 {
+			color: #4767df;
+		}
+		p {
+			font-size: 1rem;
+			margin: 20px 0;
+		}
+	}
 `;
 
 /**
