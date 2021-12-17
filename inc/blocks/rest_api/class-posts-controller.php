@@ -156,7 +156,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 
 		foreach ( $blocks as $block ) {
 			foreach ( $block['innerBlocks'] as $id => $variant ) {
-				$subtype = str_replace( 'altis/', '', $block['blockName'] );
+				$subtype = str_replace( 'altis/', '', $variant['blockName'] );
 
 				// Handle variant output for different block types.
 				switch ( $subtype ) {
