@@ -92,15 +92,6 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 					} );
 				} }
 			/>
-			{ !! postId && !! abPost && (
-				<Preview
-					href={ `/?p=${ postId }&set_test=test_xb_${ abPost.id }:${ index }` }
-					target="_ab_test_preview"
-				>
-					{ __( 'Preview', 'altis-analytics' ) }
-					<Icon icon="external" />
-				</Preview>
-			) }
 		</PanelBody>
 	);
 };
