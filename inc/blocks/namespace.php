@@ -133,9 +133,6 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_title' => $xb['attrs']['title'] ?: $default_title,
 				'post_parent' => $post_ID,
 			] );
-			// Store XB type.
-			update_post_meta( $xb_post_id, '_xb_type', $xb['name'] );
-			update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['name'] ), true );
 		} else {
 			// Update existing post.
 			$xb_post_id = $posts[0]->ID;
@@ -146,6 +143,10 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_parent' => $post_ID,
 			] );
 		}
+
+		// Store XB type, ensure back compat with existing XBs also.
+		update_post_meta( $xb_post_id, '_xb_type', $xb['blockName'] );
+		update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
@@ -229,6 +230,10 @@ function register_post_type() {
 				'block' => [
 					'title' => __( 'Block', 'altis-analytics' ),
 					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
+				],
+				'type' => [
+					'title' => __( 'Type', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_type_column',
 				],
 				'views' => [
 					'title' => __( 'Views', 'altis-analytics' ),
@@ -506,7 +511,7 @@ function map_aggregations( array $event_buckets ) : array {
 			'views' => 0,
 			'conversions' => 0,
 		],
-		'audiences' => [],
+		'variants' => [],
 	];
 
 	// Map collected event names to output schema.
@@ -523,10 +528,10 @@ function map_aggregations( array $event_buckets ) : array {
 		$data[ $key ] = $event_bucket['doc_count'];
 		$data['unique'][ $key ] = $event_bucket['uniques']['value'];
 
-		foreach ( $event_bucket['audiences']['buckets'] as $audience_bucket ) {
-			if ( ! isset( $data['audiences'][ $audience_bucket['key'] ] ) ) {
-				$data['audiences'][ $audience_bucket['key'] ] = [
-					'id' => absint( $audience_bucket['key'] ),
+		foreach ( $event_bucket['variants']['buckets'] as $variant_bucket ) {
+			if ( ! isset( $data['variants'][ $variant_bucket['key'] ] ) ) {
+				$data['variants'][ $variant_bucket['key'] ] = [
+					'id' => absint( $variant_bucket['key'] ),
 					'loads' => 0,
 					'views' => 0,
 					'conversions' => 0,
@@ -537,13 +542,13 @@ function map_aggregations( array $event_buckets ) : array {
 					],
 				];
 			}
-			$data['audiences'][ $audience_bucket['key'] ][ $key ] = $audience_bucket['doc_count'];
-			$data['audiences'][ $audience_bucket['key'] ]['unique'][ $key ] = $audience_bucket['uniques']['value'];
+			$data['variants'][ $variant_bucket['key'] ][ $key ] = $variant_bucket['doc_count'];
+			$data['variants'][ $variant_bucket['key'] ]['unique'][ $key ] = $variant_bucket['uniques']['value'];
 		}
 	}
 
 	// Ensure audiences key is an array.
-	$data['audiences'] = array_values( $data['audiences'] );
+	$data['variants'] = array_values( $data['variants'] );
 
 	return $data;
 }
@@ -556,6 +561,7 @@ function map_aggregations( array $event_buckets ) : array {
  *     - int|null $args['post_id'] An optional post ID to limit results by.
  *     - int $args['days'] The number of days to get data for.
  *     - int $args['offset'] The offset for number of days prior to start query from.
+ *     - string $args['vary_on'] The field to distinguish variants on.
  * @return array|\WP_Error
  */
 function get_views( string $block_id, $args = [] ) {
@@ -574,6 +580,17 @@ function get_views( string $block_id, $args = [] ) {
 		'days' => 7,
 		'offset' => 0,
 	] );
+
+	// Set default vary key for back compat.
+	$vary_on = 'attributes.audience.id';
+
+	// Determine index value to get variants on by block type.
+	$block_post = get_block_post( $block_id );
+	if ( ! empty( $block_post ) ) {
+		$block_type = get_block_type( $block_post );
+		$block_settings = get_block_settings( $block_type );
+		$vary_on = $block_settings['varyOn'] ?? $vary_on;
+	}
 
 	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
@@ -628,10 +645,11 @@ function get_views( string $block_id, $args = [] ) {
 							'field' => 'endpoint.Id.keyword',
 						],
 					],
-					// Get the split by audience.
-					'audiences' => [
+					// Get the split by variant.
+					'variants' => [
 						'terms' => [
-							'field' => 'attributes.audience.keyword',
+							'field' => $vary_on,
+							'order' => [ '_key' => 'asc' ],
 						],
 						'aggs' => [
 							'uniques' => [
@@ -643,7 +661,7 @@ function get_views( string $block_id, $args = [] ) {
 					],
 				],
 			],
-			// Get the split by post ID and audience.
+			// Get the split by post ID and variant.
 			'posts' => [
 				'terms' => [
 					'field' => 'attributes.postId.keyword',
@@ -662,10 +680,11 @@ function get_views( string $block_id, $args = [] ) {
 									'field' => 'endpoint.Id.keyword',
 								],
 							],
-							// Get the split by audience.
-							'audiences' => [
+							// Get the split by variant.
+							'variants' => [
 								'terms' => [
-									'field' => 'attributes.audience.keyword',
+									'field' => $vary_on,
+									'order' => [ '_key' => 'asc' ],
 								],
 								'aggs' => [
 									'uniques' => [
@@ -715,7 +734,7 @@ function get_views( string $block_id, $args = [] ) {
 			'loads' => 0,
 			'views' => 0,
 			'conversions' => 0,
-			'audiences' => [],
+			'variants' => [],
 		];
 		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 		return $data;
