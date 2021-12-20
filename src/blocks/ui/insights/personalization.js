@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-import { defaultVariantAnalytics } from '../../data/shapes';
 import { compactMetric } from '../../../utils';
+import { defaultVariantAnalytics } from '../../data/shapes';
 import Cards from '../components/cards';
 import DateRange from '../components/date-range';
 import Variants from '../components/variants';
