@@ -871,3 +871,16 @@ function get_countries() : array {
 		'ZW' => 'Zimbabwe',
 	];
 }
+
+/**
+ * Get a letter of the alphabet corresponding to the passed zero based index.
+ *
+ * @param integer $index Letter of the alphabet to get.
+ * @return string
+ */
+function get_letter( int $index ) : string {
+	for ( $out = ''; $index >= 0; $index = intval( $index / 26 ) - 1 ) {
+		$out = chr( $index % 26 + 0x41 ) . $out;
+	}
+	return $out;
+}
