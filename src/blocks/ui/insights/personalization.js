@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { compactMetric } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
 
-import Cards from './cards';
-import DateRange from './date-range';
-import Variants from './variants';
+import Cards from '../components/cards';
+import DateRange from '../components/date-range';
+import Variants from '../components/variants';
 
 const { useSelect } = wp.data;
 const { __ } = wp.i18n;
@@ -18,7 +18,7 @@ const { __ } = wp.i18n;
  * @param {string} props.clientId The block client ID.
  * @returns {React.ReactNode} The block view component.
  */
-const BlockPersonalization = ( {
+const Personalization = ( {
 	block,
 	clientId,
 } ) => {
@@ -106,4 +106,4 @@ const BlockPersonalization = ( {
 	);
 };
 
-export default BlockPersonalization;
+export default Personalization;

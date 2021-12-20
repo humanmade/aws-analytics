@@ -2,9 +2,9 @@ import React from 'react';
 import { compactMetric, getLetter, getLift } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
 
-import Cards from './cards';
-import Timeline from './timeline';
-import Variants from './variants';
+import Cards from '../components/cards';
+import Timeline from '../components/timeline';
+import Variants from '../components/variants';
 
 const { useSelect } = wp.data;
 const { __, sprintf } = wp.i18n;
@@ -26,7 +26,7 @@ const getABVariantTitle = ( title, id ) => title || sprintf( __( 'Variant %s', '
  * @param {string} props.clientId The block client ID.
  * @returns {React.ReactNode} The block view component.
  */
-const BlockABTest = ( {
+const ABTest = ( {
 	block,
 	clientId,
 } ) => {
@@ -156,4 +156,4 @@ const BlockABTest = ( {
 	);
 };
 
-export default BlockABTest;
+export default ABTest;

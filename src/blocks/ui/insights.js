@@ -1,8 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import BlockABTest from './components/block-ab-test';
-import BlockPersonalization from './components/block-personalization';
+import ABTest from './insights/ab-test';
+import Personalization from './insights/personalization';
 
 const { Icon } = wp.components;
 const { useSelect } = wp.data;
@@ -65,7 +65,7 @@ const BlockWrapper = styled.div`
  * @param {string} props.clientId The block client ID.
  * @returns {React.ReactNode} The block view component.
  */
-const Block = ( {
+const Insights = ( {
 	clientId,
 } ) => {
 	const block = useSelect( select => {
@@ -97,10 +97,10 @@ const Block = ( {
 
 	switch ( block?.subtype ) {
 		case 'altis/personalization':
-			BlockType = BlockPersonalization;
+			BlockType = Personalization;
 			break;
 		case 'altis/ab-test':
-			BlockType = BlockABTest;
+			BlockType = ABTest;
 			break;
 		default:
 			BlockType = null;
@@ -126,4 +126,4 @@ const Block = ( {
 	);
 };
 
-export default Block;
+export default Insights;
