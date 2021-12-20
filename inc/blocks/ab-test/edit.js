@@ -1,9 +1,8 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
-import { getLetter } from '../../../src/utils';
-
 import Popup from '../../../src/blocks/ui/popup';
+import { getLetter } from '../../../src/utils';
 
 import TestSettings from './components/test-settings';
 import VariantPanel from './components/variant-panel';
