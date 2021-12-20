@@ -128,6 +128,7 @@ function xb_table_sorting( $columns ) : array {
 function add_microcopy_to_column_titles( array $xb_columns ) : array {
 	$microcopy = [
 		'block' => __( 'List of XBs with associated analytics data from the selected date range', 'altis-analytics' ),
+		'type' => __( 'The type of Experience Block', 'altis-analytics' ),
 		'views' => __( 'Total unique views of the XBs during the selected date range', 'altis-analytics' ),
 		'conversion' => __( 'Conversion rate is calculated as the total unique conversions divided by total unique views of the XB during the selected date range,  expressed as a percentage.', 'altis-analytics' ),
 		'author' => __( 'Block author', 'altis-analytics' ),
@@ -210,6 +211,22 @@ function render_block_column() {
 	?>
 	<strong><a href="<?php echo esc_url_raw( admin_url( '/admin.php?page=xb-analytics&post=' . $post->ID ) ); ?>"><?php echo esc_attr( $post->post_title ); ?></a></strong>
 	<?php
+}
+
+/**
+ * Render the block type column data.
+ */
+function render_type_column() {
+	global $post;
+
+	$types = [
+		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
+		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
+	];
+
+	$type = Blocks\get_block_type( $post );
+
+	echo esc_html( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
 }
 
 /**

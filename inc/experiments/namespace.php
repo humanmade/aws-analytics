@@ -459,11 +459,20 @@ function handle_post_ab_test_cron( string $test_id, int $page = 1 ) {
 	$posts = new WP_Query( [
 		'post_type' => $test['post_types'],
 		'fields' => 'ids',
-		'post_status' => 'publish',
+		'post_status' => [ 'publish', 'inherit' ],
 		'posts_per_page' => $posts_per_page,
 		'paged' => $page,
 		// phpcs:ignore
-		'meta_key' => '_altis_ab_test_' . $test_id . '_variants',
+		'meta_query' => [
+			[
+				'key' => '_altis_ab_test_' . $test_id . '_variants',
+				'compare' => 'EXISTS',
+			],
+			[
+				'key' => '_altis_ab_test_' . $test_id . '_completed',
+				'compare' => 'NOT EXISTS',
+			],
+		],
 	] );
 
 	foreach ( $posts->posts as $post_id ) {
@@ -597,7 +606,9 @@ function update_ab_test_variants_for_post( string $test_id, int $post_id, array 
 	 * except for the last update timestamp.
 	 */
 	$old_variants = get_ab_test_variants_for_post( $test_id, $post_id );
-	if ( ! empty( array_diff( $old_variants, $variants ) ) ) {
+	$old_variants_cmp = array_map( 'maybe_serialize', $old_variants );
+	$variants_cmp = array_map( 'maybe_serialize', $variants );
+	if ( ! empty( array_diff( $old_variants_cmp, $variants_cmp ) ) ) {
 		$results = get_ab_test_results_for_post( $test_id, $post_id );
 		update_ab_test_results_for_post( $test_id, $post_id, [
 			'timestamp' => $results['timestamp'] ?? 0,
@@ -742,7 +753,7 @@ function save_ab_test_results_for_post( string $test_id, int $post_id, array $da
 		'winner' => null,
 		'variants' => [],
 	] );
-	add_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_completed', $data );
+	update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_completed', $data );
 }
 
 /**
@@ -916,7 +927,8 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		// Variant buckets.
 		'test' => [
 			'terms' => [
-				'field' => sprintf( 'attributes.test_%s.keyword', $test_id_with_post ),
+				'field' => 'attributes.eventVariantId.keyword',
+				'order' => [ '_key' => 'asc' ],
 			],
 			'aggs' => [
 				// Conversion events.
@@ -961,7 +973,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'request_cache' => 'true',
 	] );
 
-	if ( empty( $data ) ) {
+	if ( empty( $result ) ) {
 		return;
 	}
 
@@ -1036,6 +1048,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 			$max_rate = $rate;
 
 			// Check sample size is large enough.
+			// We use a low value of 5% as the Minimum Detectable Effect because making the change
+			// is automated and therefore cost effective.
 			if ( $size * $rate >= 5 && $size * ( 1 - $rate ) >= 5 ) {
 				$winning = $id;
 			}
@@ -1047,6 +1061,7 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 		$control = $variants[0];
 		$binomial = new Discrete\Binomial( $size, $control['rate'] );
 		$variants[ $id ]['p'] = $binomial->pmf( $hits );
+
 	}
 
 	// Find if a variant is winning, ie. reject null hypothesis.

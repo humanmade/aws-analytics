@@ -305,7 +305,7 @@ class ABTestBlock extends Test {
 		// Log an event for tracking views and audience when scrolled into view.
 		let tracked = false;
 		const trackView = window.addEventListener( 'scroll', () => {
-			if ( ! isVisible( this ) || tracked ) {
+			if ( tracked || ! isVisible( this ) ) {
 				return;
 			}
 
@@ -320,7 +320,7 @@ class ABTestBlock extends Test {
 					type: 'ab-test',
 					...testAttributes,
 				},
-			} );
+			}, false );
 		} );
 
 		// Trigger scroll handler.
@@ -349,7 +349,7 @@ class ABTestBlock extends Test {
 					type: event.type,
 					...testAttributes,
 				},
-			} );
+			}, false );
 		} );
 	}
 
@@ -552,7 +552,7 @@ class PersonalizationBlock extends HTMLElement {
 		// Log an event for tracking views and audience when scrolled into view.
 		let tracked = false;
 		const trackView = window.addEventListener( 'scroll', () => {
-			if ( ! isVisible( this ) || tracked ) {
+			if ( tracked || ! isVisible( this ) ) {
 				return;
 			}
 
@@ -567,7 +567,7 @@ class PersonalizationBlock extends HTMLElement {
 					clientId: this.clientId,
 					type: 'personalization',
 				},
-			} );
+			}, false );
 		} );
 
 		// Trigger scroll handler.
@@ -596,7 +596,7 @@ class PersonalizationBlock extends HTMLElement {
 					goal,
 					type: event.type,
 				},
-			} );
+			}, false );
 		} );
 	}
 

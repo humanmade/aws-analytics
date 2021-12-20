@@ -8,6 +8,7 @@
 namespace Altis\Analytics\Blocks\REST_API;
 
 use Altis\Analytics\Blocks;
+use Altis\Analytics\Utils;
 use WP_Error;
 use WP_REST_Posts_Controller;
 use WP_REST_Server;
@@ -85,13 +86,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 				'items' => [
 					'type' => 'object',
 					'properties' => [
-						'audience' => [
-							'type' => 'object',
-							'properties' => [
-								'id' => [ 'type' => 'number' ],
-								'title' => [ 'type' => 'string' ],
-							],
-						],
+						'id' => [ 'type' => 'number' ],
 						'fallback' => [ 'type' => 'boolean' ],
 						'goal' => [ 'type' => 'string' ],
 						'title' => [ 'type' => 'string' ],
@@ -160,29 +155,29 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 		$blocks = parse_blocks( $post->post_content );
 
 		foreach ( $blocks as $block ) {
-			foreach ( $block['innerBlocks'] as $variant ) {
-				$subtype = str_replace( 'altis/', '', $block['name'] );
+			foreach ( $block['innerBlocks'] as $id => $variant ) {
+				$subtype = str_replace( 'altis/', '', $variant['blockName'] );
 
 				// Handle variant output for different block types.
 				switch ( $subtype ) {
 					case Blocks\Personalization\BLOCK:
 						if ( isset( $variant['attrs']['audience'] ) ) {
 							$audience_id = (int) $variant['attrs']['audience'];
-							$variant['attrs']['audience'] = [
-								'id' => $audience_id,
-								'title' => get_the_title( $audience_id ),
-							];
+							$variant['attrs']['id'] = $audience_id;
+							$variant['attrs']['title'] = get_the_title( $audience_id );
+							unset( $variant['attrs']['audience'] );
 							$variants[] = $variant['attrs'];
 						} else {
-							$variant['attrs']['audience'] = [
-								'id' => 0,
-								'title' => __( 'Fallback', 'altis-analytics' ),
-							];
+							$variant['attrs']['id'] = 0;
+							$variant['attrs']['title'] = __( 'Fallback', 'altis-analytics' );
 							// Always add the fallback to the start of the array.
 							array_unshift( $variants, $variant['attrs'] );
 						}
 						break;
 					default:
+						$default_title = sprintf( __( 'Variant %s', 'altis-analytics' ), Utils\get_letter( $id ) );
+						$variant['attrs']['id'] = $id;
+						$variant['attrs']['title'] = $variant['attrs']['title'] ?? $default_title;
 						$variants[] = $variant['attrs'];
 				}
 			}

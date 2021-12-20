@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
+import Popup from '../../../src/blocks/ui/popup';
 import { getLetter } from '../../../src/utils';
 
 import TestSettings from './components/test-settings';
@@ -196,6 +197,7 @@ const Edit = ( {
 							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
 					) }
+					<Popup clientId={ attributes.clientId } />
 					<Button
 						isSecondary
 						onClick={ () => setVariant( onAddVariant() ) }
