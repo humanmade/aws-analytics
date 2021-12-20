@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 
-import { Panel } from './components';
+import { PanelBody } from './components';
 import { DEFAULT_TEST } from './data/shapes';
 import withTestData from './data/with-test-data';
 import Results from './results';
@@ -11,7 +11,6 @@ const {
 	PluginSidebarMoreMenuItem,
 } = wp.editPost;
 const { __ } = wp.i18n;
-const { PanelBody } = wp.components;
 
 /**
  * Block Editor sidebar plugin component for title A/B tests.
@@ -56,21 +55,19 @@ const Plugin = props => {
 				name="altis-experiments"
 				title={ __( 'Experiments', 'altis-analytics' ) }
 			>
-				<Panel>
-					<PanelBody
-						className={ classNames }
-						icon={ paused ? 'controls-pause' : 'chart-line' }
-						initialOpen
-						title={ __( 'Post Titles', 'altis-analytics' ) }
-					>
-						{ ( winner !== null || hasEnded ) && (
-							<Results />
-						) }
-						{ ( winner === null && ! hasEnded ) && (
-							<Settings />
-						) }
-					</PanelBody>
-				</Panel>
+				<PanelBody
+					className={ classNames }
+					icon={ paused ? 'controls-pause' : 'chart-line' }
+					initialOpen
+					title={ __( 'Post Titles', 'altis-analytics' ) }
+				>
+					{ ( winner !== null || hasEnded ) && (
+						<Results />
+					) }
+					{ ( winner === null && ! hasEnded ) && (
+						<Settings />
+					) }
+				</PanelBody>
 			</PluginSidebar>
 		</Fragment>
 	);
