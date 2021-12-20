@@ -879,5 +879,8 @@ function get_countries() : array {
  * @return string
  */
 function get_letter( int $index ) : string {
-	return strtoupper( 'abcdefghijklmnopqrstuvwxyz'[ $index ] ?? '' );
+	for ( $out = ''; $index >= 0; $index = intval( $index / 26 ) - 1 ) {
+		$out = chr( $index % 26 + 0x41 ) . $out;
+	}
+	return $out;
 }
