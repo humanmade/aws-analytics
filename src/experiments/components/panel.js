@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { getTestsRegistry } from '../data/registry';
 import { DEFAULT_TEST } from '../data/shapes';
 import withTestData from '../data/with-test-data';
 
@@ -21,7 +20,7 @@ const TestPanel = props => {
 	const {
 		post,
 		test,
-		testId,
+		abTest,
 	} = props;
 	const {
 		started,
@@ -30,7 +29,6 @@ const TestPanel = props => {
 		end_time: endTime,
 	} = test;
 	const { winner = null } = results;
-	const abTest = getTestsRegistry().get( testId );
 
 	const classNames = [
 		started && 'is-started',
@@ -54,10 +52,10 @@ const TestPanel = props => {
 				title={ abTest.title }
 			>
 				{ ( winner !== null || hasEnded ) && (
-					<Results testId={ testId } />
+					<Results />
 				) }
 				{ ( winner === null && ! hasEnded ) && (
-					<Settings testId={ testId } />
+					<Settings />
 				) }
 			</PanelBody>
 		</Panel>

@@ -1,11 +1,11 @@
 import deepmerge from 'deepmerge';
 
-import { getTestsRegistry } from './registry';
+import { context } from '.';
 import { DEFAULT_TEST } from './shapes';
 
 const { apiFetch } = wp;
 const { withSelect, withDispatch } = wp.data;
-const { compose, withState } = wp.compose;
+const { compose, withState, createHigherOrderComponent, pure } = wp.compose;
 const { __ } = wp.i18n;
 
 /**
@@ -30,10 +30,8 @@ const dispatchHandler = ( dispatch, props ) => {
 		post,
 		postType,
 		setState,
-		testId,
+		abTest,
 	} = props;
-
-	const abTest = getTestsRegistry().get( testId );
 
 	/**
 	 * @param {object} data Test data to save.
@@ -128,16 +126,31 @@ const dispatchHandler = ( dispatch, props ) => {
 	};
 };
 
+/**
+ * HOC to attach abTest from context to wrapped component.
+ *
+ * @param {object} context Context object.
+ *
+ * @returns {Function} Returns a higher-order-component function.
+ */
+const withContext = context => createHigherOrderComponent(
+	WrappedComponent =>
+		pure( ownProps => (
+			<context.Consumer>
+				{ value => <WrappedComponent { ...ownProps } abTest={ value } /> }
+			</context.Consumer>
+		) ),
+	'withContext'
+);
+
 const withTestData = compose(
+	withContext( context ),
 	withState( {
 		isSaving: false,
 		prevValues: [],
 		error: false,
 	} ),
-	withSelect( ( select, props ) => {
-		const { testId } = props;
-		const abTest = getTestsRegistry().get( testId );
-
+	withSelect( ( select, { abTest } ) => {
 		return {
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
 			post: select( 'core/editor' ).getCurrentPost(),

@@ -32,7 +32,6 @@ function init() {
 		[
 			'label' => __( 'Titles', 'altis-analytics' ),
 			'singular_label' => __( 'Title', 'altis-analytics' ),
-			'input_type' => 'text',
 			'goal' => 'click',
 			'closest' => 'a',
 			// Exclude all events from the target post page.
@@ -58,6 +57,7 @@ function init() {
 				'post',
 				'page',
 			],
+			'show_ui' => true,
 			'editor_scripts' => [
 				Utils\get_asset_url( 'titles.js' ) => [
 					'wp-plugins',
