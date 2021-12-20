@@ -1,7 +1,7 @@
 import React from 'react';
+
 import { compactMetric, getLetter, getLift } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
-
 import Cards from '../components/cards';
 import Timeline from '../components/timeline';
 import Variants from '../components/variants';
