@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 
 import TestPanel from './components/panel';
-import { getTestsRegistry } from './data/registry';
+import { context, getSidebarTests } from './data';
 
 const {
 	PluginSidebar,
@@ -15,10 +15,12 @@ const { __ } = wp.i18n;
  * @returns {React.ReactNode} The plugin sidebar.
  */
 const Plugin = () => {
-	const tests = getTestsRegistry().tests;
+	const tests = getSidebarTests();
+	const { Provider: ContextProvider } = context;
 
 	// Short circuit early if no panels are defined, to disable the sidebar completely.
 	if ( tests.length < 1 ) {
+		console.warn( 'Could not find any registered tests with sidebar UI.' );
 		return ( <></> );
 	}
 
@@ -33,8 +35,10 @@ const Plugin = () => {
 				name="altis-experiments"
 				title={ __( 'Experiments', 'altis-analytics' ) }
 			>
-				{ tests && Object.keys( tests ).map( testId => (
-					<TestPanel testId={ testId } />
+				{ tests && Object.keys( tests ).map( id => (
+					<ContextProvider value={ tests[ id ] }>
+						<TestPanel />
+					</ContextProvider>
 				) ) }
 			</PluginSidebar>
 		</Fragment>

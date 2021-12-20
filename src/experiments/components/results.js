@@ -5,7 +5,6 @@ import {
 	getDateString,
 	getDurationString,
 } from '../../utils';
-import { getTestsRegistry } from '../data/registry';
 import withTestData from '../data/with-test-data';
 
 import {
@@ -28,7 +27,7 @@ const { __ } = wp.i18n;
  */
 export const Results = props => {
 	const {
-		testId,
+		abTest,
 		test = {},
 		values = [],
 		resetTest,
@@ -44,8 +43,6 @@ export const Results = props => {
 		winner = null,
 		variants = [],
 	} = results;
-
-	const abTest = getTestsRegistry().get( testId );
 
 	const hasEnded = endTime < Date.now();
 

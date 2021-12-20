@@ -2,7 +2,6 @@ import React, { Fragment, useEffect } from 'react';
 
 import { arrayEquals } from '../../utils';
 import { DEFAULT_TEST } from '../data/shapes';
-import { getTestsRegistry } from '../data/registry';
 import withTestData from '../data/with-test-data';
 
 import DateRangeField from './field-date-range';
@@ -29,7 +28,7 @@ const { __ } = wp.i18n;
  */
 const Settings = props => {
 	const {
-		testId,
+		abTest,
 		isSaving,
 		originalValues,
 		post,
@@ -52,8 +51,6 @@ const Settings = props => {
 	const {
 		variants = [],
 	} = results;
-
-	const abTest = getTestsRegistry().get( testId );
 
 	// Set the initial prevValues value if it's empty.
 	useEffect( () => {

@@ -32,7 +32,6 @@ function init() {
 		[
 			'label' => __( 'Featured Images', 'altis-analytics' ),
 			'singular_label' => __( 'Featured Image', 'altis-analytics' ),
-			'input_type' => 'image',
 			'rest_api_variants_type' => 'int',
 			'goal' => 'click',
 			'closest' => 'a',
@@ -46,6 +45,7 @@ function init() {
 				'post',
 				'page',
 			],
+			'show_ui' => true,
 			'editor_scripts' => [
 				Utils\get_asset_url( 'featured-images.js' ) => [
 					'wp-plugins',
