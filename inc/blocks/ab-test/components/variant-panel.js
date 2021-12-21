@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components';
 
 import GoalPicker from '../../personalization/components/goal-picker';
 
@@ -7,35 +6,11 @@ const {
 	PanelBody,
 	TextControl,
 	RangeControl,
-	Button,
-	Icon,
 } = wp.components;
 const {
 	useDispatch,
-	useSelect,
 } = wp.data;
 const { __ } = wp.i18n;
-
-const Preview = styled( Button ).attrs( {
-	isLink: true,
-} )`
-	text-align: right;
-	flex: 0;
-	align-self: flex-end;
-	font-size: inherit;
-
-	.dashicon {
-		width: auto;
-		font-size: inherit;
-		line-height: inherit;
-		vertical-align: baseline;
-	}
-
-	svg.dashicon, .dashicon svg {
-		width: 0.9rem;
-		margin-left: 2px;
-	}
-`;
 
 /**
  * Variant settings panel.
@@ -50,11 +25,6 @@ const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMou
 
 	const defaultPercentage = 100 / variants.length;
 	const minPercentage = variants.length > 1 ? 0 : 100;
-
-	// Get A/B Test Block Id
-	const abPost = useSelect( select => {
-		return select( 'analytics/xbs' ).getPost( blockId );
-	}, [ blockId ] );
 
 	return (
 		<PanelBody title={ title } onMouseDown={ onMouseDown }>
