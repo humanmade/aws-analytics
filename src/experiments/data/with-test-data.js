@@ -1,5 +1,5 @@
-import React from 'react';
 import deepmerge from 'deepmerge';
+import React from 'react';
 
 import { DEFAULT_TEST } from './shapes';
 
