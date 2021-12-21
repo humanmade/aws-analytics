@@ -73,18 +73,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
-	$post_types = array(
-		POST_TYPE,
-		'revision',
-		'customize_changeset'
-	);
-
-	if ( in_array( $post->post_type, $post_types ) ) {
+	if ( in_array( $post->post_type, [ POST_TYPE, 'revision', 'customize_changeset' ], true ) ) {
 		return;
 	}
 
 	$post_type_object = get_post_type_object( $post->post_type );
-	if( !$post_type_object->public || !$post_type_object->show_in_rest ){
+	if ( ! $post_type_object->public || ! $post_type_object->show_in_rest ) {
 		return;
 	}
 
