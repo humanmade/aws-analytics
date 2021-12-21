@@ -20,7 +20,7 @@ const { __ } = wp.i18n;
  * @param {React.ReactNode} props.placeholder Placeholder text for the variant title while loading.
  * @returns {React.ReactNode} Variant settings panel.
  */
-const VariantPanel = ( { index, blockId, postId, title, variant, variants, onMouseDown } ) => {
+const VariantPanel = ( { title, variant, variants, onMouseDown } ) => {
 	const { updateBlockAttributes } = useDispatch( 'core/block-editor' );
 
 	const defaultPercentage = 100 / variants.length;
