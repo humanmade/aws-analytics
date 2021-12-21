@@ -37,7 +37,7 @@ function setup() {
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
-	add_filter( 'widget_update_callback', __NAMESPACE__ . '\\on_widgets_save', 100, 2 );
+	add_filter( 'widget_update_callback', __NAMESPACE__ . '\\on_widgets_save', 100, 4 );
 
 	// Register experience block category.
 	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
@@ -165,9 +165,11 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
  *
  * @param instance $instance Widget Object.
  * @param new_instance $new_instance Widget Object.
+ * @param old_instance $old_instance Widget Object
+ * @param widget $widget Current Widget Instance
  * @return object
  */
-function on_widgets_save( $instance, $new_instance ) {
+function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 
 	// Scan for XBs in the post content.
 	$blocks = parse_blocks( $new_instance['content'] );
@@ -197,7 +199,7 @@ function on_widgets_save( $instance, $new_instance ) {
 		$posts = array_values( $posts ); // Reset keys.
 
 		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( '(XB %s)', $index + 1 );
+		$default_title = sprintf( 'Widget A/B Test (XB %s)', $widget->number );
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
