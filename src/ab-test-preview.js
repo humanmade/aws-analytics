@@ -10,7 +10,7 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 	const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
 
 	const regex = new RegExp( `(utm_campaign|set_test)=test_xb_${ xbPostId }:(\\d+)`, 'i' );
-	const url_test = unescape( window.location.search ).match( regex );
+	const urlTest = unescape( window.location.search ).match( regex );
 
 	const total_templates = templates.length;
 
@@ -52,8 +52,8 @@ document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
 	// determine if a specific tab should be clicked
 	// else click the first tab
-	if ( url_test && ( url_test[2] < total_templates ) ) {
-		tabContainer.children[url_test[2]].click();
+	if ( urlTest && ( urlTest[2] < total_templates ) ) {
+		tabContainer.children[urlTest[2]].click();
 	} else {
 		tabContainer.firstElementChild.click();
 	}
