@@ -1,7 +1,9 @@
+import React from 'react';
 import deepmerge from 'deepmerge';
 
-import { context } from '.';
 import { DEFAULT_TEST } from './shapes';
+
+import { context } from '.';
 
 const { apiFetch } = wp;
 const { withSelect, withDispatch } = wp.data;
