@@ -1,3 +1,5 @@
+import TextInput from '../components/field-text-input';
+
 const { applyFilters, doAction } = wp.hooks;
 
 /**
@@ -17,7 +19,7 @@ export const getSidebarTests = () => {
 			id,
 			title: test.label,
 			singleTitle: test.singular_label,
-			component: () => ( <></> ),
+			component: TextInput,
 			displayValue: value => value,
 			dispatcher: () => ( {} ),
 			selector: () => ( {} ),
