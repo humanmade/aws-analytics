@@ -1,5 +1,4 @@
 import React from 'react';
-
 import GoalPicker from '../../personalization/components/goal-picker';
 
 const {
