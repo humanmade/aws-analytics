@@ -8,12 +8,12 @@ export { default as PluginIcon } from './plugin-icon';
 const {
 	Button: DefaultButton,
 	Icon: DefaultIcon,
-	Panel: DefaultPanel,
+	PanelBody: DefaultPanelBody,
 } = wp.components;
 
 export const Button = DefaultButton;
 
-export const Panel = styled( DefaultPanel )`
+export const PanelBody = styled( DefaultPanelBody )`
 	.components-panel__body-title {
 		.components-panel__icon {
 			color: #adb4c1;
@@ -22,7 +22,7 @@ export const Panel = styled( DefaultPanel )`
 			height: 16px;
 			position: absolute;
 			right: 45px;
-			top: 1.1rem;
+			top: 1rem;
 		}
 	}
 `;
