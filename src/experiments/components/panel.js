@@ -6,9 +6,7 @@ import withTestData from '../data/with-test-data';
 import Results from './results';
 import Settings from './settings';
 
-import { Panel } from '.';
-
-const { PanelBody } = wp.components;
+import { PanelBody } from '.';
 
 /**
  * Block Editor sidebar panel component for A/B tests.
@@ -44,21 +42,19 @@ const TestPanel = props => {
 	window.localStorage.setItem( '_altis_ab_tests', JSON.stringify( tests ) );
 
 	return (
-		<Panel>
-			<PanelBody
-				className={ classNames }
-				icon={ paused ? 'controls-pause' : 'chart-line' }
-				initialOpen
-				title={ abTest.title }
-			>
-				{ ( winner !== null || hasEnded ) && (
-					<Results />
-				) }
-				{ ( winner === null && ! hasEnded ) && (
-					<Settings />
-				) }
-			</PanelBody>
-		</Panel>
+		<PanelBody
+			className={ classNames }
+			icon={ paused ? 'controls-pause' : 'chart-line' }
+			initialOpen
+			title={ abTest.title }
+		>
+			{ ( winner !== null || hasEnded ) && (
+				<Results />
+			) }
+			{ ( winner === null && ! hasEnded ) && (
+				<Settings />
+			) }
+		</PanelBody>
 	);
 };
 

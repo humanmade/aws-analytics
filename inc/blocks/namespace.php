@@ -182,7 +182,6 @@ function update_or_create_xb_post( array $xbs, string $default_title = '', ?int 
 					'_xb_type_' . sanitize_key( $xb['blockName'] ) => 1,
 				],
 			] );
-
 		} else {
 			// Update existing post.
 			$xb_post_id = $posts[0]->ID;
@@ -193,6 +192,10 @@ function update_or_create_xb_post( array $xbs, string $default_title = '', ?int 
 				'post_parent' => $post_ID,
 			] );
 		}
+
+		// Store XB type, ensure back compat with existing XBs also.
+		update_post_meta( $xb_post_id, '_xb_type', $xb['blockName'] );
+		update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
