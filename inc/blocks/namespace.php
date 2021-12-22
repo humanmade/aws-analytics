@@ -164,16 +164,20 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 /**
  * Synchronise any XBs on the widget page with a shadow post type.
  *
- * @param instance $instance Widget Object.
- * @param new_instance $new_instance Widget Object.
- * @param old_instance $old_instance Widget Object
- * @param widget $widget Current Widget Instance
- * @return object
+ * @param array $instance The current widget settings.
+ * @param array $new_instance The of new widget settings.
+ * @param array $old_instance The of old widget settings.
+ * @param object $widget The current widget instance.
+ * @return array $instance The current widget settings.
  */
 function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 
+	if ( ! isset( $instance['content'] ) ) {
+		return $instance;
+	}
+
 	// Scan for XBs in the post content.
-	$blocks = parse_blocks( $new_instance['content'] );
+	$blocks = parse_blocks( $instance['content'] );
 	$xbs = find_xbs( $blocks );
 
 	// Find referenced XBs.
@@ -238,7 +242,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
 
-	return $new_instance;
+	return $instance;
 }
 
 /**
