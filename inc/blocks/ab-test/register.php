@@ -113,7 +113,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$winner = $results['winner'] ?? false;
 	}
 
-	if ( current_user_can( 'edit_post' ) && ( is_preview() || is_customize_preview() ) ) {
+	if ( current_user_can( 'edit_posts' ) && ( is_preview() || is_customize_preview() ) ) {
 		wp_enqueue_style(
 			'altis-experiments-features-blocks-abtest',
 			plugins_url( 'inc/blocks/ab-test/edit.css', Analytics\ROOT_FILE ),
