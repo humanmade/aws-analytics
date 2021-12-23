@@ -243,3 +243,30 @@ export const getDurationString = elapsed => {
 export const arrayEquals = ( array1, array2 ) =>
 	 array1.length === array2.length &&
 	 array1.every( ( value, index ) => value === array2[ index ] );
+
+/**
+ * Updates an array element given its index.
+ *
+ * @param {Array} arr Elements array.
+ * @param {string} value The updated element string.
+ * @param {number} index The array index of the element to update.
+ * @returns {Array} The updated array.
+ */
+export const replaceElement = ( arr = [], value = '', index = 0 ) => {
+	const newArray = [ ...arr ];
+	newArray[ index ] = value;
+	return newArray;
+};
+
+/**
+ * Remove an array element.
+ *
+ * @param {Array} arr Elements array.
+ * @param {number} index The index of the element to remove.
+ * @returns {Array} The updated array.
+ */
+export const removeElement = ( arr, index ) => {
+	const newArray = [ ...arr ];
+	newArray.splice( index, 1 );
+	return newArray;
+};
