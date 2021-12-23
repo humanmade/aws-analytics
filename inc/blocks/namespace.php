@@ -163,10 +163,10 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 /**
  * Synchronise any XBs on the widget page with a shadow post type.
  *
- * @param array $instance The current widget settings.
- * @param array $new_instance The of new widget settings.
- * @param array $old_instance The of old widget settings.
- * @param object $widget The current widget instance.
+ * @param array $instance The array of current widget settings.
+ * @param array $new_instance The array of new widget settings.
+ * @param array $old_instance The array of old widget settings.
+ * @param WP_Widget $widget The current widget instance.
  * @return array $instance The current widget settings.
  */
 function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
