@@ -179,6 +179,11 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 	$blocks = parse_blocks( $instance['content'] );
 	$xbs = find_xbs( $blocks );
 
+	// Stop processing if no XBs as widgets.
+	if ( empty( $xbs ) ) {
+		return;
+	}
+
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
