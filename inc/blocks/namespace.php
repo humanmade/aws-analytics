@@ -234,9 +234,8 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		}
 
 		// Store XB type.
-		$xb_name = ( isset( $xb['name'] ) ? $xb['name'] : 'XB' );
-		update_post_meta( $xb_post_id, '_xb_is_widget', $xb_name );
-		update_post_meta( $xb_post_id, '_xb_is_widget_' . sanitize_key( $xb_name ), true );
+		update_post_meta( $xb_post_id, '_xb_is_widget', $xb['blockName'] );
+		update_post_meta( $xb_post_id, '_xb_is_widget_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
