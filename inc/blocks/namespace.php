@@ -8,7 +8,6 @@
 namespace Altis\Analytics\Blocks;
 
 use Altis\Analytics;
-use Altis\Analytics\Blocks;
 use Altis\Analytics\Experiments;
 use Altis\Analytics\Utils;
 use Altis\Workflow\PublicationChecklist;
@@ -204,7 +203,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		$posts = array_values( $posts ); // Reset keys.
 
 		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( Blocks\get_block_type( $xb['attrs']['clientId'] ) ), $widget->number );
+		$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( get_block_type( $xb['attrs']['clientId'] ) ), $widget->number );
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
