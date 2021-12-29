@@ -137,7 +137,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
  * @param int $widget_number XB as a widget needs a number as the index doesn't increment.
  * @param string $xb_meta_key Meta Key for updating the post_meta.
  */
-function update_create_xb ( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ) {
+function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ) {
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
