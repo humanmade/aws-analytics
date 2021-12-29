@@ -137,7 +137,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
  * @param int $widget_number XB as a widget needs a number as the index doesn't increment.
  * @param string $xb_meta_key Meta Key for updating the post_meta.
  */
-function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ){
+function update_create_xb ( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ) {
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -161,11 +161,11 @@ function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta
 		] );
 		$posts = array_values( $posts ); // Reset keys.
 
-		if( $post_title ){
+		if ( $post_title ) {
 			// Generate a default title using current post title and instance number in the content.
 			$default_title = sprintf( '%s %s', $post_title, $index + 1 );
 		} else {
-			// else use a generic title based on the widget
+			// else use a generic title based on the widget.
 			$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( get_block_type( $xb['attrs']['clientId'] ) ), $widget_number );
 		}
 		if ( ! isset( $xb['attrs']['title'] ) ) {
