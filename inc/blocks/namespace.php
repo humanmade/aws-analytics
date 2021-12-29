@@ -95,69 +95,8 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
-	// Find referenced XBs.
-	$existing_posts = new WP_Query( [
-		'post_type' => POST_TYPE,
-		'post_status' => 'any',
-		'post_name__in' => array_filter( array_map( function ( array $xb ) : string {
-			return $xb['attrs']['clientId'];
-		}, $xbs ) ),
-		'posts_per_page' => 100,
-		'no_found_rows' => true,
-	] );
+	update_create_xb( $post_ID, $xbs, $post->post_title, '', '_xb_type' );
 
-	// Update or create XB posts.
-	foreach ( $xbs as $index => $xb ) {
-		if ( empty( $xb['attrs']['clientId'] ) ) {
-			continue;
-		}
-
-		// Extract existing post if found.
-		$posts = wp_list_filter( $existing_posts->posts, [
-			'post_name' => $xb['attrs']['clientId'],
-		] );
-		$posts = array_values( $posts ); // Reset keys.
-
-		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( '%s %s', $post->post_title, $index + 1 );
-		if ( ! isset( $xb['attrs']['title'] ) ) {
-			$xb['attrs']['title'] = '';
-		}
-
-		if ( empty( $posts ) ) {
-			// Create new shadow XB post.
-			$xb_post_id = wp_insert_post( [
-				'post_type' => POST_TYPE,
-				'post_status' => 'publish',
-				'post_content' => serialize_block( $xb ),
-				'post_name' => $xb['attrs']['clientId'],
-				'post_author' => get_current_user_id(),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
-				'post_parent' => $post_ID,
-			] );
-		} else {
-			// Update existing post.
-			$xb_post_id = $posts[0]->ID;
-			wp_update_post( [
-				'ID' => $posts[0]->ID,
-				'post_content' => serialize_block( $xb ),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
-				'post_parent' => $post_ID,
-			] );
-		}
-
-		// Store XB type, ensure back compat with existing XBs also.
-		update_post_meta( $xb_post_id, '_xb_type', $xb['blockName'] );
-		update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['blockName'] ), true );
-
-		/**
-		 * Allow further processing after the XB post is created or updated.
-		 *
-		 * @param int $post_id The XB post ID.
-		 * @param array $xb The unserialised block data.
-		 */
-		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
-	}
 }
 
 /**
@@ -184,6 +123,21 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		return;
 	}
 
+	update_create_xb( '', $xbs, '', $widget->number, '_xb_is_widget' );
+
+	return $instance;
+}
+
+/**
+ * Update or create new XB's
+ *
+ * @param int $post_ID Post ID if applicable in use case, currently no post ID for widgets.
+ * @param array $xbs XB's on page or as widgets.
+ * @param string $post_title Page/Post title for XB Post.
+ * @param int $widget_number XB as a widget needs a number as the index doesn't increment.
+ * @param string $xb_meta_key Meta Key for updating the post_meta.
+ */
+function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ){
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -207,8 +161,13 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		] );
 		$posts = array_values( $posts ); // Reset keys.
 
-		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( get_block_type( $xb['attrs']['clientId'] ) ), $widget->number );
+		if( $post_title ){
+			// Generate a default title using current post title and instance number in the content.
+			$default_title = sprintf( '%s %s', $post_title, $index + 1 );
+		} else {
+			// else use a generic title based on the widget
+			$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( get_block_type( $xb['attrs']['clientId'] ) ), $widget_number );
+		}
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
@@ -222,6 +181,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
 				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_parent' => $post_ID ?: '',
 			] );
 		} else {
 			// Update existing post.
@@ -230,12 +190,13 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
 				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_parent' => $post_ID ?: '',
 			] );
 		}
 
 		// Store XB type.
-		update_post_meta( $xb_post_id, '_xb_is_widget', $xb['blockName'] );
-		update_post_meta( $xb_post_id, '_xb_is_widget_' . sanitize_key( $xb['blockName'] ), true );
+		update_post_meta( $xb_post_id, $xb_meta_key, $xb['blockName'] );
+		update_post_meta( $xb_post_id, $xb_meta_key . '_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
@@ -246,7 +207,6 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
 
-	return $instance;
 }
 
 /**
