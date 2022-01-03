@@ -6,7 +6,6 @@ import Cards from '../components/cards';
 import Timeline from '../components/timeline';
 import Variants from '../components/variants';
 
-const { useSelect } = wp.data;
 const { __, sprintf } = wp.i18n;
 
 /**
@@ -23,7 +22,6 @@ const getABVariantTitle = ( title, id ) => title || sprintf( __( 'Variant %s', '
  *
  * @param {object} props The component props.
  * @param {object} props.block The block post data.
- * @param {string} props.clientId The block client ID.
  * @returns {React.ReactNode} The block view component.
  */
 const ABTest = ( {
