@@ -135,7 +135,7 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
  * @param int $item_id Item ID.
  * @param string $context Meta Key for updating the post_meta.
  */
-function update_create_xb( array $xbs, string $default_title = '', ?int $post_ID = null, ?int $item_id = null, string $context = 'post' ){
+function update_create_xb( array $xbs, string $default_title = '', ?int $post_ID = null, ?int $item_id = null, string $context = 'post' ) {
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -177,7 +177,7 @@ function update_create_xb( array $xbs, string $default_title = '', ?int $post_ID
 				'post_parent' => $post_ID,
 				'meta_input' => [
 					'_xb_context' => $context,
-					'_xb_content_' . $context => 1
+					'_xb_content_' . $context => 1,
 				],
 			] );
 
@@ -432,22 +432,20 @@ function get_block_type( $post ) : string {
 }
 
 /**
- * Readable block name based on the XB type.
+ * Readable block name based on the XB name.
  *
- * @param int|WP_POST $post Post object or ID for the XB.
+ * @param string $block_name Name of the XB.
  * @return string
  */
-function get_block_name( $blockName ){
-
+function get_block_name( $block_name ) {
 	$types = [
 		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
 		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
 	];
 
-	$type = str_replace( 'altis/', '', $blockName );
+	$type = str_replace( 'altis/', '', $block_name );
 
 	return ( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
-
 }
 
 /**
