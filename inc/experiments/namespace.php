@@ -279,7 +279,7 @@ function register_post_ab_tests_rest_fields() {
 										'type' => 'object',
 										'properties' => [
 											'value' => [
-												'type' => [ 'number', 'string' ],
+												'type' => [ 'number', 'string', 'object', 'array' ],
 												'description' => __( 'Variant value', 'altis-analytics' ),
 											],
 											'size' => [
