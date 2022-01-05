@@ -18,6 +18,8 @@ function createTabbedPreviews() {
 
 		const totalTemplates = templates.length;
 
+		tabContainer.innerHTML = '';
+
 		for ( let i = 0; i < totalTemplates; i++ ) {
 			// create a button element
 			const tab = document.createElement( 'button' );
@@ -50,8 +52,11 @@ function createTabbedPreviews() {
 				tabContent.appendChild( variant );
 			} );
 
-			// append the created tab
-			tabContainer.appendChild( tab );
+			// Return if the tabs are there already, prevents duplicates
+			if ( tabContainer.children.length === i ) {
+				// append the created tab
+				tabContainer.appendChild( tab );
+			}
 		}
 
 		// determine if a specific tab should be clicked
@@ -70,11 +75,6 @@ createTabbedPreviews();
 
 // When making changes in the customizer
 wp.customize.selectiveRefresh.bind( 'sidebar-updated', function () {
-	// clear out any exsisting tabs
-	document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
-		const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
-		tabContainer.innerHTML = '';
-	} );
 	// Create the tabs for previewing
 	createTabbedPreviews();
 } );

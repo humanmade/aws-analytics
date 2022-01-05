@@ -95,7 +95,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
-	update_create_xb( $post_ID, $xbs, $post->post_title, '', '_xb_type' );
+	update_create_xb( $xbs, $post->post_title, $post_ID, null, 'post' );
 
 }
 
@@ -118,12 +118,10 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 	$blocks = parse_blocks( $instance['content'] );
 	$xbs = find_xbs( $blocks );
 
-	// Stop processing if no XBs as widgets.
-	if ( empty( $xbs ) ) {
-		return;
+	// Update / Create XB's if the content contains XB's.
+	if ( ! empty( $xbs ) ) {
+		update_create_xb( $xbs, 'Widget', null, $widget->number, 'widget' );
 	}
-
-	update_create_xb( '', $xbs, '', $widget->number, '_xb_is_widget' );
 
 	return $instance;
 }
@@ -131,13 +129,13 @@ function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
 /**
  * Update or create new XB's
  *
- * @param int $post_ID Post ID if applicable in use case, currently no post ID for widgets.
  * @param array $xbs XB's on page or as widgets.
- * @param string $post_title Page/Post title for XB Post.
- * @param int $widget_number XB as a widget needs a number as the index doesn't increment.
- * @param string $xb_meta_key Meta Key for updating the post_meta.
+ * @param string $default_title Default Title title for XB Post.
+ * @param int $post_ID Post ID if applicable in use case.
+ * @param int $item_id Item ID.
+ * @param string $context Meta Key for updating the post_meta.
  */
-function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta_key ) {
+function update_create_xb( array $xbs, string $default_title = '', ?int $post_ID = null, ?int $item_id = null, string $context = 'post' ){
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -161,13 +159,8 @@ function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta
 		] );
 		$posts = array_values( $posts ); // Reset keys.
 
-		if ( $post_title ) {
-			// Generate a default title using current post title and instance number in the content.
-			$default_title = sprintf( '%s %s', $post_title, $index + 1 );
-		} else {
-			// else use a generic title based on the widget.
-			$default_title = sprintf( __( 'Widget %s %d', 'altis-analytics' ), ucfirst( get_block_type( $xb['attrs']['clientId'] ) ), $widget_number );
-		}
+		$xb_title = sprintf( '%s %s %s', $default_title, get_block_name( $xb['blockName'] ), $item_id ?: $index + 1 );
+
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
@@ -180,23 +173,28 @@ function update_create_xb( $post_ID, $xbs, $post_title, $widget_number, $xb_meta
 				'post_content' => serialize_block( $xb ),
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
-				'post_parent' => $post_ID ?: '',
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
+				'post_parent' => $post_ID,
+				'meta_input' => [
+					'_xb_context' => $context,
+					'_xb_content_' . $context => 1
+				],
 			] );
+
 		} else {
 			// Update existing post.
 			$xb_post_id = $posts[0]->ID;
 			wp_update_post( [
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
-				'post_parent' => $post_ID ?: '',
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
+				'post_parent' => $post_ID,
 			] );
 		}
 
-		// Store XB type.
-		update_post_meta( $xb_post_id, $xb_meta_key, $xb['blockName'] );
-		update_post_meta( $xb_post_id, $xb_meta_key . '_' . sanitize_key( $xb['blockName'] ), true );
+		// Store XB type, ensure back compat with existing XBs also.
+		update_post_meta( $xb_post_id, '_xb_type', $xb['blockName'] );
+		update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
@@ -431,6 +429,25 @@ function get_block_type( $post ) : string {
 	$post = get_post( $post );
 	$type = get_post_meta( $post->ID, '_xb_type', true ) ?: Personalization\BLOCK;
 	return str_replace( 'altis/', '', $type );
+}
+
+/**
+ * Readable block name based on the XB type.
+ *
+ * @param int|WP_POST $post Post object or ID for the XB.
+ * @return string
+ */
+function get_block_name( $blockName ){
+
+	$types = [
+		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
+		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
+	];
+
+	$type = str_replace( 'altis/', '', $blockName );
+
+	return ( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
+
 }
 
 /**
