@@ -20,6 +20,7 @@ function Variants( props ) {
 	const {
 		analytics,
 		append,
+		showUnique = true,
 		variants,
 	} = props;
 
@@ -45,10 +46,12 @@ function Variants( props ) {
 								<p className="description">{ __( 'Total views', 'altis-analytics' ) }</p>
 								<div className="altis-analytics-block-variant__metric">{ data ? formatNumber( data.views ) : '…' }</div>
 							</li>
-							<li>
-								<p className="description">{ __( 'Unique views', 'altis-analytics' ) }</p>
-								<div className="altis-analytics-block-variant__metric">{ data ? formatNumber( data.unique.views ) : '…' }</div>
-							</li>
+							{ showUnique && (
+								<li>
+									<p className="description">{ __( 'Unique views', 'altis-analytics' ) }</p>
+									<div className="altis-analytics-block-variant__metric">{ data ? formatNumber( data.unique.views ) : '…' }</div>
+								</li>
+							) }
 							{ variant.goal && (
 								<>
 									<li>
