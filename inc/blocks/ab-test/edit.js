@@ -192,7 +192,7 @@ const Edit = ( {
 					{ currentPost.type !== 'xb' && (
 						<TextControl
 							label={ <strong>{ __( 'Block Title', 'altis-analytics' ) }</strong> }
-							placeholder={ sprintf( __( '%s (XB %d)', 'altis-analytics' ), currentPost.title, instance.current ) }
+							placeholder={ sprintf( '%s %s %d', decodeEntities( currentPost.title || '' ), __( 'A/B Test', 'altis-analytics' ), instance.current ).trim() }
 							value={ decodeEntities( attributes.title || '' ) }
 							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
@@ -214,10 +214,7 @@ const Edit = ( {
 				{ variants.map( ( variant, index ) => (
 					<VariantPanel
 						key={ `variant-settings-${ variant.clientId }` }
-						blockId={ attributes.clientId }
 						className={ `variant-settings-${ variant.clientId }` }
-						index={ index }
-						postId={ currentPost.id }
 						title={ getVariantTitle( index, variant ) }
 						variant={ variant }
 						variants={ variants }
