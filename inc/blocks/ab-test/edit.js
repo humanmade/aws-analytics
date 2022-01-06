@@ -192,7 +192,7 @@ const Edit = ( {
 					{ currentPost.type !== 'xb' && (
 						<TextControl
 							label={ <strong>{ __( 'Block Title', 'altis-analytics' ) }</strong> }
-							placeholder={ sprintf( '%s %d', ( currentPost.title || __( 'A/B Test', 'altis-analytics' )  ), instance.current ) }
+							placeholder={ sprintf( '%s %s %d', decodeEntities( currentPost.title || '' ), __( 'A/B Test', 'altis-analytics' ), instance.current ).trim() }
 							value={ decodeEntities( attributes.title || '' ) }
 							onChange={ title => setAttributes( { title: decodeEntities( title ) } ) }
 						/>
