@@ -177,9 +177,9 @@ function update_or_create_xb_post( array $xbs, string $default_title = '', ?int 
 				'post_parent' => $post_ID,
 				'meta_input' => [
 					'_xb_context' => $context,
-					'_xb_content_' . $context => 1,
+					'_xb_context_' . sanitize_key( $context ) => 1,
 					'_xb_type' => $xb['blockName'],
-					'_xb_type_' => sanitize_key( $xb['blockName'] ),
+					'_xb_type_' . sanitize_key( $xb['blockName'] ) => 1,
 				],
 			] );
 
