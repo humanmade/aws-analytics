@@ -13,7 +13,7 @@ const mode = process.env.NODE_ENV || 'production';
 const sharedConfig = {
 	mode: mode,
 	entry: {
-		analytics: path.resolve( __dirname, 'src/analytics.js' ),
+		'analytics': path.resolve( __dirname, 'src/analytics.js' ),
 		'audiences/data': path.resolve( __dirname, 'src/audiences/data/index.js' ),
 		'audiences/preview': path.resolve( __dirname, 'src/audiences/preview/index.js' ),
 		'audiences/ui': path.resolve( __dirname, 'src/audiences/index.js' ),
@@ -23,9 +23,11 @@ const sharedConfig = {
 		'blocks/personalization-variant': path.resolve( __dirname, 'inc/blocks/personalization-variant/index.js' ),
 		'blocks/ab-test': path.resolve( __dirname, 'inc/blocks/ab-test/index.js' ),
 		'blocks/ab-test-variant': path.resolve( __dirname, 'inc/blocks/ab-test-variant/index.js' ),
-		experiments: path.resolve( __dirname, 'src/experiments.js' ),
-		titles: path.resolve( __dirname, 'src/titles/index.js' ),
 		'blocks/ab-test-preview': path.resolve( __dirname, 'src/ab-test-preview.js' ),
+		'experiments': path.resolve( __dirname, 'src/experiments.js' ),
+		'experiments/sidebar': path.resolve( __dirname, 'src/experiments/index.js' ),
+		'titles': path.resolve( __dirname, 'src/experiments/titles/index.js' ),
+		'featured-images': path.resolve( __dirname, 'src/experiments/featured-images/index.js' ),
 	},
 	output: {
 		path: path.resolve( __dirname, 'build' ),

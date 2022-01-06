@@ -24,6 +24,9 @@ function setup() {
 	// Register REST Fields.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\register_post_ab_tests_rest_fields' );
 
+	// Register REST fields for test variants.
+	add_action( 'rest_api_init', __NAMESPACE__ . '\\register_post_ab_tests_variants_rest_fields' );
+
 	// Hook cron task.
 	add_action( 'altis_post_ab_test_cron', __NAMESPACE__ . '\\handle_post_ab_test_cron', 10, 2 );
 
@@ -38,6 +41,16 @@ function setup() {
 	$titles_feature = apply_filters( 'altis.experiments.features.titles', true );
 	if ( $titles_feature ) {
 		Titles\setup();
+	}
+
+	/**
+	 * Enable Featured images AB Tests.
+	 *
+	 * @param bool $enabled Whether to enable this feature or not.
+	 */
+	$featured_images_feature = apply_filters( 'altis.experiments.features.featured_images', true );
+	if ( $featured_images_feature ) {
+		FeaturedImages\setup();
 	}
 
 	// Register default conversion goals.
@@ -174,10 +187,8 @@ function register_post_ab_tests_rest_fields() {
 		'get_callback' => function ( array $post ) {
 			$response = [];
 			foreach ( array_keys( get_post_ab_tests() ) as $test_id ) {
-				$test_config = get_post_ab_test( $test_id );
-
 				// Skip this test for unsupported types.
-				if ( ! in_array( $post['type'], $test_config['post_types'], true ) ) {
+				if ( ! in_array( $post['type'], get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 					continue;
 				}
 
@@ -195,10 +206,8 @@ function register_post_ab_tests_rest_fields() {
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
 			foreach ( $value as $test_id => $test ) {
-				$test_config = get_post_ab_test( $test_id );
-
 				// Skip this test for unsupported types.
-				if ( ! in_array( $post->post_type, $test_config['post_types'], true ) ) {
+				if ( ! in_array( $post->post_type, get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 					continue;
 				}
 
@@ -279,7 +288,7 @@ function register_post_ab_tests_rest_fields() {
 										'type' => 'object',
 										'properties' => [
 											'value' => [
-												'type' => [ 'number', 'string' ],
+												'type' => [ 'number', 'string', 'object', 'array' ],
 												'description' => __( 'Variant value', 'altis-analytics' ),
 											],
 											'size' => [
@@ -321,6 +330,8 @@ function register_post_ab_tests_rest_fields() {
  * @param array $options A/B Test configuration options.
  *     $options = [
  *       'label' => (string) A human readable name for the test.
+ *       'singular_label' => (string) A human readable name for one instance of the test.
+ *       'show_ui' => (boolean) Whether to show this test in the sidebar.
  *       'rest_api_variants_field' => (string) REST API field name to return variants on.
  *       'rest_api_variants_type' => (string) REST API field data type.
  *       'goal' => (string) The event handler.
@@ -345,6 +356,7 @@ function register_post_ab_test( string $test_id, array $options ) {
 
 	$options = wp_parse_args( $options, [
 		'label' => $test_id,
+		'singular_label' => $test_id,
 		'rest_api_variants_field' => 'ab_test_' . $test_id,
 		'rest_api_variants_type' => 'string',
 		'goal' => 'click',
@@ -362,28 +374,26 @@ function register_post_ab_test( string $test_id, array $options ) {
 			'post',
 			'page',
 		],
+		'show_ui' => false,
+		'editor_scripts' => [],
 	] );
 
-	$post_ab_tests[ $test_id ] = $options;
+	/**
+	 * Filter test options.
+	 *
+	 * @param array  $options Test options.
+	 * @param string $test_id Test ID.
+	 */
+	$post_ab_tests[ $test_id ] = apply_filters( 'altis.experiments.test.options', $options, $test_id );
 
-	register_rest_field(
-		$options['post_types'],
-		$options['rest_api_variants_field'],
-		[
-			'get_callback' => function ( $post ) use ( $test_id ) : array {
-				return get_ab_test_variants_for_post( $test_id, $post['id'] );
-			},
-			'update_callback' => function ( array $variants, WP_Post $post ) use ( $test_id ) {
-				return update_ab_test_variants_for_post( $test_id, $post->ID, $variants );
-			},
-			'schema' => [
-				'type' => 'array',
-				'items' => [
-					'type' => $options['rest_api_variants_type'],
-				],
-			],
-		]
-	);
+	if ( $options['editor_scripts'] ) {
+		add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_experiments_editor_scripts' );
+	}
+
+	// Handle post type support filtering and registration.
+	foreach ( $options['post_types'] as $post_type ) {
+		add_post_type_support( $post_type, "altis.experiments.{ $test_id }" );
+	}
 
 	// Bind winner_callback.
 	add_action( "altis.experiments.test.winner_found.{$test_id}", $options['winner_callback'], 10, 2 );
@@ -392,6 +402,108 @@ function register_post_ab_test( string $test_id, array $options ) {
 	if ( ( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) && ! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] ) ) {
 		wp_schedule_event( time(), 'hourly', 'altis_post_ab_test_cron', [ $test_id ] );
 	}
+
+	/**
+	 * Dispatch action when a test is registered.
+	 *
+	 * @param string $test_id Test ID.
+	 * @param array  $options Test options.
+	 */
+	do_action( 'altis.experiments.test.registered', $test_id, $options );
+}
+
+/**
+ * Register REST fields for test variants data.
+ *
+ * @return void
+ */
+function register_post_ab_tests_variants_rest_fields() {
+	global $post_ab_tests;
+
+	foreach ( $post_ab_tests as $test_id => $options ) {
+		register_rest_field(
+			get_post_types_by_support( "altis.experiments.{ $test_id }" ),
+			$options['rest_api_variants_field'],
+			[
+				'get_callback' => function ( $post ) use ( $test_id ) : array {
+					return get_ab_test_variants_for_post( $test_id, $post['id'] );
+				},
+				'update_callback' => function ( array $variants, WP_Post $post ) use ( $test_id ) {
+					return update_ab_test_variants_for_post( $test_id, $post->ID, $variants );
+				},
+				'schema' => [
+					'type' => 'array',
+					'items' => [
+						'type' => $options['rest_api_variants_type'],
+					],
+				],
+			]
+		);
+	}
+}
+
+/**
+ * Register block editor scripts requird for registered tests.
+ *
+ * @param string $hook Current screen hook.
+ *
+ * @return void
+ */
+function enqueue_experiments_editor_scripts( string $hook ) : void {
+	global $post_ab_tests;
+
+	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'altis-experiments-features',
+		Utils\get_asset_url( 'experiments/sidebar.js' ),
+		[
+			'wp-plugins',
+			'wp-blocks',
+			'wp-i18n',
+			'wp-editor',
+			'wp-components',
+			'wp-core-data',
+			'wp-edit-post',
+			'moment',
+		]
+	);
+
+	foreach ( $post_ab_tests as $test_id => $test ) {
+		if ( empty( $test['editor_scripts'] ) ) {
+			continue;
+		}
+
+		if ( ! in_array( get_current_screen()->post_type, get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
+			continue;
+		}
+
+		foreach ( $test['editor_scripts'] as $script => $deps ) {
+			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, array_merge( $deps, [ 'altis-experiments-features' ] ), null );
+		}
+	}
+
+	$js_data = array_filter( array_map( function( array $test ) {
+		return $test['show_ui']
+			? array_intersect_key( $test, array_flip( [ 'label', 'singular_label' ] ) )
+			: false;
+	}, $post_ab_tests ) );
+
+	wp_add_inline_script(
+		'altis-experiments-features',
+		sprintf(
+			'window.Altis = window.Altis || {};' .
+			'window.Altis.Analytics = window.Altis.Analytics || {};' .
+			'window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};' .
+			'window.Altis.Analytics.Experiments.BuildURL = %s;' .
+			'window.Altis.Analytics.Experiments.PostABTests = %s;',
+			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) ),
+			wp_json_encode( $js_data )
+		),
+		'before'
+	);
 }
 
 /**
@@ -457,7 +569,7 @@ function handle_post_ab_test_cron( string $test_id, int $page = 1 ) {
 
 	$posts_per_page = 50;
 	$posts = new WP_Query( [
-		'post_type' => $test['post_types'],
+		'post_type' => get_post_types_by_support( "altis.experiments.{ $test_id }" ),
 		'fields' => 'ids',
 		'post_status' => [ 'publish', 'inherit' ],
 		'posts_per_page' => $posts_per_page,
@@ -769,7 +881,7 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
 	$test = get_post_ab_test( $test_id );
 
 	// Check post type is supported.
-	if ( ! in_array( get_post_type( $post_id ), $test['post_types'], true ) ) {
+	if ( ! in_array( get_post_type( $post_id ), get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 		return $default_output;
 	}
 

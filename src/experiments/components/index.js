@@ -8,12 +8,12 @@ export { default as PluginIcon } from './plugin-icon';
 const {
 	Button: DefaultButton,
 	Icon: DefaultIcon,
-	Panel: DefaultPanel,
+	PanelBody: DefaultPanelBody,
 } = wp.components;
 
 export const Button = DefaultButton;
 
-export const Panel = styled( DefaultPanel )`
+export const PanelBody = styled( DefaultPanelBody )`
 	.components-panel__body-title {
 		.components-panel__icon {
 			color: #adb4c1;
@@ -22,7 +22,7 @@ export const Panel = styled( DefaultPanel )`
 			height: 16px;
 			position: absolute;
 			right: 45px;
-			top: 1.1rem;
+			top: 1rem;
 		}
 	}
 `;
@@ -112,4 +112,63 @@ export const PercentageChange = styled.div.attrs( {
 	top: 0;
 	right: 0;
 	font-size: 90%;
+`;
+
+export const VariantContainer = styled.div`
+	margin-bottom: 5px;
+	position: relative;
+`;
+
+export const Info = styled.div`
+	font-size: 85%;
+	color: #666;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+`;
+
+export const Views = styled.div`
+	flex: 1;
+
+	.dashicon {
+		margin-right: 4px;
+		vertical-align: middle;
+		position: relative;
+		width: 0.9rem;
+		top: -1px;
+	}
+`;
+
+export const Preview = styled( Button ).attrs( {
+	isLink: true,
+} )`
+	text-align: right;
+	flex: 0;
+	align-self: flex-end;
+	font-size: inherit;
+
+	.dashicon {
+		width: auto;
+		font-size: inherit;
+		line-height: inherit;
+		vertical-align: baseline;
+	}
+
+	svg.dashicon, .dashicon svg {
+		width: 0.9rem;
+		margin-left: 2px;
+	}
+`;
+
+export const VariantLabelContainer = styled.label.attrs( {
+	className: '',
+} )`
+	.components-base-control__label {
+		margin-bottom: 8px;
+		display: inline-block;
+	}
+
+	.components-base-control__icon {
+		float: right;
+	}
 `;
