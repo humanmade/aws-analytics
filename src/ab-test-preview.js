@@ -13,6 +13,11 @@ function createTabbedPreviews() {
 		const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
 		const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
 
+		// Return if we've processed this XB already.
+		if ( tabContainer.children.length > 0 ) {
+			return;
+		}
+
 		const regex = new RegExp( `(utm_campaign|set_test)=test_xb_${ xbPostId }:(\\d+)`, 'i' );
 		const urlTest = unescape( window.location.search ).match( regex );
 
@@ -52,11 +57,8 @@ function createTabbedPreviews() {
 				tabContent.appendChild( variant );
 			} );
 
-			// Return if the tabs are there already, prevents duplicates
-			if ( tabContainer.children.length === i ) {
-				// append the created tab
-				tabContainer.appendChild( tab );
-			}
+			// append the created tab
+			tabContainer.appendChild( tab );
 		}
 
 		// determine if a specific tab should be clicked
