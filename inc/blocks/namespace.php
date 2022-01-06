@@ -37,6 +37,7 @@ function setup() {
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
+	add_filter( 'widget_update_callback', __NAMESPACE__ . '\\on_widgets_save', 100, 4 );
 
 	// Register experience block category.
 	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
@@ -72,11 +73,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
-	if ( $post->post_type === POST_TYPE ) {
+	if ( in_array( $post->post_type, [ POST_TYPE, 'revision', 'customize_changeset' ], true ) ) {
 		return;
 	}
 
-	if ( $post->post_type === 'revision' ) {
+	$post_type_object = get_post_type_object( $post->post_type );
+	if ( ! $post_type_object->public && ! $post_type_object->show_in_rest ) {
 		return;
 	}
 
@@ -93,6 +95,47 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
+	update_or_create_xb_post( $xbs, $post->post_title, $post_ID, null, 'post' );
+
+}
+
+/**
+ * Synchronise any XBs on the widget page with a shadow post type.
+ *
+ * @param array $instance The array of current widget settings.
+ * @param array $new_instance The array of new widget settings.
+ * @param array $old_instance The array of old widget settings.
+ * @param WP_Widget $widget The current widget instance.
+ * @return array $instance The current widget settings.
+ */
+function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
+
+	if ( ! isset( $instance['content'] ) ) {
+		return $instance;
+	}
+
+	// Scan for XBs in the post content.
+	$blocks = parse_blocks( $instance['content'] );
+	$xbs = find_xbs( $blocks );
+
+	// Update / Create XB's if the content contains XB's.
+	if ( ! empty( $xbs ) ) {
+		update_or_create_xb_post( $xbs, __( 'Widget' ), null, $widget->number, 'widget' );
+	}
+
+	return $instance;
+}
+
+/**
+ * Update or create new XB shadow posts.
+ *
+ * @param array $xbs XBs on page or as widgets.
+ * @param string $default_title Default Title title for XB Post.
+ * @param int $post_ID Post ID if applicable in use case.
+ * @param int $item_id Item ID if applicable in use case.
+ * @param string $context Meta Key for updating the post_meta.
+ */
+function update_or_create_xb_post( array $xbs, string $default_title = '', ?int $post_ID = null, ?int $item_id = null, string $context = 'post' ) {
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -116,8 +159,8 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		] );
 		$posts = array_values( $posts ); // Reset keys.
 
-		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
+		$xb_title = sprintf( '%s %s %s', $default_title, get_block_type_label( $xb['blockName'] ), $item_id ?: $index + 1 );
+
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
@@ -130,23 +173,26 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 				'post_content' => serialize_block( $xb ),
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
 				'post_parent' => $post_ID,
+				'meta_input' => [
+					'_xb_context' => $context,
+					'_xb_context_' . sanitize_key( $context ) => 1,
+					'_xb_type' => $xb['blockName'],
+					'_xb_type_' . sanitize_key( $xb['blockName'] ) => 1,
+				],
 			] );
+
 		} else {
 			// Update existing post.
 			$xb_post_id = $posts[0]->ID;
 			wp_update_post( [
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
 				'post_parent' => $post_ID,
 			] );
 		}
-
-		// Store XB type, ensure back compat with existing XBs also.
-		update_post_meta( $xb_post_id, '_xb_type', $xb['blockName'] );
-		update_post_meta( $xb_post_id, '_xb_type_' . sanitize_key( $xb['blockName'] ), true );
 
 		/**
 		 * Allow further processing after the XB post is created or updated.
@@ -156,6 +202,7 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		 */
 		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
+
 }
 
 /**
@@ -380,6 +427,23 @@ function get_block_type( $post ) : string {
 	$post = get_post( $post );
 	$type = get_post_meta( $post->ID, '_xb_type', true ) ?: Personalization\BLOCK;
 	return str_replace( 'altis/', '', $type );
+}
+
+/**
+ * Readable block name based on the XB name.
+ *
+ * @param string $block_name Name of the XB.
+ * @return string
+ */
+function get_block_type_label( string $block_name ) : string {
+	$types = [
+		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
+		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
+	];
+
+	$type = str_replace( 'altis/', '', $block_name );
+
+	return ( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
 }
 
 /**
