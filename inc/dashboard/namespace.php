@@ -218,15 +218,8 @@ function render_block_column() {
  */
 function render_type_column() {
 	global $post;
-
-	$types = [
-		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
-		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
-	];
-
 	$type = Blocks\get_block_type( $post );
-
-	echo esc_html( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
+	echo esc_html( Blocks\get_block_type_label( $type ) );
 }
 
 /**
