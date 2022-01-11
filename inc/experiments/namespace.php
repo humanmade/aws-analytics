@@ -850,7 +850,9 @@ function is_ab_test_running_for_post( string $test_id, int $post_id ) : bool {
 	$is_paused = (bool) is_ab_test_paused_for_post( $test_id, $post_id );
 	$start_time = (int) get_ab_test_start_time_for_post( $test_id, $post_id );
 	$end_time = (int) get_ab_test_end_time_for_post( $test_id, $post_id );
-	return $has_variants && $is_started && ! $is_paused && $start_time <= Utils\milliseconds() && $end_time > Utils\milliseconds();
+	$now = Utils\milliseconds();
+	$is_running = $has_variants && $is_started && ! $is_paused && $start_time <= $now && $end_time > $now;
+	return $is_running;
 }
 
 /**
