@@ -1140,8 +1140,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	$variant_values = get_ab_test_variants_for_post( $test_id, $post_id );
 
 	// Track winning variant.
-	$winner = false;
-	$winning = false;
+	$winner = null;
+	$winning = null;
 	$max_rate = 0.0;
 	$variants = [];
 
@@ -1180,7 +1180,7 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	}
 
 	// Find if a variant is winning, ie. reject null hypothesis.
-	if ( $winning !== false ) {
+	if ( $winning !== null ) {
 		$winning_variant = $variants[ $winning ];
 		// Require 99% certainty.
 		if ( ! is_null( $winning_variant['p'] ) && $winning_variant['p'] < 0.01 ) {
