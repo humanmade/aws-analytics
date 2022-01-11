@@ -45,6 +45,18 @@ function init() {
 				'post',
 				'page',
 			],
+			// Exclude all events from the target post page.
+			'query_filter' => function ( $test_id, $post_id ) : array {
+				$url = get_the_permalink( $post_id );
+				return [
+					'filter' => [
+						[ 'terms' => [ 'event_type.keyword' => [ 'click', 'pageView' ] ] ],
+					],
+					'must_not' => [
+						[ 'prefix' => [ 'attributes.url.keyword' => $url ] ],
+					],
+				];
+			},
 			'show_ui' => true,
 			'editor_scripts' => [
 				Utils\get_asset_url( 'featured-images.js' ) => [

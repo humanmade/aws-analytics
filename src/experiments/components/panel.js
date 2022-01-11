@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { DEFAULT_TEST } from '../data/shapes';
 import withTestData from '../data/with-test-data';
 
 import Results from './results';
@@ -56,10 +55,6 @@ const TestPanel = props => {
 			) }
 		</PanelBody>
 	);
-};
-
-TestPanel.defaultProps = {
-	test: DEFAULT_TEST,
 };
 
 export default withTestData( TestPanel );

@@ -655,7 +655,8 @@ function is_ab_test_started_for_post( string $test_id, int $post_id ) : bool {
  * @return int A percentage
  */
 function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id ) : int {
-	return (int) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	$traffic_percentage = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	return (int) ( is_numeric( $traffic_percentage ) ? $traffic_percentage : 35 );
 }
 
 /**
@@ -849,7 +850,9 @@ function is_ab_test_running_for_post( string $test_id, int $post_id ) : bool {
 	$is_paused = (bool) is_ab_test_paused_for_post( $test_id, $post_id );
 	$start_time = (int) get_ab_test_start_time_for_post( $test_id, $post_id );
 	$end_time = (int) get_ab_test_end_time_for_post( $test_id, $post_id );
-	return $has_variants && $is_started && ! $is_paused && $start_time <= Utils\milliseconds() && $end_time > Utils\milliseconds();
+	$now = Utils\milliseconds();
+	$is_running = $has_variants && $is_started && ! $is_paused && $start_time <= $now && $end_time > $now;
+	return $is_running;
 }
 
 /**
@@ -1137,8 +1140,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	$variant_values = get_ab_test_variants_for_post( $test_id, $post_id );
 
 	// Track winning variant.
-	$winner = false;
-	$winning = false;
+	$winner = null;
+	$winning = null;
 	$max_rate = 0.0;
 	$variants = [];
 
@@ -1177,7 +1180,7 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	}
 
 	// Find if a variant is winning, ie. reject null hypothesis.
-	if ( $winning !== false ) {
+	if ( $winning !== null ) {
 		$winning_variant = $variants[ $winning ];
 		// Require 99% certainty.
 		if ( ! is_null( $winning_variant['p'] ) && $winning_variant['p'] < 0.01 ) {
