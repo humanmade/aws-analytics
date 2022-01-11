@@ -655,7 +655,8 @@ function is_ab_test_started_for_post( string $test_id, int $post_id ) : bool {
  * @return int A percentage
  */
 function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id ) : int {
-	return (int) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	$traffic_percentage = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	return (int) is_numeric( $traffic_percentage ) ? $traffic_percentage : 35;
 }
 
 /**
