@@ -27,7 +27,6 @@ function setup() {
 function init() {
 	if ( ! is_admin() ) {
 		add_filter( 'post_thumbnail_html', __NAMESPACE__ . '\\filter_post_thumbnail_html_ab_test_values', 10, 5 );
-		add_filter( 'has_post_thumbnail', __NAMESPACE__ . '\\filter_has_post_thumbnail', 10, 2 );
 	}
 
 	Experiments\register_post_ab_test(
@@ -82,23 +81,4 @@ function filter_post_thumbnail_html_ab_test_values( string $html, int $post_id, 
 		'size' => $size,
 		'attr' => $attr,
 	] );
-}
-
-/**
- * Override the has_post_thumbnail check for posts running the test.
- *
- * @param bool             $has_thumbnail Whether the post has a thumbnail set.
- * @param int|WP_Post|null $post          Post ID/object.
- *
- * @return boolean
- */
-function filter_has_post_thumbnail( $has_thumbnail, $post ) : bool {
-	if ( $has_thumbnail ) {
-		return $has_thumbnail;
-	}
-
-	$post_id = get_post( $post )->ID;
-	$$has_thumbnail = is_ab_test_running_for_post( 'featured_images', $post_id );
-
-	return $has_thumbnail;
 }
