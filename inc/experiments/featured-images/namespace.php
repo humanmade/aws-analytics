@@ -10,8 +10,6 @@ namespace Altis\Analytics\Experiments\FeaturedImages;
 use Altis\Analytics\Experiments;
 use Altis\Analytics\Utils;
 
-use function Altis\Analytics\Experiments\is_ab_test_running_for_post;
-
 /**
  * Bootstrap AB Tests Feature.
  *
