@@ -1,7 +1,6 @@
 import React, { Fragment, useEffect } from 'react';
 
 import { arrayEquals } from '../../utils';
-import { DEFAULT_TEST } from '../data/shapes';
 import withTestData from '../data/with-test-data';
 
 import DateRangeField from './field-date-range';
@@ -188,10 +187,6 @@ const Settings = props => {
 			) }
 		</Fragment>
 	);
-};
-
-Settings.defaultProps = {
-	test: DEFAULT_TEST,
 };
 
 export default withTestData( Settings );

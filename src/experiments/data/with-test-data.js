@@ -157,7 +157,7 @@ const withTestData = compose(
 			ab_tests: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' ),
 			post: select( 'core/editor' ).getCurrentPost(),
 			postType: select( 'core' ).getPostType( select( 'core/editor' ).getCurrentPostType() ),
-			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ abTest.id ] || DEFAULT_TEST,
+			test: select( 'core/editor' ).getEditedPostAttribute( 'ab_tests' )[ abTest.id ],
 			originalValues: select( 'core/editor' ).getCurrentPostAttribute( `ab_test_${ abTest.id }` ) || [],
 			values: select( 'core/editor' ).getEditedPostAttribute( `ab_test_${ abTest.id }` ) || [],
 			defaultValue: '',
