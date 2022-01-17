@@ -12,6 +12,7 @@ module.exports = choosePort( 3000 ).then( port => (
 			https: true,
 		},
 		entry: {
+			accelerate: filePath( 'src/accelerate/index.tsx' ),
 			dashboard: filePath( 'src/dashboard/index.tsx' ),
 		},
 		output: {

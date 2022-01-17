@@ -1,7 +1,7 @@
 import React from 'react';
 import { __ } from '@wordpress/i18n';
 
-import { StatsResult } from '../util';
+import { StatsResult } from '../../util';
 
 import './Summary.css';
 

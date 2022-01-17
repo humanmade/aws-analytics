@@ -14,7 +14,7 @@ import { AnimationTiming } from 'recharts/types/util/types';
 import { __ } from '@wordpress/i18n';
 
 import './TrafficGraph.css';
-import { Period, StatsResult } from '../util';
+import { Period, StatsResult } from '../../util';
 
 const formatDate = ( date: string | Date ) => moment( date ).format( 'MMM Do' );
 
