@@ -18,7 +18,7 @@
 	font-size: 14px;
 	line-height: 1.4;
 	border-bottom: 1px solid #ccd0d4;
-	font-weight: bold;
+	font-weight: 800;
 }
 
 .BreakdownList__item::after {
@@ -63,6 +63,7 @@
 	cursor: pointer;
 	text-align: inherit;
 }
+
 .BreakdownList__item-select:hover,
 .BreakdownList__item-select:active {
 	text-decoration: underline;
