@@ -40,7 +40,7 @@ body.index-php {
 }
 
 .dashboard-shadow {
-	box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+	box-shadow: 0 5px 10px rgba( 0, 0, 0, 0.05 );
 }
 
 // Dashboard
@@ -63,7 +63,7 @@ body.index-php {
 		left: 0;
 		bottom: 0;
 		right: 0;
-		background: url('../../images/hero.jpg') no-repeat center center;
+		background: url( '../../images/hero.jpg' ) no-repeat center center;
 		background-size: cover;
     	filter: saturate(0%);
 		background-blend-mode: multiply;
@@ -102,20 +102,20 @@ body.index-php {
 		border-radius: 20px;
 		padding: 5px 12px;
 		margin-right: 10px;
-		border: 2px solid rgba(255,255,255,0.2);
-		color: rgba(255,255,255,0.4);
+		border: 2px solid rgba( 255, 255, 255, 0.2 );
+		color: rgba( 255, 255, 255, 0.4 );
 		cursor: pointer;
 		transition: 200ms;
 		background: none;
 
 		&:not(.timerange-active):hover {
-			border: 2px solid rgba(255,255,255,0.6);
-			color: rgba(255,255,255,0.8);
+			border: 2px solid rgba( 255, 255, 255, 0.6 );
+			color: rgba( 255, 255, 255, 0.8 );
 		}
 
 		&.timerange-active {
 			color: #fff;
-			border: 2px solid rgba(255,255,255,1);
+			border: 2px solid rgba( 255, 255, 255, 1 );
 		}
 	}
 
@@ -277,7 +277,7 @@ body.index-php {
 		background: #fff;
 		border-radius: 10px;
 		border: 0;
-		box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+		box-shadow: 0 5px 10px rgba( 0, 0, 0, 0.05 );
 		cursor: pointer;
 		text-align: center;
 
@@ -286,7 +286,7 @@ body.index-php {
 		}
 
 		&:not(.filter-active):hover {
-			color: fade-out($active-blue, 0.5);
+			color: fade-out( $active-blue, 0.5 );
 		}
 	}
 
@@ -345,7 +345,7 @@ body.index-php {
 				bottom: 11px;
 				right: 20%;
 				color: $dark-blue;
-				background: fade-out($active-blue, 0.8);
+				background: fade-out( $active-blue, 0.8 );
 				border-radius: 0 4px 4px 0;
 			}
 		}
@@ -370,7 +370,7 @@ body.index-php {
 				left: 5px;
 				display: inline-block;
 				font-size: 0.6rem;
-				background: fade-out($score-pos, 0.8);
+				background: fade-out( $score-pos, 0.8 );
 				color: $score-pos;
 				padding: 2px 4px;
 				border-radius: 4px;
@@ -407,11 +407,11 @@ body.index-php {
 			background: none;
 
 			&.current {
-				background: fade-out($active-blue, 0.9);
+				background: fade-out( $active-blue, 0.9 );
 			}
 
 			&:hover {
-				background: fade-out($active-blue, 0.95);
+				background: fade-out( $active-blue, 0.95 );
 			}
 
 		}
