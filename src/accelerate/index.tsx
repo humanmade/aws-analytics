@@ -1,20 +1,22 @@
+/// <reference path="../global.d.ts" />
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { SlotFillProvider } from '@wordpress/components';
 import { register } from '@wordpress/data';
 
-import 'react-dates/initialize';
-import 'react-dates/lib/css/_datepicker.css';
-
 import AppComponent from './components/App';
 import { store } from '../data';
 
+// Set up redux store.
 register( store );
 
 const root = document.getElementById( 'altis-analytics-root' );
 const render = ( App: typeof AppComponent ) => ReactDOM.render(
 	<SlotFillProvider>
-		<App />
+		<App
+			config={ window.AltisAccelerateDashboardData }
+		/>
 	</SlotFillProvider>,
 	root
 );

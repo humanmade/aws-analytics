@@ -7,6 +7,7 @@ loaders.ts.defaults.loader = 'babel-loader';
 module.exports = presets.production( {
 	externals,
 	entry: {
+		accelerate: filePath( 'src/accelerate/index.tsx' ),
 		dashboard: filePath( 'src/dashboard/index.tsx' ),
 	},
 	output: {

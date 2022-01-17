@@ -1,7 +1,7 @@
 import React from 'react';
 
 import BreakdownBlock from './BreakdownBlock';
-import { Filter, StatsResult } from '../util';
+import { Filter, StatsResult } from '../../util';
 
 interface Props {
 	data?: StatsResult,
