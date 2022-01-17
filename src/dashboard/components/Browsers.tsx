@@ -2,7 +2,7 @@ import React from 'react';
 import { __ } from '@wordpress/i18n';
 
 import BreakdownBlock from './BreakdownBlock';
-import { StatsResult } from '../util';
+import { StatsResult } from '../../util';
 
 interface Props {
 	data?: StatsResult,
