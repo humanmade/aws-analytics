@@ -11,8 +11,8 @@ import Searches from './Searches';
 import Summary from './Summary';
 import TopUrls from './TopUrls';
 import TrafficGraph from './TrafficGraph';
-import { BlockFillProps, Filter, SelectableDate, StatsResult } from '../util';
-import { resolveSelectedDate } from '../data';
+import { BlockFillProps, Filter, SelectableDate, StatsResult } from '../../util';
+import { resolveSelectedDate } from '../../data';
 
 import './App.css';
 

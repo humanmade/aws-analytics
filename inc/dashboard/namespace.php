@@ -11,6 +11,7 @@ use Altis;
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
 use WP_Error;
+use WP_Post_Type;
 use WP_Query;
 
 const API_NAMESPACE = 'analytics/v1';
@@ -41,6 +42,62 @@ function setup() {
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_styles' );
+
+	// Queue up Altis Accelerate Dashboard replacement for standard dashboard.
+	if ( ! defined( 'ALTIS_ACCELERATE_DASHBOARD' ) || ALTIS_ACCELERATE_DASHBOARD ) {
+		add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
+	}
+}
+
+/**
+ * Replace the site dashboard with the Accelerate dashboard.
+ *
+ * @return void
+ */
+function load_dashboard() {
+	// Don't replace network admin.
+	if ( is_network_admin() ) {
+		return;
+	}
+
+	Utils\enqueue_assets( 'accelerate' );
+
+	add_filter( 'screen_options_show_screen', '__return_false' );
+
+	$user = wp_get_current_user();
+
+	$post_types = array_merge(
+		// Trackable post types that do not have their own front end URL.
+		[
+			get_post_type_object( 'xb' ),
+			get_post_type_object( 'wp_block' ),
+		],
+		get_post_types( [
+			'show_in_menu' => true,
+			'public' => true,
+		], 'objects' )
+	);
+	$post_types = array_map( function ( WP_Post_Type $post_type ) {
+		return [
+			'name' => $post_type->name,
+			'label' => $post_type->labels->name,
+		];
+	}, $post_types );
+
+	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
+		'api_namespace' => API_NAMESPACE,
+		'user' => [
+			'id' => get_current_user_id(),
+			'name' => $user->get( 'display_name' ),
+		],
+		'post_types' => array_values( $post_types ),
+	] );
+
+	require_once ABSPATH . 'wp-admin/admin-header.php';
+	render_page();
+	require_once ABSPATH . 'wp-admin/admin-footer.php';
+
+	exit;
 }
 
 /**
