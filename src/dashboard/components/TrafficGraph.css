@@ -3,13 +3,13 @@
 	margin: 0 20px 1em 0;
 	background: #fff;
 	border: 1px solid #ccd0d4;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 1px rgba( 0, 0, 0, 0.04 );
 }
 
 .TrafficGraph__tooltip {
 	background: #fff;
 	border: 1px solid #ccd0d4;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 1px rgba( 0, 0, 0, 0.04 );
 	padding: 0.5em;
 	min-width: 10em;
 }
@@ -42,13 +42,13 @@
 	height: 1em;
 	width: 1em;
 	margin-right: 0.5em;
-	background: black;
+	background: #000;
 }
 
 .TrafficGraph__tooltip-visitors dt::before {
-	background: #152A4E;
+	background: #152a4e;
 }
 
 .TrafficGraph__tooltip-views dt::before {
-	background: #4667DE;
+	background: #4667de;
 }

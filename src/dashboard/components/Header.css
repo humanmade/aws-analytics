@@ -1,3 +1,5 @@
+/* stylelint-disable selector-class-pattern */
+
 .Header {
 	margin: 0.5em 0 -1px;
 	display: flex;
@@ -14,12 +16,14 @@
 .Header .DateRangePickerInput {
 	background: #fff;
 }
+
 .Header .DateInput,
 .Header .DateInput input {
 	background: transparent;
 	border: none;
 	font: inherit;
 }
+
 .Header .DateInput {
 	width: 100px;
 }
@@ -47,18 +51,21 @@
 .Header__picker .CalendarDay__selected {
 	background: var( --wp-admin-theme-color );
 }
+
+.Header__picker .CalendarDay__selected_span {
+	background: var( --wp-admin-theme-color );
+}
+
 .Header__picker .CalendarDay__selected:hover,
 .Header__picker .CalendarDay__selected_span:hover {
 	background: var( --wp-admin-theme-color-darker-20 );
-}
-.Header__picker .CalendarDay__selected_span {
-	background: var( --wp-admin-theme-color );
 }
 
 .Header__picker .CalendarDay__selected_start {
 	border-top-left-radius: 50%;
 	border-bottom-left-radius: 50%;
 }
+
 .Header__picker .CalendarDay__selected_end {
 	border-top-right-radius: 50%;
 	border-bottom-right-radius: 50%;
@@ -74,7 +81,7 @@
 
 .Header__filter {
 	display: flex;
-	background: rgba(0, 0, 255, 0.1);
+	background: rgba( 0, 0, 255, 0.1 );
 	border-radius: 12px;
 	font-size: 13px;
 	margin: 2px 4px 2px 0;
@@ -90,7 +97,7 @@
 }
 
 .Header__filter-type {
-	font-weight: bold;
+	font-weight: 800;
 }
 
 .Header .Header__filter-remover {
