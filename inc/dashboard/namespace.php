@@ -60,6 +60,10 @@ function load_dashboard() {
 		return;
 	}
 
+	if ( ! current_user_can( 'edit_posts' ) ) {
+		return;
+	}
+
 	Utils\enqueue_assets( 'accelerate' );
 
 	add_filter( 'screen_options_show_screen', '__return_false' );
