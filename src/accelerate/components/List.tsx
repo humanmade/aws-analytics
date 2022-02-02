@@ -100,9 +100,9 @@ export default function List( props: Props ) {
 				<div className="table-content dashboard-shadow">
 					<table aria-live="polite">
 						<tr className="record-header">
-							<th>{ __( 'Views', 'altis' ) }</th>
-							<th>{ __( 'Name', 'altis' ) }</th>
-							<th>{ __( 'Lift', 'altis' ) }</th>
+							<th className="table-th-views">{ __( 'Views', 'altis' ) }</th>
+							<th className="table-th-name">{ __( 'Name', 'altis' ) }</th>
+							<th className="table-th-lift">{ __( 'Lift', 'altis' ) }</th>
 							<th className="table-th-author">{ __( 'Author', 'altis' ) }</th>
 							<th className="table-th-links">{ __( 'Links', 'altis' ) }</th>
 						</tr>
