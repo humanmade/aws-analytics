@@ -220,7 +220,7 @@ class Endpoint {
 			// Extract the event source data only.
 			$events = wp_list_pluck( $results['hits']['hits'], '_source' );
 
-			if ( $format === 'json' ) {
+			if ( ! empty( $events ) && $format === 'json' ) {
 				// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped
 				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
 				// Add a comma in between result sets except for the last page.
