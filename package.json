@@ -48,7 +48,7 @@
     "webpack-manifest-plugin": "^2.2.0",
     "webpack-subresource-integrity": "^1.5.1",
     "npm-run-all": "^4.1.5",
-		"node-sass": "^4.13.0",
+		"node-sass": "^7.0.0",
 		"react-dates": "^21.5.1",
 		"recharts": "^2.0.4",
 		"typescript": "^4.3.2"
