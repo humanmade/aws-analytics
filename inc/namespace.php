@@ -278,7 +278,7 @@ function enqueue_scripts() {
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
-		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
 		[],
 		'3',
 		false
