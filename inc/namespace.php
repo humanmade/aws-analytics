@@ -400,40 +400,20 @@ function delete_old_indexes() {
 	}
 }
 
-/**
- * Clean up S3 long term data storage.
- *
- * @return void
- */
-function clean_s3_store() : void {
+function get_s3_client( array $args = [] ) : ? S3Client {
 
 	// These constants are required to continue.
 	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
-		return;
+		return null;
 	}
 	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
-		return;
+		return null;
 	}
 
-	/**
-	 * Filter the maximum S3 storage age for data retention in days.
-	 *
-	 * Defaults to 90 days in keeping with the Pinpoint default.
-	 *
-	 * @param int $max_age Maximum number of days to keep analytics data for.
-	 */
-	$max_age = (int) apply_filters( 'altis.analytics.max_s3_backup_age', 90 );
-
-	// Max age date.
-	$date = new DateTime( 'midnight' );
-	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
-	$max_age_date = $date->format( 'U' );
-
-	// Get S3 client.
-	$params = [
+	$params = array_merge( [
 		'version' => '2006-03-01',
 		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
-	];
+	], $args );
 
 	// Add defined credentials if available.
 	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
@@ -464,6 +444,36 @@ function clean_s3_store() : void {
 	 * @param array $params The default params passed to the client.
 	 */
 	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
+
+	return $client;
+}
+
+/**
+ * Clean up S3 long term data storage.
+ *
+ * @return void
+ */
+function clean_s3_store() : void {
+
+	// Get S3 client.
+	$client = get_s3_client();
+	if ( ! $client ) {
+		return;
+	}
+
+	/**
+	 * Filter the maximum S3 storage age for data retention in days.
+	 *
+	 * Defaults to 90 days in keeping with the Pinpoint default.
+	 *
+	 * @param int $max_age Maximum number of days to keep analytics data for.
+	 */
+	$max_age = (int) apply_filters( 'altis.analytics.max_s3_backup_age', 90 );
+
+	// Max age date.
+	$date = new DateTime( 'midnight' );
+	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
+	$max_age_date = $date->format( 'U' );
 
 	// Fetch first batch of items.
 	try {
