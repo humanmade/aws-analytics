@@ -5,9 +5,9 @@
 
 namespace Altis\Analytics\Export\Cron;
 
+use Altis\Analytics\Utils;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
-use Altis\Analytics;
 
 /**
  * Frequency of the export job
@@ -108,7 +108,7 @@ function cron_handler() : void {
 	}
 
 	// Get an S3 client.
-	$client = Analytics\get_s3_client( [
+	$client = Utils\get_s3_client( [
 		'retries' => [
 			'mode' => 'adaptive',
 			'max_attempts' => 3,
@@ -182,7 +182,7 @@ function get_analytics_data( S3Client $client ) : ? string {
 
 		$result = $client->listObjectsV2( $list_params );
 
-		// Store keys to delete.
+		// Store keys to fetch.
 		foreach ( $result['Contents'] as $item ) {
 			// Check prefix matches a date.
 			if ( ! preg_match( '#^(\d{4}/\d{2}/\d{2})#', $item['Key'], $date_match ) ) {
@@ -195,7 +195,7 @@ function get_analytics_data( S3Client $client ) : ? string {
 			];
 		}
 
-		// Nothing more to do if there's nothing to delete.
+		// Nothing more to do if there's nothing to fetch.
 		if ( empty( $keys ) ) {
 			log( 'Warning: No matching analytics data files were found unlike expected.', E_USER_WARNING );
 			return null;
