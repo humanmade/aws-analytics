@@ -400,6 +400,13 @@ function delete_old_indexes() {
 	}
 }
 
+/**
+ * Get a configured instance of S3 Client class.
+ *
+ * @param array $args Additional arguments to use with the client constructor.
+ *
+ * @return S3Client|null
+ */
 function get_s3_client( array $args = [] ) : ? S3Client {
 
 	// These constants are required to continue.
