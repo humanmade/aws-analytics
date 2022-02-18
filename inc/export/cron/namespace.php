@@ -7,8 +7,7 @@ namespace Altis\Analytics\Export\Cron;
 
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
-
-use function Altis\Analytics\get_s3_client;
+use Altis\Analytics;
 
 /**
  * Frequency of the export job
@@ -109,7 +108,7 @@ function cron_handler() : void {
 	}
 
 	// Get an S3 client.
-	$client = get_s3_client( [
+	$client = Analytics\get_s3_client( [
 		'retries' => [
 			'mode' => 'adaptive',
 			'max_attempts' => 3,
