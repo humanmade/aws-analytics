@@ -27,6 +27,11 @@ const ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY = 'altis.analytic.export.last_pr
  */
 function bootstrap() : void {
 
+	// This should only work on the main site on the network.
+	if ( is_multisite() && ! is_main_site() ) {
+		return;
+	}
+
 	/**
 	 * Filter to allow disabling the functionality altogether.
 	 *
