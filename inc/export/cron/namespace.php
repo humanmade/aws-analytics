@@ -202,7 +202,7 @@ function get_analytics_data( S3Client $client ) : ? string {
 
 		// Nothing more to do if there's nothing to fetch.
 		if ( empty( $keys ) ) {
-			log( 'Warning: No matching analytics data files were found unlike expected.', E_USER_WARNING );
+			log( 'Warning: No analytics data files were found, consider increasing the interval of the data export via the `altis.analytics.export.cron.frequency` filter.', E_USER_WARNING );
 			return null;
 		}
 	} catch ( \Exception $error ) {
