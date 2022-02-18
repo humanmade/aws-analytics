@@ -27,17 +27,14 @@ const ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY = 'altis.analytic.export.last_pr
  */
 function bootstrap() : void {
 
-	// This should only work on the main site on the network.
-	if ( is_multisite() && ! is_main_site() ) {
-		return;
-	}
-
 	/**
 	 * Filter to allow disabling the functionality altogether.
 	 *
+	 * Defaults to work only on the main site of the network.
+	 *
 	 * @param bool Whether to enable the data export cron job.
 	 */
-	if ( ! apply_filters( 'altis.analytics.export.cron.enabled', true ) ) {
+	if ( ! apply_filters( 'altis.analytics.export.cron.enabled', is_main_site() ) ) {
 		return;
 	}
 
