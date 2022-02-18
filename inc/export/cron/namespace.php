@@ -38,6 +38,7 @@ function bootstrap() : void {
 	}
 
 	// Setup cron interval.
+	/* phpcs:ignore WordPress.WP.CronInterval.ChangeDetected */
 	add_filter( 'cron_schedules', __NAMESPACE__ . '\setup_cron_interval' );
 
 	// Hook our cron job handler.
