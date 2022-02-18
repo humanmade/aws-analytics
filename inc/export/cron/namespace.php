@@ -80,7 +80,7 @@ function setup_cron_interval( $schedules ) : array {
  *
  * @return void
  */
-function log( string $message, int $level = E_NOTICE ) : void {
+function log( string $message, int $level = E_USER_NOTICE ) : void {
 
 	trigger_error( $message, $level );
 
@@ -126,12 +126,12 @@ function cron_handler() : void {
 	}
 
 	if ( empty( $data ) ) {
-		log( 'Warning: Empty analytics data were found.', E_WARNING );
+		log( 'Warning: Empty analytics data were found.', E_USER_WARNING );
 		return;
 	}
 
 	$entries = substr_count( $data, "\n" );
-	log( sprintf( 'Success: Found %d analytics events, delivering payload to subscribers..', $entries ), E_NOTICE );
+	log( sprintf( 'Success: Found %d analytics events, delivering payload to subscribers..', $entries ) );
 
 	/**
 	 * Process analytics data exported from S3.
@@ -197,13 +197,13 @@ function get_analytics_data( S3Client $client ) : ? string {
 
 		// Nothing more to do if there's nothing to delete.
 		if ( empty( $keys ) ) {
-			log( 'Warning: No matching analytics data files were found unlike expected.', E_WARNING );
+			log( 'Warning: No matching analytics data files were found unlike expected.', E_USER_WARNING );
 			return null;
 		}
 	} catch ( \Exception $error ) {
 		// Log the error.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		log( 'Error: Could not fetch list of analytics data files. Got: ' . $error->getMessage(), E_ERROR );
+		log( 'Error: Could not fetch list of analytics data files. Got: ' . $error->getMessage(), E_USER_ERROR );
 		return null;
 	}
 
@@ -215,7 +215,7 @@ function get_analytics_data( S3Client $client ) : ? string {
 			$data .= $result['Body'];
 			$last_processed_key = $key;
 		} catch ( S3Exception $e ) {
-			log( sprintf( 'Error: Could not fetch analytics data file: "%s", error: "%s".', $key, $e->getMessage() ), E_ERROR );
+			log( sprintf( 'Error: Could not fetch analytics data file: "%s", error: "%s".', $key, $e->getMessage() ), E_USER_ERROR );
 		}
 	}
 
