@@ -193,6 +193,11 @@ function get_elasticsearch_version() : ?string {
 	return $version;
 }
 
+function get_elasticsearch_index_path() : string {
+	$index_path = apply_filters( 'altis.analytics.elasticsearch.index-path', 'analytics-' );
+	return $index_path;
+}
+
 /**
  * Fetch available analytics indices.
  *
@@ -204,7 +209,8 @@ function get_indices() : array {
 		return $cache;
 	}
 
-	$indices_response = wp_remote_get( get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
+	$index_path = apply_filters( 'altis.analytics.elasticsearch.index-path', 'analytics-' );
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_path() . '*?filter_path=*.aliases' );
 
 	if ( is_wp_error( $indices_response ) ) {
 		trigger_error( sprintf(
@@ -245,7 +251,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
-	$index_paths = [ 'analytics-*' ];
+	$index_paths = [ get_elasticsearch_index_path() . '*' ];
 
 	// Try to extract specific index names to query if possible.
 	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
@@ -266,7 +272,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 			$available_indices = get_indices();
 
 			foreach ( $available_indices as $index ) {
-				$day = strtotime( str_replace( 'analytics-', '', $index ) ) * 1000;
+				$day = strtotime( str_replace( get_elasticsearch_index_path(), '', $index ) ) * 1000;
 				if ( $day >= $from && $day <= $to ) {
 					$index_paths[] = $index;
 				}
@@ -274,7 +280,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 
 			// Revert to all index if there are no matches.
 			if ( empty( $index_paths ) ) {
-				$index_paths[] = 'analytics-*';
+				$index_paths[] = get_elasticsearch_index_path() . '*';
 			}
 
 			break;
@@ -295,7 +301,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		$url = add_query_arg( $params, sprintf(
 			'%s/%s/%s',
 			get_elasticsearch_url(),
-			'analytics-*',
+			get_elasticsearch_index_path() . '*',
 			$path
 		) );
 	}
