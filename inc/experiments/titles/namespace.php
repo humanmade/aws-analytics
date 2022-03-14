@@ -56,6 +56,7 @@ function init() {
 			'post_types' => [
 				'post',
 				'page',
+				'wp_block',
 			],
 			'show_ui' => true,
 			'editor_scripts' => [

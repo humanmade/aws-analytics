@@ -44,6 +44,7 @@ function init() {
 			'post_types' => [
 				'post',
 				'page',
+				'wp_block',
 			],
 			// Exclude all events from the target post page.
 			'query_filter' => function ( $test_id, $post_id ) : array {
