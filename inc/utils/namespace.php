@@ -193,9 +193,14 @@ function get_elasticsearch_version() : ?string {
 	return $version;
 }
 
-function get_elasticsearch_index_path() : string {
-	$index_path = apply_filters( 'altis.analytics.elasticsearch.index-path', 'analytics-' );
-	return $index_path;
+/**
+ * Get the index name prefix for analytics indexes.
+ *
+ * @return string
+ */
+function get_elasticsearch_index_prefix() : string {
+	$index_prefix = apply_filters( 'altis.analytics.elasticsearch.index-prefix', 'analytics-' );
+	return $index_prefix;
 }
 
 /**
@@ -209,8 +214,7 @@ function get_indices() : array {
 		return $cache;
 	}
 
-	$index_path = apply_filters( 'altis.analytics.elasticsearch.index-path', 'analytics-' );
-	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_path() . '*?filter_path=*.aliases' );
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_prefix() . '*?filter_path=*.aliases' );
 
 	if ( is_wp_error( $indices_response ) ) {
 		trigger_error( sprintf(
@@ -251,7 +255,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
-	$index_paths = [ get_elasticsearch_index_path() . '*' ];
+	$index_paths = [ get_elasticsearch_index_prefix() . '*' ];
 
 	// Try to extract specific index names to query if possible.
 	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
@@ -272,7 +276,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 			$available_indices = get_indices();
 
 			foreach ( $available_indices as $index ) {
-				$day = strtotime( str_replace( get_elasticsearch_index_path(), '', $index ) ) * 1000;
+				$day = strtotime( str_replace( get_elasticsearch_index_prefix(), '', $index ) ) * 1000;
 				if ( $day >= $from && $day <= $to ) {
 					$index_paths[] = $index;
 				}
@@ -280,7 +284,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 
 			// Revert to all index if there are no matches.
 			if ( empty( $index_paths ) ) {
-				$index_paths[] = get_elasticsearch_index_path() . '*';
+				$index_paths[] = get_elasticsearch_index_prefix() . '*';
 			}
 
 			break;
@@ -301,7 +305,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		$url = add_query_arg( $params, sprintf(
 			'%s/%s/%s',
 			get_elasticsearch_url(),
-			get_elasticsearch_index_path() . '*',
+			get_elasticsearch_index_prefix() . '*',
 			$path
 		) );
 	}
