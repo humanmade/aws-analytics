@@ -29,6 +29,9 @@ function init() {
 		'page',
 	);
 
+	// Filter Supported Post Types for the experiemnt.
+	$supported_post_types = apply_filters( 'altis.test_title.supported_post_types', $supported_post_types );
+
 	if ( ! Experiments\post_type_support( $supported_post_types ) ){
 		return;
 	}
