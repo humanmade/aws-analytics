@@ -23,19 +23,6 @@ function setup() {
  * Register the AB test, and output filters.
  */
 function init() {
-	// Supported post tyes for the experiment.
-	$supported_post_types = array(
-		'post',
-		'page',
-	);
-
-	// Filter Supported Post Types for the experiemnt.
-	$supported_post_types = apply_filters( 'altis.featured_images.supported_post_types', $supported_post_types );
-
-	if ( ! Experiments\post_type_support( $supported_post_types ) ){
-		return false;
-	}
-
 	if ( ! is_admin() ) {
 		add_filter( 'post_thumbnail_html', __NAMESPACE__ . '\\filter_post_thumbnail_html_ab_test_values', 10, 5 );
 	}
@@ -54,7 +41,10 @@ function init() {
 			'winner_callback' => function ( int $post_id, string $value ) {
 				update_post_meta( $post_id, '_thumbnail_id', $value );
 			},
-			'post_types' => $supported_post_types,
+			'post_types' => array(
+				'post',
+				'page',
+			),
 			// Exclude all events from the target post page.
 			'query_filter' => function ( $test_id, $post_id ) : array {
 				$url = get_the_permalink( $post_id );

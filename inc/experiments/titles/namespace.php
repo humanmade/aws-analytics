@@ -23,19 +23,6 @@ function setup() {
  * Register the AB test, and output filters.
  */
 function init() {
-	// Supported post tyes for the experiment.
-	$supported_post_types = array(
-		'post',
-		'page',
-	);
-
-	// Filter Supported Post Types for the experiemnt.
-	$supported_post_types = apply_filters( 'altis.test_title.supported_post_types', $supported_post_types );
-
-	if ( ! Experiments\post_type_support( $supported_post_types ) ){
-		return;
-	}
-
 	if ( ! is_admin() ) {
 		add_filter( 'the_title', __NAMESPACE__ . '\\add_title_ab_test_to_title', 10, 2 );
 	}
@@ -66,7 +53,10 @@ function init() {
 					'post_title' => $title,
 				] );
 			},
-			'post_types' => $supported_post_types,
+			'post_types' => array(
+				'post',
+				'page',
+			),
 			'show_ui' => true,
 			'editor_scripts' => [
 				Utils\get_asset_url( 'titles.js' ) => [

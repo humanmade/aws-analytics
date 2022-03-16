@@ -1261,27 +1261,3 @@ function end_ab_test_for_post( string $test_id, int $post_id ) {
 	 */
 	do_action( "altis.experiments.test.ended.{$test_id}", $post_id );
 }
-
-/**
- * Check if the post type is supported.
- *
- * @param array $supported_post_types The supported post types of the experiment.
- * @return bool True if the post type is not supported.
- */
-function post_type_support( array $supported_post_types ) {
-	global $pagenow;
-	$post_type = '';
-
-	// Set the variable $post_type from the post type in the page url.
-	if ( isset( $_GET[ 'post_type' ] ) && !empty( isset( $_GET[ 'post_type' ] ) ) ) {
-		$post_type = $_GET[ 'post_type' ];
-	} elseif ( in_array( $pagenow, array( 'post-new.php' ) ) ){
-		$post_type = 'post';
-	}
-
-	// Return early if the post type is supported.
-	if ( isset( $post_type ) && in_array( $post_type, $supported_post_types ) ){
-		return true;
-	}
-	return false;
-}
