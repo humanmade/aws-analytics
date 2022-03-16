@@ -1268,7 +1268,7 @@ function end_ab_test_for_post( string $test_id, int $post_id ) {
  * @param array $supported_post_types The supported post types of the experiment.
  * @return bool True if the post type is not supported.
  */
-function post_type_support( $supported_post_types ) {
+function post_type_support( array $supported_post_types ) {
 	global $pagenow;
 	$post_type = '';
 
@@ -1280,7 +1280,7 @@ function post_type_support( $supported_post_types ) {
 	}
 
 	// Return early if the post type is supported.
-	if ( in_array( $post_type, $supported_post_types ) ){
+	if ( isset( $post_type ) && in_array( $post_type, $supported_post_types ) ){
 		return true;
 	}
 	return false;
