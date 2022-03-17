@@ -269,6 +269,16 @@ function enqueue_scripts() {
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
 	/**
+	 * Filters always allowed cookie consent categories.
+	 *
+	 * @param array $consent_always_allowed List of consent categories that are always permitted.
+	 */
+	$consent_always_allowed = (array) apply_filters( 'altis.consent.always_allow_categories', [
+		'functional',
+		'statistics-anonymous',
+	] );
+
+	/**
 	 * Filters whether to exclude bot traffic or not.
 	 *
 	 * @param string $exclude_bots If set to true allows bots that execute JavaScript to be tracked.
@@ -303,13 +313,22 @@ function enqueue_scripts() {
 				'} else {' .
 					'window.addEventListener( \'altis.analytics.ready\', callback );' .
 				'}' .
+			'};' .
+			'Altis.Analytics.onLoad = function ( callback ) {' .
+				'if ( Altis.Analytics.Loaded ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.loaded\', callback );' .
+				'}' .
 			'};',
 			wp_json_encode(
 				[
 					'Ready' => false,
+					'Loaded' => false,
 					'Consent' => [
 						'CookiePrefix' => $consent_cookie_prefix,
 						'Enabled' => $consent_enabled,
+						'Allowed' => array_values( (array) $consent_always_allowed ),
 					],
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
