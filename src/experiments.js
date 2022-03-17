@@ -607,7 +607,7 @@ window.Altis.Analytics.Experiments.registerGoal = registerGoalHandler; // Back c
 window.Altis.Analytics.Experiments.registerGoalHandler = registerGoalHandler;
 
 // Define custom elements when analytics has loaded.
-window.Altis.Analytics.onReady( () => {
+window.Altis.Analytics.onLoad( () => {
 	window.customElements.define( 'ab-test', ABTest );
 	window.customElements.define( 'ab-test-block', ABTestBlock );
 	window.customElements.define( 'personalization-block', PersonalizationBlock );
