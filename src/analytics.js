@@ -49,6 +49,10 @@ const isBot = detectRobot( navigator.userAgent || '' );
 let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
 let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
 
+// Secondary check for force enabled consent.
+hasAnonConsent = hasAnonConsent || Consent.Allowed.indexOf( 'statistics-anonymous' ) >= 0;
+hasFullConsent = hasFullConsent || Consent.Allowed.indexOf( 'statistics' ) >= 0;
+
 /**
  * Custom global attributes and metrics, extended by the
  * registerAttribute and registerMetric functions.
@@ -738,6 +742,18 @@ const Analytics = {
 	 * @param {object} endpoint Optional updated endpoint data.
 	 */
 	flushEvents: async ( endpoint = {} ) => {
+		// Ensure flushEvents isn't called too quickly when set via timeout.
+		if ( Analytics.timer ) {
+			clearTimeout( Analytics.timer );
+		}
+
+		// If we're not ready to log then store up events and try to record later.
+		// This can happen if consent is required to start recording but not yet given for example.
+		if ( ! Altis.Analytics.Ready ) {
+			Analytics.timer = setTimeout( Analytics.flushEvents, 5000 );
+			return;
+		}
+
 		// Get the client.
 		const client = await Analytics.getClient();
 		if ( ! client ) {
@@ -829,6 +845,11 @@ Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
 };
+
+// Fire a loaded event when the global is fully set up but before we check consent to start logging.
+Altis.Analytics.Loaded = true;
+const loadedEvent = new CustomEvent( 'altis.analytics.loaded' );
+window.dispatchEvent( loadedEvent );
 
 /**
  * Start recording default events and trigger onReady event.
