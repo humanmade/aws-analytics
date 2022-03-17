@@ -472,7 +472,7 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 	);
 
 	// Retrieve the labels for tests that show UI.
-	$js_data = array();
+	$js_data = [];
 
 	foreach ( $post_ab_tests as $test_id => $test ) {
 		if ( empty( $test['editor_scripts'] ) ) {

@@ -41,10 +41,10 @@ function init() {
 			'winner_callback' => function ( int $post_id, string $value ) {
 				update_post_meta( $post_id, '_thumbnail_id', $value );
 			},
-			'post_types' => array(
+			'post_types' => [
 				'post',
 				'page',
-			),
+			],
 			// Exclude all events from the target post page.
 			'query_filter' => function ( $test_id, $post_id ) : array {
 				$url = get_the_permalink( $post_id );

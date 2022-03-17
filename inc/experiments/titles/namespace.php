@@ -53,10 +53,10 @@ function init() {
 					'post_title' => $title,
 				] );
 			},
-			'post_types' => array(
+			'post_types' => [
 				'post',
 				'page',
-			),
+			],
 			'show_ui' => true,
 			'editor_scripts' => [
 				Utils\get_asset_url( 'titles.js' ) => [
