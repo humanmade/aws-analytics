@@ -223,10 +223,8 @@ class Endpoint {
 			if ( $format === 'json' ) {
 				// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped
 				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
-				if ( ! empty( $events ) ) {
-					// Add a comma in between result sets except for the last page.
-					echo $page === $total_pages - 1 ? '' : ',';
-				}
+				// Add a comma in between result sets except for the last page.
+				echo $page === $total_pages - 1 ? '' : ',';
 				flush();
 			} else {
 				foreach ( $events as $event ) {

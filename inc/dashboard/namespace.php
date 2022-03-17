@@ -60,10 +60,6 @@ function load_dashboard() {
 		return;
 	}
 
-	if ( ! current_user_can( 'edit_posts' ) ) {
-		return;
-	}
-
 	Utils\enqueue_assets( 'accelerate' );
 
 	add_filter( 'screen_options_show_screen', '__return_false' );
@@ -631,11 +627,11 @@ function register_default_aggregations() {
  * Process a terms aggregation into key value pairs.
  *
  * @param array|null $aggregation A terms aggregation result from Elasticsearch.
- * @return array
+ * @return array|null
  */
-function collect_aggregation( ?array $aggregation ) : array {
+function collect_aggregation( ?array $aggregation ) : ?array {
 	if ( empty( $aggregation ) ) {
-		return [];
+		return null;
 	}
 	$data = [];
 	foreach ( $aggregation['buckets'] as $bucket ) {
@@ -1173,7 +1169,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'name' => get_the_author_meta( 'display_name', $post->post_author ),
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
-			'views' => $processed[ $post->ID ]['total'] ?? 0,
+			'views' => $processed[ $post->ID ]['total'],
 		];
 
 		// Get lift.
