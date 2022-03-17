@@ -164,12 +164,10 @@ function get_client_side_data() : array {
 		}
 	}
 
-	if ( is_multisite() ) {
-		$data['Attributes']['blog'] = home_url();
-		$data['Attributes']['network'] = network_home_url();
-		$data['Attributes']['blogId'] = get_current_blog_id();
-		$data['Attributes']['networkId'] = get_current_network_id();
-	}
+	$data['Attributes']['blog'] = home_url();
+	$data['Attributes']['network'] = network_home_url();
+	$data['Attributes']['blogId'] = get_current_blog_id();
+	$data['Attributes']['networkId'] = get_current_network_id();
 
 	/**
 	 * Filter the custom analytics endpoint/user data.
@@ -288,7 +286,7 @@ function enqueue_scripts() {
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
-		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
 		[],
 		'3',
 		false
