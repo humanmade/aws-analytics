@@ -37,6 +37,8 @@ function setup() {
 
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
+	// Handle nomodule browser scripts.
+	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\nomodule_scripts', 20, 2 );
 	// Load analytics scripts super early.
 	add_action( 'wp_head', __NAMESPACE__ . '\\enqueue_scripts', 0 );
 	// Remove indexes & data older than a set threshold.
@@ -220,6 +222,25 @@ function async_scripts( string $tag, string $handle ) : string {
 }
 
 /**
+ * Adds an nomodule attribute to script tag output.
+ *
+ * @param string $tag The enqueued HTML script tag.
+ * @param string $handle The script handle.
+ * @return string The script tag markup.
+ */
+function nomodule_scripts( string $tag, string $handle ) : string {
+	global $wp_scripts;
+
+	if ( ! $wp_scripts->get_data( $handle, 'nomodule' ) || strpos( $tag, 'nomodule' ) !== false ) {
+		return $tag;
+	}
+
+	$tag = str_replace( '></script>', ' nomodule></script>', $tag );
+
+	return $tag;
+}
+
+/**
  * Queue up the tracker script and required configuration.
  */
 function enqueue_scripts() {
@@ -247,7 +268,24 @@ function enqueue_scripts() {
 	 */
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
-	wp_enqueue_script( 'altis-analytics', Utils\get_asset_url( 'analytics.js' ), [], null, false );
+	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
+	wp_enqueue_script(
+		'altis-analytics-polyfill.io',
+		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		[],
+		'3',
+		false
+	);
+
+	wp_enqueue_script(
+		'altis-analytics',
+		Utils\get_asset_url( 'analytics.js' ),
+		[
+			'altis-analytics-polyfill.io',
+		],
+		null,
+		false
+	);
 	wp_add_inline_script(
 		'altis-analytics',
 		sprintf(
@@ -286,6 +324,9 @@ function enqueue_scripts() {
 	// Load async for performance.
 	$wp_scripts->add_data( 'altis-analytics', 'async', true );
 
+	// Only load polyfills for older browsers.
+	$wp_scripts->add_data( 'altis-analytics-polyfill.io', 'nomodule', true );
+
 	/**
 	 * Create our own early hook for queueing
 	 */
@@ -322,26 +363,7 @@ function delete_old_indexes() {
 	$max_age_date = $date->format( 'U' );
 
 	// Get indices.
-	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
-	if ( is_wp_error( $indices_response ) ) {
-		trigger_error( sprintf(
-			'Analytics: Could not fetch analytics indexes: %s',
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			$indices_response->get_error_message()
-		), E_USER_WARNING );
-		return;
-	}
-	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
-		trigger_error( sprintf(
-			"Analytics: ElasticSearch index deletion failed:\n%s",
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			wp_remote_retrieve_body( $indices_response )
-		), E_USER_WARNING );
-		return;
-	}
-
-	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
-	$index_names = array_keys( $indices );
+	$index_names = Utils\get_indices();
 
 	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
 		$date = trim( str_replace( 'analytics', '', $name ), '-' );

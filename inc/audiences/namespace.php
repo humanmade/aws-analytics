@@ -424,6 +424,8 @@ function admin_enqueue_scripts() {
  * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
+	$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
+
 	$query = [
 		'query' => [
 			'bool' => [
@@ -439,7 +441,7 @@ function get_estimate( array $audience ) : ?array {
 					[
 						'range' => [
 							'event_timestamp' => [
-								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+								'gte' => $since,
 							],
 						],
 					],
@@ -464,7 +466,7 @@ function get_estimate( array $audience ) : ?array {
 					'field' => 'event_timestamp',
 					'interval' => 6 * HOUR_IN_SECONDS * 1000, // 6 hour chunks.
 					'extended_bounds' => [
-						'min' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+						'min' => $since,
 						'max' => Utils\milliseconds(),
 					],
 				],
@@ -485,8 +487,10 @@ function get_estimate( array $audience ) : ?array {
 		return $cache;
 	}
 
-	$unique_count = get_unique_endpoint_count();
-	$result = Utils\query( $query );
+	$unique_count = get_unique_endpoint_count( $since );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -507,11 +511,6 @@ function get_estimate( array $audience ) : ?array {
 	// Get number of unique IDs within the audience.
 	$estimate_count = $result['aggregations']['estimate']['value'];
 
-	// Check if total count may need updating.
-	if ( $estimate_count > $unique_count ) {
-		$unique_count = get_unique_endpoint_count( true );
-	}
-
 	$estimate = [
 		'count' => $estimate_count,
 		// Make absolutely sure that the total audience size is reflected even if the total uniques is out of sync.
@@ -527,10 +526,15 @@ function get_estimate( array $audience ) : ?array {
 /**
  * Get total unique endpoints for the past 7 days.
  *
+ * @param int $since Minimum date stamp in milliseconds.
  * @param bool $force_update Set to true to ignore the cache.
  * @return integer|null
  */
-function get_unique_endpoint_count( bool $force_update = false ) : ?int {
+function get_unique_endpoint_count( int $since = null, bool $force_update = false ) : ?int {
+	if ( $since === null ) {
+		$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
+	}
+
 	$query = [
 		'query' => [
 			'bool' => [
@@ -546,7 +550,7 @@ function get_unique_endpoint_count( bool $force_update = false ) : ?int {
 					[
 						'range' => [
 							'event_timestamp' => [
-								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
+								'gte' => $since,
 							],
 						],
 					],
@@ -573,21 +577,24 @@ function get_unique_endpoint_count( bool $force_update = false ) : ?int {
 		],
 	];
 
-	$cache = wp_cache_get( 'total-uniques', 'altis-audiences' );
+	$key = sprintf( 'total-uniques-%d', $since );
+	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache && ! $force_update ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
-		wp_cache_set( 'total-uniques', 0, 'altis-audiences', MINUTE_IN_SECONDS );
+		wp_cache_set( $key, 0, 'altis-audiences', MINUTE_IN_SECONDS );
 		return $result;
 	}
 
 	$count = intval( $result['aggregations']['count']['value'] );
 
-	wp_cache_set( 'total-uniques', $count, 'altis-audiences', HOUR_IN_SECONDS );
+	wp_cache_set( $key, $count, 'altis-audiences', MINUTE_IN_SECONDS );
 
 	return $count;
 }
@@ -681,7 +688,9 @@ function get_field_data() : ?array {
 		}
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		return $result;
