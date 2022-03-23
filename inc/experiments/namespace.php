@@ -906,8 +906,6 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'filter_path' => '-hits.hits,-aggregations.**._*',
 		// Return aggregation type with keys.
 		'typed_keys' => '',
-		// Cache requests as most indexes are static.
-		'request_cache' => 'true',
 	] );
 
 	if ( empty( $data ) ) {
