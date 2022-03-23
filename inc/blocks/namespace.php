@@ -24,15 +24,20 @@ function setup() {
 	require_once __DIR__ . '/personalization/register.php';
 	require_once __DIR__ . '/personalization-variant/register.php';
 	require_once __DIR__ . '/shim/register.php';
+	require_once __DIR__ . '/ab-test/register.php';
+	require_once __DIR__ . '/ab-test-variant/register.php';
 
 	// Register blocks.
 	Personalization\setup();
 	Personalization_Variant\setup();
 	Shim\setup();
+	AB_Test\setup();
+	AB_Test_Variant\setup();
 
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
+	add_filter( 'widget_update_callback', __NAMESPACE__ . '\\on_widgets_save', 100, 4 );
 
 	// Register experience block category.
 	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
@@ -68,11 +73,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
-	if ( $post->post_type === POST_TYPE ) {
+	if ( in_array( $post->post_type, [ POST_TYPE, 'revision', 'customize_changeset' ], true ) ) {
 		return;
 	}
 
-	if ( $post->post_type === 'revision' ) {
+	$post_type_object = get_post_type_object( $post->post_type );
+	if ( ! $post_type_object->public && ! $post_type_object->show_in_rest ) {
 		return;
 	}
 
@@ -89,6 +95,47 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		return;
 	}
 
+	update_or_create_xb_post( $xbs, $post->post_title, $post_ID, null, 'post' );
+
+}
+
+/**
+ * Synchronise any XBs on the widget page with a shadow post type.
+ *
+ * @param array $instance The array of current widget settings.
+ * @param array $new_instance The array of new widget settings.
+ * @param array $old_instance The array of old widget settings.
+ * @param WP_Widget $widget The current widget instance.
+ * @return array $instance The current widget settings.
+ */
+function on_widgets_save( $instance, $new_instance, $old_instance, $widget ) {
+
+	if ( ! isset( $instance['content'] ) ) {
+		return $instance;
+	}
+
+	// Scan for XBs in the post content.
+	$blocks = parse_blocks( $instance['content'] );
+	$xbs = find_xbs( $blocks );
+
+	// Update / Create XB's if the content contains XB's.
+	if ( ! empty( $xbs ) ) {
+		update_or_create_xb_post( $xbs, __( 'Widget' ), null, $widget->number, 'widget' );
+	}
+
+	return $instance;
+}
+
+/**
+ * Update or create new XB shadow posts.
+ *
+ * @param array $xbs XBs on page or as widgets.
+ * @param string $default_title Default Title title for XB Post.
+ * @param int $post_ID Post ID if applicable in use case.
+ * @param int $item_id Item ID if applicable in use case.
+ * @param string $context Meta Key for updating the post_meta.
+ */
+function update_or_create_xb_post( array $xbs, string $default_title = '', ?int $post_ID = null, ?int $item_id = null, string $context = 'post' ) {
 	// Find referenced XBs.
 	$existing_posts = new WP_Query( [
 		'post_type' => POST_TYPE,
@@ -112,33 +159,50 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 		] );
 		$posts = array_values( $posts ); // Reset keys.
 
-		// Generate a default using the current post title and instance number in the content.
-		$default_title = sprintf( '%s (XB %s)', $post->post_title, $index + 1 );
+		$xb_title = sprintf( '%s %s %s', $default_title, get_block_type_label( $xb['blockName'] ), $item_id ?: $index + 1 );
+
 		if ( ! isset( $xb['attrs']['title'] ) ) {
 			$xb['attrs']['title'] = '';
 		}
 
 		if ( empty( $posts ) ) {
 			// Create new shadow XB post.
-			wp_insert_post( [
+			$xb_post_id = wp_insert_post( [
 				'post_type' => POST_TYPE,
 				'post_status' => 'publish',
 				'post_content' => serialize_block( $xb ),
 				'post_name' => $xb['attrs']['clientId'],
 				'post_author' => get_current_user_id(),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
 				'post_parent' => $post_ID,
+				'meta_input' => [
+					'_xb_context' => $context,
+					'_xb_context_' . sanitize_key( $context ) => 1,
+					'_xb_type' => $xb['blockName'],
+					'_xb_type_' . sanitize_key( $xb['blockName'] ) => 1,
+				],
 			] );
+
 		} else {
 			// Update existing post.
+			$xb_post_id = $posts[0]->ID;
 			wp_update_post( [
 				'ID' => $posts[0]->ID,
 				'post_content' => serialize_block( $xb ),
-				'post_title' => $xb['attrs']['title'] ?: $default_title,
+				'post_title' => $xb['attrs']['title'] ?: $xb_title,
 				'post_parent' => $post_ID,
 			] );
 		}
+
+		/**
+		 * Allow further processing after the XB post is created or updated.
+		 *
+		 * @param int $post_id The XB post ID.
+		 * @param array $xb The unserialised block data.
+		 */
+		do_action( 'altis.analytics.blocks.save_post', $xb_post_id, $xb );
 	}
+
 }
 
 /**
@@ -152,9 +216,12 @@ function on_save_post( int $post_ID, WP_Post $post, bool $update ) : void {
 function find_xbs( array $blocks ) : array {
 	// Supported block types.
 	$xb_types = [
-		'altis/personalization',
-		'altis/experiment',
+		Personalization\BLOCK,
+		AB_Test\BLOCK,
 	];
+	$xb_types = array_map( function ( $type ) {
+		return "altis/{$type}";
+	}, $xb_types );
 
 	$xbs = [];
 
@@ -210,6 +277,10 @@ function register_post_type() {
 				'block' => [
 					'title' => __( 'Block', 'altis-analytics' ),
 					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
+				],
+				'type' => [
+					'title' => __( 'Type', 'altis-analytics' ),
+					'function' => '\\Altis\\Analytics\\Dashboard\\render_type_column',
 				],
 				'views' => [
 					'title' => __( 'Views', 'altis-analytics' ),
@@ -345,6 +416,37 @@ function get_block_post( string $client_id ) : ?WP_Post {
 }
 
 /**
+ * Get the XB type, excluding the altis/ namespace prefix.
+ *
+ * Falls back to 'personalization' for backlwards compatibility.
+ *
+ * @param int|WP_Post $post Post object or ID for the XB.
+ * @return string
+ */
+function get_block_type( $post ) : string {
+	$post = get_post( $post );
+	$type = get_post_meta( $post->ID, '_xb_type', true ) ?: Personalization\BLOCK;
+	return str_replace( 'altis/', '', $type );
+}
+
+/**
+ * Readable block name based on the XB name.
+ *
+ * @param string $block_name Name of the XB.
+ * @return string
+ */
+function get_block_type_label( string $block_name ) : string {
+	$types = [
+		'ab-test' => __( 'A/B Test', 'altis-analytics' ),
+		'personalization' => __( 'Personalized Content', 'altis-analytics' ),
+	];
+
+	$type = str_replace( 'altis/', '', $block_name );
+
+	return ( $types[ $type ] ?? __( 'Unknown', 'altis-analytics' ) );
+}
+
+/**
  * Add menu page for Experience Insights.
  *
  * @return void
@@ -473,7 +575,7 @@ function map_aggregations( array $event_buckets ) : array {
 			'views' => 0,
 			'conversions' => 0,
 		],
-		'audiences' => [],
+		'variants' => [],
 	];
 
 	// Map collected event names to output schema.
@@ -490,10 +592,10 @@ function map_aggregations( array $event_buckets ) : array {
 		$data[ $key ] = $event_bucket['doc_count'];
 		$data['unique'][ $key ] = $event_bucket['uniques']['value'];
 
-		foreach ( $event_bucket['audiences']['buckets'] as $audience_bucket ) {
-			if ( ! isset( $data['audiences'][ $audience_bucket['key'] ] ) ) {
-				$data['audiences'][ $audience_bucket['key'] ] = [
-					'id' => absint( $audience_bucket['key'] ),
+		foreach ( $event_bucket['variants']['buckets'] as $variant_bucket ) {
+			if ( ! isset( $data['variants'][ $variant_bucket['key'] ] ) ) {
+				$data['variants'][ $variant_bucket['key'] ] = [
+					'id' => absint( $variant_bucket['key'] ),
 					'loads' => 0,
 					'views' => 0,
 					'conversions' => 0,
@@ -504,13 +606,13 @@ function map_aggregations( array $event_buckets ) : array {
 					],
 				];
 			}
-			$data['audiences'][ $audience_bucket['key'] ][ $key ] = $audience_bucket['doc_count'];
-			$data['audiences'][ $audience_bucket['key'] ]['unique'][ $key ] = $audience_bucket['uniques']['value'];
+			$data['variants'][ $variant_bucket['key'] ][ $key ] = $variant_bucket['doc_count'];
+			$data['variants'][ $variant_bucket['key'] ]['unique'][ $key ] = $variant_bucket['uniques']['value'];
 		}
 	}
 
 	// Ensure audiences key is an array.
-	$data['audiences'] = array_values( $data['audiences'] );
+	$data['variants'] = array_values( $data['variants'] );
 
 	return $data;
 }
@@ -523,6 +625,7 @@ function map_aggregations( array $event_buckets ) : array {
  *     - int|null $args['post_id'] An optional post ID to limit results by.
  *     - int $args['days'] The number of days to get data for.
  *     - int $args['offset'] The offset for number of days prior to start query from.
+ *     - string $args['vary_on'] The field to distinguish variants on.
  * @return array|\WP_Error
  */
 function get_views( string $block_id, $args = [] ) {
@@ -541,6 +644,17 @@ function get_views( string $block_id, $args = [] ) {
 		'days' => 7,
 		'offset' => 0,
 	] );
+
+	// Set default vary key for back compat.
+	$vary_on = 'attributes.audience.id';
+
+	// Determine index value to get variants on by block type.
+	$block_post = get_block_post( $block_id );
+	if ( ! empty( $block_post ) ) {
+		$block_type = get_block_type( $block_post );
+		$block_settings = get_block_settings( $block_type );
+		$vary_on = $block_settings['varyOn'] ?? $vary_on;
+	}
 
 	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
@@ -595,10 +709,11 @@ function get_views( string $block_id, $args = [] ) {
 							'field' => 'endpoint.Id.keyword',
 						],
 					],
-					// Get the split by audience.
-					'audiences' => [
+					// Get the split by variant.
+					'variants' => [
 						'terms' => [
-							'field' => 'attributes.audience.keyword',
+							'field' => $vary_on,
+							'order' => [ '_key' => 'asc' ],
 						],
 						'aggs' => [
 							'uniques' => [
@@ -610,7 +725,7 @@ function get_views( string $block_id, $args = [] ) {
 					],
 				],
 			],
-			// Get the split by post ID and audience.
+			// Get the split by post ID and variant.
 			'posts' => [
 				'terms' => [
 					'field' => 'attributes.postId.keyword',
@@ -629,10 +744,11 @@ function get_views( string $block_id, $args = [] ) {
 									'field' => 'endpoint.Id.keyword',
 								],
 							],
-							// Get the split by audience.
-							'audiences' => [
+							// Get the split by variant.
+							'variants' => [
 								'terms' => [
-									'field' => 'attributes.audience.keyword',
+									'field' => $vary_on,
+									'order' => [ '_key' => 'asc' ],
 								],
 								'aggs' => [
 									'uniques' => [
@@ -671,7 +787,9 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$data = [
@@ -680,7 +798,7 @@ function get_views( string $block_id, $args = [] ) {
 			'loads' => 0,
 			'views' => 0,
 			'conversions' => 0,
-			'audiences' => [],
+			'variants' => [],
 		];
 		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 		return $data;
@@ -718,7 +836,7 @@ function check_conversion_goals() {
 	$post_types = get_post_types_by_support( 'editor' );
 	$post_types = array_filter( $post_types, function ( $post_type ) : bool {
 		$post_type_object = get_post_type_object( $post_type );
-		return (bool) apply_filters( 'use_block_editor_for_post_type', $post_type_object->show_in_rest, $post_type );
+		return (bool) $post_type_object->show_in_rest;
 	} );
 
 	PublicationChecklist\register_prepublish_check( 'xbs-valid-conversions', [

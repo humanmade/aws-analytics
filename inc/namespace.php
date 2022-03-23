@@ -164,12 +164,10 @@ function get_client_side_data() : array {
 		}
 	}
 
-	if ( is_multisite() ) {
-		$data['Attributes']['blog'] = home_url();
-		$data['Attributes']['network'] = network_home_url();
-		$data['Attributes']['blogId'] = get_current_blog_id();
-		$data['Attributes']['networkId'] = get_current_network_id();
-	}
+	$data['Attributes']['blog'] = home_url();
+	$data['Attributes']['network'] = network_home_url();
+	$data['Attributes']['blogId'] = get_current_blog_id();
+	$data['Attributes']['networkId'] = get_current_network_id();
 
 	/**
 	 * Filter the custom analytics endpoint/user data.
@@ -269,6 +267,16 @@ function enqueue_scripts() {
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
 	/**
+	 * Filters always allowed cookie consent categories.
+	 *
+	 * @param array $consent_always_allowed List of consent categories that are always permitted.
+	 */
+	$consent_always_allowed = (array) apply_filters( 'altis.consent.always_allow_categories', [
+		'functional',
+		'statistics-anonymous',
+	] );
+
+	/**
 	 * Filters whether to exclude bot traffic or not.
 	 *
 	 * @param string $exclude_bots If set to true allows bots that execute JavaScript to be tracked.
@@ -278,7 +286,7 @@ function enqueue_scripts() {
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
-		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
 		[],
 		'3',
 		false
@@ -303,13 +311,22 @@ function enqueue_scripts() {
 				'} else {' .
 					'window.addEventListener( \'altis.analytics.ready\', callback );' .
 				'}' .
+			'};' .
+			'Altis.Analytics.onLoad = function ( callback ) {' .
+				'if ( Altis.Analytics.Loaded ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.loaded\', callback );' .
+				'}' .
 			'};',
 			wp_json_encode(
 				[
 					'Ready' => false,
+					'Loaded' => false,
 					'Consent' => [
 						'CookiePrefix' => $consent_cookie_prefix,
 						'Enabled' => $consent_enabled,
+						'Allowed' => array_values( (array) $consent_always_allowed ),
 					],
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
@@ -371,26 +388,7 @@ function delete_old_indexes() {
 	$max_age_date = $date->format( 'U' );
 
 	// Get indices.
-	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
-	if ( is_wp_error( $indices_response ) ) {
-		trigger_error( sprintf(
-			'Analytics: Could not fetch analytics indexes: %s',
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			$indices_response->get_error_message()
-		), E_USER_WARNING );
-		return;
-	}
-	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
-		trigger_error( sprintf(
-			"Analytics: ElasticSearch index deletion failed:\n%s",
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			wp_remote_retrieve_body( $indices_response )
-		), E_USER_WARNING );
-		return;
-	}
-
-	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
-	$index_names = array_keys( $indices );
+	$index_names = Utils\get_indices();
 
 	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
 		$date = trim( str_replace( 'analytics', '', $name ), '-' );

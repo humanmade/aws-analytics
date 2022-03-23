@@ -6,9 +6,12 @@
 namespace Altis\Analytics\Utils;
 
 use Altis\Analytics;
+use Asset_Loader;
 
 /**
  * Return asset file name based on generated manifest.json file.
+ *
+ * @todo remove after converting JS to typescript.
  *
  * @param string $filename The webpack entry point file name.
  * @return string|false The real URL of the asset or false if it couldn't be found.
@@ -35,6 +38,53 @@ function get_asset_url( string $filename ) {
 	}
 
 	return plugins_url( $manifest[ $filename ], Analytics\ROOT_DIR . '/build/assets' );
+}
+
+/**
+ * Queue up JS and CSS assets for the given entrypoint.
+ *
+ * @param string $entrypoint The webpack entrypoint key.
+ * @return void
+ */
+function enqueue_assets( string $entrypoint ) {
+	if ( is_readable( dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json' ) ) {
+		$manifest = dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json';
+		Asset_Loader\enqueue_asset(
+			$manifest,
+			"{$entrypoint}.css",
+			[
+				'handle' => "altis-analytics-{$entrypoint}",
+				'dependencies' => [
+					'wp-components',
+				],
+			]
+		);
+	}
+
+	// Local dev.
+	if ( is_readable( dirname( __DIR__, 2 ) . '/build/asset-manifest.json' ) ) {
+		$manifest = dirname( __DIR__, 2 ) . '/build/asset-manifest.json';
+	}
+
+	if ( empty( $manifest ) ) {
+		return;
+	}
+
+	Asset_Loader\enqueue_asset(
+		$manifest,
+		"{$entrypoint}.js",
+		[
+			'handle' => "altis-analytics-{$entrypoint}",
+			'dependencies' => [
+				'wp-api-fetch',
+				'wp-components',
+				'wp-data',
+				'wp-element',
+				'wp-i18n',
+				'wp-url',
+			],
+		]
+	);
 }
 
 /**
@@ -143,6 +193,55 @@ function get_elasticsearch_version() : ?string {
 }
 
 /**
+ * Get the index name prefix for analytics indexes.
+ *
+ * @return string
+ */
+function get_elasticsearch_index_prefix() : string {
+	$index_prefix = apply_filters( 'altis.analytics.elasticsearch.index-prefix', 'analytics-' );
+	return $index_prefix;
+}
+
+/**
+ * Fetch available analytics indices.
+ *
+ * @return array
+ */
+function get_indices() : array {
+	$cache = wp_cache_get( 'analytics-indices', 'altis' );
+	if ( $cache ) {
+		return $cache;
+	}
+
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_prefix() . '*?filter_path=*.aliases' );
+
+	if ( is_wp_error( $indices_response ) ) {
+		trigger_error( sprintf(
+			'Analytics: Could not fetch analytics indexes: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$indices_response->get_error_message()
+		), E_USER_WARNING );
+		return [];
+	}
+
+	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch indexes not found:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $indices_response )
+		), E_USER_WARNING );
+		return [];
+	}
+
+	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
+	$indices = array_keys( $indices );
+
+	wp_cache_set( 'analytics-indices', $indices, 'altis', MINUTE_IN_SECONDS );
+
+	return $indices;
+}
+
+/**
  * Query Analytics data in Elasticsearch.
  *
  * @param array $query A full elasticsearch Query DSL array.
@@ -155,8 +254,60 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
+	$index_paths = [ get_elasticsearch_index_prefix() . '*' ];
+
+	// Try to extract specific index names to query if possible.
+	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
+		foreach ( $query['query']['bool']['filter'] as $filter ) {
+			if ( ! isset( $filter['range']['event_timestamp'] ) ) {
+				continue;
+			}
+
+			// Reset index paths.
+			$index_paths = [];
+
+			// Prevent fatal errors if an index doesn't exist.
+			$params['ignore_unavailable'] = 'true';
+
+			$from = absint( $filter['range']['event_timestamp']['gte'] ?? $filter['range']['event_timestamp']['gt'] ?? 0 );
+			$to = absint( $filter['range']['event_timestamp']['lte'] ?? $filter['range']['event_timestamp']['lt'] ?? milliseconds() );
+
+			$available_indices = get_indices();
+
+			foreach ( $available_indices as $index ) {
+				$day = strtotime( str_replace( get_elasticsearch_index_prefix(), '', $index ) ) * 1000;
+				if ( $day >= $from && $day <= $to ) {
+					$index_paths[] = $index;
+				}
+			}
+
+			// Revert to all index if there are no matches.
+			if ( empty( $index_paths ) ) {
+				$index_paths[] = get_elasticsearch_index_prefix() . '*';
+			}
+
+			break;
+		}
+	}
+
 	// Get URL.
-	$url = add_query_arg( $params, get_elasticsearch_url() . '/analytics*/' . $path );
+	$url = add_query_arg( $params, sprintf(
+		'%s/%s/%s',
+		get_elasticsearch_url(),
+		implode( ',', $index_paths ),
+		$path
+	) );
+
+	// Elasticsearch supports up to 4kb URLs by default so we can revert to the wildcard in this instance.
+	// Note it should never happen as 90 indexes would be 1889 bytes total.
+	if ( strlen( $url ) > 4 * 1024 ) {
+		$url = add_query_arg( $params, sprintf(
+			'%s/%s/%s',
+			get_elasticsearch_url(),
+			get_elasticsearch_index_prefix() . '*',
+			$path
+		) );
+	}
 
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
@@ -779,4 +930,17 @@ function get_countries() : array {
 		'ZM' => 'Zambia',
 		'ZW' => 'Zimbabwe',
 	];
+}
+
+/**
+ * Get a letter of the alphabet corresponding to the passed zero based index.
+ *
+ * @param integer $index Letter of the alphabet to get.
+ * @return string
+ */
+function get_letter( int $index ) : string {
+	for ( $out = ''; $index >= 0; $index = intval( $index / 26 ) - 1 ) {
+		$out = chr( $index % 26 + 0x41 ) . $out;
+	}
+	return $out;
 }
