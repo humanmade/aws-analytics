@@ -160,10 +160,7 @@ function register_default_event_data_maps() {
 	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
 
 	// Location data.
-	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ), null, [
-		'options' => '\\Altis\\Analytics\\Utils\\get_countries',
-		'disable_free_text' => true,
-	] );
+	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ) );
 
 	// UTM Campaign parameters.
 	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'First UTM Campaign', 'altis-analytics' ) );
@@ -335,9 +332,8 @@ function get_fields() : array {
  * @param string $field The elasticsearch field name.
  * @param string $label A human readable label for the field.
  * @param string $description An optional long description for the field.
- * @param array $options An optional object with further field attributes.
  */
-function register_field( string $field, string $label, ?string $description = null, array $options = [] ) {
+function register_field( string $field, string $label, ?string $description = null ) {
 	global $altis_analytics_event_data_maps;
 	if ( empty( $altis_analytics_event_data_maps ) ) {
 		$altis_analytics_event_data_maps = [];
@@ -348,9 +344,7 @@ function register_field( string $field, string $label, ?string $description = nu
 		'label' => $label,
 		'description' => $description,
 		'type' => Utils\get_field_type( $field ),
-		'options' => $options,
 	];
-
 	ksort( $altis_analytics_event_data_maps );
 }
 
@@ -720,31 +714,12 @@ function get_field_data() : ?array {
 	foreach ( $maps as $field ) {
 		$field_name = $field['name'];
 		if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
-			$options = $field['options']['options'] ?? null;
-			if ( is_callable( $options ) ) {
-				$options = call_user_func( $options );
-			}
-			if ( is_array( $options ) ) {
-				$buckets = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'doc_count', 'key' );
-				$field_data = array_map( function( $value, $label ) use ( $buckets, $total ) {
-					return [
-						'value' => $value,
-						'label' => $label,
-						'count' => $buckets[ $value ] ?? 0,
-						'percent' => isset( $buckets[ $value ] ) ? intval( $buckets[ $value ] / $total * 100 ) : 0,
-					];
-				}, array_keys( $options ), $options );
-				unset( $field['options']['options'] );
-			} else {
-				$field_data = array_map( function ( $bucket ) use ( $total ) {
-					return [
-						'value' => $bucket['key'],
-						'count' => $bucket['doc_count'],
-						'percent' => $bucket['doc_count'] ? intval( $bucket['doc_count'] / $total * 100 ) : 0,
-					];
-				}, $aggregations[ $field_name ]['buckets'] );
-			}
-			$field['data'] = $field_data;
+			$field['data'] = array_map( function ( $bucket ) {
+				return [
+					'value' => $bucket['key'],
+					'count' => $bucket['doc_count'],
+				];
+			}, $aggregations[ $field_name ]['buckets'] );
 		} else {
 			$field['stats'] = $aggregations[ $field_name ];
 		}
