@@ -14,6 +14,18 @@ export const uuid = placeholder =>
 		: ( [ 1e7 ] + -1e3 + -4e3 + -8e3 + -1e11 ).replace( /[018]/g, uuid );
 
 /**
+ * Escapes only unicode characters to support auth signature generation.
+ *
+ * @param {string} str String to escapte unicode characters in.
+ * @returns {string} Escaped string.
+ */
+export const escapeUnicode = str => {
+	return str.replace( /[^\0-~]/g, ch => {
+		return '\\u' + ( '000' + ch.charCodeAt().toString( 16 ) ).slice( -4 );
+	} );
+};
+
+/**
  * Get a throttled version of a function to reduce event trigger rates.
  *
  * @param {number} delay Milliseconds to delay function call by.
@@ -69,8 +81,8 @@ const prepareData = async ( value, sanitizeCallback ) => {
  * @returns {string} Attribute value as a string.
  */
 const sanitizeAttribute = value => Array.isArray( value )
-	? value.map( val => val.toString() )
-	: value.toString();
+	? value.map( val => escapeUnicode( val.toString() ) )
+	: escapeUnicode( value.toString() );
 
 /**
  * Ensure value is a single float.
