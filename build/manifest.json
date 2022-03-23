@@ -1,12 +1,12 @@
 {
-  "analytics.js": "/analytics.d8fa251f.js",
-  "audiences/data.js": "/audiences/data.d8fa251f.js",
-  "audiences/preview.js": "/audiences/preview.d8fa251f.js",
-  "audiences/ui.js": "/audiences/ui.d8fa251f.js",
-  "blocks/data.js": "/blocks/data.d8fa251f.js",
-  "blocks/personalization.js": "/blocks/personalization.d8fa251f.js",
-  "blocks/personalization-variant.js": "/blocks/personalization-variant.d8fa251f.js",
-  "blocks/ui.js": "/blocks/ui.d8fa251f.js",
-  "experiments.js": "/experiments.d8fa251f.js",
-  "titles.js": "/titles.d8fa251f.js"
+  "analytics.js": "/analytics.fb27bf66.js",
+  "audiences/data.js": "/audiences/data.fb27bf66.js",
+  "audiences/preview.js": "/audiences/preview.fb27bf66.js",
+  "audiences/ui.js": "/audiences/ui.fb27bf66.js",
+  "blocks/data.js": "/blocks/data.fb27bf66.js",
+  "blocks/personalization.js": "/blocks/personalization.fb27bf66.js",
+  "blocks/personalization-variant.js": "/blocks/personalization-variant.fb27bf66.js",
+  "blocks/ui.js": "/blocks/ui.fb27bf66.js",
+  "experiments.js": "/experiments.fb27bf66.js",
+  "titles.js": "/titles.fb27bf66.js"
 }
