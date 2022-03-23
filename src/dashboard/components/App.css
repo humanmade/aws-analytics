@@ -1,0 +1,22 @@
+.App {
+	line-height: 1.7;
+}
+
+.App *,
+.App *::before,
+.App *::after {
+	box-sizing: border-box;
+}
+
+.App header {
+	display: flex;
+}
+
+.App__blocks {
+	display: grid;
+	grid-template-columns: repeat( 2, 1fr );
+}
+
+.App__blocks--three {
+	grid-template-columns: repeat( 3, 1fr );
+}

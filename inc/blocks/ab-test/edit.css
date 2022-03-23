@@ -1,0 +1,28 @@
+.ab-test-xb-preview__tabs {
+	margin: 0.5rem 0;
+	line-height: 1;
+}
+
+.ab-test-xb-preview__tab {
+	background: #4667de;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.75rem;
+	margin: 0 0.25rem 0.25rem 0;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
+}
+
+.ab-test-xb-preview__tab.active,
+.ab-test-xb-preview__tab:hover,
+.ab-test-xb-preview__tab:focus {
+	background: #152a4e;
+	cursor: pointer;
+}

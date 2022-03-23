@@ -1,12 +1,17 @@
 {
-  "analytics.js": "/analytics.fb27bf66.js",
-  "audiences/data.js": "/audiences/data.fb27bf66.js",
-  "audiences/preview.js": "/audiences/preview.fb27bf66.js",
-  "audiences/ui.js": "/audiences/ui.fb27bf66.js",
-  "blocks/data.js": "/blocks/data.fb27bf66.js",
-  "blocks/personalization.js": "/blocks/personalization.fb27bf66.js",
-  "blocks/personalization-variant.js": "/blocks/personalization-variant.fb27bf66.js",
-  "blocks/ui.js": "/blocks/ui.fb27bf66.js",
-  "experiments.js": "/experiments.fb27bf66.js",
-  "titles.js": "/titles.fb27bf66.js"
+  "analytics.js": "/analytics.584ea605.js",
+  "audiences/data.js": "/audiences/data.584ea605.js",
+  "audiences/preview.js": "/audiences/preview.584ea605.js",
+  "audiences/ui.js": "/audiences/ui.584ea605.js",
+  "blocks/ab-test.js": "/blocks/ab-test.584ea605.js",
+  "blocks/ab-test-preview.js": "/blocks/ab-test-preview.584ea605.js",
+  "blocks/ab-test-variant.js": "/blocks/ab-test-variant.584ea605.js",
+  "blocks/data.js": "/blocks/data.584ea605.js",
+  "blocks/personalization.js": "/blocks/personalization.584ea605.js",
+  "blocks/personalization-variant.js": "/blocks/personalization-variant.584ea605.js",
+  "blocks/ui.js": "/blocks/ui.584ea605.js",
+  "experiments.js": "/experiments.584ea605.js",
+  "experiments/sidebar.js": "/experiments/sidebar.584ea605.js",
+  "featured-images.js": "/featured-images.584ea605.js",
+  "titles.js": "/titles.584ea605.js"
 }

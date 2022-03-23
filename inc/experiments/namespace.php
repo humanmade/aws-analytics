@@ -24,6 +24,9 @@ function setup() {
 	// Register REST Fields.
 	add_action( 'rest_api_init', __NAMESPACE__ . '\\register_post_ab_tests_rest_fields' );
 
+	// Register REST fields for test variants.
+	add_action( 'rest_api_init', __NAMESPACE__ . '\\register_post_ab_tests_variants_rest_fields' );
+
 	// Hook cron task.
 	add_action( 'altis_post_ab_test_cron', __NAMESPACE__ . '\\handle_post_ab_test_cron', 10, 2 );
 
@@ -38,6 +41,16 @@ function setup() {
 	$titles_feature = apply_filters( 'altis.experiments.features.titles', true );
 	if ( $titles_feature ) {
 		Titles\setup();
+	}
+
+	/**
+	 * Enable Featured images AB Tests.
+	 *
+	 * @param bool $enabled Whether to enable this feature or not.
+	 */
+	$featured_images_feature = apply_filters( 'altis.experiments.features.featured_images', true );
+	if ( $featured_images_feature ) {
+		FeaturedImages\setup();
 	}
 
 	// Register default conversion goals.
@@ -174,10 +187,8 @@ function register_post_ab_tests_rest_fields() {
 		'get_callback' => function ( array $post ) {
 			$response = [];
 			foreach ( array_keys( get_post_ab_tests() ) as $test_id ) {
-				$test_config = get_post_ab_test( $test_id );
-
 				// Skip this test for unsupported types.
-				if ( ! in_array( $post['type'], $test_config['post_types'], true ) ) {
+				if ( ! in_array( $post['type'], get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 					continue;
 				}
 
@@ -186,6 +197,7 @@ function register_post_ab_tests_rest_fields() {
 					'start_time' => get_ab_test_start_time_for_post( $test_id, $post['id'] ),
 					'end_time' => get_ab_test_end_time_for_post( $test_id, $post['id'] ),
 					'traffic_percentage' => get_ab_test_traffic_percentage_for_post( $test_id, $post['id'] ),
+					'variant_traffic_percentage' => get_ab_test_variant_traffic_percentage_for_post( $test_id, $post['id'] ),
 					'paused' => is_ab_test_paused_for_post( $test_id, $post['id'] ),
 					'results' => (object) get_ab_test_results_for_post( $test_id, $post['id'] ),
 				];
@@ -194,10 +206,8 @@ function register_post_ab_tests_rest_fields() {
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
 			foreach ( $value as $test_id => $test ) {
-				$test_config = get_post_ab_test( $test_id );
-
 				// Skip this test for unsupported types.
-				if ( ! in_array( $post->post_type, $test_config['post_types'], true ) ) {
+				if ( ! in_array( $post->post_type, get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 					continue;
 				}
 
@@ -212,6 +222,9 @@ function register_post_ab_tests_rest_fields() {
 				}
 				if ( isset( $test['traffic_percentage'] ) ) {
 					update_ab_test_traffic_percentage_for_post( $test_id, $post->ID, $test['traffic_percentage'] );
+				}
+				if ( isset( $test['variant_traffic_percentage'] ) ) {
+					update_ab_test_variant_traffic_percentage_for_post( $test_id, $post->ID, $test['variant_traffic_percentage'] );
 				}
 				if ( isset( $test['paused'] ) ) {
 					update_is_ab_test_paused_for_post( $test_id, $post->ID, $test['paused'] );
@@ -235,6 +248,16 @@ function register_post_ab_tests_rest_fields() {
 						],
 						'traffic_percentage' => [
 							'type' => 'number',
+							'minimum' => 0,
+							'maximum' => 100,
+						],
+						'variant_traffic_percentage' => [
+							'type' => 'array',
+							'items' => [
+								'type' => 'number',
+								'minimum' => 0,
+								'maximum' => 100,
+							],
 						],
 						'paused' => [
 							'type' => 'boolean',
@@ -265,7 +288,7 @@ function register_post_ab_tests_rest_fields() {
 										'type' => 'object',
 										'properties' => [
 											'value' => [
-												'type' => [ 'number', 'string' ],
+												'type' => [ 'number', 'string', 'object', 'array' ],
 												'description' => __( 'Variant value', 'altis-analytics' ),
 											],
 											'size' => [
@@ -307,6 +330,8 @@ function register_post_ab_tests_rest_fields() {
  * @param array $options A/B Test configuration options.
  *     $options = [
  *       'label' => (string) A human readable name for the test.
+ *       'singular_label' => (string) A human readable name for one instance of the test.
+ *       'show_ui' => (boolean) Whether to show this test in the sidebar.
  *       'rest_api_variants_field' => (string) REST API field name to return variants on.
  *       'rest_api_variants_type' => (string) REST API field data type.
  *       'goal' => (string) The event handler.
@@ -331,6 +356,7 @@ function register_post_ab_test( string $test_id, array $options ) {
 
 	$options = wp_parse_args( $options, [
 		'label' => $test_id,
+		'singular_label' => $test_id,
 		'rest_api_variants_field' => 'ab_test_' . $test_id,
 		'rest_api_variants_type' => 'string',
 		'goal' => 'click',
@@ -348,28 +374,26 @@ function register_post_ab_test( string $test_id, array $options ) {
 			'post',
 			'page',
 		],
+		'show_ui' => false,
+		'editor_scripts' => [],
 	] );
 
-	$post_ab_tests[ $test_id ] = $options;
+	/**
+	 * Filter test options.
+	 *
+	 * @param array  $options Test options.
+	 * @param string $test_id Test ID.
+	 */
+	$post_ab_tests[ $test_id ] = apply_filters( 'altis.experiments.test.options', $options, $test_id );
 
-	register_rest_field(
-		$options['post_types'],
-		$options['rest_api_variants_field'],
-		[
-			'get_callback' => function ( $post ) use ( $test_id ) : array {
-				return get_ab_test_variants_for_post( $test_id, $post['id'] );
-			},
-			'update_callback' => function ( array $variants, WP_Post $post ) use ( $test_id ) {
-				return update_ab_test_variants_for_post( $test_id, $post->ID, $variants );
-			},
-			'schema' => [
-				'type' => 'array',
-				'items' => [
-					'type' => $options['rest_api_variants_type'],
-				],
-			],
-		]
-	);
+	if ( $options['editor_scripts'] ) {
+		add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_experiments_editor_scripts' );
+	}
+
+	// Handle post type support filtering and registration.
+	foreach ( $options['post_types'] as $post_type ) {
+		add_post_type_support( $post_type, "altis.experiments.{ $test_id }" );
+	}
 
 	// Bind winner_callback.
 	add_action( "altis.experiments.test.winner_found.{$test_id}", $options['winner_callback'], 10, 2 );
@@ -378,6 +402,108 @@ function register_post_ab_test( string $test_id, array $options ) {
 	if ( ( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) && ! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] ) ) {
 		wp_schedule_event( time(), 'hourly', 'altis_post_ab_test_cron', [ $test_id ] );
 	}
+
+	/**
+	 * Dispatch action when a test is registered.
+	 *
+	 * @param string $test_id Test ID.
+	 * @param array  $options Test options.
+	 */
+	do_action( 'altis.experiments.test.registered', $test_id, $options );
+}
+
+/**
+ * Register REST fields for test variants data.
+ *
+ * @return void
+ */
+function register_post_ab_tests_variants_rest_fields() {
+	global $post_ab_tests;
+
+	foreach ( $post_ab_tests as $test_id => $options ) {
+		register_rest_field(
+			get_post_types_by_support( "altis.experiments.{ $test_id }" ),
+			$options['rest_api_variants_field'],
+			[
+				'get_callback' => function ( $post ) use ( $test_id ) : array {
+					return get_ab_test_variants_for_post( $test_id, $post['id'] );
+				},
+				'update_callback' => function ( array $variants, WP_Post $post ) use ( $test_id ) {
+					return update_ab_test_variants_for_post( $test_id, $post->ID, $variants );
+				},
+				'schema' => [
+					'type' => 'array',
+					'items' => [
+						'type' => $options['rest_api_variants_type'],
+					],
+				],
+			]
+		);
+	}
+}
+
+/**
+ * Register block editor scripts requird for registered tests.
+ *
+ * @param string $hook Current screen hook.
+ *
+ * @return void
+ */
+function enqueue_experiments_editor_scripts( string $hook ) : void {
+	global $post_ab_tests;
+
+	if ( ! in_array( $hook, [ 'post.php', 'post-new.php' ], true ) ) {
+		return;
+	}
+
+	wp_enqueue_script(
+		'altis-experiments-features',
+		Utils\get_asset_url( 'experiments/sidebar.js' ),
+		[
+			'wp-plugins',
+			'wp-blocks',
+			'wp-i18n',
+			'wp-editor',
+			'wp-components',
+			'wp-core-data',
+			'wp-edit-post',
+			'moment',
+		]
+	);
+
+	foreach ( $post_ab_tests as $test_id => $test ) {
+		if ( empty( $test['editor_scripts'] ) ) {
+			continue;
+		}
+
+		if ( ! in_array( get_current_screen()->post_type, get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
+			continue;
+		}
+
+		foreach ( $test['editor_scripts'] as $script => $deps ) {
+			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, array_merge( $deps, [ 'altis-experiments-features' ] ), null );
+		}
+	}
+
+	$js_data = array_filter( array_map( function( array $test ) {
+		return $test['show_ui']
+			? array_intersect_key( $test, array_flip( [ 'label', 'singular_label' ] ) )
+			: false;
+	}, $post_ab_tests ) );
+
+	wp_add_inline_script(
+		'altis-experiments-features',
+		sprintf(
+			'window.Altis = window.Altis || {};' .
+			'window.Altis.Analytics = window.Altis.Analytics || {};' .
+			'window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};' .
+			'window.Altis.Analytics.Experiments.BuildURL = %s;' .
+			'window.Altis.Analytics.Experiments.PostABTests = %s;',
+			wp_json_encode( plugins_url( 'build', Analytics\ROOT_FILE ) ),
+			wp_json_encode( $js_data )
+		),
+		'before'
+	);
 }
 
 /**
@@ -443,13 +569,22 @@ function handle_post_ab_test_cron( string $test_id, int $page = 1 ) {
 
 	$posts_per_page = 50;
 	$posts = new WP_Query( [
-		'post_type' => $test['post_types'],
+		'post_type' => get_post_types_by_support( "altis.experiments.{ $test_id }" ),
 		'fields' => 'ids',
-		'post_status' => 'publish',
+		'post_status' => [ 'publish', 'inherit' ],
 		'posts_per_page' => $posts_per_page,
 		'paged' => $page,
 		// phpcs:ignore
-		'meta_key' => '_altis_ab_test_' . $test_id . '_variants',
+		'meta_query' => [
+			[
+				'key' => '_altis_ab_test_' . $test_id . '_variants',
+				'compare' => 'EXISTS',
+			],
+			[
+				'key' => '_altis_ab_test_' . $test_id . '_completed',
+				'compare' => 'NOT EXISTS',
+			],
+		],
 	] );
 
 	foreach ( $posts->posts as $post_id ) {
@@ -520,7 +655,20 @@ function is_ab_test_started_for_post( string $test_id, int $post_id ) : bool {
  * @return int A percentage
  */
 function get_ab_test_traffic_percentage_for_post( string $test_id, int $post_id ) : int {
-	return (int) get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	$traffic_percentage = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_traffic_percentage', true );
+	return (int) ( is_numeric( $traffic_percentage ) ? $traffic_percentage : 35 );
+}
+
+/**
+ * Get the percentage of traffic to run the test for.
+ *
+ * @param string $test_id The test ID.
+ * @param int $post_id Post ID to get test data for.
+ * @return array $traffic_percent array
+ */
+function get_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id ) : array {
+	$traffic_percent = get_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', true );
+	return is_array( $traffic_percent ) ? $traffic_percent : [];
 }
 
 /**
@@ -571,7 +719,9 @@ function update_ab_test_variants_for_post( string $test_id, int $post_id, array 
 	 * except for the last update timestamp.
 	 */
 	$old_variants = get_ab_test_variants_for_post( $test_id, $post_id );
-	if ( ! empty( array_diff( $old_variants, $variants ) ) ) {
+	$old_variants_cmp = array_map( 'maybe_serialize', $old_variants );
+	$variants_cmp = array_map( 'maybe_serialize', $variants );
+	if ( ! empty( array_diff( $old_variants_cmp, $variants_cmp ) ) ) {
 		$results = get_ab_test_results_for_post( $test_id, $post_id );
 		update_ab_test_results_for_post( $test_id, $post_id, [
 			'timestamp' => $results['timestamp'] ?? 0,
@@ -630,6 +780,31 @@ function update_ab_test_traffic_percentage_for_post( string $test_id, int $post_
 }
 
 /**
+ * Update the percentage of traffic to run for each variant.
+ *
+ * @param string $test_id The test ID.
+ * @param int $post_id Post ID to set test data for.
+ * @param float[] $percents Array of percentages of traffic to run for each variant (indexed).
+ */
+function update_ab_test_variant_traffic_percentage_for_post( string $test_id, int $post_id, array $percents ) {
+	// If there are no provided percentages then store an empty array.
+	if ( empty( $percents ) ) {
+		update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', [] );
+		return;
+	}
+	// Sanitize data.
+	$percents = array_map( 'floatval', $percents );
+	// If there's some data error then redistribute the percentages.
+	// Allow an error margin of 1 below 100 in the calculations to accomodate precision / rounding issues.
+	$total = array_sum( $percents );
+	if ( $total > 100 || $total < 99 ) {
+		$percents = array_fill( 0, count( $percents ), 100 / count( $percents ) );
+	}
+	$percents = array_values( $percents );
+	update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_variant_traffic_percentage', $percents );
+}
+
+/**
  * Update the results for the test.
  *
  * @param string $test_id The test ID.
@@ -675,7 +850,9 @@ function is_ab_test_running_for_post( string $test_id, int $post_id ) : bool {
 	$is_paused = (bool) is_ab_test_paused_for_post( $test_id, $post_id );
 	$start_time = (int) get_ab_test_start_time_for_post( $test_id, $post_id );
 	$end_time = (int) get_ab_test_end_time_for_post( $test_id, $post_id );
-	return $has_variants && $is_started && ! $is_paused && $start_time <= Utils\milliseconds() && $end_time > Utils\milliseconds();
+	$now = Utils\milliseconds();
+	$is_running = $has_variants && $is_started && ! $is_paused && $start_time <= $now && $end_time > $now;
+	return $is_running;
 }
 
 /**
@@ -691,7 +868,7 @@ function save_ab_test_results_for_post( string $test_id, int $post_id, array $da
 		'winner' => null,
 		'variants' => [],
 	] );
-	add_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_completed', $data );
+	update_post_meta( $post_id, '_altis_ab_test_' . $test_id . '_completed', $data );
 }
 
 /**
@@ -707,7 +884,7 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
 	$test = get_post_ab_test( $test_id );
 
 	// Check post type is supported.
-	if ( ! in_array( get_post_type( $post_id ), $test['post_types'], true ) ) {
+	if ( ! in_array( get_post_type( $post_id ), get_post_types_by_support( "altis.experiments.{ $test_id }" ), true ) ) {
 		return $default_output;
 	}
 
@@ -854,10 +1031,10 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'term' => [ 'event_type.keyword' => $goal[0] ],
 	];
 	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventTestId' => $test_id ],
+		'term' => [ 'attributes.eventTestId.keyword' => $test_id ],
 	];
 	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventPostId' => $post_id ],
+		'term' => [ 'attributes.eventPostId.keyword' => $post_id ],
 	];
 
 	// Collect aggregates for statistical analysis.
@@ -865,7 +1042,8 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		// Variant buckets.
 		'test' => [
 			'terms' => [
-				'field' => sprintf( 'attributes.test_%s.keyword', $test_id_with_post ),
+				'field' => 'attributes.eventVariantId.keyword',
+				'order' => [ '_key' => 'asc' ],
 			],
 			'aggs' => [
 				// Conversion events.
@@ -910,7 +1088,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'request_cache' => 'true',
 	] );
 
-	if ( empty( $data ) ) {
+	if ( empty( $result ) ) {
 		return;
 	}
 
@@ -962,8 +1140,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	$variant_values = get_ab_test_variants_for_post( $test_id, $post_id );
 
 	// Track winning variant.
-	$winner = false;
-	$winning = false;
+	$winner = null;
+	$winning = null;
 	$max_rate = 0.0;
 	$variants = [];
 
@@ -985,6 +1163,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 			$max_rate = $rate;
 
 			// Check sample size is large enough.
+			// We use a low value of 5% as the Minimum Detectable Effect because making the change
+			// is automated and therefore cost effective.
 			if ( $size * $rate >= 5 && $size * ( 1 - $rate ) >= 5 ) {
 				$winning = $id;
 			}
@@ -996,10 +1176,11 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 		$control = $variants[0];
 		$binomial = new Discrete\Binomial( $size, $control['rate'] );
 		$variants[ $id ]['p'] = $binomial->pmf( $hits );
+
 	}
 
 	// Find if a variant is winning, ie. reject null hypothesis.
-	if ( $winning !== false ) {
+	if ( $winning !== null ) {
 		$winning_variant = $variants[ $winning ];
 		// Require 99% certainty.
 		if ( ! is_null( $winning_variant['p'] ) && $winning_variant['p'] < 0.01 ) {
