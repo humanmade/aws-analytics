@@ -146,7 +146,7 @@ function get_client_side_data() : array {
 
 		if ( is_search() ) {
 			$data['Attributes']['archiveType'] = 'search';
-			$data['Attributes']['search'] = get_search_query();
+			$data['Attributes']['search'] = mb_strtolower( get_search_query() );
 		}
 
 		if ( is_post_type_archive() ) {
@@ -164,12 +164,10 @@ function get_client_side_data() : array {
 		}
 	}
 
-	if ( is_multisite() ) {
-		$data['Attributes']['blog'] = home_url();
-		$data['Attributes']['network'] = network_home_url();
-		$data['Attributes']['blogId'] = get_current_blog_id();
-		$data['Attributes']['networkId'] = get_current_network_id();
-	}
+	$data['Attributes']['blog'] = home_url();
+	$data['Attributes']['network'] = network_home_url();
+	$data['Attributes']['blogId'] = get_current_blog_id();
+	$data['Attributes']['networkId'] = get_current_network_id();
 
 	/**
 	 * Filter the custom analytics endpoint/user data.
@@ -268,10 +266,27 @@ function enqueue_scripts() {
 	 */
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
+	/**
+	 * Filters always allowed cookie consent categories.
+	 *
+	 * @param array $consent_always_allowed List of consent categories that are always permitted.
+	 */
+	$consent_always_allowed = (array) apply_filters( 'altis.consent.always_allow_categories', [
+		'functional',
+		'statistics-anonymous',
+	] );
+
+	/**
+	 * Filters whether to exclude bot traffic or not.
+	 *
+	 * @param string $exclude_bots If set to true allows bots that execute JavaScript to be tracked.
+	 */
+	$exclude_bots = (bool) apply_filters( 'altis.analytics.exclude_bots', true );
+
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
-		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
+		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
 		[],
 		'3',
 		false
@@ -296,13 +311,22 @@ function enqueue_scripts() {
 				'} else {' .
 					'window.addEventListener( \'altis.analytics.ready\', callback );' .
 				'}' .
+			'};' .
+			'Altis.Analytics.onLoad = function ( callback ) {' .
+				'if ( Altis.Analytics.Loaded ) {' .
+					'callback();' .
+				'} else {' .
+					'window.addEventListener( \'altis.analytics.loaded\', callback );' .
+				'}' .
 			'};',
 			wp_json_encode(
 				[
 					'Ready' => false,
+					'Loaded' => false,
 					'Consent' => [
 						'CookiePrefix' => $consent_cookie_prefix,
 						'Enabled' => $consent_enabled,
+						'Allowed' => array_values( (array) $consent_always_allowed ),
 					],
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
@@ -311,6 +335,7 @@ function enqueue_scripts() {
 						'CognitoId' => defined( 'ALTIS_ANALYTICS_COGNITO_ID' ) ? ALTIS_ANALYTICS_COGNITO_ID : null,
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
+						'ExcludeBots' => $exclude_bots,
 					],
 					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),
