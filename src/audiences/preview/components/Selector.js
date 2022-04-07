@@ -66,7 +66,7 @@ export default function Selector() {
 		<>
 			<a
 				className="ab-item"
-				href="#/"
+				href="#audience-preview"
 				onClick={ e => onClickPrevent( e ) }
 			>
 				{ label }
