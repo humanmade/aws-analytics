@@ -53,12 +53,21 @@ export default function Selector() {
 			Altis.Analytics.overrideAudiences( nextSelected );
 		}
 	};
+	/**
+	 * Prevent link default on click.
+	 *
+	 * @param {Event} e Event object.
+	 */
+	const onClickPrevent = e => {
+		e.preventDefault();
+	};
 
 	return (
 		<>
 			<a
 				className="ab-item"
-				href="#qm-overview"
+				href="#audience-preview"
+				onClick={ e => onClickPrevent( e ) }
 			>
 				{ label }
 			</a>
