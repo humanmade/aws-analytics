@@ -6,12 +6,9 @@
 namespace Altis\Analytics\Utils;
 
 use Altis\Analytics;
-use Asset_Loader;
 
 /**
  * Return asset file name based on generated manifest.json file.
- *
- * @todo remove after converting JS to typescript.
  *
  * @param string $filename The webpack entry point file name.
  * @return string|false The real URL of the asset or false if it couldn't be found.
@@ -38,53 +35,6 @@ function get_asset_url( string $filename ) {
 	}
 
 	return plugins_url( $manifest[ $filename ], Analytics\ROOT_DIR . '/build/assets' );
-}
-
-/**
- * Queue up JS and CSS assets for the given entrypoint.
- *
- * @param string $entrypoint The webpack entrypoint key.
- * @return void
- */
-function enqueue_assets( string $entrypoint ) {
-	if ( is_readable( dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json' ) ) {
-		$manifest = dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json';
-		Asset_Loader\enqueue_asset(
-			$manifest,
-			"{$entrypoint}.css",
-			[
-				'handle' => "altis-analytics-{$entrypoint}",
-				'dependencies' => [
-					'wp-components',
-				],
-			]
-		);
-	}
-
-	// Local dev.
-	if ( is_readable( dirname( __DIR__, 2 ) . '/build/asset-manifest.json' ) ) {
-		$manifest = dirname( __DIR__, 2 ) . '/build/asset-manifest.json';
-	}
-
-	if ( empty( $manifest ) ) {
-		return;
-	}
-
-	Asset_Loader\enqueue_asset(
-		$manifest,
-		"{$entrypoint}.js",
-		[
-			'handle' => "altis-analytics-{$entrypoint}",
-			'dependencies' => [
-				'wp-api-fetch',
-				'wp-components',
-				'wp-data',
-				'wp-element',
-				'wp-i18n',
-				'wp-url',
-			],
-		]
-	);
 }
 
 /**
@@ -193,16 +143,6 @@ function get_elasticsearch_version() : ?string {
 }
 
 /**
- * Get the index name prefix for analytics indexes.
- *
- * @return string
- */
-function get_elasticsearch_index_prefix() : string {
-	$index_prefix = apply_filters( 'altis.analytics.elasticsearch.index-prefix', 'analytics-' );
-	return $index_prefix;
-}
-
-/**
  * Fetch available analytics indices.
  *
  * @return array
@@ -213,7 +153,7 @@ function get_indices() : array {
 		return $cache;
 	}
 
-	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_prefix() . '*?filter_path=*.aliases' );
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
 
 	if ( is_wp_error( $indices_response ) ) {
 		trigger_error( sprintf(
@@ -254,7 +194,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
-	$index_paths = [ get_elasticsearch_index_prefix() . '*' ];
+	$index_paths = [ 'analytics-*' ];
 
 	// Try to extract specific index names to query if possible.
 	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
@@ -275,7 +215,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 			$available_indices = get_indices();
 
 			foreach ( $available_indices as $index ) {
-				$day = strtotime( str_replace( get_elasticsearch_index_prefix(), '', $index ) ) * 1000;
+				$day = strtotime( str_replace( 'analytics-', '', $index ) ) * 1000;
 				if ( $day >= $from && $day <= $to ) {
 					$index_paths[] = $index;
 				}
@@ -283,7 +223,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 
 			// Revert to all index if there are no matches.
 			if ( empty( $index_paths ) ) {
-				$index_paths[] = get_elasticsearch_index_prefix() . '*';
+				$index_paths[] = 'analytics-*';
 			}
 
 			break;
@@ -304,7 +244,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		$url = add_query_arg( $params, sprintf(
 			'%s/%s/%s',
 			get_elasticsearch_url(),
-			get_elasticsearch_index_prefix() . '*',
+			'analytics-*',
 			$path
 		) );
 	}
@@ -666,281 +606,4 @@ function sort_by( array $list, string $orderby, string $order = 'desc' ) : array
 	array_multisort( $orderby, $sort_order, $list );
 
 	return $list;
-}
-
-/**
- * Return a list of country names indexed by their respective code, according to ISO 3166.
- *
- * @return array Array of country names indexed by their respective code.
- */
-function get_countries() : array {
-	return [
-		// 'A1' => 'Anonymous Proxy',
-		// 'A2' => 'Satellite Provider',
-		// 'O1' => 'Other Country',
-		'AF' => 'Afghanistan',
-		'AX' => 'Aland Islands',
-		'AL' => 'Albania',
-		'DZ' => 'Algeria',
-		'AS' => 'American Samoa',
-		'AD' => 'Andorra',
-		'AO' => 'Angola',
-		'AI' => 'Anguilla',
-		'AQ' => 'Antarctica',
-		'AG' => 'Antigua and Barbuda',
-		'AR' => 'Argentina',
-		'AM' => 'Armenia',
-		'AW' => 'Aruba',
-		'AP' => 'Asia/Pacific Region',
-		'AU' => 'Australia',
-		'AT' => 'Austria',
-		'AZ' => 'Azerbaijan',
-		'BS' => 'Bahamas',
-		'BH' => 'Bahrain',
-		'BD' => 'Bangladesh',
-		'BB' => 'Barbados',
-		'BY' => 'Belarus',
-		'BE' => 'Belgium',
-		'BZ' => 'Belize',
-		'BJ' => 'Benin',
-		'BM' => 'Bermuda',
-		'BT' => 'Bhutan',
-		'BO' => 'Bolivia',
-		'BQ' => 'Bonaire, Saint Eustatius and Saba',
-		'BA' => 'Bosnia and Herzegovina',
-		'BW' => 'Botswana',
-		'BV' => 'Bouvet Island',
-		'BR' => 'Brazil',
-		'IO' => 'British Indian Ocean Territory',
-		'BN' => 'Brunei Darussalam',
-		'BG' => 'Bulgaria',
-		'BF' => 'Burkina Faso',
-		'BI' => 'Burundi',
-		'KH' => 'Cambodia',
-		'CM' => 'Cameroon',
-		'CA' => 'Canada',
-		'CV' => 'Cape Verde',
-		'KY' => 'Cayman Islands',
-		'CF' => 'Central African Republic',
-		'TD' => 'Chad',
-		'CL' => 'Chile',
-		'CN' => 'China',
-		'CX' => 'Christmas Island',
-		'CC' => 'Cocos (Keeling) Islands',
-		'CO' => 'Colombia',
-		'KM' => 'Comoros',
-		'CD' => 'Congo, The Democratic Republic of the',
-		'CG' => 'Congo',
-		'CK' => 'Cook Islands',
-		'CR' => 'Costa Rica',
-		'CI' => 'Cote d\'Ivoire',
-		'HR' => 'Croatia',
-		'CU' => 'Cuba',
-		'CW' => 'Curacao',
-		'CY' => 'Cyprus',
-		'CZ' => 'Czech Republic',
-		'DK' => 'Denmark',
-		'DJ' => 'Djibouti',
-		'DM' => 'Dominica',
-		'DO' => 'Dominican Republic',
-		'EC' => 'Ecuador',
-		'EG' => 'Egypt',
-		'SV' => 'El Salvador',
-		'GQ' => 'Equatorial Guinea',
-		'ER' => 'Eritrea',
-		'EE' => 'Estonia',
-		'ET' => 'Ethiopia',
-		'EU' => 'Europe',
-		'FK' => 'Falkland Islands (Malvinas)',
-		'FO' => 'Faroe Islands',
-		'FJ' => 'Fiji',
-		'FI' => 'Finland',
-		'FR' => 'France',
-		'GF' => 'French Guiana',
-		'PF' => 'French Polynesia',
-		'TF' => 'French Southern Territories',
-		'GA' => 'Gabon',
-		'GM' => 'Gambia',
-		'GE' => 'Georgia',
-		'DE' => 'Germany',
-		'GH' => 'Ghana',
-		'GI' => 'Gibraltar',
-		'GR' => 'Greece',
-		'GL' => 'Greenland',
-		'GD' => 'Grenada',
-		'GP' => 'Guadeloupe',
-		'GU' => 'Guam',
-		'GT' => 'Guatemala',
-		'GG' => 'Guernsey',
-		'GW' => 'Guinea-Bissau',
-		'GN' => 'Guinea',
-		'GY' => 'Guyana',
-		'HT' => 'Haiti',
-		'HM' => 'Heard Island and McDonald Islands',
-		'VA' => 'Holy See (Vatican City State)',
-		'HN' => 'Honduras',
-		'HK' => 'Hong Kong',
-		'HU' => 'Hungary',
-		'IS' => 'Iceland',
-		'IN' => 'India',
-		'ID' => 'Indonesia',
-		'IR' => 'Iran, Islamic Republic of',
-		'IQ' => 'Iraq',
-		'IE' => 'Ireland',
-		'IM' => 'Isle of Man',
-		'IL' => 'Israel',
-		'IT' => 'Italy',
-		'JM' => 'Jamaica',
-		'JP' => 'Japan',
-		'JE' => 'Jersey',
-		'JO' => 'Jordan',
-		'KZ' => 'Kazakhstan',
-		'KE' => 'Kenya',
-		'KI' => 'Kiribati',
-		'KP' => 'Korea, Democratic People\'s Republic of',
-		'KR' => 'Korea, Republic of',
-		'KW' => 'Kuwait',
-		'KG' => 'Kyrgyzstan',
-		'LA' => 'Lao People\'s Democratic Republic',
-		'LV' => 'Latvia',
-		'LB' => 'Lebanon',
-		'LS' => 'Lesotho',
-		'LR' => 'Liberia',
-		'LY' => 'Libyan Arab Jamahiriya',
-		'LI' => 'Liechtenstein',
-		'LT' => 'Lithuania',
-		'LU' => 'Luxembourg',
-		'MO' => 'Macao',
-		'MK' => 'Macedonia',
-		'MG' => 'Madagascar',
-		'MW' => 'Malawi',
-		'MY' => 'Malaysia',
-		'MV' => 'Maldives',
-		'ML' => 'Mali',
-		'MT' => 'Malta',
-		'MH' => 'Marshall Islands',
-		'MQ' => 'Martinique',
-		'MR' => 'Mauritania',
-		'MU' => 'Mauritius',
-		'YT' => 'Mayotte',
-		'MX' => 'Mexico',
-		'FM' => 'Micronesia, Federated States of',
-		'MD' => 'Moldova, Republic of',
-		'MC' => 'Monaco',
-		'MN' => 'Mongolia',
-		'ME' => 'Montenegro',
-		'MS' => 'Montserrat',
-		'MA' => 'Morocco',
-		'MZ' => 'Mozambique',
-		'MM' => 'Myanmar',
-		'NA' => 'Namibia',
-		'NR' => 'Nauru',
-		'NP' => 'Nepal',
-		'NL' => 'Netherlands',
-		'NC' => 'New Caledonia',
-		'NZ' => 'New Zealand',
-		'NI' => 'Nicaragua',
-		'NE' => 'Niger',
-		'NG' => 'Nigeria',
-		'NU' => 'Niue',
-		'NF' => 'Norfolk Island',
-		'MP' => 'Northern Mariana Islands',
-		'NO' => 'Norway',
-		'OM' => 'Oman',
-		'PK' => 'Pakistan',
-		'PW' => 'Palau',
-		'PS' => 'Palestinian Territory',
-		'PA' => 'Panama',
-		'PG' => 'Papua New Guinea',
-		'PY' => 'Paraguay',
-		'PE' => 'Peru',
-		'PH' => 'Philippines',
-		'PN' => 'Pitcairn',
-		'PL' => 'Poland',
-		'PT' => 'Portugal',
-		'PR' => 'Puerto Rico',
-		'QA' => 'Qatar',
-		'RE' => 'Reunion',
-		'RO' => 'Romania',
-		'RU' => 'Russian Federation',
-		'RW' => 'Rwanda',
-		'BL' => 'Saint Barthelemy',
-		'SH' => 'Saint Helena',
-		'KN' => 'Saint Kitts and Nevis',
-		'LC' => 'Saint Lucia',
-		'MF' => 'Saint Martin',
-		'PM' => 'Saint Pierre and Miquelon',
-		'VC' => 'Saint Vincent and the Grenadines',
-		'WS' => 'Samoa',
-		'SM' => 'San Marino',
-		'ST' => 'Sao Tome and Principe',
-		'SA' => 'Saudi Arabia',
-		'SN' => 'Senegal',
-		'RS' => 'Serbia',
-		'SC' => 'Seychelles',
-		'SL' => 'Sierra Leone',
-		'SG' => 'Singapore',
-		'SX' => 'Sint Maarten',
-		'SK' => 'Slovakia',
-		'SI' => 'Slovenia',
-		'SB' => 'Solomon Islands',
-		'SO' => 'Somalia',
-		'ZA' => 'South Africa',
-		'GS' => 'South Georgia and the South Sandwich Islands',
-		'SS' => 'South Sudan',
-		'ES' => 'Spain',
-		'LK' => 'Sri Lanka',
-		'SD' => 'Sudan',
-		'SR' => 'Suriname',
-		'SJ' => 'Svalbard and Jan Mayen',
-		'SZ' => 'Swaziland',
-		'SE' => 'Sweden',
-		'CH' => 'Switzerland',
-		'SY' => 'Syrian Arab Republic',
-		'TW' => 'Taiwan',
-		'TJ' => 'Tajikistan',
-		'TZ' => 'Tanzania, United Republic of',
-		'TH' => 'Thailand',
-		'TL' => 'Timor-Leste',
-		'TG' => 'Togo',
-		'TK' => 'Tokelau',
-		'TO' => 'Tonga',
-		'TT' => 'Trinidad and Tobago',
-		'TN' => 'Tunisia',
-		'TR' => 'Turkey',
-		'TM' => 'Turkmenistan',
-		'TC' => 'Turks and Caicos Islands',
-		'TV' => 'Tuvalu',
-		'UG' => 'Uganda',
-		'UA' => 'Ukraine',
-		'AE' => 'United Arab Emirates',
-		'GB' => 'United Kingdom',
-		'UM' => 'United States Minor Outlying Islands',
-		'US' => 'United States',
-		'UY' => 'Uruguay',
-		'UZ' => 'Uzbekistan',
-		'VU' => 'Vanuatu',
-		'VE' => 'Venezuela',
-		'VN' => 'Vietnam',
-		'VG' => 'Virgin Islands, British',
-		'VI' => 'Virgin Islands, U.S.',
-		'WF' => 'Wallis and Futuna',
-		'EH' => 'Western Sahara',
-		'YE' => 'Yemen',
-		'ZM' => 'Zambia',
-		'ZW' => 'Zimbabwe',
-	];
-}
-
-/**
- * Get a letter of the alphabet corresponding to the passed zero based index.
- *
- * @param integer $index Letter of the alphabet to get.
- * @return string
- */
-function get_letter( int $index ) : string {
-	for ( $out = ''; $index >= 0; $index = intval( $index / 26 ) - 1 ) {
-		$out = chr( $index % 26 + 0x41 ) . $out;
-	}
-	return $out;
 }
