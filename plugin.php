@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Altis Analytics
  * Description: Analytics layer for Altis powered by AWS Pinpoint.
- * Version: 4.3.0
+ * Version: 4.1.5
  * Author: Human Made Limited
  * Author URI: https://humanmade.com/
  *
@@ -25,13 +25,10 @@ require_once __DIR__ . '/inc/audiences/rest_api/class-posts-controller.php';
 require_once __DIR__ . '/inc/audiences/rest_api/namespace.php';
 require_once __DIR__ . '/inc/blocks/namespace.php';
 require_once __DIR__ . '/inc/dashboard/namespace.php';
-require_once __DIR__ . '/inc/dashboard/class-filter.php';
-require_once __DIR__ . '/inc/dashboard/api/namespace.php';
 require_once __DIR__ . '/inc/blocks/rest_api/namespace.php';
 require_once __DIR__ . '/inc/blocks/rest_api/class-posts-controller.php';
 require_once __DIR__ . '/inc/experiments/namespace.php';
 require_once __DIR__ . '/inc/experiments/titles/namespace.php';
-require_once __DIR__ . '/inc/experiments/featured-images/namespace.php';
 require_once __DIR__ . '/inc/export/class-endpoint.php';
 require_once __DIR__ . '/inc/export/namespace.php';
 require_once __DIR__ . '/inc/preview/namespace.php';
