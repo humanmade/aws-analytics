@@ -146,7 +146,7 @@ function get_client_side_data() : array {
 
 		if ( is_search() ) {
 			$data['Attributes']['archiveType'] = 'search';
-			$data['Attributes']['search'] = get_search_query();
+			$data['Attributes']['search'] = mb_strtolower( get_search_query() );
 		}
 
 		if ( is_post_type_archive() ) {
@@ -268,6 +268,13 @@ function enqueue_scripts() {
 	 */
 	$consent_cookie_prefix = apply_filters( 'wp_consent_cookie_prefix', 'wp_consent' );
 
+	/**
+	 * Filters whether to exclude bot traffic or not.
+	 *
+	 * @param string $exclude_bots If set to true allows bots that execute JavaScript to be tracked.
+	 */
+	$exclude_bots = (bool) apply_filters( 'altis.analytics.exclude_bots', true );
+
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
@@ -311,6 +318,7 @@ function enqueue_scripts() {
 						'CognitoId' => defined( 'ALTIS_ANALYTICS_COGNITO_ID' ) ? ALTIS_ANALYTICS_COGNITO_ID : null,
 						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
 						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
+						'ExcludeBots' => $exclude_bots,
 					],
 					'Noop' => $noop,
 					'Data' => (object) get_client_side_data(),
@@ -363,7 +371,26 @@ function delete_old_indexes() {
 	$max_age_date = $date->format( 'U' );
 
 	// Get indices.
-	$index_names = Utils\get_indices();
+	$indices_response = wp_remote_get( Utils\get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
+	if ( is_wp_error( $indices_response ) ) {
+		trigger_error( sprintf(
+			'Analytics: Could not fetch analytics indexes: %s',
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$indices_response->get_error_message()
+		), E_USER_WARNING );
+		return;
+	}
+	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
+		trigger_error( sprintf(
+			"Analytics: ElasticSearch index deletion failed:\n%s",
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			wp_remote_retrieve_body( $indices_response )
+		), E_USER_WARNING );
+		return;
+	}
+
+	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
+	$index_names = array_keys( $indices );
 
 	$indices_to_remove = array_filter( $index_names, function ( $name ) use ( $max_age_date ) {
 		$date = trim( str_replace( 'analytics', '', $name ), '-' );

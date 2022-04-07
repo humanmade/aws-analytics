@@ -23,17 +23,19 @@ const POST_TYPE = 'xb';
 function setup() {
 	require_once __DIR__ . '/personalization/register.php';
 	require_once __DIR__ . '/personalization-variant/register.php';
+	require_once __DIR__ . '/shim/register.php';
 
 	// Register blocks.
 	Personalization\setup();
 	Personalization_Variant\setup();
+	Shim\setup();
 
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
 	add_action( 'save_post', __NAMESPACE__ . '\\on_save_post', 10, 3 );
 
 	// Register experience block category.
-	add_filter( 'block_categories', __NAMESPACE__ . '\\add_block_category', 100 );
+	add_filter( 'block_categories_all', __NAMESPACE__ . '\\add_block_category', 100 );
 
 	// Change the default edit post link for XB posts.
 	add_filter( 'get_edit_post_link', __NAMESPACE__ . '\\update_xb_edit_post_link', 10, 2 );
@@ -48,10 +50,6 @@ function setup() {
 	// Register an admin page for the block anlaytics view.
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_block_admin_page' );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
-
-	// Shim server side render block to allow passing inner blocks as attribute.
-	add_filter( 'render_block_data', __NAMESPACE__ . '\\ssr_inner_blocks_shim' );
-	register_ssr_inner_blocks_shim();
 
 	// Publication checklist integration.
 	add_action( 'altis.publication-checklist.register_prepublish_checks', __NAMESPACE__ . '\\check_conversion_goals' );
@@ -673,9 +671,7 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query, [
-		'request_cache' => 'true',
-	] );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		$data = [
@@ -711,44 +707,6 @@ function get_views( string $block_id, $args = [] ) {
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 
 	return $data;
-}
-
-/**
- * Extract inner blocks from attributes.
- *
- * @param array $block The block configuration.
- * @return array
- */
-function ssr_inner_blocks_shim( array $block ) : array {
-	if ( $block['blockName'] !== 'altis/shim' ) {
-		return $block;
-	}
-
-	// Populate inner blocks by parsing content.
-	$block['innerBlocks'] = parse_blocks( $block['attrs']['content'] ?? [] );
-
-	// Populate inner content with an array of null placeholders so inner blocks are processed.
-	$block['innerContent'] = array_fill( 0, count( $block['innerBlocks'] ), null );
-
-	return $block;
-}
-
-/**
- * Registers an inner blocks SSR shim.
- *
- * @return void
- */
-function register_ssr_inner_blocks_shim() {
-	register_block_type( 'altis/shim', [
-		'attributes' => [
-			'content' => [
-				'type' => 'string',
-			],
-		],
-		'render_callback' => function ( array $attributes, ?string $inner_content ) : string {
-			return sprintf( '<div>%s</div>', $inner_content );
-		},
-	] );
 }
 
 /**

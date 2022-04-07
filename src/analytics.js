@@ -8,6 +8,7 @@ import merge from 'deepmerge';
 import UAParser from 'ua-parser-js';
 
 import {
+	detectRobot,
 	getLanguage,
 	overwriteMerge,
 	prepareAttributes,
@@ -35,6 +36,9 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' );" );
 	/* eslint-enable quotes */
 }
+
+// Detect bot traffic.
+const isBot = detectRobot( navigator.userAgent || '' );
 
 /**
  * Get consent types.
@@ -124,7 +128,7 @@ const getAttributes = ( extra = {} ) => ( {
 	pageSession: pageSession,
 	url: window.location.origin + window.location.pathname,
 	host: window.location.hostname,
-	search: window.location.search,
+	queryString: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
 	...qvParams,
@@ -245,9 +249,14 @@ const Analytics = {
 	/**
 	 * Gets the AWS SDK client object.
 	 *
-	 * @returns {Promise|PinpointClient} Returns a promise for the client or the client itself.
+	 * @returns {Promise|PinpointClient|null} Returns a promise for the client or the client itself.
 	 */
 	getClient: async () => {
+		// Bail early if we shouldn't set anything up.
+		if ( isBot && Config.ExcludeBots ) {
+			return null;
+		}
+
 		if ( Analytics.client ) {
 			return await Analytics.client;
 		}
@@ -673,6 +682,11 @@ const Analytics = {
 			metrics: await prepareMetrics( metrics ),
 		};
 
+		// Track if request is coming from a bot.
+		if ( isBot ) {
+			preparedData.attributes.isBot = 'true';
+		}
+
 		const EventId = uuid();
 		const Event = {
 			[ EventId ]: {
@@ -726,6 +740,12 @@ const Analytics = {
 	flushEvents: async ( endpoint = {} ) => {
 		// Get the client.
 		const client = await Analytics.getClient();
+		if ( ! client ) {
+			if ( ! isBot ) {
+				console.error( 'Could not create Analytics Client.' );
+			}
+			return;
+		}
 
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();

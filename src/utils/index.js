@@ -192,3 +192,26 @@ export const getLift = ( current, previous ) => {
 export const formatNumber = number => {
 	return new Intl.NumberFormat().format( number );
 };
+
+/**
+ * Detect if the current request is likely to be a bot.
+ *
+ * @param {string} userAgent Current user agent string.
+ * @returns {boolean} True if UA is likely to be from a bot.
+ */
+export const detectRobot = userAgent => {
+	const robots = new RegExp( [
+		/bot/, /spider/, /crawl/,                          // GENERAL TERMS
+		/APIs-Google/, /AdsBot/, /Googlebot/,              // GOOGLE ROBOTS
+		/mediapartners/, /Google Favicon/,
+		/FeedFetcher/, /Google-Read-Aloud/,
+		/DuplexWeb-Google/, /googleweblight/,
+		/bing/, /yandex/, /baidu/, /duckduck/, /yahoo/,    // OTHER ENGINES
+		/ecosia/, /ia_archiver/,
+		/facebook/, /instagram/, /pinterest/, /reddit/,    // SOCIAL MEDIA
+		/slack/, /twitter/, /whatsapp/, /youtube/,
+		/semrush/,                                         // OTHER
+	].map( r => r.source ).join( '|' ), 'i' );             // BUILD REGEXP + "i" FLAG
+
+	return robots.test( userAgent );
+};
