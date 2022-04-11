@@ -429,7 +429,7 @@ body.index-php {
 				background: fade-out( $active-blue, 0.95 );
 			}
 
-			&.rpb-item--disabled{
+			&.rpb-item--disabled {
 				color: $color-grey;
 			}
 
@@ -439,18 +439,18 @@ body.index-php {
 			width: 100%;
 			clear: both;
 
-			ul{
+			ul {
 				margin: 0;
 			}
 
-			li{
+			li {
 				display: inline-block;
 			}
 
 		}
 
-		.rpb-go-item{
-			input{
+		.rpb-go-item {
+			input {
 				max-width: 80px;
 			}
 
