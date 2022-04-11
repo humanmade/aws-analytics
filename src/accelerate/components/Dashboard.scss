@@ -439,6 +439,10 @@ body.index-php {
 			width: 100%;
 			clear: both;
 
+			ul{
+				margin: 0;
+			}
+
 			li{
 				display: inline-block;
 			}
