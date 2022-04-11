@@ -161,17 +161,20 @@ export default function List( props: Props ) {
 					<div className="table-footer">
 						<div className="pagination">
 							{ pagination.total > 0 && (
-								<Pagination
-									initialPage={1}
-									itemsPerPage={25}
-									onPageСhange={ ( pageNumber ) =>{
-										setCurrentPage( pageNumber );
-										setPage( pageNumber );
-									} }
-									totalItems={pagination.total}
-									pageNeighbours={5}
-									withGoToInput={true}
-								/>
+								<>
+									<Pagination
+										initialPage={1}
+										itemsPerPage={25}
+										onPageСhange={ ( pageNumber ) =>{
+											setCurrentPage( pageNumber );
+											setPage( pageNumber );
+										} }
+										totalItems={pagination.total}
+										pageNeighbours={5}
+										withGoToInput={true}
+									/>
+									<span className="current-page">{ __( 'Page ', 'altis' ) } { page } { __( 'of ', 'altis' ) } { pagination.pages }</span>
+								</>
 							) }
 						</div>
 					</div>
