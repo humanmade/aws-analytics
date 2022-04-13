@@ -8,7 +8,7 @@ $sidebar-padding: 5%;
 // Override certain WP-specific pieces
 body.index-php {
 
-	background-color: $dark-blue;
+	background-color: #f3f5f9;
 
 	.altis-telemetry-opt-in {
 		margin-left: 0;
@@ -327,11 +327,15 @@ body.index-php {
 			border-bottom: 1px solid #eee;
 		}
 
-		.th-table-links {
-			min-width: 120px;
+		.table-th-views {
+			min-width: 100px;
 		}
 
-		.th-table-links {
+		.table-th-links {
+			min-width: 80px;
+		}
+
+		.table-th-author {
 			min-width: 160px;
 		}
 
@@ -376,6 +380,11 @@ body.index-php {
 				padding: 2px 4px;
 				border-radius: 4px;
 			}
+		}
+
+		.record-author {
+			display: flex;
+			align-items: baseline;
 		}
 
 		.record-links {
