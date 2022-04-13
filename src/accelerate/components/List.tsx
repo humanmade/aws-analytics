@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
-import { Pagination } from "react-pagination-bar"
+import { __, sprintf } from '@wordpress/i18n';
+import { Pagination } from 'react-pagination-bar';
 
 import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
 
@@ -39,9 +39,6 @@ export default function List( props: Props ) {
 	const { posts, pagination, isLoading } = query;
 
 	const maxViews = posts.reduce( ( carry, post ) => Math.max( post.views, carry ), 0 );
-
-	const [currentPage, setCurrentPage] = useState(1);
-  	const pagePostsLimit = 3;
 
 	return (
 		<div className="List">
@@ -158,26 +155,20 @@ export default function List( props: Props ) {
 							);
 						} ) }
 					</table>
-					<div className="table-footer">
-						<div className="pagination">
-							{ pagination.total > 0 && (
-								<>
-									<Pagination
-										initialPage={1}
-										itemsPerPage={25}
-										onPageСhange={ ( pageNumber ) =>{
-											setCurrentPage( pageNumber );
-											setPage( pageNumber );
-										} }
-										totalItems={pagination.total}
-										pageNeighbours={5}
-										withGoToInput={true}
-									/>
-									<span className="current-page">{ __( 'Page ', 'altis' ) } { page } { __( 'of ', 'altis' ) } { pagination.pages }</span>
-								</>
-							) }
+					{ pagination.total > 0 && (
+						<div className="table-footer">
+							<div className="pagination">
+								<Pagination
+									initialPage={ 1 }
+									itemsPerPage={ 25 }
+									onPageСhange={ ( pageNumber ) =>{ setPage( pageNumber ) } }
+									totalItems={ pagination.total }
+									pageNeighbours={ 10 }
+								/>
+								<span className="current-page">{ sprintf( __( 'Page %d of %d ', 'altis' ), page, pagination.pages ) }</span>
+							</div>
 						</div>
-					</div>
+					) }
 				</div>
 			</div>
 		</div>
