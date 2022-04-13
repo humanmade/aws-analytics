@@ -161,7 +161,7 @@ export default function List( props: Props ) {
 								<Pagination
 									initialPage={ 1 }
 									itemsPerPage={ 25 }
-									onPageСhange={ ( pageNumber ) =>{ setPage( pageNumber ) } }
+									onPageСhange={ pageNumber => setPage( pageNumber ) }
 									totalItems={ pagination.total }
 									pageNeighbours={ 10 }
 								/>
