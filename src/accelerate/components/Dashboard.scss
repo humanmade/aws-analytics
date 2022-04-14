@@ -4,6 +4,7 @@ $active-blue: #4667de;
 $score-pos: #3CC66D;
 $score-neg: #C6403C;
 $sidebar-padding: 5%;
+$color-grey: #cbc9c9;
 
 // Override certain WP-specific pieces
 body.index-php {
@@ -404,19 +405,21 @@ body.index-php {
 		padding: 20px 0;
 		display: flex;
 		justify-content: center;
+		flex-wrap: wrap;
 		font-size: 0.9rem;
 		color: $active-blue;
 		font-weight: 500;
+		text-align: center;
+		align-items: baseline;
 
-		> div,
-		> button {
+		.rpb-item {
 			padding: 2px 10px;
 			margin: 0 2px;
 			border: 0;
 			border-radius: 4px;
 			background: none;
 
-			&.current {
+			&.rpb-item--active {
 				background: fade-out( $active-blue, 0.9 );
 			}
 
@@ -424,7 +427,29 @@ body.index-php {
 				background: fade-out( $active-blue, 0.95 );
 			}
 
+			&.rpb-item--disabled {
+				color: $color-grey;
+			}
+
 		}
+
+		.rpb-root {
+			ul {
+				margin: 0;
+			}
+
+			li {
+				display: inline-block;
+			}
+
+		}
+
+		.current-page {
+			color: $color-grey;
+			margin-left: 5px;
+		}
+
+
 	}
 
 }
