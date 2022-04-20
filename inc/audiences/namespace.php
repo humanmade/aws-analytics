@@ -494,7 +494,9 @@ function get_estimate( array $audience ) : ?array {
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -587,7 +589,9 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		wp_cache_set( $key, 0, 'altis-audiences', MINUTE_IN_SECONDS );
@@ -690,7 +694,9 @@ function get_field_data() : ?array {
 		}
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		return $result;
