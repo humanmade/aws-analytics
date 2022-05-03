@@ -71,6 +71,7 @@ const StyledTimeline = styled.div`
 			}
 
 			.altis-analytics-timeline__text {
+				margin-right: -2.5rem;
 				margin-left: -2.5rem;
 				width: 130px;
 				display: inline-block;
