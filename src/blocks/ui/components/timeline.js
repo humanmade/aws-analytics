@@ -64,6 +64,7 @@ const StyledTimeline = styled.div`
 			text-align: right;
 			bottom: -4px;
 			padding-bottom: 4px;
+			white-space: nowrap;
 			&:before {
 				top: auto;
 				bottom: -7px;
@@ -72,9 +73,6 @@ const StyledTimeline = styled.div`
 
 			.altis-analytics-timeline__text {
 				margin-right: -2.5rem;
-				margin-left: -2.5rem;
-				width: 130px;
-				display: inline-block;
 			}
 		}
 	}
