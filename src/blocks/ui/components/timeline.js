@@ -72,7 +72,7 @@ const StyledTimeline = styled.div`
 			}
 
 			.altis-analytics-timeline__text {
-				margin-right: -2.5rem;
+				margin-right: -2.2rem;
 			}
 		}
 	}
