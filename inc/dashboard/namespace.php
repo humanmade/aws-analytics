@@ -1101,8 +1101,8 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		);
 	}
 
-	$posts = $res['aggregations']['posts']['ids']['buckets'];
-	$blocks = $res['aggregations']['blocks']['ids']['buckets'];
+	$posts = $res['aggregations']['posts']['ids']['buckets'] ?? [];
+	$blocks = $res['aggregations']['blocks']['ids']['buckets'] ?? [];
 
 	$all = array_merge( $posts, $blocks );
 	$all = array_map( function ( $bucket ) {
