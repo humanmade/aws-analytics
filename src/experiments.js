@@ -2,23 +2,6 @@
 window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};
 
 /**
- * Check if an element is visible in the viewport.
- *
- * @param {HTMLElement} element element The element to check visibility for.
- * @returns {boolean} True if the element is in the viewport.
- */
-function isVisible( element ) {
-	const rect = element.getBoundingClientRect();
-
-	return (
-		rect.top >= 0 &&
-		rect.left >= 0 &&
-		rect.bottom <= ( window.innerHeight || document.documentElement.clientHeight ) &&
-		rect.right <= ( window.innerWidth || document.documentElement.clientWidth )
-	);
-}
-
-/**
  * Test element base class.
  */
 class Test extends HTMLElement {
@@ -386,27 +369,34 @@ class PersonalizationBlock extends HTMLElement {
 
 		// Log an event for tracking views and audience when scrolled into view.
 		let tracked = false;
-		const trackView = window.addEventListener( 'scroll', () => {
-			if ( ! isVisible( this ) || tracked ) {
-				return;
-			}
+		let observer = new IntersectionObserver( ( entries, observer ) => {
+			entries.forEach( entry => {
+				if ( entry.target !== this || ! entry.isIntersecting ) {
+					return;
+				}
 
-			// Prevent spamming events.
-			tracked = true;
+				if ( tracked ) {
+					return;
+				}
 
-			window.removeEventListener( 'scroll', trackView );
+				// Prevent spamming events.
+				tracked = true;
+				observer.disconnect();
 
-			window.Altis.Analytics.record( 'experienceView', {
-				attributes: {
-					audience,
-					clientId: this.clientId,
-					type: 'personalization',
-				},
+				window.Altis.Analytics.record( 'experienceView', {
+					attributes: {
+						audience,
+						clientId: this.clientId,
+						type: 'personalization',
+					},
+				}, false );
 			} );
+		}, {
+			threshold: 0.75,
 		} );
 
 		// Trigger scroll handler.
-		window.scroll();
+		observer.observe( this );
 
 		// Get goal handler from registered goals.
 		const goalHandler = getGoalHandler( goal );
