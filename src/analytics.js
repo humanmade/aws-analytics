@@ -724,6 +724,22 @@ const Analytics = {
 	 * @param {object} endpoint Optional updated endpoint data.
 	 */
 	flushEvents: async ( endpoint = {} ) => {
+		// Snapshot events to send and clear.
+		const eventsToDeliver = Analytics.events;
+		Analytics.events = [];
+
+		// Ensure flushEvents isn't called too quickly when set via timeout.
+		if ( Analytics.timer ) {
+			clearTimeout( Analytics.timer );
+		}
+
+		// If we're not ready to log then store up events and try to record later.
+		// This can happen if consent is required to start recording but not yet given for example.
+		if ( ! Altis.Analytics.Ready ) {
+			Analytics.timer = setTimeout( Analytics.flushEvents, 5000 );
+			return;
+		}
+
 		// Get the client.
 		const client = await Analytics.getClient();
 
@@ -744,7 +760,7 @@ const Analytics = {
 		Endpoint.RequestId = uuid();
 
 		// Reduce events to an object keyed by event ID.
-		const Events = Analytics.events.reduce( ( carry, event ) => ( {
+		const Events = eventsToDeliver.reduce( ( carry, event ) => ( {
 			...event,
 			...carry,
 		} ), {} );
@@ -770,9 +786,6 @@ const Analytics = {
 			if ( ! Noop ) {
 				await client.send( command );
 			}
-
-			// Clear events on success.
-			Analytics.events = [];
 		} catch ( error ) {
 			console.error( error );
 		}
