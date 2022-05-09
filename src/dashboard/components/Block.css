@@ -1,0 +1,20 @@
+.Block {
+	padding: 8px 12px;
+	margin: 0 20px 1em 0;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba( 0, 0, 0, 0.04 );
+}
+
+.Block > header {
+	margin: -8px -12px 0 -12px;
+	padding: 8px 12px;
+	border-bottom: 1px solid #ccd0d4;
+}
+
+.Block > header h2 {
+	font-size: 14px;
+	line-height: 1.4;
+	font-weight: 800;
+	margin: 0;
+}
