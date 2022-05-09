@@ -7,6 +7,14 @@ export const defaultVariantAnalytics = {
 		views: 0,
 		conversions: 0,
 	},
-	audiences: [],
+	variants: [],
 	posts: [],
+};
+
+export const defaultABVariant = {
+	value: null,
+	size: 0,
+	hits: 0,
+	rate: 0,
+	p: 1,
 };
