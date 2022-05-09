@@ -738,10 +738,6 @@ const Analytics = {
 	 * @param {object} endpoint Optional updated endpoint data.
 	 */
 	flushEvents: async ( endpoint = {} ) => {
-		// Snapshot events to send and clear.
-		const eventsToDeliver = Analytics.events;
-		Analytics.events = [];
-
 		// Ensure flushEvents isn't called too quickly when set via timeout.
 		if ( Analytics.timer ) {
 			clearTimeout( Analytics.timer );
@@ -753,6 +749,10 @@ const Analytics = {
 			Analytics.timer = setTimeout( Analytics.flushEvents, 5000 );
 			return;
 		}
+
+		// Snapshot events to send and clear.
+		const eventsToDeliver = Analytics.events;
+		Analytics.events = [];
 
 		// Get the client.
 		const client = await Analytics.getClient();
