@@ -1,6 +1,5 @@
 {
     "name": "altis/personalization",
-    "varyOn": "attributes.audience.keyword",
     "settings": {
         "category": "altis-experience-blocks",
         "icon": "groups",

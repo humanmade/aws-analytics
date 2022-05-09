@@ -126,7 +126,7 @@ The plugin provides a few hooks for you to control the default endpoint data and
 
 **`altis.analytics.consent_enabled <bool>`**
 
-This defaults to true if the WP Consent API plugin or a derivative is installed and active by checking if the constant `WP_CONSENT_API_URL` is defined.
+This defaults to if the WP Consent API plugin or a derivative is installed and active by checking if the constant `WP_CONSENT_API_URL` is defined.
 
 **`altis.analytics.data.endpoint <array>`**
 
@@ -161,12 +161,6 @@ Insights and aggregated analytics data can be calculated, updated and stored in 
 **`altis.analytics.max_s3_backup_age <int>`**
 
 Filter the maximum number of days to keep backup data for. The default number of days is 90, in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your users' privacy. There is no upper limit on this value, however you should make sure any long term data storage is explained to users when opting in to tracking.
-
-**`altis.analytics.exclude_bots <bool>`**
-
-This defaults to true but can switched off to allow tracking bots that can run JavaScript, note this will affect your data.
-
-You can check if a recorded event was created by a bot by checking if the `attributes.isBot` value exists.
 
 ### Functions
 
@@ -352,25 +346,16 @@ use function Altis\Analytics\Audiences\register_field;
 
 add_action( 'init', function () {
   register_field(
-    'endpoint.Location.Country', // The Elasticsearch field to query.
-    __( 'Country' ), // A label for the field.
-    __( 'The visitor country.' ) // Optional description for the field.
-    [ // Optional field arguments
-      'options' => '\\Altis\\Analytics\\Utils\\get_countries', // A callback to provide prepopulated list of options.
-      'disable_free_text' => false, // Whether to allow free text to be used or to restrict to available options.
-    ]
+    'endpoint.Location.City', // The Elasticsearch field to query.
+    __( 'City' ), // A label for the field.
+    __( 'The closest metropolitan area.' ) // Optional description for the field.
   );
 } );
 ```
 
-In the above example the 1st parameter `endpoint.Location.Country` represents the field in the event record to query against. Other examples include `attributes.qv_utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
+In the above example the 1st parameter `endpoint.Location.City` represents the field in the event record to query against. Other examples include `attributes.qv_utm_campaign` or `endpoint.User.UserAttibrutes.custom` for example.
 
-The 2nd parameter is a human readable label for the audience field, and the 3rd is the human readable description that goes below the field UI.
-
-The 4th parameter is an optional arguments array, which can include:
-
-- `options` which is a callback that returns a list of valid options, that will complement existing data for that field.
-- `disable_free_text` is a boolean to allow/restrict the user to set custom strings rather than choose from the list.
+The 2nd parameter is a human readable label for the audience field.
 
 ## Required Infrastructure
 
