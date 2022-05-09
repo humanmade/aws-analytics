@@ -8,6 +8,7 @@ import merge from 'deepmerge';
 import UAParser from 'ua-parser-js';
 
 import {
+	detectRobot,
 	getLanguage,
 	overwriteMerge,
 	prepareAttributes,
@@ -36,6 +37,9 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
 	/* eslint-enable quotes */
 }
 
+// Detect bot traffic.
+const isBot = detectRobot( navigator.userAgent || '' );
+
 /**
  * Get consent types.
  *
@@ -44,6 +48,10 @@ if ( ! Config.PinpointId || ! Config.CognitoId ) {
  */
 let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
 let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
+
+// Secondary check for force enabled consent.
+hasAnonConsent = hasAnonConsent || Consent.Allowed.indexOf( 'statistics-anonymous' ) >= 0;
+hasFullConsent = hasFullConsent || Consent.Allowed.indexOf( 'statistics' ) >= 0;
 
 /**
  * Custom global attributes and metrics, extended by the
@@ -124,7 +132,7 @@ const getAttributes = ( extra = {} ) => ( {
 	pageSession: pageSession,
 	url: window.location.origin + window.location.pathname,
 	host: window.location.hostname,
-	search: window.location.search,
+	queryString: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
 	...qvParams,
@@ -245,9 +253,14 @@ const Analytics = {
 	/**
 	 * Gets the AWS SDK client object.
 	 *
-	 * @returns {Promise|PinpointClient} Returns a promise for the client or the client itself.
+	 * @returns {Promise|PinpointClient|null} Returns a promise for the client or the client itself.
 	 */
 	getClient: async () => {
+		// Bail early if we shouldn't set anything up.
+		if ( isBot && Config.ExcludeBots ) {
+			return null;
+		}
+
 		if ( Analytics.client ) {
 			return await Analytics.client;
 		}
@@ -673,6 +686,11 @@ const Analytics = {
 			metrics: await prepareMetrics( metrics ),
 		};
 
+		// Track if request is coming from a bot.
+		if ( isBot ) {
+			preparedData.attributes.isBot = 'true';
+		}
+
 		const EventId = uuid();
 		const Event = {
 			[ EventId ]: {
@@ -742,6 +760,12 @@ const Analytics = {
 
 		// Get the client.
 		const client = await Analytics.getClient();
+		if ( ! client ) {
+			if ( ! isBot ) {
+				console.error( 'Could not create Analytics Client.' );
+			}
+			return;
+		}
 
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();
@@ -822,6 +846,11 @@ Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
 };
+
+// Fire a loaded event when the global is fully set up but before we check consent to start logging.
+Altis.Analytics.Loaded = true;
+const loadedEvent = new CustomEvent( 'altis.analytics.loaded' );
+window.dispatchEvent( loadedEvent );
 
 /**
  * Start recording default events and trigger onReady event.

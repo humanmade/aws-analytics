@@ -1,0 +1,23 @@
+.Summary {
+	padding: 8px 12px;
+	margin: 0 20px 1em 0;
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba( 0, 0, 0, 0.04 );
+	display: flex;
+}
+
+.Summary__block {
+	margin-right: 6em;
+}
+
+.Summary__block h3 {
+	font-size: inherit;
+	font-weight: 500;
+	margin: 0;
+}
+
+.Summary__statistic {
+	font-size: 3em;
+	margin: 0;
+}
