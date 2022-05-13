@@ -26,6 +26,10 @@ const ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY = 'altis.analytic.export.last_pr
  * @return void
  */
 function bootstrap() : void {
+	// Do not run during install as we can't add anything to the options table so early.
+	if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
+		return;
+	}
 
 	// Do not run this unless this is the main site of the main network, to avoid duplication.
 	if ( ! is_main_network() || ! is_main_site() ) {
