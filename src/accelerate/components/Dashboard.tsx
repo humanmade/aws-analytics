@@ -21,6 +21,8 @@ export default function Dashboard( props: Props ) {
 			<Hero
 				name={ props.user.name }
 				period={ period }
+				viewAnalytics={ props.user.viewAnalytics }
+				viewInsghts={ props.user.viewInsghts }
 				onSetPeriod={ value => setPeriod( value ) }
 			/>
 			<Overview period={ period } />

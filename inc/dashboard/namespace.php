@@ -10,6 +10,7 @@ namespace Altis\Analytics\Dashboard;
 use Altis;
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
+
 use WP_Error;
 use WP_Post_Type;
 use WP_Query;
@@ -88,11 +89,16 @@ function load_dashboard() {
 		];
 	}, $post_types );
 
+	$viewAnalyticsRoles = [ 'administrator' ];
+	$viewInsghtsRoles = [ 'administrator', 'editor', 'wpseo_editor', 'wpseo_manager' ];
+
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API_NAMESPACE,
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
+			'viewAnalytics' => (bool) array_intersect( $viewAnalyticsRoles, $user->roles ),
+			'viewInsghts' => (bool) array_intersect( $viewInsghtsRoles, $user->roles ),
 		],
 		'post_types' => array_values( $post_types ),
 	] );
