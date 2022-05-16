@@ -11,6 +11,8 @@ export type InitialData = {
 	user: {
 		id?: number,
 		name: string,
+		viewAnalytics: boolean,
+		viewInsghts: boolean,
 	},
 	welcomed: boolean,
 }
