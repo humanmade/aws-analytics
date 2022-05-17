@@ -10,7 +10,6 @@ namespace Altis\Analytics\Dashboard;
 use Altis;
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
-
 use WP_Error;
 use WP_Post_Type;
 use WP_Query;
