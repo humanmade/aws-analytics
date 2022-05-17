@@ -93,8 +93,8 @@ function load_dashboard() {
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
-			'viewAnalytics' => current_user_can( 'manage_options' ),
-			'viewInsghts' => current_user_can( 'edit_audiences' ),
+			'canViewAnalytics' => current_user_can( 'manage_options' ),
+			'canViewInsights' => current_user_can( 'edit_audiences' ),
 		],
 		'post_types' => array_values( $post_types ),
 	] );
