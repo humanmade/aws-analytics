@@ -89,16 +89,13 @@ function load_dashboard() {
 		];
 	}, $post_types );
 
-	$viewAnalyticsRoles = [ 'administrator' ];
-	$viewInsghtsRoles = [ 'administrator', 'editor', 'wpseo_editor', 'wpseo_manager' ];
-
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API_NAMESPACE,
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
-			'viewAnalytics' => (bool) array_intersect( $viewAnalyticsRoles, $user->roles ),
-			'viewInsghts' => (bool) array_intersect( $viewInsghtsRoles, $user->roles ),
+			'viewAnalytics' => current_user_can( 'manage_options' ),
+			'viewInsghts' => current_user_can( 'edit_audiences' ),
 		],
 		'post_types' => array_values( $post_types ),
 	] );
