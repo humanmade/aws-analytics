@@ -73,7 +73,10 @@ function bootstrap() : void {
  * @return array
  */
 function setup_cron_interval( $schedules ) : array {
-
+	// If $schedules is null / false etc due to bad-acting 3rd party code, make it an array.
+	if ( ! $schedules ) {
+		$schedules = [];
+	}
 	return array_merge( $schedules, [
 		ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY => [
 			'interval' => ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL,
