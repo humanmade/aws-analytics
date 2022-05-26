@@ -33,6 +33,7 @@ require_once __DIR__ . '/inc/experiments/namespace.php';
 require_once __DIR__ . '/inc/experiments/titles/namespace.php';
 require_once __DIR__ . '/inc/experiments/featured-images/namespace.php';
 require_once __DIR__ . '/inc/export/class-endpoint.php';
+require_once __DIR__ . '/inc/export/cron/namespace.php';
 require_once __DIR__ . '/inc/export/namespace.php';
 require_once __DIR__ . '/inc/preview/namespace.php';
 require_once __DIR__ . '/inc/utils/namespace.php';
