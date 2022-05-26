@@ -20,7 +20,7 @@ export default function Insight( props: Props ) {
 				</div>
 				<div className="key-insight-metrics">
 					<div className="metrics-aggregate">{ compactMetric( props.stat || 0 ) }</div>
-					{ !! props.delta && ! isNaN( props.delta ) && (
+					{ !! props.delta && ! isNaN( props.delta ) && isFinite( props.delta ) && (
 						<div className={ `metrics-delta score-${ props.delta >= 0 ? 'pos' : 'neg' }` }>
 							{ props.delta >= 0 ? '↑' : '↓' }
 							{ compactMetric( parseFloat( props.delta.toFixed( 20 ) ) ) }
