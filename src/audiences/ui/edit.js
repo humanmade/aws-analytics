@@ -107,8 +107,22 @@ class Edit extends Component {
 		// Update if we have an ID, otherwise create a new one.
 		if ( post.id ) {
 			onUpdatePost( post );
+			analytics.track(
+				'update',
+				{
+					content_type: 'audience',
+					status: post.status,
+				}
+			);
 		} else {
 			onCreatePost( post );
+			analytics.track(
+				'create',
+				{
+					content_type: 'audience',
+					status: post.status,
+				}
+			);
 		}
 
 		// Edits have been saved now so it's safe to navigate again.
