@@ -43,6 +43,9 @@ export default function DateRange( { value, ranges, onSetRange } ) {
 						name="altis-analytics-date-range"
 						type="radio"
 						value={ range }
+						onChange={ e => {
+							e.target.checked && onSetRange( range );
+						} }
 					/>
 					<label htmlFor={ `altis-analytics-date-range-${ range }` }>
 						{ sprintf( __( '%d days', 'altis-analytics' ), range ) }
