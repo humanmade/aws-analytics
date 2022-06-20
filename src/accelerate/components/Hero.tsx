@@ -52,10 +52,38 @@ export default function Hero( props: Props ) {
 					{ !! props.period && ( props.canViewAnalytics || props.canViewInsights ) && (
 						<nav className='Hero__links'>
 							{ props.canViewAnalytics && (
-								<a href="index.php?page=altis-analytics">{ __( 'Analytics', 'altis-analytics' ) }</a>
+								<a
+									href="index.php?page=altis-analytics"
+									onClick={ () => {
+										analytics.track(
+											'click',
+											{
+												location: 'dashboard',
+												url: 'index.php?page=altis-analytics',
+												link_text: __( 'Analytics', 'altis-analytics' ),
+											}
+										);
+									}}
+								>
+									{ __( 'Analytics', 'altis-analytics' ) }
+								</a>
 							)}
 							{ props.canViewInsights && (
-								<a href="edit.php?post_type=xb">{ __( 'Insights', 'altis-analytics' ) }</a>
+								<a
+									href="edit.php?post_type=xb"
+									onClick={ () => {
+										analytics.track(
+											'click',
+											{
+												location: 'dashboard',
+												url: 'edit.php?post_type=xb',
+												link_text: __( 'Insights', 'altis-analytics' ),
+											}
+										);
+									}}
+								>
+									{ __( 'Insights', 'altis-analytics' ) }
+								</a>
 							)}
 
 						</nav>
