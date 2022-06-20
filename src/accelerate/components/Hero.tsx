@@ -33,7 +33,15 @@ export default function Hero( props: Props ) {
 									className={ classes.join( ' ' ) }
 									type="button"
 									onClick={ () => {
-										props.onSetPeriod && props.onSetPeriod( p.value )
+										props.onSetPeriod && props.onSetPeriod( p.value );
+										analytics.track(
+											'filter',
+											{
+												location: 'dashboard',
+												filter_type: 'date range',
+												filter_value: p.label,
+											}
+										);
 									} }
 								>
 									{ p.label }

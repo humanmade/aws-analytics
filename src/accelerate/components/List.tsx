@@ -56,6 +56,14 @@ export default function List( props: Props ) {
 							onChange={ e => {
 								setPage( 1 );
 								setType( e.target.value );
+								analytics.track(
+									'filter',
+									{
+										location: 'dashboard',
+										filter_type: 'content type',
+										filter_value: e.target.options[e.target.options.selectedIndex].text,
+									}
+								);
 							} }
 						>
 							<option value="">{ __( 'All Content ▾', 'altis' ) }</option>
@@ -73,6 +81,14 @@ export default function List( props: Props ) {
 							onChange={ e => {
 								setPage( 1 );
 								setUser( parseInt( e.target.value, 10 ) );
+								analytics.track(
+									'filter',
+									{
+										location: 'dashboard',
+										filter_type: 'author',
+										filter_value: e.target.options[e.target.options.selectedIndex].text,
+									}
+								);
 							} }
 						>
 							<option value="">{ __( 'All Authors ▾', 'altis' ) }</option>
@@ -94,6 +110,15 @@ export default function List( props: Props ) {
 								timer = setTimeout( value => {
 									setSearch( value );
 								}, 500, e.target.value );
+								analytics.track(
+									'filter',
+									{
+										location: 'dashboard',
+										filter_type: 'search',
+										filter_value: e.target.value,
+									}
+								);
+
 							} }
 						/>
 					</div>
