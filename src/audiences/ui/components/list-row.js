@@ -48,13 +48,6 @@ const ListRow = props => {
 	const onDeletePost = () => {
 		if ( window.confirm( __( 'Are you sure you want to delete this audience?', 'altis-anlaytics' ) ) ) {
 			deletePost( post.id );
-			analytics.track(
-				'trash',
-				{
-					content_type: 'audience',
-					status: 'trash',
-				}
-			);
 		}
 	};
 
