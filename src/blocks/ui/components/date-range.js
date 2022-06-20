@@ -47,10 +47,10 @@ export default function DateRange( { value, ranges, onSetRange, location } ) {
 						onChange={ e => {
 							e.target.checked && onSetRange( range );
 							analytics.track(
-								'filter',
+								__( 'filter', 'altis-analytics' ),
 								{
-									location: { location },
-									filter_type: 'date range',
+									location: __( { location }, 'altis-analytics' ),
+									filter_type: __( 'date range', 'altis-analytics' ),
 									filter_value: { range },
 								}
 							);

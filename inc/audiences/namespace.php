@@ -254,10 +254,10 @@ function save_post( $post_id ) {
 
 	// Track post status creation
 	do_action( 'altis.telemetry.track', [
-		'event' => 'create',
+		'event' => __( 'create', 'altis-analytics' ),
 		'properties' => [
-			'content_type' => 'audience',
-			'status' => get_post_status( $post_id ),
+			'content_type' => __( 'audience', 'altis-analytics' ),
+			'status' => __( get_post_status( $post_id ), 'altis-analytics' ),
 		],
 	] );
 }
@@ -270,10 +270,10 @@ function save_post( $post_id ) {
 function delete_post( $post_id ) {
 	if ( POST_TYPE == get_post_type( $post_id ) ) {
 		do_action( 'altis.telemetry.track', [
-			'event' => 'deleted',
+			'event' =>  __( 'deleted', 'altis-analytics' ),
 			'properties' => [
-				'content_type' => 'audience',
-				'status' => 'deleted',
+				'content_type' => __( 'audience', 'altis-analytics' ),
+				'status' => __( 'deleted', 'altis-analytics' ),
 			],
 		] );
     }
@@ -287,10 +287,10 @@ function delete_post( $post_id ) {
 function post_updated( $post_id ) {
 	if ( POST_TYPE == get_post_type( $post_id ) ) {
 		do_action( 'altis.telemetry.track', [
-			'event' => 'update',
+			'event' => __( 'update', 'altis-analytics' ),
 			'properties' => [
-				'content_type' => 'audience',
-				'status' => get_post_status( $post_id ),
+				'content_type' => __( 'audience', 'altis-analytics' ),
+				'status' => __( get_post_status( $post_id ), 'altis-analytics' ),
 			],
 		] );
     }

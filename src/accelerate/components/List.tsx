@@ -57,10 +57,10 @@ export default function List( props: Props ) {
 								setPage( 1 );
 								setType( e.target.value );
 								analytics.track(
-									'filter',
+									__( 'filter', 'altis-analytics' ),
 									{
-										location: 'dashboard',
-										filter_type: 'content type',
+										location: __( 'dashboard', 'altis-analytics' ),
+										filter_type: __( 'content type', 'altis-analytics' ),
 										filter_value: e.target.options[e.target.options.selectedIndex].text,
 									}
 								);
@@ -82,10 +82,10 @@ export default function List( props: Props ) {
 								setPage( 1 );
 								setUser( parseInt( e.target.value, 10 ) );
 								analytics.track(
-									'filter',
+									__( 'filter', 'altis-analytics' ),
 									{
-										location: 'dashboard',
-										filter_type: 'author',
+										location: __( 'dashboard', 'altis-analytics' ),
+										filter_type: __( 'author', 'altis-analytics' ),
 										filter_value: e.target.options[e.target.options.selectedIndex].text,
 									}
 								);
@@ -111,10 +111,10 @@ export default function List( props: Props ) {
 									setSearch( value );
 								}, 500, e.target.value );
 								analytics.track(
-									'filter',
+									__( 'filter', 'altis-analytics' ),
 									{
-										location: 'dashboard',
-										filter_type: 'search',
+										location: __( 'dashboard', 'altis-analytics' ),
+										filter_type: __( 'search', 'altis-analytics' ),
 										filter_value: e.target.value,
 									}
 								);
@@ -178,9 +178,9 @@ export default function List( props: Props ) {
 												href={ post.url }
 												onClick={ () => {
 													analytics.track(
-														'click',
+														__( 'click', 'altis-analytics' ),
 														{
-															location: 'dashboard',
+															location: __( 'dashboard', 'altis-analytics' ),
 															url: post.url,
 															link_text: __( 'View', 'altis-analytics' ),
 														}
@@ -197,9 +197,9 @@ export default function List( props: Props ) {
 													href={ post.editUrl }
 													onClick={ () => {
 														analytics.track(
-															'click',
+															__( 'click', 'altis-analytics' ),
 															{
-																location: 'dashboard',
+																location: __( 'dashboard', 'altis-analytics' ),
 																url: post.editUrl,
 																link_text: __( 'Edit', 'altis-analytics' ),
 															}
