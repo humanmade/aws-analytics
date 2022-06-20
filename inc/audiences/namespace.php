@@ -32,6 +32,7 @@ function setup() {
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
 	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
+	add_action( 'before_delete_post', __NAMESPACE__ . '\\delete_post', 10, 2 );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
@@ -249,6 +250,23 @@ function save_post( $post_id ) {
 
 	// phpcs:ignore HM.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in save_audience().
 	save_audience( $post_id, wp_unslash( $_POST['audience'] ) );
+}
+
+/**
+ * Support logging an event when an audience is deleted.
+ *
+ * @param int $post_id The post ID being deleted.
+ */
+function delete_post( $post_id ) {
+	if ( POST_TYPE == get_post_type( $post_id ) ) {
+		do_action( 'altis.telemetry.track', [
+			'event' => 'deleted',
+			'properties' => [
+				'content_type' => 'audience',
+				'status' => 'deleted',
+			],
+		] );
+    }
 }
 
 /**
