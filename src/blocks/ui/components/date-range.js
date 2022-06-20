@@ -45,6 +45,14 @@ export default function DateRange( { value, ranges, onSetRange } ) {
 						value={ range }
 						onChange={ e => {
 							e.target.checked && onSetRange( range );
+							analytics.track(
+								'date range',
+								{
+									location: 'insights',
+									filter_type: 'date range',
+									filter_value: range,
+								}
+							);
 						} }
 					/>
 					<label htmlFor={ `altis-analytics-date-range-${ range }` }>
