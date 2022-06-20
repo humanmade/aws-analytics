@@ -11,6 +11,7 @@ use Altis\Analytics\Utils;
 use DateInterval;
 use DateTime;
 use Exception;
+use WP_Block;
 
 /**
  * Set up the plugin.
@@ -47,6 +48,8 @@ function setup() {
 	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
 	// Schedule cron tasks.
 	add_action( 'init', __NAMESPACE__ . '\\schedule_events' );
+	// Track reusable blocks.
+	add_filter( 'render_block_core/block', __NAMESPACE__ . '\\track_reusable_blocks', 10, 3 );
 }
 
 /**
@@ -511,4 +514,45 @@ function clean_s3_store() : void {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		trigger_error( $error->getMessage(), E_USER_WARNING );
 	}
+}
+
+/**
+ * Track reusable block views.
+ *
+ * @param string $block_content The rendered block content.
+ * @param array $parsed_block The parsed block data.
+ * @param WP_Block $block The block object.
+ * @return string
+ */
+function track_reusable_blocks( $block_content, $parsed_block, WP_Block $block ) : string {
+	if ( ! is_string( $block_content ) ) {
+		return $block_content;
+	}
+
+	$block_post = get_post( $block->attributes['ref'] );
+	if ( empty( $block_post ) ) {
+		return $block_content;
+	}
+
+	/**
+	 * Filter the properties recorded when tracking a reusable block view.
+	 *
+	 * @param array $properties Key value pair attributes to record along with `blockView` events.
+	 * @param WP_Post $block_post The reusable block post object.
+	 */
+	$block_event_properties = apply_filters( 'altis.analytics.block_view_properties', [
+		'attributes' => [
+			'blockId' => (string) $block_post->ID,
+			'blockAuthorID' => (string) $block_post->post_author,
+			'blockAuthor' => get_user_by( 'id', $block_post->post_author )->user_nicename,
+		],
+	], $block_post );
+
+	$block_content .= sprintf(
+		'<script>Altis.Analytics.onReady( function () { Altis.Analytics.record( \'%s\', %s ) } )</script>',
+		'blockView',
+		wp_json_encode( (array) $block_event_properties )
+	);
+
+	return $block_content;
 }
