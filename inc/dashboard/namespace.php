@@ -519,6 +519,11 @@ function modify_views_list_query( WP_Query $query ) {
 		return;
 	}
 
+	// Bail for queries that aren't ordered by views or conversions (so we don't need to run an ES query).
+	if ( ! in_array( $query->get( 'orderby' ), [ 'views', 'conversion' ], true ) ) {
+		return;
+	}
+
 	// Track Insights sorting, track before it's bailed.
 	do_action( 'altis.telemetry.track', [
 		'event' => __( 'filter', 'altis-analytics' ),
@@ -528,11 +533,6 @@ function modify_views_list_query( WP_Query $query ) {
 			'filter_value' => __( $query->get( 'orderby' ), 'altis-analytics' ),
 		],
 	] );
-
-	// Bail for queries that aren't ordered by views or conversions (so we don't need to run an ES query).
-	if ( ! in_array( $query->get( 'orderby' ), [ 'views', 'conversion' ], true ) ) {
-		return;
-	}
 
 	$order = $query->get( 'order' ) ?: 'desc';
 	$orderby = $query->get( 'orderby' ) ?: 'views';

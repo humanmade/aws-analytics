@@ -49,9 +49,9 @@ export default function DateRange( { value, ranges, onSetRange, location } ) {
 							analytics.track(
 								__( 'filter', 'altis-analytics' ),
 								{
-									location: __( { location }, 'altis-analytics' ),
+									location: __( location, 'altis-analytics' ),
 									filter_type: __( 'date range', 'altis-analytics' ),
-									filter_value: { range },
+									filter_value: range,
 								}
 							);
 						} }
