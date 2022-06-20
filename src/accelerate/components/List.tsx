@@ -173,8 +173,43 @@ export default function List( props: Props ) {
 										{ post.author.name }
 									</td>
 									<td className="record-links">
-										{ post.url && ( <a href={ post.url }>{ __( 'View', 'altis' ) }</a> ) }
-										{ post.editUrl && ( <>{ ' ' }<a href={ post.editUrl }>{ __( 'Edit', 'altis' ) }</a></> ) }
+										{ post.url && (
+											<a
+												href={ post.url }
+												onClick={ () => {
+													analytics.track(
+														'click',
+														{
+															location: 'dashboard',
+															url: post.url,
+															link_text: __( 'View', 'altis-analytics' ),
+														}
+													);
+												}}
+											>
+												{ __( 'View', 'altis' ) }
+											</a>
+										) }
+										{ post.editUrl && (
+											<>
+												{ ' ' }
+												<a
+													href={ post.editUrl }
+													onClick={ () => {
+														analytics.track(
+															'click',
+															{
+																location: 'dashboard',
+																url: post.editUrl,
+																link_text: __( 'Edit', 'altis-analytics' ),
+															}
+														);
+													}}
+												>
+													{ __( 'Edit', 'altis' ) }
+												</a>
+											</>
+										) }
 									</td>
 								</tr>
 							);
