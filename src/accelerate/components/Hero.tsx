@@ -80,7 +80,7 @@ export default function Hero( props: Props ) {
 												link_text: __( 'Insights', 'altis-analytics' ),
 											}
 										);
-									}}
+									} }
 								>
 									{ __( 'Insights', 'altis-analytics' ) }
 								</a>

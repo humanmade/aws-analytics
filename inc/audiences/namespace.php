@@ -293,7 +293,7 @@ function post_updated( $post_id ) {
 				'status' => __( get_post_status( $post_id ), 'altis-analytics' ),
 			],
 		] );
-    }
+	}
 }
 
 /**
