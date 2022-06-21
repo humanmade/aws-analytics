@@ -37,6 +37,21 @@ const Personalization = ( {
 		};
 	}, [ clientId ] );
 
+	const ranges = [
+		{
+			value: 7,
+			label: '7 days',
+		},
+		{
+			value: 30,
+			label: '30 days',
+		},
+		{
+			value: 90,
+			label: '90 days',
+		},
+	];
+
 	// Get percentage of personalised block views.
 	let personalisedCoverage = null;
 	if ( analytics ) {
@@ -47,7 +62,8 @@ const Personalization = ( {
 	return (
 		<>
 			<div className="altis-analytics-block-metrics">
-				<DateRange location="insights" ranges={ [ 7, 30, 90 ] } value={ days } onSetRange={ setDays } />
+				<DateRange
+					location="insights" ranges={ ranges } value={ days } onSetRange={ setDays } />
 				<Cards
 					cards={ [
 						{

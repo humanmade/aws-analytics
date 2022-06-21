@@ -38,8 +38,8 @@ export default function Hero( props: Props ) {
 											__( 'filter', 'altis-analytics' ),
 											{
 												location: __( 'dashboard', 'altis-analytics' ),
-												filter_type: __( 'date range', 'altis-analytics' ),
-												filter_value: p.label,
+												filter_type: __( 'date_range', 'altis-analytics' ),
+												filter_value: p.label.replace( / /g, '_' ),
 											}
 										);
 									} }

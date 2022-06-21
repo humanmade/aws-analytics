@@ -60,7 +60,7 @@ export default function List( props: Props ) {
 									__( 'filter', 'altis-analytics' ),
 									{
 										location: __( 'dashboard', 'altis-analytics' ),
-										filter_type: __( 'content type', 'altis-analytics' ),
+										filter_type: __( 'content', 'altis-analytics' ),
 										filter_value: e.target.options[e.target.options.selectedIndex].text,
 									}
 								);

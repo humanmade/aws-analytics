@@ -10,17 +10,17 @@ type Periods = {
 
 export const periods: Periods = [
 	{
-		label: __( '7 Days', 'altis' ),
+		label: __( '7 days', 'altis' ),
 		value: 'P7D',
 		diff: 'P7D',
 	},
 	{
-		label: __( '30 Days', 'altis' ),
+		label: __( '30 days', 'altis' ),
 		value: 'P30D',
 		diff: 'P30D',
 	},
 	{
-		label: __( '90 Days', 'altis' ),
+		label: __( '90 days', 'altis' ),
 		value: 'P90D',
 		diff: null,
 	},

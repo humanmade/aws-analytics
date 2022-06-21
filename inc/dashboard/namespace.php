@@ -557,7 +557,7 @@ function modify_views_list_query( WP_Query $query ) {
 		'event' => __( 'filter', 'altis-analytics' ),
 		'properties' => [
 			'location' => __( 'insights', 'altis-analytics' ),
-			'filter_type' => __( 'date range', 'altis-analytics' ),
+			'filter_type' => __( 'date_range', 'altis-analytics' ),
 			'filter_value' => __( $days, 'altis-analytics' ),
 		],
 	] );
