@@ -275,15 +275,17 @@ function save_post( $post_id, $post, $update ) {
  * @param int $post_id The post ID being deleted.
  */
 function delete_post( $post_id ) {
-	if ( POST_TYPE == get_post_type( $post_id ) ) {
-		do_action( 'altis.telemetry.track', [
-			'event' => 'deleted',
-			'properties' => [
-				'content_type' => __( 'audience', 'altis-analytics' ),
-				'status' => __( 'deleted', 'altis-analytics' ),
-			],
-		] );
-    }
+	if ( POST_TYPE !== get_post_type( $post_id ) ) {
+		return;
+	}
+
+	do_action( 'altis.telemetry.track', [
+		'event' => 'deleted',
+		'properties' => [
+			'content_type' => __( 'audience', 'altis-analytics' ),
+			'status' => __( 'deleted', 'altis-analytics' ),
+		],
+	] );
 }
 
 /**
