@@ -35,10 +35,10 @@ export default function Hero( props: Props ) {
 									onClick={ () => {
 										props.onSetPeriod && props.onSetPeriod( p.value );
 										analytics.track(
-											__( 'filter', 'altis-analytics' ),
+											'filter',
 											{
-												location: __( 'dashboard', 'altis-analytics' ),
-												filter_type: __( 'date_range', 'altis-analytics' ),
+												location: 'dashboard',
+												filter_type: 'date_range',
 												filter_value: p.label.replace( / /g, '_' ),
 											}
 										);
@@ -56,11 +56,11 @@ export default function Hero( props: Props ) {
 									href="index.php?page=altis-analytics"
 									onClick={ () => {
 										analytics.track(
-											__( 'click', 'altis-analytics' ),
+											'click',
 											{
-												location: __( 'dashboard', 'altis-analytics' ),
+												location: 'dashboard',
 												url: 'index.php?page=altis-analytics',
-												link_text: __( 'Analytics', 'altis-analytics' ),
+												link_text: 'Analytics',
 											}
 										);
 									}}
@@ -73,11 +73,11 @@ export default function Hero( props: Props ) {
 									href="edit.php?post_type=xb"
 									onClick={ () => {
 										analytics.track(
-											__( 'click', 'altis-analytics' ),
+											'click',
 											{
-												location: __( 'dashboard', 'altis-analytics' ),
+												location: 'dashboard',
 												url: 'edit.php?post_type=xb',
-												link_text: __( 'Insights', 'altis-analytics' ),
+												link_text: 'Insights',
 											}
 										);
 									} }

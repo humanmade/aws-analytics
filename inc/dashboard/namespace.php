@@ -526,11 +526,11 @@ function modify_views_list_query( WP_Query $query ) {
 
 	// Track Insights sorting, track before it's bailed.
 	do_action( 'altis.telemetry.track', [
-		'event' => __( 'filter', 'altis-analytics' ),
+		'event' => 'filter',
 		'properties' => [
-			'location' => __( 'insights', 'altis-analytics' ),
-			'filter_type' => __( 'sorting', 'altis-analytics' ),
-			'filter_value' => __( $query->get( 'orderby' ), 'altis-analytics' ),
+			'location' => 'insights',
+			'filter_type' => 'sorting',
+			'filter_value' => $query->get( 'orderby' ),
 		],
 	] );
 
@@ -554,11 +554,11 @@ function modify_views_list_query( WP_Query $query ) {
 
 	// Track the days filter in Altis Telemetry.
 	do_action( 'altis.telemetry.track', [
-		'event' => __( 'filter', 'altis-analytics' ),
+		'event' => 'filter',
 		'properties' => [
-			'location' => __( 'insights', 'altis-analytics' ),
-			'filter_type' => __( 'date_range', 'altis-analytics' ),
-			'filter_value' => __( $days, 'altis-analytics' ),
+			'location' => 'insights',
+			'filter_type' => 'date_range',
+			'filter_value' => $days,
 		],
 	] );
 }

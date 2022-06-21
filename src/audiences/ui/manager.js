@@ -63,9 +63,9 @@ class Manager extends Component {
 						onSetCurrentPost( defaultPost );
 						this.setState( { view: 'edit' } );
 						analytics.track(
-							__( 'initiate_create', 'altis-analytics' ),
+							'initiate_create',
 							{
-								content_type: __( 'audience', 'altis-analytics' ),
+								content_type: 'audience',
 							}
 						);
 					},

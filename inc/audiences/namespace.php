@@ -240,7 +240,7 @@ function save_post( $post_id, $post, $update ) {
 	do_action( 'altis.telemetry.track', [
 		'event' => $action,
 		'properties' => [
-			'content_type' => __( 'audience', 'altis-analytics' ),
+			'content_type' => 'audience',
 			'status' => get_post_status( $post_id ),
 		],
 	] );
@@ -282,8 +282,8 @@ function delete_post( $post_id ) {
 	do_action( 'altis.telemetry.track', [
 		'event' => 'deleted',
 		'properties' => [
-			'content_type' => __( 'audience', 'altis-analytics' ),
-			'status' => __( 'deleted', 'altis-analytics' ),
+			'content_type' => 'audience',
+			'status' => 'deleted',
 		],
 	] );
 }
@@ -298,7 +298,7 @@ function post_updated( $post_id ) {
 		do_action( 'altis.telemetry.track', [
 			'event' => 'update',
 			'properties' => [
-				'content_type' => __( 'audience', 'altis-analytics' ),
+				'content_type' => 'audience',
 				'status' => get_post_status( $post_id ),
 			],
 		] );
