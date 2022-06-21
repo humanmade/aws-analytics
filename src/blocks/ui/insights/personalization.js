@@ -63,7 +63,11 @@ const Personalization = ( {
 		<>
 			<div className="altis-analytics-block-metrics">
 				<DateRange
-					location="insights" ranges={ ranges } value={ days } onSetRange={ setDays } />
+					location="insights"
+					ranges={ ranges }
+					value={ days }
+					onSetRange={ setDays }
+				/>
 				<Cards
 					cards={ [
 						{
