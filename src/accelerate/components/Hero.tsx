@@ -39,7 +39,7 @@ export default function Hero( props: Props ) {
 											{
 												location: 'dashboard',
 												filter_type: 'date_range',
-												filter_value: p.label.replace( / /g, '_' ),
+												filter_value: p.value,
 											}
 										);
 									} }

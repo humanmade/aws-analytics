@@ -51,7 +51,7 @@ export default function DateRange( { value, ranges, onSetRange, location } ) {
 								{
 									location: location,
 									filter_type: 'date_range',
-									filter_value: range.label.replace( / /g, '_' ),
+									filter_value: range.value,
 								}
 							);
 						} }
