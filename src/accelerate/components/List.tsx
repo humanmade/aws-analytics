@@ -4,6 +4,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import { Pagination } from 'react-pagination-bar';
 
 import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
+import Link from './Link';
 
 import './Dashboard.scss';
 
@@ -174,40 +175,20 @@ export default function List( props: Props ) {
 									</td>
 									<td className="record-links">
 										{ post.url && (
-											<a
-												href={ post.url }
-												onClick={ () => {
-													analytics.track(
-														'click',
-														{
-															location: 'dashboard',
-															url: post.url,
-															link_text: 'View',
-														}
-													);
-												}}
-											>
-												{ __( 'View', 'altis' ) }
-											</a>
+											<Link
+												url={ post.url }
+												location="dashboard"
+												linkText="View"
+											/>
 										) }
 										{ post.editUrl && (
 											<>
 												{ ' ' }
-												<a
-													href={ post.editUrl }
-													onClick={ () => {
-														analytics.track(
-															'click',
-															{
-																location: 'dashboard',
-																url: post.editUrl,
-																link_text: 'Edit',
-															}
-														);
-													}}
-												>
-													{ __( 'Edit', 'altis' ) }
-												</a>
+												<Link
+													url={ post.editUrl }
+													location="dashboard"
+													linkText="Edit"
+												/>
 											</>
 										) }
 									</td>

@@ -3,6 +3,7 @@ import { __, sprintf } from '@wordpress/i18n';
 
 import { periods } from '../../data/periods';
 import { Duration } from '../../util';
+import Link from './Link';
 
 import './Dashboard.scss';
 
@@ -52,38 +53,18 @@ export default function Hero( props: Props ) {
 					{ !! props.period && ( props.canViewAnalytics || props.canViewInsights ) && (
 						<nav className='Hero__links'>
 							{ props.canViewAnalytics && (
-								<a
-									href="index.php?page=altis-analytics"
-									onClick={ () => {
-										analytics.track(
-											'click',
-											{
-												location: 'dashboard',
-												url: 'index.php?page=altis-analytics',
-												link_text: 'Analytics',
-											}
-										);
-									}}
-								>
-									{ __( 'Analytics', 'altis-analytics' ) }
-								</a>
+								<Link
+									url="index.php?page=altis-analytics"
+									location="dashboard"
+									linkText="Analytics"
+								/>
 							)}
 							{ props.canViewInsights && (
-								<a
-									href="edit.php?post_type=xb"
-									onClick={ () => {
-										analytics.track(
-											'click',
-											{
-												location: 'dashboard',
-												url: 'edit.php?post_type=xb',
-												link_text: 'Insights',
-											}
-										);
-									} }
-								>
-									{ __( 'Insights', 'altis-analytics' ) }
-								</a>
+								<Link
+									url="edit.php?post_type=xb"
+									location="dashboard"
+									linkText="Insights"
+								/>
 							)}
 
 						</nav>
