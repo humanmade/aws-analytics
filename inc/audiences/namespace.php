@@ -31,9 +31,8 @@ function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
-	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
+	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 3 );
 	add_action( 'before_delete_post', __NAMESPACE__ . '\\delete_post', 10, 2 );
-	add_action( 'post_updated', __NAMESPACE__ . '\\post_updated', 10, 2 );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
@@ -227,8 +226,25 @@ function modal_portal() {
  * Support saving the audience configuration the old school way.
  *
  * @param int $post_id The current audience post ID.
+ * @param WP_Post $post The post object.
+ * @param bool $update True if this is an update.
  */
-function save_post( $post_id ) {
+function save_post( $post_id, $post, $update ) {
+	if ( $update ) {
+		$action = 'update';
+	} else {
+		$action = 'create';
+	}
+
+	// Track post status.
+	do_action( 'altis.telemetry.track', [
+		'event' => $action,
+		'properties' => [
+			'content_type' => __( 'audience', 'altis-analytics' ),
+			'status' => get_post_status( $post_id ),
+		],
+	] );
+
 	if ( ! isset( $_POST['altis_analytics_nonce'] ) ) {
 		return;
 	}
@@ -251,15 +267,6 @@ function save_post( $post_id ) {
 
 	// phpcs:ignore HM.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized in save_audience().
 	save_audience( $post_id, wp_unslash( $_POST['audience'] ) );
-
-	// Track post status creation
-	do_action( 'altis.telemetry.track', [
-		'event' => __( 'create', 'altis-analytics' ),
-		'properties' => [
-			'content_type' => __( 'audience', 'altis-analytics' ),
-			'status' => __( get_post_status( $post_id ), 'altis-analytics' ),
-		],
-	] );
 }
 
 /**
@@ -270,7 +277,7 @@ function save_post( $post_id ) {
 function delete_post( $post_id ) {
 	if ( POST_TYPE == get_post_type( $post_id ) ) {
 		do_action( 'altis.telemetry.track', [
-			'event' =>  __( 'deleted', 'altis-analytics' ),
+			'event' => 'deleted',
 			'properties' => [
 				'content_type' => __( 'audience', 'altis-analytics' ),
 				'status' => __( 'deleted', 'altis-analytics' ),
@@ -287,10 +294,10 @@ function delete_post( $post_id ) {
 function post_updated( $post_id ) {
 	if ( POST_TYPE == get_post_type( $post_id ) ) {
 		do_action( 'altis.telemetry.track', [
-			'event' => __( 'update', 'altis-analytics' ),
+			'event' => 'update',
 			'properties' => [
 				'content_type' => __( 'audience', 'altis-analytics' ),
-				'status' => __( get_post_status( $post_id ), 'altis-analytics' ),
+				'status' => get_post_status( $post_id ),
 			],
 		] );
 	}
