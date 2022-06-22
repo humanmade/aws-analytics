@@ -31,7 +31,7 @@ function setup() {
 	add_action( 'init', __NAMESPACE__ . '\\register_default_event_data_maps' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\register_scripts', 1 );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\admin_enqueue_scripts' );
-	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 3 );
+	add_action( 'save_post_' . POST_TYPE, __NAMESPACE__ . '\\save_post', 10, 2 );
 	add_action( 'admin_footer', __NAMESPACE__ . '\\modal_portal' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\admin_page' );
 
