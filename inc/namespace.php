@@ -17,23 +17,43 @@ use WP_Block;
  * Set up the plugin.
  */
 function setup() {
+	// Setup API.
+	API\setup();
+
 	// Setup audiences.
-	Audiences\setup();
+	if ( function_exists( 'Altis\\Analytics\\Audiences\\setup' ) ) {
+		Audiences\setup();
+	}
 
 	// Set up preview.
-	Preview\setup();
+	if ( function_exists( 'Altis\\Analytics\\Preview\\setup' ) ) {
+		Preview\setup();
+	}
 
 	// Set up export.
-	Export\setup();
+	if ( function_exists( 'Altis\\Analytics\\Export\\setup' ) ) {
+		Export\setup();
+	}
 
 	// Set up experiments.
-	Experiments\setup();
+	if ( function_exists( 'Altis\\Analytics\\Experiments\\setup' ) ) {
+		Experiments\setup();
+	}
 
 	// Enable Experience Blocks.
-	Blocks\setup();
+	if ( function_exists( 'Altis\\Analytics\\Blocks\\setup' ) ) {
+		Blocks\setup();
+	}
+
+	// Set up the Analytics Insights.
+	if ( function_exists( 'Altis\\Analytics\\Insights\\setup' ) ) {
+		Insights\setup();
+	}
 
 	// Set up the Analytics Dashboard.
-	Dashboard\setup();
+	if ( function_exists( 'Altis\\Analytics\\Dashboard\\setup' ) ) {
+		Dashboard\setup();
+	}
 
 	// Handle async scripts.
 	add_filter( 'script_loader_tag', __NAMESPACE__ . '\\async_scripts', 20, 2 );
