@@ -39,13 +39,13 @@ export default function DateRange( { value, ranges, onSetRange, location } ) {
 			{ ranges.map( range => (
 				<>
 					<input
-						checked={ value === range.value }
+						checked={ value === range.number }
 						id={ `altis-analytics-date-range-${ range.value }` }
 						name="altis-analytics-date-range"
 						type="radio"
 						value={ range.value }
 						onChange={ e => {
-							e.target.checked && onSetRange( range.value );
+							e.target.checked && onSetRange( range.number );
 							analytics.track(
 								'filter',
 								{

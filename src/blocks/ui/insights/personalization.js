@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { compactMetric } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
+import Periods from '../../../data/periods';
 import Cards from '../components/cards';
 import DateRange from '../components/date-range';
 import Variants from '../components/variants';
@@ -37,21 +38,6 @@ const Personalization = ( {
 		};
 	}, [ clientId ] );
 
-	const ranges = [
-		{
-			value: 7,
-			label: '7 days',
-		},
-		{
-			value: 30,
-			label: '30 days',
-		},
-		{
-			value: 90,
-			label: '90 days',
-		},
-	];
-
 	// Get percentage of personalised block views.
 	let personalisedCoverage = null;
 	if ( analytics ) {
@@ -64,7 +50,7 @@ const Personalization = ( {
 			<div className="altis-analytics-block-metrics">
 				<DateRange
 					location="insights"
-					ranges={ ranges }
+					ranges={ Periods }
 					value={ days }
 					onSetRange={ setDays }
 				/>
