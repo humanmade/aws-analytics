@@ -69,13 +69,16 @@ function load_dashboard() {
 		];
 	}, $post_types );
 
+	// Don't show links if feature unavailable.
+	$insights_enabled = Utils\is_feature_enabled( 'insights' );
+
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
-			'canViewAnalytics' => current_user_can( 'manage_options' ),
-			'canViewInsights' => current_user_can( 'edit_audiences' ),
+			'canViewAnalytics' => $insights_enabled && current_user_can( 'manage_options' ),
+			'canViewInsights' => $insights_enabled && current_user_can( 'edit_audiences' ),
 		],
 		'post_types' => array_values( $post_types ),
 	] );

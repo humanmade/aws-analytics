@@ -19,36 +19,23 @@ if ( file_exists( ROOT_DIR . '/vendor/autoload.php' ) ) {
 	require_once ROOT_DIR . '/vendor/autoload.php';
 }
 
-// Load required files.
 require_once __DIR__ . '/inc/namespace.php';
 require_once __DIR__ . '/inc/api/namespace.php';
 require_once __DIR__ . '/inc/api/class-filter.php';
 require_once __DIR__ . '/inc/utils/namespace.php';
-
-// Load optional files.
-if ( file_exists( __DIR__ . '/inc/audiences/namespace.php' ) ) {
-	require_once __DIR__ . '/inc/audiences/namespace.php';
-	require_once __DIR__ . '/inc/audiences/rest_api/class-posts-controller.php';
-	require_once __DIR__ . '/inc/audiences/rest_api/namespace.php';
-	require_once __DIR__ . '/inc/preview/namespace.php';
-}
-if ( file_exists( __DIR__ . '/inc/dashboard/namespace.php' ) ) {
-	require_once __DIR__ . '/inc/dashboard/namespace.php';
-}
-if ( file_exists( __DIR__ . '/inc/blocks/namespace.php' ) ) {
-	require_once __DIR__ . '/inc/blocks/namespace.php';
-	require_once __DIR__ . '/inc/blocks/rest_api/namespace.php';
-	require_once __DIR__ . '/inc/blocks/rest_api/class-posts-controller.php';
-}
-if ( file_exists( __DIR__ . '/inc/experiments/namespace.php' ) ) {
-	require_once __DIR__ . '/inc/experiments/namespace.php';
-	require_once __DIR__ . '/inc/experiments/titles/namespace.php';
-	require_once __DIR__ . '/inc/experiments/featured-images/namespace.php';
-}
-if ( file_exists( __DIR__ . '/inc/export/namespace.php' ) ) {
-	require_once __DIR__ . '/inc/export/class-endpoint.php';
-	require_once __DIR__ . '/inc/export/cron/namespace.php';
-	require_once __DIR__ . '/inc/export/namespace.php';
-}
+require_once __DIR__ . '/inc/audiences/namespace.php';
+require_once __DIR__ . '/inc/audiences/rest_api/class-posts-controller.php';
+require_once __DIR__ . '/inc/audiences/rest_api/namespace.php';
+require_once __DIR__ . '/inc/preview/namespace.php';
+require_once __DIR__ . '/inc/dashboard/namespace.php';
+require_once __DIR__ . '/inc/blocks/namespace.php';
+require_once __DIR__ . '/inc/blocks/rest_api/namespace.php';
+require_once __DIR__ . '/inc/blocks/rest_api/class-posts-controller.php';
+require_once __DIR__ . '/inc/experiments/namespace.php';
+require_once __DIR__ . '/inc/experiments/titles/namespace.php';
+require_once __DIR__ . '/inc/experiments/featured-images/namespace.php';
+require_once __DIR__ . '/inc/export/class-endpoint.php';
+require_once __DIR__ . '/inc/export/cron/namespace.php';
+require_once __DIR__ . '/inc/export/namespace.php';
 
 add_action( 'plugins_loaded', __NAMESPACE__ . '\\setup' );
