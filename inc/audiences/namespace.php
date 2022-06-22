@@ -225,10 +225,8 @@ function modal_portal() {
  * Support saving the audience configuration the old school way.
  *
  * @param int $post_id The current audience post ID.
- * @param WP_Post $post The post object.
- * @param bool $update True if this is an update.
  */
-function save_post( $post_id, $post, $update ) {
+function save_post( $post_id ) {
 	if ( ! isset( $_POST['altis_analytics_nonce'] ) ) {
 		return;
 	}
