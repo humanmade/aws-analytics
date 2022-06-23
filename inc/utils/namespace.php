@@ -42,6 +42,38 @@ function get_asset_url( string $filename ) {
 }
 
 /**
+ * Check if a feature is enabled or not.
+ *
+ * By default all features are enabled.
+ *
+ * Options are:
+ *
+ * - audiences
+ * - experiments
+ * - export
+ * - blocks
+ * - dashboard
+ * - insights
+ *
+ * @param string $feature Feature slug.
+ * @return boolean
+ */
+function is_feature_enabled( string $feature ) : bool {
+	/**
+	 * Toggle plugin feature.
+	 *
+	 *
+	 *
+	 * Note: personalisation blocks require audiences and A/B blocks require experiments.
+	 *
+	 * @param bool $enabled Set to true to enable feature.
+	 */
+	$enabled = (bool) apply_filters( "altis.analytics.feature.{$feature}", true );
+
+	return $enabled;
+}
+
+/**
  * Queue up JS and CSS assets for the given entrypoint.
  *
  * @param string $entrypoint The webpack entrypoint key.

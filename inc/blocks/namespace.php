@@ -30,12 +30,12 @@ function setup() {
 	$using_blocks = false;
 
 	// Register blocks.
-	if ( function_exists( 'Altis\\Analytics\\Audiences\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'audiences' ) ) {
 		Personalization\setup();
 		Personalization_Variant\setup();
 		$using_blocks = true;
 	}
-	if ( function_exists( 'Altis\\Analytics\\Experiments\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'experiments' ) ) {
 		AB_Test\setup();
 		AB_Test_Variant\setup();
 		$using_blocks = true;

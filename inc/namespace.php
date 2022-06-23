@@ -20,38 +20,28 @@ function setup() {
 	// Setup API.
 	API\setup();
 
-	// Setup audiences.
-	if ( function_exists( 'Altis\\Analytics\\Audiences\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'audiences' ) ) {
 		Audiences\setup();
-	}
-
-	// Set up preview.
-	if ( function_exists( 'Altis\\Analytics\\Preview\\setup' ) ) {
 		Preview\setup();
 	}
 
-	// Set up export.
-	if ( function_exists( 'Altis\\Analytics\\Export\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'export' ) ) {
 		Export\setup();
 	}
 
-	// Set up experiments.
-	if ( function_exists( 'Altis\\Analytics\\Experiments\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'experiments' ) ) {
 		Experiments\setup();
 	}
 
-	// Enable Experience Blocks.
-	if ( function_exists( 'Altis\\Analytics\\Blocks\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'blocks' ) ) {
 		Blocks\setup();
 	}
 
-	// Set up the Analytics Insights.
-	if ( function_exists( 'Altis\\Analytics\\Insights\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'insights' ) ) {
 		Insights\setup();
 	}
 
-	// Set up the Analytics Dashboard.
-	if ( function_exists( 'Altis\\Analytics\\Dashboard\\setup' ) ) {
+	if ( Utils\is_feature_enabled( 'dashboard' ) ) {
 		Dashboard\setup();
 	}
 
