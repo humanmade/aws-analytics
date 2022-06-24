@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\Insights;
 
+use Altis;
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
 use WP_Query;
@@ -31,6 +32,39 @@ function setup() {
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\modify_views_list_query' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_styles' );
+}
+
+/**
+ * Adds the analytics UI admin page.
+ *
+ * @return void
+ */
+function register_analytics_page() {
+	$hook = add_dashboard_page(
+		__( 'Altis Analytics', 'altis' ),
+		__( 'Analytics', 'altis' ),
+		'manage_options',
+		'altis-analytics',
+		__NAMESPACE__ . '\\render_page'
+	);
+	add_action( 'load-' . $hook, function () {
+		Utils\enqueue_assets( 'dashboard' );
+	} );
+}
+
+/**
+ * Display Accelerate React apps.
+ *
+ * @return void
+ */
+function render_page() {
+	echo '<div id="altis-analytics-root">';
+
+	if ( Altis\get_environment_type() === 'local' ) {
+		echo "<p>Ensure you're running the Webpack server. You may also need to open the script URL directly to accept the SSL certificate.</p>";
+	}
+
+	echo '</div>';
 }
 
 /**
