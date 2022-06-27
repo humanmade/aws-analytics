@@ -291,20 +291,20 @@ function register_post_type() {
 			'admin_cols' => [
 				'block' => [
 					'title' => __( 'Block', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_block_column',
+					'function' => '\\Altis\\Analytics\\Insights\\render_block_column',
 				],
 				'type' => [
 					'title' => __( 'Type', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_type_column',
+					'function' => '\\Altis\\Analytics\\Insights\\render_type_column',
 				],
 				'views' => [
 					'title' => __( 'Views', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_views',
+					'function' => '\\Altis\\Analytics\\Insights\\render_views',
 					'default' => 'DESC',
 				],
 				'conversion' => [
 					'title' => __( 'Conversion Rate', 'altis-analytics' ),
-					'function' => '\\Altis\\Analytics\\Dashboard\\render_conversion_rate',
+					'function' => '\\Altis\\Analytics\\Insights\\render_conversion_rate',
 				],
 				'author' => [
 					'title' => __( 'Author', 'altis-analytics' ),
