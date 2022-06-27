@@ -5,7 +5,7 @@
  * @package altis/accelerate
  */
 
-namespace Altis\Analytics\Dashboard;
+namespace Altis\Analytics\API;
 
 /**
  * Filter container object.

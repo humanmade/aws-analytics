@@ -27,12 +27,24 @@ function setup() {
 	require_once __DIR__ . '/ab-test/register.php';
 	require_once __DIR__ . '/ab-test-variant/register.php';
 
+	$using_blocks = false;
+
 	// Register blocks.
-	Personalization\setup();
-	Personalization_Variant\setup();
-	Shim\setup();
-	AB_Test\setup();
-	AB_Test_Variant\setup();
+	if ( Utils\is_feature_enabled( 'audiences' ) ) {
+		Personalization\setup();
+		Personalization_Variant\setup();
+		$using_blocks = true;
+	}
+	if ( Utils\is_feature_enabled( 'experiments' ) ) {
+		AB_Test\setup();
+		AB_Test_Variant\setup();
+		$using_blocks = true;
+	}
+	if ( $using_blocks ) {
+		Shim\setup();
+	} else {
+		return;
+	}
 
 	// Set up the XB shadow post type.
 	add_action( 'init', __NAMESPACE__ . '\\register_post_type' );
@@ -60,7 +72,7 @@ function setup() {
 	add_action( 'altis.publication-checklist.register_prepublish_checks', __NAMESPACE__ . '\\check_conversion_goals' );
 
 	// Support Excerpts
-	add_filter( 'excerpt_allowed_wrapper_blocks', __NAMESPACE__ . '\filter_excerpt_allowed_wrapper_blocks' );
+	add_filter( 'excerpt_allowed_wrapper_blocks', __NAMESPACE__ . '\\filter_excerpt_allowed_wrapper_blocks' );
 }
 
 /**
