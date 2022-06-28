@@ -177,7 +177,7 @@ export default function List( props: Props ) {
 											<Link
 												url={ post.url }
 												location="dashboard"
-												linkText="View"
+												linkText={ __( 'View', 'altis-analytics' ) }
 											/>
 										) }
 										{ post.editUrl && (
@@ -186,7 +186,7 @@ export default function List( props: Props ) {
 												<Link
 													url={ post.editUrl }
 													location="dashboard"
-													linkText="Edit"
+													linkText={ __( 'Edit', 'altis-analytics' ) }
 												/>
 											</>
 										) }
