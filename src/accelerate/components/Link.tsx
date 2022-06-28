@@ -22,7 +22,7 @@ export default function Link( props: Props ) {
 				);
 			}}
 		>
-			{ __( props.linkText, 'altis-analytics' ) }
+			{ props.linkText }
 		</a>
 	)
 }

@@ -87,7 +87,7 @@ export default function List( props: Props ) {
 									{
 										location: 'dashboard',
 										filter_type: 'author',
-										filter_value: e.target.options[e.target.options.selectedIndex].text,
+										filter_value: e.target.value,
 									}
 								);
 							} }
