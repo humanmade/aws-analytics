@@ -110,16 +110,15 @@ export default function List( props: Props ) {
 								timer && clearTimeout( timer );
 								timer = setTimeout( value => {
 									setSearch( value );
+									analytics.track(
+										'filter',
+										{
+											location: 'dashboard',
+											filter_type: 'search',
+											filter_value: e.target.value,
+										}
+									);
 								}, 500, e.target.value );
-								analytics.track(
-									'filter',
-									{
-										location: 'dashboard',
-										filter_type: 'search',
-										filter_value: e.target.value,
-									}
-								);
-
 							} }
 						/>
 					</div>
