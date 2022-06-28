@@ -115,7 +115,7 @@ export default function List( props: Props ) {
 										{
 											location: 'dashboard',
 											filter_type: 'search',
-											filter_value: e.target.value,
+											filter_value: value,
 										}
 									);
 								}, 500, e.target.value );
