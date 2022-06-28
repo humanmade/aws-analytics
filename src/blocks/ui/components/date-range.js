@@ -57,7 +57,7 @@ export default function DateRange( { value, ranges, onSetRange, location } ) {
 						} }
 					/>
 					<label htmlFor={ `altis-analytics-date-range-${ range.value }` }>
-						{ __( range.label, 'altis-analytics' ) }
+						{ range.label }
 					</label>
 				</>
 			) ) }
