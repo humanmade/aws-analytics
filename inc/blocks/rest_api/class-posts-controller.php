@@ -160,7 +160,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 
 				// Handle variant output for different block types.
 				switch ( $subtype ) {
-					case Blocks\Personalization\BLOCK:
+					case Blocks\Personalization_Variant\BLOCK:
 						if ( isset( $variant['attrs']['audience'] ) ) {
 							$audience_id = (int) $variant['attrs']['audience'];
 							$variant['attrs']['id'] = $audience_id;
