@@ -56,14 +56,14 @@ export default function Hero( props: Props ) {
 								<Link
 									url="index.php?page=altis-analytics"
 									location="dashboard"
-									linkText="Analytics"
+									linkText={ __( 'Analytics', 'altis-analytics' ) }
 								/>
 							)}
 							{ props.canViewInsights && (
 								<Link
 									url="edit.php?post_type=xb"
 									location="dashboard"
-									linkText="Insights"
+									linkText={ __( 'Insights', 'altis-analytics' ) }
 								/>
 							)}
 
