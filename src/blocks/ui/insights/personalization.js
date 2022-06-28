@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { compactMetric } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
-import Periods from '../../../data/periods';
+import periods from '../../../data/periods';
 import Cards from '../components/cards';
 import DateRange from '../components/date-range';
 import Variants from '../components/variants';
@@ -50,7 +50,7 @@ const Personalization = ( {
 			<div className="altis-analytics-block-metrics">
 				<DateRange
 					location="insights"
-					ranges={ Periods }
+					ranges={ periods }
 					value={ days }
 					onSetRange={ setDays }
 				/>

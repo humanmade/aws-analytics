@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 /**
  * Date Periods. This is here to accomodate the split build process. The typescript copy should supersede this when appropriate.
  */
-const Periods = [
+const periods = [
 	{
 		label: __( '7 days', 'altis' ),
 		value: 'P7D',
@@ -23,4 +23,4 @@ const Periods = [
 		number: 90,
 	},
 ];
-export default Periods;
+export default periods;
