@@ -507,12 +507,7 @@ function get_estimate( array $audience ) : ?array {
 		return $no_result;
 	}
 
-	$histogram = array_map( function ( array $bucket ) {
-		return [
-			'index' => intval( $bucket['key'] ),
-			'count' => $bucket['doc_count'],
-		];
-	}, $result['aggregations']['histogram']['buckets'] );
+	$histogram = Utils\normalise_histogram( $result['aggregations']['histogram']['buckets'] );
 
 	// Get number of unique IDs within the audience.
 	$estimate_count = $result['aggregations']['estimate']['value'];
@@ -521,7 +516,7 @@ function get_estimate( array $audience ) : ?array {
 		'count' => $estimate_count,
 		// Make absolutely sure that the total audience size is reflected even if the total uniques is out of sync.
 		'total' => max( $unique_count, $estimate_count ),
-		'histogram' => array_values( $histogram ),
+		'histogram' => $histogram,
 	];
 
 	wp_cache_set( $key, $estimate, 'altis-audiences', HOUR_IN_SECONDS );
