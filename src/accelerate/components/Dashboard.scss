@@ -1,7 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&display=swap');
-
 // Variables
-$font-face: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", "Open Sans", Helvetica, Arial, "Lucida Grande", sans-serif;
 $dark-blue: #152a4e;
 $active-blue: #4667de;
 $score-pos: #3CC66D;
@@ -233,7 +230,6 @@ body.index-php {
 
 .List {
 	position: relative;
-	font-family: $font-face;
 	font-size: .875rem;
 	padding: 0 $sidebar-padding 40px;
 	-webkit-font-smoothing: antialiased;
