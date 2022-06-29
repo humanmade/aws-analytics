@@ -198,7 +198,7 @@ export default function List ( props: Props ) {
 										</div>
 										<div className='record-name__tag'></div>
 										<div className='record-name__title'>
-											{ post.title }
+											<a href={ post.url || '' } target="_blank">{ post.title }</a>
 										</div>
 									</td>
 									<td className="record-traffic">
