@@ -27,7 +27,6 @@ export default function Dashboard( props: Props ) {
 			/>
 			<Overview period={ period } />
 			<List
-				period={ period }
 				postTypes={ props.postTypes }
 				user={ props.user }
 			/>
