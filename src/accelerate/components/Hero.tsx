@@ -20,39 +20,7 @@ export default function Hero( props: Props ) {
 			<div className="Hero__content">
 				<h1>{ sprintf( __( 'Hello %s', 'altis' ), props.name ) }</h1>
 				<h2>{ __( 'Welcome to the future', 'altis' ) } <span role="img" aria-label="letsgo">✨</span></h2>
-				<div className="Hero__tools">
-					<div className="Hero__timeranges">
-						{ !! props.period && periods.map( p => {
-							const classes = [ 'timerange' ];
-							if ( p.value === props.period ) {
-								classes.push( 'timerange-active' );
-							}
-							return (
-								<button
-									key={ p.value }
-									className={ classes.join( ' ' ) }
-									type="button"
-									onClick={ () => {
-										props.onSetPeriod && props.onSetPeriod( p.value )
-									} }
-								>
-									{ p.label }
-								</button>
-							);
-						} ) }
-					</div>
-					{ !! props.period && ( props.canViewAnalytics || props.canViewInsights ) && (
-						<nav className='Hero__links'>
-							{ props.canViewAnalytics && (
-								<a href="index.php?page=altis-analytics">{ __( 'Analytics', 'altis-analytics' ) }</a>
-							)}
-							{ props.canViewInsights && (
-								<a href="edit.php?post_type=xb">{ __( 'Insights', 'altis-analytics' ) }</a>
-							)}
 
-						</nav>
-					) }
-				</div>
 			</div>
 		</div>
 	)
