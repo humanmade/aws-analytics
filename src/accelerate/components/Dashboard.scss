@@ -479,10 +479,11 @@ body.index-php {
 			color: $color-dark-grey;
 
 			&__type {
-				font-size: 0.65rem;
+				font-size: 0.65em;
 				font-weight: 900;
+				text-transform: uppercase;
+				letter-spacing: .1em;
 				float: left;
-
 			}
 
 			&__tag {
@@ -499,6 +500,12 @@ body.index-php {
 						content: '';
 					}
 				}
+			}
+
+			&__title a {
+				color: $dark-blue;
+				font-weight: 600;
+				text-decoration: none;
 			}
 		}
 
