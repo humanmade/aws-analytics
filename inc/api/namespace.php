@@ -626,6 +626,14 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	$query = new WP_Query( $query_args );
 
 	foreach ( $query->posts as $i => $post ) {
+		$thumbnail_id = 0;
+		if ( $post->post_type === 'attachment' ) {
+			$thumbnail_id = $post->ID;
+		} else {
+			$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
+		}
+		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, '100x50' ) : '';
+
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,
@@ -641,6 +649,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'name' => get_the_author_meta( 'display_name', $post->post_author ),
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
+			'thumbnail' => $thumbnail ?: '',
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
 		];
 
