@@ -20,9 +20,29 @@ const STYLE_ID = 'altis-analytics-ui';
  */
 function setup() {
 	// Queue up Altis Accelerate Dashboard replacement for standard dashboard.
-	if ( ! defined( 'ALTIS_ACCELERATE_DASHBOARD' ) || ALTIS_ACCELERATE_DASHBOARD ) {
-		add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
+	if ( defined( 'ALTIS_ACCELERATE_DASHBOARD' ) && ! ALTIS_ACCELERATE_DASHBOARD ) {
+		return;
 	}
+
+	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
+}
+
+/**
+ * Adds the regular Dashboard Widgets view as a subpage of the Dashboard menu.
+ *
+ * @return void
+ */
+function add_widgets_submenu() : void {
+	add_submenu_page(
+		'index.php',
+		__( 'Dashboard Widgets' ),
+		__( 'Widgets' ),
+		'read',
+		'index.php?widgets=1',
+		'',
+		1
+	);
 }
 
 /**
@@ -33,6 +53,11 @@ function setup() {
 function load_dashboard() {
 	// Don't replace network admin.
 	if ( is_network_admin() ) {
+		return;
+	}
+
+	// Support default dashboard on subpage of dashboard menu.
+	if ( isset( $_GET['widgets'] ) ) {
 		return;
 	}
 
