@@ -19,7 +19,6 @@ export default function Dashboard( props: Props ) {
 		<div className="Dashboard">
 			<HeroChart
 				period={ period }
-				onSetPeriod={ value => setPeriod( value ) }
 			/>
 			<List
 				postTypes={ props.postTypes }

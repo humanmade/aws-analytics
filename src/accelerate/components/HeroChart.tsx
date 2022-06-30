@@ -1,24 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { __, sprintf } from '@wordpress/i18n';
 
 import { useSelect } from '@wordpress/data';
 import { extent, max } from 'd3-array';
-import { curveNatural } from '@visx/curve';
+import { curveMonotoneX } from '@visx/curve';
+import { LinearGradient } from '@visx/gradient';
 import { Group } from '@visx/group';
-import { LinePath } from '@visx/shape';
+import { GridRows } from '@visx/grid';
+import { LinePath, AreaClosed } from '@visx/shape';
+import { AxisLeft, AxisBottom } from '@visx/axis';
 import { scaleTime, scaleLinear } from '@visx/scale';
-import { MarkerArrow, MarkerCross, MarkerX, MarkerCircle, MarkerLine } from '@visx/marker';
+import { MarkerCircle } from '@visx/marker';
 import { periods } from '../../data/periods';
 import { Duration, Filter, StatsResult } from '../../util';
 
 import './Dashboard.scss';
 
 type Props = {
-	name: string,
 	period?: Duration,
-	canViewAnalytics: boolean,
-	canViewInsights: boolean,
-	onSetPeriod?: ( value: Duration ) => void,
 };
 
 type Datum = {
@@ -33,15 +32,16 @@ const getY = ( d : Datum ) => d.uniques;
 export default function HeroChart( props: Props ) {
     const {
         period,
-        onSetPeriod,
     } = props;
 
     // Get stats data.
     const [ filter, setFilter ] = useState<Filter>( {} );
+    const [ outerWidth, setOuterWidth ] = useState<number>( 0 );
 	const data = useSelect<StatsResult>( select => {
 		return select( 'altis/analytics' ).getStats( {
 			filter,
 			period,
+            interval: '4h',
 		} );
 	}, [ filter, period ] );
 
@@ -53,62 +53,94 @@ export default function HeroChart( props: Props ) {
         };
     } );
 
+    useEffect( () => {
+        setOuterWidth( document.getElementById( 'hero-chart' )?.offsetWidth || 600 );
+    }, [ outerWidth, data ] );
 
     const xScale = scaleTime<number>( {
         domain: extent( uniques, getX ) as [ Date, Date ],
+        nice: true,
     } );
     const yScale = scaleLinear<number>( {
-        domain: [ 0, max( uniques, getY ) as number ],
+        domain: [ 0, max( uniques, getY ) as number + Math.floor( max( uniques, getY ) as number / 5 ) ],
+        nice: true,
     } );
 
+    xScale.range( [ 0, outerWidth - 250 ] );
+    yScale.range( [ 250, 0 ] );
+
 	return (
-		<div className="HeroChart">
-            <svg width="100%" height={ 300 }>
-                <MarkerX
-                    id="marker-x"
-                    stroke="#333"
-                    size={22}
-                    strokeWidth={4}
-                    markerUnits="userSpaceOnUse"
-                />
-                <MarkerCross
-                    id="marker-cross"
-                    stroke="#333"
-                    size={22}
-                    strokeWidth={4}
-                    strokeOpacity={0.6}
-                    markerUnits="userSpaceOnUse"
-                />
+		<div className="HeroChart" id="hero-chart">
+            <svg width="100%" height={ 350 }>
                 <MarkerCircle id="marker-circle" fill="#333" size={2} refX={2} />
-                <MarkerArrow id="marker-arrow-odd" stroke="#333" size={8} strokeWidth={1} />
-                <MarkerLine id="marker-line" fill="#333" size={16} strokeWidth={1} />
-                <MarkerArrow id="marker-arrow" fill="#333" refX={2} size={6} />
-                <rect width="100%" height={ 300 } fill="#efefef" rx={14} ry={14} />
-                {/* <Group top={ 0 } left={ 0 }> */}
-                    { uniques.map( ( d, j ) => (
-                        <circle
-                            key={ j }
-                            r={ 3 }
-                            cx={ xScale(getX(d)) }
-                            cy={ yScale(getY(d)) }
-                            stroke="rgba(33,33,33,0.5)"
-                            fill="transparent"
-                        />
-                    ) ) }
+                <LinearGradient
+                    from="var( --wp-admin-theme-color )"
+                    to="rgba( 255, 255, 255, 0 )"
+                    id="hero-gradient"
+                />
+                <Group left={ 150 } top={ 25 } height={ 300 }>
+                    <AxisBottom
+                        hideAxisLine={ true }
+                        hideTicks={ true }
+                        scale={ xScale }
+                        top={ 260 }
+                        numTicks={ 7 }
+                        tickLabelProps={ ( value ) => ( {
+                            verticalAnchor: 'middle',
+                            textAnchor: 'middle',
+                            fontSize: 13,
+                            style: { textTransform: 'uppercase' },
+                            fill: '#777',
+                        } ) }
+                    />
+                    <AxisLeft
+                        hideAxisLine={ true }
+                        hideTicks={ true }
+                        hideZero={ true }
+                        scale={ yScale }
+                        left={ -30 }
+                        numTicks={ 4 }
+                        label={ __( 'Visitor Count', 'altis-analytics' ) }
+                        labelOffset={ 50 }
+                        labelProps={ {
+                            verticalAnchor: 'middle',
+                            textAnchor: 'middle',
+                            fontSize: 13,
+                            fontWeight: 'bold',
+                            style: { textTransform: 'uppercase' },
+                            fill: '#777',
+                        } }
+                    />
+                    <GridRows
+                        scale={ yScale }
+                        stroke="rgba( 0, 0, 0, .3 )"
+                        width={ outerWidth - 190 }
+                        numTicks={ 4 }
+                        left={ -30 }
+                    />
                     <LinePath
-                        curve={ curveNatural }
+                        curve={ curveMonotoneX }
                         data={ uniques }
                         x={ d => xScale( getX( d ) ) ?? 0 }
                         y={ d  => yScale( getY( d ) ) ?? 0 }
-                        stroke="#333"
+                        stroke="var( --wp-admin-theme-color )"
                         strokeWidth={ 2 }
                         strokeOpacity={ 1 }
                         shapeRendering="geometricPrecision"
-                        markerMid="url(#marker-circle)"
-                        markerStart="url(#marker-line)"
-                        markerEnd="url(#marker-line)"
                     />
-                {/* </Group> */}
+                    <AreaClosed
+                        curve={ curveMonotoneX }
+                        data={ uniques }
+                        x={ d => xScale( getX( d ) ) ?? 0 }
+                        y={ d  => yScale( getY( d ) ) ?? 0 }
+                        yScale={ yScale }
+                        strokeWidth={ 0 }
+                        strokeOpacity={ 1 }
+                        shapeRendering="geometricPrecision"
+                        fill="url(#hero-gradient)"
+                        opacity={ 0.3 }
+                    />
+                </Group>
             </svg>
 		</div>
 	)
