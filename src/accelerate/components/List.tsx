@@ -20,12 +20,12 @@ type Props = {
 
 export default function List ( props: Props ) {
 	// Filters.
-	const [customFilter, setCustomFilter] = useState<string>( 'all' );
-	const [search, setSearch] = useState<string>( '' );
-	const [type, setType] = useState<string | null>( null );
-	const [user, setUser] = useState<number | null>( null );
-	const [page, setPage] = useState<number>( 1 );
-	const [period, setPeriod] = useState<Duration>( 'P7D' );
+	const [ customFilter, setCustomFilter ] = useState<string>( 'all' );
+	const [ search, setSearch ] = useState<string>( '' );
+	const [ type, setType ] = useState<string | null>( null );
+	const [ user, setUser ] = useState<number | null>( null );
+	const [ page, setPage ] = useState<number>( 1 );
+	const [ period, setPeriod ] = useState<Duration>( 'P7D' );
 
 	const query = useSelect( select => {
 		return {
@@ -39,7 +39,7 @@ export default function List ( props: Props ) {
 			pagination: select( 'altis/analytics' ).getPagination<State['pagination']>(),
 			isLoading: select( 'altis/analytics' ).getIsLoading<boolean>(),
 		};
-	}, [search, page, type, user, period] );
+	}, [ search, page, type, user, period ] );
 
 	const customFilters = [
 		{
