@@ -7,7 +7,7 @@ import { Pagination } from 'react-pagination-bar';
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Period, Post, State } from '../../util';
 
 import './Dashboard.scss';
 
@@ -16,16 +16,22 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 type Props = {
 	postTypes: InitialData['postTypes'],
 	user: InitialData['user'],
+	period?: Duration,
+	onSetPeriod: React.Dispatch<React.SetStateAction<Duration>>,
 };
 
 export default function List ( props: Props ) {
+	const {
+		period,
+		onSetPeriod,
+	} = props;
+
 	// Filters.
 	const [ customFilter, setCustomFilter ] = useState<string>( 'all' );
 	const [ search, setSearch ] = useState<string>( '' );
 	const [ type, setType ] = useState<string | null>( null );
 	const [ user, setUser ] = useState<number | null>( null );
 	const [ page, setPage ] = useState<number>( 1 );
-	const [ period, setPeriod ] = useState<Duration>( 'P7D' );
 
 	const query = useSelect( select => {
 		return {
@@ -95,7 +101,7 @@ export default function List ( props: Props ) {
 						<RadioGroup
 							label='Period'
 							checked={ period }
-							onChange={ ( value: Duration ) => setPeriod( value ) }
+							onChange={ ( value: Duration ) => onSetPeriod( value ) }
 						>
 							{ periods.map( p => (
 								<Radio value={ p.value } checked={ p.value === period } >
