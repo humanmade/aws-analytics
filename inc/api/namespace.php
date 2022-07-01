@@ -48,10 +48,6 @@ function register_endpoints() {
 		],
 		'interval' => [
 			'type' => 'string',
-			'enum' => [
-				'day',
-				'hour',
-			],
 			'default' => 'day',
 		],
 	];
@@ -238,7 +234,7 @@ function get_query( array $events, int $start, int $end, array $aggs, ?Filter $f
  *
  * @param int $start The start timestamp.
  * @param int $end The end timestamp.
- * @param string $resolution Resolution for histogram data.
+ * @param string|int $resolution Resolution for histogram data.
  * @param Filter|null $filter Query filter object.
  * @return array|WP_error
  */
@@ -301,6 +297,10 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 			'date_histogram' => [
 				'field' => 'event_timestamp',
 				'interval' => $resolution,
+				'extended_bounds' => [
+					'min' => sprintf( '%d000', $start ),
+					'max' => sprintf( '%d999', min( $end, time() ) ), // Don't show beyond current time.
+				],
 			],
 			'aggregations' => [
 				'user' => [
@@ -316,6 +316,10 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 			'date_histogram' => [
 				'field' => 'arrival_timestamp',
 				'interval' => $resolution,
+				'extended_bounds' => [
+					'min' => sprintf( '%d000', $start ),
+					'max' => sprintf( '%d999', min( $end, time() ) ),
+				],
 			],
 		],
 	];
