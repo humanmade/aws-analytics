@@ -21,8 +21,10 @@ export default function Dashboard( props: Props ) {
 				period={ period }
 			/>
 			<List
+				period={ period }
 				postTypes={ props.postTypes }
 				user={ props.user }
+				onSetPeriod={ setPeriod }
 			/>
 		</div>
 	)
