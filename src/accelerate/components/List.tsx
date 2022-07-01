@@ -10,6 +10,7 @@ import { periods } from '../../data/periods';
 import { compactMetric, Duration, getConversionRateLift, InitialData, Period, Post, State } from '../../util';
 
 import './Dashboard.scss';
+import SparkChart from './SparkChart';
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -144,7 +145,7 @@ export default function List ( props: Props ) {
 							position="bottom right"
 							renderToggle={ ( { isOpen, onToggle } ) => (
 								<Button
-									variant="primary"
+									isPrimary
 									onClick={ onToggle }
 									aria-expanded={ isOpen }
 									className='dashicons-before dashicons-plus'
@@ -192,7 +193,7 @@ export default function List ( props: Props ) {
 							}
 
 							return (
-								<tr key={post.id}>
+								<tr key={ post.id }>
 									<td className='record-thumbnail'>
 										{ post.thumbnail && (
 											<img src={ post.thumbnail } alt={ post.title } width="100" height="50" />
@@ -208,7 +209,15 @@ export default function List ( props: Props ) {
 										</div>
 									</td>
 									<td className="record-traffic">
-										<div className="traffic-bar" style={ { right: `${ 100 - ( post.views / maxViews * 100 ) }%` } }></div>{ compactMetric( post.views ) }
+										<div>
+											<span>
+												{ __( '7 Day Views' ) }
+												<strong>{ new Intl.NumberFormat().format( post.views ) }</strong>
+											</span>
+											<SparkChart
+												histogram={ post?.histogram || [] }
+											/>
+										</div>
 									</td>
 									<td className={ `record-lift score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
 										{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
