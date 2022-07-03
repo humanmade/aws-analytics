@@ -91,6 +91,7 @@ function load_dashboard() {
 		return [
 			'name' => $post_type->name,
 			'label' => $post_type->labels->name,
+			'singular_label' => $post_type->labels->singular_name,
 		];
 	}, $post_types );
 

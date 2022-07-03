@@ -83,6 +83,8 @@ export default function List ( props: Props ) {
 		};
 	}
 
+	const createableTypes = props.postTypes.filter( type => type.name !== 'xb' );
+
 	const { posts, pagination, isLoading } = query;
 
 	const maxViews = posts.reduce( ( carry, post ) => Math.max( post.views, carry ), 0 );
@@ -154,15 +156,11 @@ export default function List ( props: Props ) {
 							) }
 							renderContent={ ( { onClose } ) => (
 								<MenuGroup>
-									{/* <MenuItem onClick={ onAddNew( 'block' ) }>
-										{ __( 'Block', 'altis' ) }
-									</MenuItem> */}
-									<MenuItem onClick={ onAddNew( 'post' ) }>
-										{ __( 'Post', 'altis' ) }
-									</MenuItem>
-									<MenuItem onClick={ onAddNew( 'page' ) }>
-										{ __( 'Page', 'altis' ) }
-									</MenuItem>
+									{ createableTypes.map( type => (
+										<MenuItem onClick={ onAddNew( type.name ) }>
+											{ type.singular_label }
+										</MenuItem>
+									) ) }
 								</MenuGroup>
 							) }
 						/>
