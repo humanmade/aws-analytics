@@ -46,13 +46,25 @@ function init() : void {
 				],
 				'days' => [
 					'description' => __( 'Number of days worth of data to get.', 'altis-analytics' ),
-					'type' => 'number',
-					'default' => 7,
+					'type' => 'string',
+					'default' => 'P7D',
 				],
 				'offset' => [
 					'description' => __( 'Number of days to offset data by. For example 3 means get data from before 3 days ago.', 'altis-analytics' ),
-					'type' => 'number',
-					'default' => 0,
+					'type' => 'string',
+					'default' => 'P0D',
+				],
+				'start' => [
+					'description' => __( 'Start date', 'altis-analytics' ),
+					'type' => 'string',
+					'format' => 'date-time',
+					'required' => true,
+				],
+				'end' => [
+					'description' => __( 'End date', 'altis-analytics' ),
+					'type' => 'string',
+					'format' => 'date-time',
+					'required' => true,
 				],
 			],
 		],
@@ -170,10 +182,14 @@ function handle_views_request( WP_REST_Request $request ) : WP_REST_Response {
 	$post_id = $request->get_param( 'post_id' ) ?? null;
 	$days = $request->get_param( 'days' );
 	$offset = $request->get_param( 'offset' );
+	$start = $request->get_param( 'start' );
+	$end = $request->get_param( 'end' );
 	$views = Blocks\get_views( $block_id, [
 		'post_id' => $post_id,
 		'days' => $days,
 		'offset' => $offset,
+		'start' => $start,
+		'end' => $end,
 	] );
 	return rest_ensure_response( $views );
 }
