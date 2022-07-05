@@ -1,31 +1,42 @@
 import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
+import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio } from '@wordpress/components';
 import { Pagination } from 'react-pagination-bar';
 
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
+import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
+
+import { periods } from '../../data/periods';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Period, Post, State } from '../../util';
 
 import './Dashboard.scss';
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 type Props = {
-	period: Duration,
 	postTypes: InitialData['postTypes'],
 	user: InitialData['user'],
+	period?: Duration,
+	onSetPeriod: React.Dispatch<React.SetStateAction<Duration>>,
 };
 
-export default function List( props: Props ) {
+export default function List ( props: Props ) {
+	const {
+		period,
+		onSetPeriod,
+	} = props;
+
 	// Filters.
+	const [ customFilter, setCustomFilter ] = useState<string>( 'all' );
 	const [ search, setSearch ] = useState<string>( '' );
+	const [ type, setType ] = useState<string | null>( null );
+	const [ user, setUser ] = useState<number | null>( null );
 	const [ page, setPage ] = useState<number>( 1 );
-	const [ type, setType ] = useState<string|null>( null );
-	const [ user, setUser ] = useState<number|null>( null );
 
 	const query = useSelect( select => {
 		return {
 			posts: select( 'altis/analytics' ).getPosts<Post[]>( {
-				period: props.period || 'P7D',
+				period,
 				search,
 				type,
 				user,
@@ -34,7 +45,45 @@ export default function List( props: Props ) {
 			pagination: select( 'altis/analytics' ).getPagination<State['pagination']>(),
 			isLoading: select( 'altis/analytics' ).getIsLoading<boolean>(),
 		};
-	}, [ search, page, type, user, props.period ] );
+	}, [ search, page, type, user, period ] );
+
+	const customFilters = [
+		{
+			value: 'all',
+			label: __( 'All', 'altis' ),
+		},
+		{
+			value: 'blocks',
+			label: __( 'Blocks', 'altis' ),
+		},
+		{
+			value: 'me',
+			label: __( 'Me', 'altis' ),
+		},
+	];
+
+	function switchCustomFilter ( filter: string ) {
+		setPage( 1 );
+		setCustomFilter( filter );
+		if ( filter === 'all' ) {
+			setType( null );
+			setUser( null );
+		} else if ( filter === 'blocks' ) {
+			setType( 'wp_block' );
+			setUser( null );
+		} else if ( filter === 'me' ) {
+			setType( null );
+			setUser( 1 ); // TODO get the current user id
+		}
+	}
+
+	function onAddNew<Function> ( type: string ) {
+		return () => {
+			window.location.href = '/wp-admin/post-new.php?post_type=' + type;
+		};
+	}
+
+	const createableTypes = props.postTypes.filter( type => type.name !== 'xb' );
 
 	const { posts, pagination, isLoading } = query;
 
@@ -50,41 +99,34 @@ export default function List( props: Props ) {
 						e.preventDefault();
 					} }
 				>
-					<div className="table-filter">
-						<select
-							className="filter filter-active"
-							onChange={ e => {
-								setPage( 1 );
-								setType( e.target.value );
-							} }
+					<div className="table-filter table-filter__period">
+						<RadioGroup
+							label='Period'
+							checked={ period }
+							onChange={ ( value: Duration ) => onSetPeriod( value ) }
 						>
-							<option value="">{ __( 'All Content ▾', 'altis' ) }</option>
-							{ props.postTypes.map( postType => (
-								<option
-									selected={ postType.name === type }
-									value={ postType.name }
-								>
-									{ postType.label }
-								</option>
+							{ periods.map( p => (
+								<Radio value={ p.value } checked={ p.value === period } >
+									{ p.label.match( /\d+/ ) }
+								</Radio>
 							) ) }
-						</select>
-						<select
-							className="filter filter-active"
-							onChange={ e => {
-								setPage( 1 );
-								setUser( parseInt( e.target.value, 10 ) );
-							} }
+						</RadioGroup>
+					</div>
+					<div className="table-filter table-filter__custom" >
+						<RadioGroup
+							label='Filter'
+							checked={ customFilter }
+							onChange={ ( value: string ) => switchCustomFilter( value ) }
 						>
-							<option value="">{ __( 'All Authors ▾', 'altis' ) }</option>
-							<option
-								selected={ user === props.user.id }
-								value={ props.user.id }
-							>
-								{ __( 'My Content', 'altis' ) }
-							</option>
-						</select>
+							{ customFilters.map( filter => (
+								<Radio value={ filter.value } checked={ filter.value === customFilter } >
+									{ filter.label }
+								</Radio>
+							) ) }
+						</RadioGroup>
 					</div>
 					<div className="table-search">
+						<span className="dashicons dashicons-search"></span>
 						<input
 							type="text"
 							placeholder="Search Pages, Posts & Blocks"
@@ -97,16 +139,35 @@ export default function List( props: Props ) {
 							} }
 						/>
 					</div>
+					<div className="table-add-new">
+						<Dropdown
+							className=""
+							contentClassName=""
+							position="bottom right"
+							renderToggle={ ( { isOpen, onToggle } ) => (
+								<Button
+									variant="primary"
+									onClick={ onToggle }
+									aria-expanded={ isOpen }
+									className='dashicons-before dashicons-plus'
+								>
+									{ __( 'Add New', 'altis' ) }
+								</Button>
+							) }
+							renderContent={ ( { onClose } ) => (
+								<MenuGroup>
+									{ createableTypes.map( type => (
+										<MenuItem onClick={ onAddNew( type.name ) }>
+											{ type.singular_label }
+										</MenuItem>
+									) ) }
+								</MenuGroup>
+							) }
+						/>
+					</div>
 				</form>
-				<div className="table-content dashboard-shadow">
+				<div className="table-content">
 					<table aria-live="polite">
-						<tr className="record-header">
-							<th className="table-th-views">{ __( 'Views', 'altis' ) }</th>
-							<th className="table-th-name">{ __( 'Name', 'altis' ) }</th>
-							<th className="table-th-lift">{ __( 'Lift', 'altis' ) }</th>
-							<th className="table-th-author">{ __( 'Author', 'altis' ) }</th>
-							<th className="table-th-links">{ __( 'Links', 'altis' ) }</th>
-						</tr>
 						{ isLoading && (
 							<tr>
 								<td className="record-loading" colSpan={ 5 }>
@@ -129,27 +190,38 @@ export default function List( props: Props ) {
 							}
 
 							return (
-								<tr key={ post.id }>
-									<td className="record-traffic">
-										<div className="traffic-bar" style={ { right: `${ 100 - ( post.views / maxViews * 100 ) }%` } }></div>{ compactMetric( post.views ) }
+								<tr key={post.id}>
+									<td className='record-thumbnail'>
+										{ post.thumbnail && (
+											<img src={ post.thumbnail } alt={ post.title }/>
+										) }
 									</td>
 									<td className="record-name">
-										{ post.title }
-										{ ( post.type.name === 'xb' || post.type.name === 'wp_block' ) && (
-											<span className="tag">{ post.type.label }</span>
-										) }
+										<div className='record-name__type'>
+											{ post.type.label }
+										</div>
+										<div className='record-name__tag'></div>
+										<div className='record-name__title'>
+											<a href={ post.url || '' } target="_blank">{ post.title }</a>
+										</div>
+									</td>
+									<td className="record-traffic">
+										<div className="traffic-bar" style={ { right: `${ 100 - ( post.views / maxViews * 100 ) }%` } }></div>{ compactMetric( post.views ) }
 									</td>
 									<td className={ `record-lift score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
 										{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
 										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ) ) }
 									</td>
-									<td className="record-author">
-										<img alt="" className="record-avatar" src={ post.author.avatar } />
-										{ post.author.name }
-									</td>
-									<td className="record-links">
-										{ post.url && ( <a href={ post.url }>{ __( 'View', 'altis' ) }</a> ) }
-										{ post.editUrl && ( <>{ ' ' }<a href={ post.editUrl }>{ __( 'Edit', 'altis' ) }</a></> ) }
+									<td className="record-meta">
+										<div className='record-meta__author'>
+											<img alt="" className="record-meta__author-avatar" src={ post.author.avatar } />
+											<span className='record-meta__author-name'>
+												{ post.author.name }
+											</span>
+										</div>
+										<div className="record-meta__links">
+											{ post.editUrl && ( <>{ ' ' }<a href={ post.editUrl }>{ __( 'Edit', 'altis' ) }</a></> ) }
+										</div>
 									</td>
 								</tr>
 							);

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
-import Hero from './Hero';
-import Overview from './Overview';
+import HeroChart from './HeroChart';
 import List from './List';
 import { Duration, InitialData } from '../../util';
 
@@ -18,18 +17,14 @@ export default function Dashboard( props: Props ) {
 
 	return (
 		<div className="Dashboard">
-			<Hero
-				name={ props.user.name }
+			<HeroChart
 				period={ period }
-				canViewAnalytics={ props.user.canViewAnalytics }
-				canViewInsights={ props.user.canViewInsights }
-				onSetPeriod={ value => setPeriod( value ) }
 			/>
-			<Overview period={ period } />
 			<List
 				period={ period }
 				postTypes={ props.postTypes }
 				user={ props.user }
+				onSetPeriod={ setPeriod }
 			/>
 		</div>
 	)
