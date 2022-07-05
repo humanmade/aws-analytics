@@ -469,7 +469,6 @@ body.index-php {
 		}
 
 		.record-thumbnail {
-			width: 110px;
 			padding: 0;
 			padding-right: 40px;
 
@@ -477,6 +476,7 @@ body.index-php {
 				width: 105px;
 				height: 47px;
 				object-fit: cover;
+				object-position: top center;
 				box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
 			}
 		}

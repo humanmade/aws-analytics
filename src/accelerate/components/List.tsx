@@ -193,7 +193,7 @@ export default function List ( props: Props ) {
 								<tr key={post.id}>
 									<td className='record-thumbnail'>
 										{ post.thumbnail && (
-											<img src={ post.thumbnail } alt={ post.title } width="100" height="50" />
+											<img src={ post.thumbnail } alt={ post.title }/>
 										) }
 									</td>
 									<td className="record-name">
