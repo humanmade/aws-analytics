@@ -209,7 +209,10 @@ export default function List ( props: Props ) {
 									<td className="record-traffic">
 										<div>
 											<span>
-												{ __( '7 Day Views' ) }
+												{ sprintf(
+													'%s Views',
+													periods.filter( p => p.value === period )[ 0 ].label
+												) }
 												<strong>{ new Intl.NumberFormat().format( post.views ) }</strong>
 											</span>
 											<SparkChart
