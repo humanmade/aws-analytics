@@ -532,6 +532,10 @@ body.index-php {
 				display: block;
 				font-size: 0.825rem;
 			}
+
+			rect {
+				fill: $active-blue;
+			}
 		}
 
 		.record-meta {
