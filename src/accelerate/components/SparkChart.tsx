@@ -34,7 +34,7 @@ export default function SparkChart( props: Props ) {
 	} );
 	const yScale = scaleLinear<number>( {
 		domain: [ 0, yMax as number ],
-		range: [ height, 0 ],
+		range: [ 0, height ],
 	} );
 
 	yScale.range( [ height, 0 ] );
@@ -43,9 +43,9 @@ export default function SparkChart( props: Props ) {
 		<svg width={ width } height={ height }>
 			{ histogram.map( d => {
 				const barWidth = xScale.bandwidth();
-				const barHeight = yMax - ( yScale( getY( d ) ) ?? 0 );
+				const barHeight = height - ( yScale( getY( d ) ) ?? 0 );
 				const barX = xScale( getX( d ) );
-				const barY = yMax - barHeight;
+				const barY = height - barHeight;
 				return (
 					<Bar
 						key={ `bar-${ d.index }` }
