@@ -210,7 +210,7 @@ export default function List ( props: Props ) {
 									</td>
 									<td className={ `record-lift score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
 										{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
-										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ) ) }
+										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ), '%' ) }
 									</td>
 									<td className="record-meta">
 										<div className='record-meta__author'>
