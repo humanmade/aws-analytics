@@ -3,6 +3,7 @@ import React from 'react';
 import { max } from 'd3-array';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { Bar } from '@visx/shape';
+import { sprintf, _n } from '@wordpress/i18n';
 
 type Props = {
 	histogram: { index: number, count: number }[],
@@ -56,7 +57,16 @@ export default function SparkChart( props: Props ) {
 						height={ barHeight }
 						fill="var( --wp-admin-theme-color )"
 						fillOpacity={ 0.8 }
-					/>
+					>
+						<title>{
+							sprintf(
+								'%d %s on %s',
+								d.count,
+								_n( 'View', 'Views', d.count, 'altis' ),
+								( new Date( d.index ) ).toDateString()
+							)
+						}</title>
+					</Bar>
 				);
 			} ) }
 		</svg>
