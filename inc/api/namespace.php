@@ -668,7 +668,8 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		} else {
 			$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
 		}
-		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, '100x50' ) : '';
+
+		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
 
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
@@ -716,6 +717,23 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	wp_cache_set( $key, $response, 'altis', MINUTE_IN_SECONDS );
 
 	return $response;
+}
+
+/**
+ * Get the best thumbnail size available to use with Content Explorer.
+ *
+ * @return string
+ */
+function get_available_thumbnail_size() : string {
+	$sizes = [ 'post-thumbnail', 'thumbnail', '100x50' ];
+
+	foreach ( $sizes as $size ) {
+		if ( has_image_size( $size ) ) {
+			return $size;
+		}
+	}
+
+	return $size; // Return the fallback size, the last one.
 }
 
 

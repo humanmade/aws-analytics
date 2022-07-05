@@ -68,7 +68,7 @@ body.index-php {
 		right: 0;
 		background: url( '../../images/hero.jpg' ) no-repeat center center;
 		background-size: cover;
-    	filter: saturate(0%);
+		filter: saturate(0%);
 		background-blend-mode: multiply;
 		opacity: 0.2;
 	}
@@ -237,8 +237,6 @@ body.index-php {
 	position: relative;
 	font-size: .875rem;
 	padding: 0 $sidebar-padding 40px;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
 
 	.table-controls {
 		display: flex;
@@ -399,7 +397,7 @@ body.index-php {
 				button {
 					display: block;
 					border-radius: 0;
-					padding: 15px 30px;
+					padding: 15px 15px;
 
 					&:last-child {
 						border-bottom-left-radius: 10px;
@@ -443,7 +441,7 @@ body.index-php {
 		font-weight: 400;
 
 		border-collapse: separate;
-	    border-spacing: 0 1rem;
+		border-spacing: 0 1rem;
 
 		tr {
 			background: $color-light-grey;
@@ -469,7 +467,6 @@ body.index-php {
 		}
 
 		.record-thumbnail {
-			width: 110px;
 			padding: 0;
 			padding-right: 40px;
 
@@ -477,6 +474,7 @@ body.index-php {
 				width: 105px;
 				height: 47px;
 				object-fit: cover;
+				object-position: top center;
 				box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
 			}
 		}

@@ -2,6 +2,7 @@ import { Moment } from 'moment';
 
 export type InitialData = {
 	postTypes: {
+		singular_label: string,
 		label: string,
 		name: string,
 	}[],
