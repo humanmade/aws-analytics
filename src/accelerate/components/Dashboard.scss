@@ -68,7 +68,7 @@ body.index-php {
 		right: 0;
 		background: url( '../../images/hero.jpg' ) no-repeat center center;
 		background-size: cover;
-    	filter: saturate(0%);
+		filter: saturate(0%);
 		background-blend-mode: multiply;
 		opacity: 0.2;
 	}
@@ -443,7 +443,7 @@ body.index-php {
 		font-weight: 400;
 
 		border-collapse: separate;
-	    border-spacing: 0 1rem;
+		border-spacing: 0 1rem;
 
 		tr {
 			background: $color-light-grey;
