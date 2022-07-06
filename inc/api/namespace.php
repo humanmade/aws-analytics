@@ -671,6 +671,26 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
 
+		if ( $post->post_type === 'wp_block' ) {
+			$preview_url = sprintf(
+				get_home_url() . '?preview-block-id=%d&nonce=%s',
+				$post->ID,
+				wp_create_nonce( 'preview-block' )
+			);
+
+			$version = strtotime( $post->post_modified_gmt );
+
+			$thumbnail = add_query_arg(
+				[
+					'url' => urlencode( $preview_url ),
+					'width' => 100,
+					'selector' => 'altis-block-preview',
+					'version' => $version,
+				],
+				'https://eu.accelerate.altis.cloud/block-image'
+			);
+		}
+
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,

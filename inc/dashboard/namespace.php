@@ -26,6 +26,8 @@ function setup() {
 
 	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
+
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\block_preview_check' );
 }
 
 /**
@@ -140,4 +142,49 @@ function render_page() {
 function get_plugin_version() : string {
 	$data = get_plugin_data( __DIR__ . '../../../plugin.php' );
 	return $data['Version'] ?? '';
+}
+
+/**
+ * Intercept block preview requests for block thumbnail service requests.
+ *
+ * @param \WP_Query $query WP Query object.
+ *
+ * @return void
+ */
+function block_preview_check( \WP_Query $query ) : void {
+	$block_id = filter_input( INPUT_GET, 'preview-block-id', FILTER_SANITIZE_NUMBER_INT );
+	$nonce = filter_input( INPUT_GET, 'nonce' );
+
+	if ( empty( $block_id ) || empty( $nonce ) || ! $query->is_main_query() ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'manage_options' ) && ! wp_verify_nonce( $nonce, 'preview-block' ) ) {
+		return;
+	}
+
+	$query->set( 'p', $block_id );
+	$query->set( 'post_type', 'wp_block' );
+	$query->set( 'post_status', 'any' );
+
+	add_action( 'template_redirect', __NAMESPACE__ . '\\block_thumbnail_template_override' );
+}
+
+/**
+ * Override template to output a block preview markup.
+ *
+ * @return void
+ */
+function block_thumbnail_template_override() : void {
+	global $content_width;
+
+	get_header();
+	printf( '<style>.altis-block-preview { width: %spx; margin: 0 auto; }</style>', (int) $content_width );
+	echo '<div class="altis-block-preview">';
+
+	the_content();
+
+	echo '</div>';
+	get_footer();
+	exit;
 }
