@@ -4,6 +4,7 @@ declare interface Window {
 			name: string,
 			label: string,
 		}[],
+		version: string,
 		tracking: {
 			opt_in: boolean,
 		},

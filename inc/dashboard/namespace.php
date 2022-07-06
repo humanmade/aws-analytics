@@ -100,6 +100,7 @@ function load_dashboard() {
 
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
+		'version' => get_plugin_version(),
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
@@ -129,4 +130,14 @@ function render_page() {
 	}
 
 	echo '</div>';
+}
+
+/**
+ * Return plugin version.
+ *
+ * @return string
+ */
+function get_plugin_version() : string {
+	$data = get_plugin_data( __DIR__ . '../../../plugin.php' );
+	return $data['Version'] ?? '';
 }

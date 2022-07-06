@@ -32,6 +32,7 @@ export default class App extends React.Component<Props, State> {
 				<Dashboard
 					postTypes={ this.props.config.post_types }
 					user={ this.state.user }
+					version={ this.props.config.version }
 				/>
 			</main>
 		);
