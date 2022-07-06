@@ -282,3 +282,4 @@ export const removeElement = ( arr, index ) => {
 	newArray.splice( index, 1 );
 	return newArray;
 };
+
