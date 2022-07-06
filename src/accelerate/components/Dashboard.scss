@@ -172,6 +172,24 @@ body.index-php {
 	margin: 30px 0;
 }
 
+.WelcomeIntro {
+	padding: 0 5% 0;
+
+	h2 {
+		font-size: 1.7em;
+	}
+
+	p {
+		font-size: 1.2em;
+		padding: 0;
+		color: $color-dark-grey;
+
+		a {
+			padding: 0 0.5em;
+		}
+	}
+}
+
 .Welcome {
 	position: relative;
 	font-size: 16px;

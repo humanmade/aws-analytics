@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-import HeroChart from './HeroChart';
 import Header from './Header';
+import Welcome from './Welcome';
+import HeroChart from './HeroChart';
 import List from './List';
 import { Duration, InitialData } from '../../util';
 
@@ -21,6 +22,9 @@ export default function Dashboard( props: Props ) {
 		<div className="Dashboard">
 			<Header
 				version={ props.version }
+			/>
+			<Welcome
+				user={ props.user }
 			/>
 			<HeroChart
 				period={ period }
