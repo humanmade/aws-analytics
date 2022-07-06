@@ -675,7 +675,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			$preview_url = sprintf(
 				get_home_url() . '?preview-block-id=%d&nonce=%s',
 				$post->ID,
-				wp_create_nonce( 'preview-block' )
+				wp_create_nonce( 'preview-block-' . $post->ID )
 			);
 
 			$version = strtotime( $post->post_modified_gmt );

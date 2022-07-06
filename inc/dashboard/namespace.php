@@ -155,11 +155,12 @@ function block_preview_check( \WP_Query $query ) : void {
 	$block_id = filter_input( INPUT_GET, 'preview-block-id', FILTER_SANITIZE_NUMBER_INT );
 	$nonce = filter_input( INPUT_GET, 'nonce' );
 
-	if ( empty( $block_id ) || empty( $nonce ) || ! $query->is_main_query() ) {
-		return;
-	}
-
-	if ( ! current_user_can( 'manage_options' ) && ! wp_verify_nonce( $nonce, 'preview-block' ) ) {
+	if (
+		empty( $block_id )
+		|| empty( $nonce )
+		|| ! $query->is_main_query()
+		|| ! wp_verify_nonce( $nonce, 'preview-block-' . $block_id )
+	) {
 		return;
 	}
 
