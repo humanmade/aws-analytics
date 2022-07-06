@@ -515,18 +515,26 @@ body.index-php {
 		}
 
 		.record-traffic {
-			position: relative;
 
-			.traffic-bar {
-				position: absolute;
-				content: ' ';
-				left: 0;
-				top: 11px;
-				bottom: 11px;
-				right: 20%;
-				color: $dark-blue;
-				background: fade-out( $active-blue, 0.8 );
-				border-radius: 0 4px 4px 0;
+			> div {
+				display: flex;
+				align-items: center;
+			}
+
+			span {
+				text-align: right;
+				margin-right: 20px;
+				font-size: 0.65rem;
+				text-transform: uppercase;
+			}
+
+			strong {
+				display: block;
+				font-size: 0.825rem;
+			}
+
+			rect {
+				fill: $active-blue;
 			}
 		}
 

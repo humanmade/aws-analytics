@@ -298,8 +298,8 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'field' => 'event_timestamp',
 				'interval' => $resolution,
 				'extended_bounds' => [
-					'min' => sprintf( '%d000', $start ),
-					'max' => sprintf( '%d999', min( $end, time() ) ), // Don't show beyond current time.
+					'min' => (int) sprintf( '%d000', $start ),
+					'max' => (int) sprintf( '%d999', min( $end, time() ) ), // Don't show beyond current time.
 				],
 			],
 			'aggregations' => [
@@ -317,8 +317,8 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'field' => 'event_timestamp',
 				'interval' => $resolution,
 				'extended_bounds' => [
-					'min' => sprintf( '%d000', $start ),
-					'max' => sprintf( '%d999', min( $end, time() ) ),
+					'min' => (int) sprintf( '%d000', $start ),
+					'max' => (int) sprintf( '%d999', min( $end, time() ) ),
 				],
 			],
 		],
@@ -506,8 +506,8 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			'field' => 'event_timestamp',
 			'interval' => DAY_IN_SECONDS * 1000, // Days.
 			'extended_bounds' => [
-				'min' => sprintf( '%d000', $start ),
-				'max' => sprintf( '%d999', $end ),
+				'min' => (int) sprintf( '%d000', $start ),
+				'max' => (int) sprintf( '%d999', $end ),
 			],
 		],
 	];
