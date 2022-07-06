@@ -7,6 +7,7 @@ $sidebar-padding: 5%;
 $color-grey: #cbc9c9;
 $color-light-grey: #eef0f4;
 $color-dark-grey: #7B7B7B;
+$color-light-grey-bg: #F5F6F8;
 
 // Override certain WP-specific pieces
 body.index-php {
@@ -48,7 +49,31 @@ body.index-php {
 
 // Dashboard
 .Dashboard {
-	width: 100;
+	width: 100%;
+
+}
+
+.Header {
+	background-color: $color-light-grey-bg;
+	border-bottom: 1px solid $color-light-grey;
+	padding: 15px 5% 15px;
+	display: flex;
+	justify-content: space-between;
+
+	.Logo {
+		display: flex;
+	}
+
+	.Beta {
+		font-size: 0.7em;
+		background-color: #000;
+		color: #fff;
+		border-radius: 10%;
+		padding: 0 3px;
+		height: 17px;
+		margin-left: 5px;
+	}
+
 }
 
 .Hero {
@@ -145,6 +170,24 @@ body.index-php {
 .HeroChart {
 	position: relative;
 	margin: 30px 0;
+}
+
+.WelcomeIntro {
+	padding: 0 5% 0;
+
+	h2 {
+		font-size: 1.7em;
+	}
+
+	p {
+		font-size: 1.2em;
+		padding: 0;
+		color: $color-dark-grey;
+
+		a {
+			padding: 0 0.5em;
+		}
+	}
 }
 
 .Welcome {

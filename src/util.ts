@@ -16,6 +16,7 @@ export type InitialData = {
 		canViewInsights: boolean,
 	},
 	welcomed: boolean,
+	version: string,
 }
 
 export interface StatGroup {

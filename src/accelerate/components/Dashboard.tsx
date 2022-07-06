@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import Header from './Header';
+import Welcome from './Welcome';
 import HeroChart from './HeroChart';
 import List from './List';
 import { Duration, InitialData } from '../../util';
@@ -9,7 +11,8 @@ import './Dashboard.scss';
 interface Props {
 	postTypes: InitialData['postTypes'],
 	tracking: InitialData['tracking'],
-	user: InitialData['user'],
+	user: InitialData[ 'user' ],
+	version: InitialData['version'],
 }
 
 export default function Dashboard( props: Props ) {
@@ -17,6 +20,12 @@ export default function Dashboard( props: Props ) {
 
 	return (
 		<div className="Dashboard">
+			<Header
+				version={ props.version }
+			/>
+			<Welcome
+				user={ props.user }
+			/>
 			<HeroChart
 				period={ period }
 			/>
