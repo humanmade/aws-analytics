@@ -164,6 +164,17 @@ function block_preview_check( \WP_Query $query ) : void {
 		return;
 	}
 
+	/**
+	 * Filters the ability of using block thumbnail API / service.
+	 *
+	 * @param int $block_id Block ID to preview
+	 */
+	$allow_block_thumbnails = apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $block_id );
+
+	if ( ! $allow_block_thumbnails ) {
+		return;
+	}
+
 	$query->set( 'p', $block_id );
 	$query->set( 'post_type', 'wp_block' );
 	$query->set( 'post_status', 'any' );

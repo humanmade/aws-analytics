@@ -671,7 +671,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
 
-		if ( $post->post_type === 'wp_block' ) {
+		if ( $post->post_type === 'wp_block' && apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $post->ID ) ) {
 			$preview_url = sprintf(
 				get_home_url() . '?preview-block-id=%d&nonce=%s',
 				$post->ID,
