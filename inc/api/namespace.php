@@ -634,9 +634,9 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		$processed[ intval( $id ) ] = $item;
 	}
 
-	// Ensure reusable blocks are shown.
+	// Ensure reusable blocks and XBs are shown.
 	$post_types = get_post_types( [ 'show_in_menu' => true ] );
-	$post_types = array_merge( [ 'wp_block' ], $post_types );
+	$post_types = array_merge( [ 'wp_block', 'xb' ], $post_types );
 	$post_types = array_unique( $post_types );
 
 	$query_args = [
