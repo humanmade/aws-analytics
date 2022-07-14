@@ -15,6 +15,12 @@ import SparkChart from './SparkChart';
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
+let loaderProps = {
+	speed: 2,
+	foregroundColor: "#e8e8e3",
+	backgroundColor: "#f6f6ef"
+};
+
 type Props = {
 	postTypes: InitialData['postTypes'],
 	user: InitialData['user'],
@@ -174,21 +180,17 @@ export default function List ( props: Props ) {
 							<tr>
 								<td className="record-thumbnail">
 									<ContentLoader
-										speed={ 2 }
+										{ ...loaderProps }
 										width={105}
 										height={ 47 }
-										foregroundColor="#e8e8e3"
-										backgroundColor="#f6f6ef"
 										>
 										<rect x={0} y={0} rx="5" ry="5" width={105} height={47} />
 									</ContentLoader>
 								</td>
 								<td>
 									<ContentLoader
-										speed={ 2 }
+										{ ...loaderProps }
 										height={46}
-										foregroundColor="#e8e8e3"
-										backgroundColor="#f6f6ef"
 										>
 										<rect x={0} y={10} rx="5" ry="5" width={50} height={6} />
 										<rect x={0} y={30} rx="5" ry="5" width={100} height={6} />
@@ -196,10 +198,8 @@ export default function List ( props: Props ) {
 								</td>
 								<td>
 									<ContentLoader
-										speed={ 2 }
+										{ ...loaderProps }
 										height={46}
-										foregroundColor="#e8e8e3"
-										backgroundColor="#f6f6ef"
 										>
 										<rect x={0} y={10} rx="5" ry="5" width={100} height={6} />
 										<rect x={0} y={30} rx="5" ry="5" width={100} height={6} />
@@ -214,10 +214,8 @@ export default function List ( props: Props ) {
 								<td></td>
 								<td>
 									<ContentLoader
-										speed={ 2 }
+										{ ...loaderProps }
 										height={ 50 }
-										foregroundColor="#e8e8e3"
-										backgroundColor="#f6f6ef"
 										>
 										<circle cx={ 12 } cy={12} r="12" />
 										<rect x={0} y={40} rx="5" ry="5" width={120} height={6} />
