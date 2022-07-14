@@ -38,7 +38,7 @@ const getTooltip = ( data : Datum, period : { interval: string } ) => {
 	let dateString = moment( date ).format( 'MMM Do' );
 
 	if ( period.interval === '1h' ) {
-		dateString = `${ ( '0' + ( date.getHours() - 1 ) ).replace( /0(\d\d)/, '$1' ) }:00`;
+		dateString = `${ ( '0' + date.getHours() ).replace( /0(\d\d)/, '$1' ) }:00`;
 	}
 
 	return (
@@ -88,8 +88,14 @@ export default function HeroChart( props: Props ) {
 		nice: true,
 	} );
 
-	xScale.range( [ 0, outerWidth - 250 ] );
-	yScale.range( [ 250, 0 ] );
+	const graphHeight = 250;
+	const offsetleft = 150;
+	const graphPaddingX = 30;
+	const graphPaddingY = 50;
+	const outerWidthWithOffset = Math.max( 0, outerWidth - graphHeight );
+
+	xScale.range( [ 0, outerWidthWithOffset ] );
+	yScale.range( [ graphHeight, 0 ] );
 
 	const {
 		showTooltip,
@@ -99,7 +105,6 @@ export default function HeroChart( props: Props ) {
 		tooltipLeft = 0,
 	} = useTooltip();
 
-	const offsetleft = 150;
 
 	const handleTooltip = useCallback(
 		( event: React.TouchEvent<SVGGElement> | React.MouseEvent<SVGGElement> ) => {
@@ -123,8 +128,8 @@ export default function HeroChart( props: Props ) {
 
 	return (
 		<div className="HeroChart" id="hero-chart">
-			<svg width="100%" height={ 350 }>
-				<MarkerCircle id="marker-circle" fill="#333" size={2} refX={2} />
+			<svg width="100%" height={ graphHeight + ( graphPaddingY * 2 ) }>
+				<MarkerCircle id="marker-circle" fill="#333" size={ 2 } refX={ 2 } />
 				<LinearGradient
 					from="var( --wp-admin-theme-color )"
 					to="rgba( 255, 255, 255, 0 )"
@@ -132,14 +137,14 @@ export default function HeroChart( props: Props ) {
 				/>
 				<Group
 					left={ offsetleft }
-					top={ 25 }
-					height={ 300 }
+					top={ graphPaddingY / 2 }
+					height={ graphHeight + graphPaddingY }
 				>
 					<AxisBottom
 						hideAxisLine={ true }
 						hideTicks={ true }
 						scale={ xScale }
-						top={ 260 }
+						top={ graphHeight + 10 }
 						numTicks={ 7 }
 						tickLabelProps={ () => ( {
 							verticalAnchor: 'middle',
@@ -154,7 +159,7 @@ export default function HeroChart( props: Props ) {
 						hideTicks={ true }
 						hideZero={ true }
 						scale={ yScale }
-						left={ -30 }
+						left={ -graphPaddingX }
 						numTicks={ 4 }
 						label={ __( 'Visitor Count', 'altis-analytics' ) }
 						labelOffset={ 50 }
@@ -179,9 +184,9 @@ export default function HeroChart( props: Props ) {
 					<GridRows
 						scale={ yScale }
 						stroke="rgba( 0, 0, 0, .2 )"
-						width={ outerWidth - 190 }
+						width={ outerWidthWithOffset + ( graphPaddingX * 2 ) }
 						numTicks={ 4 }
-						left={ -30 }
+						left={ -graphPaddingX }
 					/>
 					<LinePath
 						curve={ curveMonotoneX }
@@ -208,8 +213,8 @@ export default function HeroChart( props: Props ) {
 					<Bar
 						x={ 0 }
 						y={ 0 }
-						width={ outerWidth - 250 || 0 }
-						height={ 250 }
+						width={ outerWidthWithOffset }
+						height={ graphHeight }
 						fill="transparent"
 						onMouseLeave={ () => hideTooltip() }
 					/>
@@ -217,8 +222,8 @@ export default function HeroChart( props: Props ) {
 						scale={ xScale }
 						x={ 0 }
 						y={ 0 }
-						width={ outerWidth - 250 || 0 }
-						height={ 250 }
+						width={ outerWidthWithOffset }
+						height={ graphHeight }
 						stroke="transparent"
 						strokeWidth={ 2 }
 						fill="transparent"

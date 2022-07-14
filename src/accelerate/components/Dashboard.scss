@@ -23,11 +23,6 @@ body.index-php {
 		padding-left: 0;
 	}
 
-	// Sidebar accent
-	ul#adminmenu a.wp-has-current-submenu::after, ul#adminmenu > li.current > a.current::after {
-		border-right-color: #445471;
-	}
-
 	#wpbody-content {
 		padding-bottom: 0;
 	}
@@ -169,7 +164,7 @@ body.index-php {
 
 .HeroChart {
 	position: relative;
-	margin: 30px 0;
+	margin: 40px 0;
 }
 
 .WelcomeIntro {
@@ -177,16 +172,14 @@ body.index-php {
 
 	h2 {
 		font-size: 1.7em;
+		margin-bottom: 0;
 	}
 
 	p {
+		margin-top: 0;
 		font-size: 1.2em;
 		padding: 0;
 		color: $color-dark-grey;
-
-		a {
-			padding: 0 0.5em;
-		}
 	}
 }
 
@@ -574,10 +567,6 @@ body.index-php {
 			strong {
 				display: block;
 				font-size: 0.825rem;
-			}
-
-			rect {
-				fill: $active-blue;
 			}
 		}
 
