@@ -634,8 +634,13 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		$processed[ intval( $id ) ] = $item;
 	}
 
+	// Ensure reusable blocks are shown.
+	$post_types = get_post_types( [ 'show_in_menu' => true ] );
+	$post_types = array_merge( [ 'wp_block' ], $post_types );
+	$post_types = array_unique( $post_types );
+
 	$query_args = [
-		'post_type' => get_post_types( [ 'show_in_menu' => true ] ),
+		'post_type' => $post_types,
 		'post_status' => 'publish',
 		'post__in' => array_keys( $processed ),
 		'orderby' => 'post__in',
