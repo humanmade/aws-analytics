@@ -87,9 +87,7 @@ function enqueue_assets( string $entrypoint ) {
 			"{$entrypoint}.css",
 			[
 				'handle' => "altis-analytics-{$entrypoint}",
-				'dependencies' => [
-					'wp-components',
-				],
+				'dependencies' => [],
 			]
 		);
 	}
