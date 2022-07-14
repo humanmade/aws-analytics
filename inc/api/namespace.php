@@ -48,10 +48,6 @@ function register_endpoints() {
 		],
 		'interval' => [
 			'type' => 'string',
-			'enum' => [
-				'day',
-				'hour',
-			],
 			'default' => 'day',
 		],
 	];
@@ -238,7 +234,7 @@ function get_query( array $events, int $start, int $end, array $aggs, ?Filter $f
  *
  * @param int $start The start timestamp.
  * @param int $end The end timestamp.
- * @param string $resolution Resolution for histogram data.
+ * @param string|int $resolution Resolution for histogram data.
  * @param Filter|null $filter Query filter object.
  * @return array|WP_error
  */
@@ -301,6 +297,10 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 			'date_histogram' => [
 				'field' => 'event_timestamp',
 				'interval' => $resolution,
+				'extended_bounds' => [
+					'min' => (int) sprintf( '%d000', $start ),
+					'max' => (int) sprintf( '%d999', min( $end, time() ) ), // Don't show beyond current time.
+				],
 			],
 			'aggregations' => [
 				'user' => [
@@ -314,8 +314,12 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 		],
 		'by_date_bucket' => [
 			'date_histogram' => [
-				'field' => 'arrival_timestamp',
+				'field' => 'event_timestamp',
 				'interval' => $resolution,
+				'extended_bounds' => [
+					'min' => (int) sprintf( '%d000', $start ),
+					'max' => (int) sprintf( '%d999', min( $end, time() ) ),
+				],
 			],
 		],
 	];
@@ -497,6 +501,17 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		],
 	];
 
+	$histogram_agg = [
+		'histogram' => [
+			'field' => 'event_timestamp',
+			'interval' => DAY_IN_SECONDS * 1000, // Days.
+			'extended_bounds' => [
+				'min' => (int) sprintf( '%d000', $start ),
+				'max' => (int) sprintf( '%d999', $end ),
+			],
+		],
+	];
+
 	$aggs = [
 		'posts' => [
 			'filter' => [
@@ -508,10 +523,29 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 						'field' => 'attributes.postId.keyword',
 						'size' => 10000,
 					],
+					'aggregations' => [
+						'histogram' => $histogram_agg,
+					],
 				],
 			],
 		],
 		'blocks' => [
+			'filter' => [
+				'term' => [ 'event_type.keyword' => 'blockView' ],
+			],
+			'aggregations' => [
+				'ids' => [
+					'terms' => [
+						'field' => 'attributes.blockId.keyword',
+						'size' => 10000,
+					],
+					'aggregations' => [
+						'histogram' => $histogram_agg,
+					],
+				],
+			],
+		],
+		'xbs' => [
 			'filter' => [
 				'terms' => [ 'event_type.keyword' => [ 'experienceView', 'conversion' ] ],
 			],
@@ -530,6 +564,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 							'filter' => [ 'term' => [ 'event_type.keyword' => 'conversion' ] ],
 							'aggregations' => $lift_aggs,
 						],
+						'histogram' => $histogram_agg,
 					],
 				],
 			],
@@ -537,7 +572,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	];
 
 	$query = get_query(
-		[ 'pageView', 'experienceView', 'conversion' ],
+		[ 'pageView', 'blockView', 'experienceView', 'conversion' ],
 		$start,
 		$end,
 		$aggs,
@@ -567,8 +602,9 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 	$posts = $res['aggregations']['posts']['ids']['buckets'] ?? [];
 	$blocks = $res['aggregations']['blocks']['ids']['buckets'] ?? [];
+	$xbs = $res['aggregations']['xbs']['ids']['buckets'] ?? [];
 
-	$all = array_merge( $posts, $blocks );
+	$all = array_merge( $posts, $blocks, $xbs );
 	$all = array_map( function ( $bucket ) {
 		$bucket['total'] = $bucket['doc_count'];
 		if ( isset( $bucket['views'] ) ) {
@@ -626,6 +662,15 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	$query = new WP_Query( $query_args );
 
 	foreach ( $query->posts as $i => $post ) {
+		$thumbnail_id = 0;
+		if ( $post->post_type === 'attachment' ) {
+			$thumbnail_id = $post->ID;
+		} else {
+			$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
+		}
+
+		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
+
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,
@@ -641,7 +686,9 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'name' => get_the_author_meta( 'display_name', $post->post_author ),
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
+			'thumbnail' => $thumbnail ?: '',
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
+			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ),
 		];
 
 		// Get lift.
@@ -670,6 +717,23 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	wp_cache_set( $key, $response, 'altis', MINUTE_IN_SECONDS );
 
 	return $response;
+}
+
+/**
+ * Get the best thumbnail size available to use with Content Explorer.
+ *
+ * @return string
+ */
+function get_available_thumbnail_size() : string {
+	$sizes = [ 'post-thumbnail', 'thumbnail', '100x50' ];
+
+	foreach ( $sizes as $size ) {
+		if ( has_image_size( $size ) ) {
+			return $size;
+		}
+	}
+
+	return $size; // Return the fallback size, the last one.
 }
 
 

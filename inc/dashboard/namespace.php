@@ -20,9 +20,29 @@ const STYLE_ID = 'altis-analytics-ui';
  */
 function setup() {
 	// Queue up Altis Accelerate Dashboard replacement for standard dashboard.
-	if ( ! defined( 'ALTIS_ACCELERATE_DASHBOARD' ) || ALTIS_ACCELERATE_DASHBOARD ) {
-		add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
+	if ( defined( 'ALTIS_ACCELERATE_DASHBOARD' ) && ! ALTIS_ACCELERATE_DASHBOARD ) {
+		return;
 	}
+
+	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
+}
+
+/**
+ * Adds the regular Dashboard Widgets view as a subpage of the Dashboard menu.
+ *
+ * @return void
+ */
+function add_widgets_submenu() : void {
+	add_submenu_page(
+		'index.php',
+		__( 'Dashboard Widgets' ),
+		__( 'Widgets' ),
+		'read',
+		'index.php?widgets=1',
+		'',
+		1
+	);
 }
 
 /**
@@ -33,6 +53,11 @@ function setup() {
 function load_dashboard() {
 	// Don't replace network admin.
 	if ( is_network_admin() ) {
+		return;
+	}
+
+	// Support default dashboard on subpage of dashboard menu.
+	if ( isset( $_GET['widgets'] ) ) {
 		return;
 	}
 
@@ -66,6 +91,7 @@ function load_dashboard() {
 		return [
 			'name' => $post_type->name,
 			'label' => $post_type->labels->name,
+			'singular_label' => $post_type->labels->singular_name,
 		];
 	}, $post_types );
 
@@ -74,6 +100,7 @@ function load_dashboard() {
 
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
+		'version' => get_plugin_version(),
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
@@ -103,4 +130,14 @@ function render_page() {
 	}
 
 	echo '</div>';
+}
+
+/**
+ * Return plugin version.
+ *
+ * @return string
+ */
+function get_plugin_version() : string {
+	$data = get_plugin_data( __DIR__ . '../../../plugin.php' );
+	return $data['Version'] ?? '';
 }

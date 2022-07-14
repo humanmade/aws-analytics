@@ -445,6 +445,23 @@ function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int
 }
 
 /**
+ * Takes the 'buckets' from a historgam aggregation and normalises
+ * it to something easier to work with in JS.
+ *
+ * @param array $histogram The raw histogram buckets from ES.
+ * @return array
+ */
+function normalise_histogram( array $histogram ) : array {
+	$histogram = array_map( function ( array $bucket ) {
+		return [
+			'index' => intval( $bucket['key'] ),
+			'count' => $bucket['doc_count'],
+		];
+	}, $histogram );
+	return array_values( $histogram );
+}
+
+/**
  * Merge aggregations from ES results.
  *
  * @todo work out how to merge percentiles & percentile ranks.
