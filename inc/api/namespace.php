@@ -635,7 +635,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	}
 
 	// Ensure reusable blocks and XBs are shown.
-	$post_types = get_post_types( [ 'show_in_menu' => true ] );
+	$post_types = get_post_types( [ 'public' => true ] );
 	$post_types = array_merge( [ 'wp_block', 'xb' ], $post_types );
 	$post_types = array_unique( $post_types );
 
@@ -680,19 +680,27 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	// Get all posts sorted by views.
 	$query = new WP_Query( $query_args );
 
-	// Get all remaining posts not in the list to complete the data set.
-	$query_args_not_in = array_merge( $default_query_args, [
-		'paged' => max( 1, $default_query_args['paged'] - $query->max_num_pages ),
-		'post__not_in' => $post_ids,
-	] );
-	$query_not_in = new WP_Query( $query_args_not_in );
+	// Get all remaining posts not in the list to complete the data set if we have some data.
+	// If $post_ids is empty post__in is ignored.
+	if ( ! empty( $post_ids ) ) {
+		$page = max( 1, $default_query_args['paged'] - $query->max_num_pages ) - 1; // Zero indexed page value.
+		$base_offset = $query->found_posts % $posts_per_page;
+		$query_args_not_in = array_merge( $default_query_args, [
+			// Make sure our additional query is paging from the end of the initial query.
+			'offset' => ( $page * $posts_per_page ) + ( $page === 0 ? 0 : $base_offset ),
+			'posts_per_page' => $posts_per_page - ( $page === 0 ? $base_offset : 0 ),
+			'post__not_in' => $post_ids,
+		] );
+		$query_not_in = new WP_Query( $query_args_not_in );
 
-	// Combine queries.
-	$query->found_posts += $query_not_in->found_posts;
-	$query->max_num_pages = ceil( $query->found_posts / $posts_per_page );
-	if ( $query->post_count < $posts_per_page ) {
-		$query->post_count += $query_not_in->post_count;
-		$query->posts += $query_not_in->posts;
+		// Combine queries.
+		$query->found_posts += $query_not_in->found_posts;
+		$query->max_num_pages = ceil( $query->found_posts / $posts_per_page );
+		if ( $query->post_count < $posts_per_page ) {
+			$query->post_count += $query_not_in->post_count;
+			$query->posts = array_merge( $query->posts, $query_not_in->posts );
+			$query->posts = array_values( $query->posts );
+		}
 	}
 
 	foreach ( $query->posts as $i => $post ) {
