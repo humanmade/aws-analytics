@@ -26,6 +26,8 @@ function setup() {
 
 	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
+
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\block_preview_check' );
 }
 
 /**
@@ -147,4 +149,81 @@ function get_plugin_version() : string {
 		return Altis\Accelerate\VERSION;
 	}
 	return '';
+}
+
+/**
+ * Intercept block preview requests for block thumbnail service requests.
+ *
+ * @param \WP_Query $query WP Query object.
+ *
+ * @return void
+ */
+function block_preview_check( \WP_Query $query ) : void {
+	$block_id = filter_input( INPUT_GET, 'preview-block-id', FILTER_SANITIZE_NUMBER_INT );
+	$hmac = filter_input( INPUT_GET, 'key' );
+
+	if (
+		! $query->is_main_query()
+		|| empty( $block_id )
+		|| empty( $hmac )
+		|| $hmac !== get_block_thumbnail_request_hmac( $block_id )
+	) {
+		return;
+	}
+
+	if ( ! is_block_thumbnail_allowed( $block_id ) ) {
+		return;
+	}
+
+	$query->set( 'p', $block_id );
+	$query->set( 'post_type', 'wp_block' );
+	$query->set( 'post_status', 'any' );
+
+	add_action( 'template_redirect', __NAMESPACE__ . '\\block_thumbnail_template_override' );
+}
+
+/**
+ * Return whether block thumbnail functionality is allowed.
+ *
+ * @param int $block_id Block ID.
+ *
+ * @return boolean
+ */
+function is_block_thumbnail_allowed( int $block_id = null ) : bool {
+	/**
+	 * Filters the ability of using block thumbnail API / service.
+	 *
+	 * @param int $block_id Block ID to preview
+	 */
+	return (bool) apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $block_id );
+}
+
+/**
+ * Generated an HMAC for a block preview thumbnail request.
+ *
+ * @param integer $block_post_id Post ID of the block to preview.
+ *
+ * @return string
+ */
+function get_block_thumbnail_request_hmac( int $block_post_id ) : string {
+	return hash_hmac( 'md5', $block_post_id, AUTH_KEY );
+}
+
+/**
+ * Override template to output a block preview markup.
+ *
+ * @return void
+ */
+function block_thumbnail_template_override() : void {
+	global $content_width;
+
+	get_header();
+	printf( '<style>.altis-block-preview { width: %spx; margin: 0 auto; }</style>', (int) $content_width );
+	echo '<div class="altis-block-preview">';
+
+	the_content();
+
+	echo '</div>';
+	get_footer();
+	exit;
 }
