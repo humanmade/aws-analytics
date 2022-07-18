@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics\API;
 
+use Altis\Analytics\Dashboard;
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Utils;
 use WP_Error;
@@ -712,6 +713,28 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		}
 
 		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
+
+		// Get block thumbnail from screen grab API.
+		if ( $post->post_type === 'wp_block' && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
+			$preview_url = sprintf(
+				'%s?preview-block-id=%d&key=%s',
+				get_home_url(),
+				$post->ID,
+				Dashboard\get_block_thumbnail_request_hmac( $post->ID )
+			);
+
+			$version = strtotime( $post->post_modified_gmt );
+
+			$thumbnail = add_query_arg(
+				[
+					'url' => urlencode( $preview_url ),
+					'width' => 100,
+					'selector' => 'altis-block-preview',
+					'version' => $version,
+				],
+				'https://eu.accelerate.altis.cloud/block-image'
+			);
+		}
 
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
