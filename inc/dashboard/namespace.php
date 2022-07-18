@@ -164,12 +164,8 @@ function block_preview_check( \WP_Query $query ) : void {
 		return;
 	}
 
-	/**
-	 * Filters the ability of using block thumbnail API / service.
-	 *
-	 * @param int $block_id Block ID to preview
-	 */
-	$allow_block_thumbnails = apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $block_id );
+
+	$allow_block_thumbnails = is_block_thumbnails_allowed( $block_id );
 
 	if ( ! $allow_block_thumbnails ) {
 		return;
@@ -180,6 +176,22 @@ function block_preview_check( \WP_Query $query ) : void {
 	$query->set( 'post_status', 'any' );
 
 	add_action( 'template_redirect', __NAMESPACE__ . '\\block_thumbnail_template_override' );
+}
+
+/**
+ * Return whether block thumbnail functionality is allowed.
+ *
+ * @param int $block_id Block ID.
+ *
+ * @return boolean
+ */
+function is_block_thumbnails_allowed( int $block_id = null ) : bool {
+	/**
+	 * Filters the ability of using block thumbnail API / service.
+	 *
+	 * @param int $block_id Block ID to preview
+	 */
+	return (bool) apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $block_id );
 }
 
 /**
