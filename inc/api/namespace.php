@@ -767,7 +767,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
  * @return string
  */
 function get_available_thumbnail_size() : string {
-	$sizes = [ 'post-thumbnail', 'thumbnail', '100x50' ];
+	$sizes = [ 'post-thumbnail', 'thumbnail', 'medium', 'medium_large', 'full' ];
 
 	foreach ( $sizes as $size ) {
 		if ( has_image_size( $size ) ) {
@@ -775,7 +775,7 @@ function get_available_thumbnail_size() : string {
 		}
 	}
 
-	return $size; // Return the fallback size, the last one.
+	return $size; // Return the fallback size.
 }
 
 
