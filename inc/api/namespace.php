@@ -716,9 +716,10 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 		if ( $post->post_type === 'wp_block' && Dashboard\is_block_thumbnails_allowed( $post->ID ) ) {
 			$preview_url = sprintf(
-				get_home_url() . '?preview-block-id=%d&nonce=%s',
+				'%s?preview-block-id=%d&key=%s',
+				get_home_url(),
 				$post->ID,
-				wp_create_nonce( 'preview-block-' . $post->ID )
+				Dashboard\get_block_thumbnail_request_hmac( $post->ID )
 			);
 
 			$version = strtotime( $post->post_modified_gmt );

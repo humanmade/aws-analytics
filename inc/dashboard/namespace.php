@@ -156,17 +156,16 @@ function get_plugin_version() : string {
  */
 function block_preview_check( \WP_Query $query ) : void {
 	$block_id = filter_input( INPUT_GET, 'preview-block-id', FILTER_SANITIZE_NUMBER_INT );
-	$nonce = filter_input( INPUT_GET, 'nonce' );
+	$hmac = filter_input( INPUT_GET, 'key' );
 
 	if (
-		empty( $block_id )
-		|| empty( $nonce )
-		|| ! $query->is_main_query()
-		|| ! wp_verify_nonce( $nonce, 'preview-block-' . $block_id )
+		! $query->is_main_query()
+		|| empty( $block_id )
+		|| empty( $hmac )
+		|| $hmac !== get_block_thumbnail_request_hmac( $block_id )
 	) {
 		return;
 	}
-
 
 	$allow_block_thumbnails = is_block_thumbnails_allowed( $block_id );
 
@@ -195,6 +194,17 @@ function is_block_thumbnails_allowed( int $block_id = null ) : bool {
 	 * @param int $block_id Block ID to preview
 	 */
 	return (bool) apply_filters( 'altis.accelerate.allow_block_thumbnails', true, $block_id );
+}
+
+/**
+ * Generated an HMAC for a block preview thumbnail request.
+ *
+ * @param integer $block_post_id Post ID of the block to preview.
+ *
+ * @return string
+ */
+function get_block_thumbnail_request_hmac( int $block_post_id ) : string {
+	return hash_hmac( 'md5', $block_post_id, AUTH_KEY );
 }
 
 /**
