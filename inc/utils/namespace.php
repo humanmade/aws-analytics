@@ -118,6 +118,8 @@ function enqueue_assets( string $entrypoint ) {
 			],
 		]
 	);
+
+	wp_enqueue_style( 'wp-components' );
 }
 
 /**

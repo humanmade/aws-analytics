@@ -635,32 +635,74 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		$processed[ intval( $id ) ] = $item;
 	}
 
-	$query_args = [
-		'post_type' => get_post_types( [ 'show_in_menu' => true ] ),
+	// Ensure reusable blocks and XBs are shown.
+	$post_types = get_post_types( [ 'public' => true ] );
+	$post_types = array_merge( [ 'wp_block', 'xb' ], $post_types );
+	$post_types = array_unique( $post_types );
+
+	$post_ids = array_keys( $processed );
+
+	$posts_per_page = 25;
+	$default_query_args = [
+		'post_type' => $post_types,
 		'post_status' => 'publish',
-		'post__in' => array_keys( $processed ),
-		'orderby' => 'post__in',
-		'order' => 'asc',
-		'posts_per_page' => 25,
+		'posts_per_page' => $posts_per_page,
+		'paged' => 1,
+		'ignore_sticky_posts' => true,
 	];
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->search ) {
-			$query_args['s'] = $filter->search;
-			unset( $query_args['orderby'] ); // ElasticPress does not support ordering by post__in.
+			$default_query_args['s'] = $filter->search;
 		}
 		if ( $filter->type ) {
-			$query_args['post_type'] = $filter->type;
+			$default_query_args['post_type'] = $filter->type;
 		}
 		if ( $filter->user ) {
-			$query_args['author'] = $filter->user;
+			$default_query_args['author'] = $filter->user;
 		}
 		if ( $filter->page ) {
-			$query_args['paged'] = $filter->page;
+			$default_query_args['paged'] = $filter->page;
 		}
 	}
 
+	$query_args = array_merge( $default_query_args, [
+		'post__in' => $post_ids,
+		'orderby' => 'post__in',
+		'order' => 'asc',
+	] );
+
+	// ElasticPress does not support ordering by post__in so remove if we're searching.
+	if ( ! empty( $filter ) && $filter->search ) {
+		unset( $query_args['orderby'] );
+		unset( $query_args['order'] );
+	}
+
+	// Get all posts sorted by views.
 	$query = new WP_Query( $query_args );
+
+	// Get all remaining posts not in the list to complete the data set if we have some data.
+	// If $post_ids is empty post__in is ignored.
+	if ( ! empty( $post_ids ) ) {
+		$page = max( 1, $default_query_args['paged'] - $query->max_num_pages ) - 1; // Zero indexed page value.
+		$base_offset = $query->found_posts % $posts_per_page;
+		$query_args_not_in = array_merge( $default_query_args, [
+			// Make sure our additional query is paging from the end of the initial query.
+			'offset' => ( $page * $posts_per_page ) + ( $page === 0 ? 0 : $base_offset ),
+			'posts_per_page' => $posts_per_page - ( $page === 0 ? $base_offset : 0 ),
+			'post__not_in' => $post_ids,
+		] );
+		$query_not_in = new WP_Query( $query_args_not_in );
+
+		// Combine queries.
+		$query->found_posts += $query_not_in->found_posts;
+		$query->max_num_pages = ceil( $query->found_posts / $posts_per_page );
+		if ( $query->post_count < $posts_per_page ) {
+			$query->post_count += $query_not_in->post_count;
+			$query->posts = array_merge( $query->posts, $query_not_in->posts );
+			$query->posts = array_values( $query->posts );
+		}
+	}
 
 	foreach ( $query->posts as $i => $post ) {
 		$thumbnail_id = 0;

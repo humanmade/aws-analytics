@@ -140,8 +140,11 @@ function render_page() {
  * @return string
  */
 function get_plugin_version() : string {
-	$data = get_plugin_data( __DIR__ . '../../../plugin.php' );
-	return $data['Version'] ?? '';
+	// Only show version if this is embedded in the accelerate plugin.
+	if ( defined( 'Altis\\Accelerate\\VERSION' ) ) {
+		return Altis\Accelerate\VERSION;
+	}
+	return '';
 }
 
 /**

@@ -13,11 +13,13 @@ export default function Welcome( props: Props ) {
 				{ sprintf( __( 'Welcome %s', 'altis' ), props.user.name ) }
 			</h2>
 			<p>
-				{ __( 'This is the Altis dashboard -- Your standard WordPress dashboard & widgets are still', 'altis' ) }
+				{ __( 'This is the Altis dashboard', 'altis' ) }
+				{ '  — ' }
 				<a href='?widgets=true'>
-					{ __( 'available here', 'altis' ) }
+					{ __( 'your standard WordPress dashboard & widgets are still available here', 'altis' ) }
 				</a>
-				{ __( '( or under the menu on the left ).', 'altis' ) }
+				{ ' ' }
+				({ __( 'or under the menu on the left', 'altis' ) }).
 			</p>
 		</div>
 	)

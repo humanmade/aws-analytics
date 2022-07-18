@@ -23,11 +23,6 @@ body.index-php {
 		padding-left: 0;
 	}
 
-	// Sidebar accent
-	ul#adminmenu a.wp-has-current-submenu::after, ul#adminmenu > li.current > a.current::after {
-		border-right-color: #445471;
-	}
-
 	#wpbody-content {
 		padding-bottom: 0;
 	}
@@ -73,120 +68,26 @@ body.index-php {
 		height: 17px;
 		margin-left: 5px;
 	}
-
-}
-
-.Hero {
-	position: relative;
-	display: flex;
-	height: 400px;
-	width: 100%;
-	background: $dark-blue;
-	flex-direction: column-reverse;
-
-	&:before {
-		position: absolute;
-		content: ' ';
-		top: 0;
-		left: 0;
-		bottom: 0;
-		right: 0;
-		background: url( '../../images/hero.jpg' ) no-repeat center center;
-		background-size: cover;
-		filter: saturate(0%);
-		background-blend-mode: multiply;
-		opacity: 0.2;
-	}
-
-	&__content {
-		padding-left: 5%;
-		padding-bottom: 60px;
-		line-height: 1.4;
-		z-index: 1;
-
-		h1 {
-			color: #fff;
-			font-size: 60px;
-			font-weight: 600;
-			margin: 0;
-		}
-
-		h2 {
-			color: #fff;
-			font-size: 32px;
-			font-weight: 300;
-			margin: 0;
-		}
-
-	}
-
-	&__tools {
-		margin-top: 40px;
-		display: flex;
-	}
-
-	.timerange {
-		display: inline-block;
-		border-radius: 20px;
-		padding: 5px 12px;
-		margin-right: 10px;
-		border: 2px solid rgba( 255, 255, 255, 0.2 );
-		color: rgba( 255, 255, 255, 0.4 );
-		cursor: pointer;
-		transition: 200ms;
-		background: none;
-
-		&:not(.timerange-active):hover {
-			border: 2px solid rgba( 255, 255, 255, 0.6 );
-			color: rgba( 255, 255, 255, 0.8 );
-		}
-
-		&.timerange-active {
-			color: #fff;
-			border: 2px solid rgba( 255, 255, 255, 1 );
-		}
-	}
-
-	&__links {
-		margin-left: 24px;
-
-		a {
-			display: inline-block;
-			padding: 7px 6px;
-			color: rgba( 255, 255, 255, 0.8 );
-			transition: 200ms;
-			background: none;
-			font-weight: 600;
-
-			&:hover,
-			&:hover:not(:disabled):not([aria-disabled="true"]) {
-				color: rgba( 255, 255, 255, 1 );
-			}
-		}
-	}
-
 }
 
 .HeroChart {
 	position: relative;
-	margin: 30px 0;
+	margin: 20px 0;
 }
 
 .WelcomeIntro {
-	padding: 0 5% 0;
+	padding: 0 5% 10px;
 
 	h2 {
 		font-size: 1.7em;
+		margin-bottom: 0;
 	}
 
 	p {
+		margin-top: 0;
 		font-size: 1.2em;
 		padding: 0;
 		color: $color-dark-grey;
-
-		a {
-			padding: 0 0.5em;
-		}
 	}
 }
 
@@ -216,70 +117,11 @@ body.index-php {
 	}
 }
 
-.Overview {
-	position: relative;
-	font-size: 18px;
-	padding: 0 $sidebar-padding 20px;
-
-	.key-insight-wrap {
-		display: flex;
-		justify-content: space-between;
-		max-width: 1050px;
-
-		.key-insight {
-			display: flex;
-			flex-direction: column;
-			position: relative;
-			padding: 20px;
-			top: -30px;
-			width: 300px;
-			height: 240px;
-			border-radius: 10px;
-			background: #fff;
-
-			.key-insight-content {
-				display: flex;
-				flex-grow: 1;
-				flex-direction: column;
-				justify-content: space-between;
-			}
-
-			.key-insight-head {
-				height: 20px;
-			}
-
-			.key-insight-metrics {
-				display: flex;
-				height: 100px;
-				line-height: 0.75;
-				justify-content: space-between;
-				align-items: flex-end;
-
-				.metrics-aggregate {
-					font-size: 4rem;
-				}
-
-				.metrics-delta {
-					font-size: 2rem;
-				}
-			}
-
-			.key-insight-desc {
-				height: 50px;
-				max-width: 80%;
-				color: #999;
-				font-size: 0.9rem;
-				line-height: 1.4;
-			}
-		}
-	}
-
-}
-
 .List {
 	position: relative;
 	font-size: .875rem;
-	padding: 0 $sidebar-padding 40px;
+	padding: 5px $sidebar-padding 40px;
+	overflow: hidden;
 
 	.table-controls {
 		display: flex;
@@ -310,11 +152,9 @@ body.index-php {
 				width: 200px;
 
 				button {
-					background: none;
-					border: 1px solid $color-light-grey;
 					border-right: 0;
 					cursor: pointer;
-
+					font-weight: 500;
 					padding: 10px;
 
 					&:first-child {
@@ -325,16 +165,12 @@ body.index-php {
 					&:last-child {
 						border-top-right-radius: 10px;
 						border-bottom-right-radius: 10px;
-						border-right: 1px solid $color-light-grey;
 					}
 
 					&.is-primary {
-						background-color: $active-blue;
-						color: #fff;
-
+						outline: none;
 						&::after {
 							content: 'D';
-							color: $color-grey;
 							padding-left: 3px;
 						}
 					}
@@ -348,23 +184,33 @@ body.index-php {
 
 				> div {
 					display: flex;
-					gap: 2.5rem;
+					gap: 1rem;
+					margin-bottom: -1rem;
 				}
 
 				button {
 					display: flex;
 					background: none;
 					border: 0;
+					box-shadow: none;
 					cursor: pointer;
+					padding-bottom: 1rem;
+					height: 50px;
+					font-weight: 500;
+					border-bottom: 2px solid transparent;
+
+					&:hover, &:active, &:focus {
+						box-shadow: none;
+						background: none;
+					}
 
 					&:last-child {
 						margin-right: 0;
 					}
 
 					&.is-primary {
-						color: $active-blue;
-						padding-bottom: 50px;
-						border-bottom: 1px solid $active-blue;
+						color: var( --wp-admin-theme-color );
+						border-bottom: 2px solid var( --wp-admin-theme-color );
 					}
 				}
 			}
@@ -378,13 +224,12 @@ body.index-php {
 			input {
 				width: 300px;
 				background: $color-light-grey;
-				border: 0;
+				border-color: transparent;
 				border-radius: 10px;
-				padding: 1rem;
 				padding-left: 45px;
+				height: 36px;
 
 				&:focus {
-					border: 0;
 					outline: 0;
 					box-shadow: none;
 					border-bottom: 1px solid #ddd;
@@ -407,9 +252,7 @@ body.index-php {
 			position: relative;
 
 			button {
-				background-color: $active-blue;
-				padding: 8px 30px;
-				color: #fff;
+				padding: 8px 30px 6px 27px;
 				font-weight: 600;
 				border-radius: 10px;
 				outline: 0;
@@ -417,36 +260,15 @@ body.index-php {
 				border: 0;
 				cursor: pointer;
 
-				&[aria-expanded=true] {
-					border-bottom-left-radius: 0;
-				}
-
 				&::before {
 					margin-right: 5px;
+					margin-bottom: -3px;
 				}
-			}
-
-			.components-popover {
-				position: absolute;
-				top: 36px !important;
-				left: 0 !important;
-				z-index: 1;
 			}
 
 			.components-menu-group > [role=group] {
 				display: flex;
 				flex-flow: column wrap;
-
-				button {
-					display: block;
-					border-radius: 0;
-					padding: 15px 15px;
-
-					&:last-child {
-						border-bottom-left-radius: 10px;
-						border-bottom-right-radius: 10px;
-					}
-				}
 			}
 		}
 
@@ -456,7 +278,6 @@ body.index-php {
 		display: inline-block;
 		font-weight: 600;
 		font-size: 0.9rem;
-		color: $dark-blue;
 		padding: 10px 16px 7px;
 		margin: 0 20px 0 0;
 		background: #fff;
@@ -465,10 +286,6 @@ body.index-php {
 		box-shadow: 0 5px 10px rgba( 0, 0, 0, 0.05 );
 		cursor: pointer;
 		text-align: center;
-
-		&:not(.filter-active):hover {
-			color: fade-out( $active-blue, 0.5 );
-		}
 	}
 
 	.table-content {
@@ -495,8 +312,9 @@ body.index-php {
 
 		th,td {
 			text-align: left;
-			padding: 10px 20px;
+			padding: 20px 20px 17px 20px;
 			border: none;
+			vertical-align: top;
 		}
 
 		.record-loading {
@@ -512,6 +330,7 @@ body.index-php {
 		.record-thumbnail {
 			padding: 0;
 			padding-right: 40px;
+			width: 145px;
 
 			img {
 				width: 105px;
@@ -525,12 +344,13 @@ body.index-php {
 		.record-name {
 			font-size: 0.875rem;
 			color: $color-dark-grey;
+			width: 30%;
 
 			&__type {
-				font-size: 0.65em;
-				font-weight: 900;
+				font-size: 0.65rem;
+				font-weight: 700;
 				text-transform: uppercase;
-				letter-spacing: .1em;
+				letter-spacing: .05em;
 				float: left;
 			}
 
@@ -551,7 +371,6 @@ body.index-php {
 			}
 
 			&__title a {
-				color: $dark-blue;
 				font-weight: 600;
 				text-decoration: none;
 			}
@@ -575,51 +394,44 @@ body.index-php {
 				display: block;
 				font-size: 0.825rem;
 			}
-
-			rect {
-				fill: $active-blue;
-			}
 		}
 
 		.record-meta {
+			width: 20%;
 
 			&__author {
 
 				&-name {
-					font-size: 0.75em;
-					letter-spacing: 0.1em;
-					vertical-align: middle;
+					font-size: 0.65rem;
+					display: block;
+					text-transform: uppercase;
 				}
 
 				&-avatar {
-					position: relative;
-					display: inline-block;
 					margin-right: 7px;
-					top: 5px;
+					margin-top: -4px;
 					width: 24px;
 					height: 24px;
 					border-radius: 12px;
 					background: #eee;
-					vertical-align: sub;
-					box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
+					float: left;
 				}
 			}
 
 			&__links {
 				font-size: 0.825em;
-				padding-left: 30px;
-				padding-top: 5px;
+				padding-left: 31px;
+				padding-top: 2px;
 
 				a {
 					text-decoration: none;
-					color: $dark-blue;
+					color: inherit;
 				}
 			}
 
 		}
 
 		.record-links {
-			color: $active-blue;
 			font-weight: 500;
 			font-size: 0.9rem;
 

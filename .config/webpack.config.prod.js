@@ -3,6 +3,8 @@ const { filePath } = helpers;
 
 // Mutate the loader defaults.
 loaders.ts.defaults.loader = 'babel-loader';
+// Increase url-loader limit to embed logo inline.
+loaders.url.defaults.options.limit = 200000;
 
 module.exports = presets.production( {
 	externals,
