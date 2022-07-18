@@ -62,6 +62,12 @@ class Manager extends Component {
 					onClick: () => {
 						onSetCurrentPost( defaultPost );
 						this.setState( { view: 'edit' } );
+						analytics.track(
+							'initiate_create',
+							{
+								content_type: 'audience',
+							}
+						);
 					},
 				},
 				/**

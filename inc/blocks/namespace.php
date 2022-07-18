@@ -640,6 +640,8 @@ function map_aggregations( array $event_buckets ) : array {
  *     - int|null $args['post_id'] An optional post ID to limit results by.
  *     - int $args['days'] The number of days to get data for.
  *     - int $args['offset'] The offset for number of days prior to start query from.
+ *     - int $args['start'] The start date for the query.
+ *     - int $args['end'] The end date for the query.
  *     - string $args['vary_on'] The field to distinguish variants on.
  * @return array|\WP_Error
  */
@@ -658,6 +660,8 @@ function get_views( string $block_id, $args = [] ) {
 		'post_id' => null,
 		'days' => 7,
 		'offset' => 0,
+		'start' => strtotime( 'today', time() - ( 7 * DAY_IN_SECONDS ) ),
+		'end' => strtotime( 'tomorrow' ) - 1,
 	] );
 
 	// Set default vary key for back compat.
@@ -670,9 +674,6 @@ function get_views( string $block_id, $args = [] ) {
 		$block_settings = get_block_settings( $block_type );
 		$vary_on = $block_settings['varyOn'] ?? $vary_on;
 	}
-
-	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
-	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
 
 	$query = [
 		'query' => [
@@ -703,8 +704,8 @@ function get_views( string $block_id, $args = [] ) {
 					[
 						'range' => [
 							'event_timestamp' => [
-								'gte' => $start * 1000,
-								'lt' => $end * 1000,
+								'gte' => (int) sprintf( '%d000', $args['start'] ),
+								'lt' => (int) sprintf( '%d999', $args['end'] ),
 							],
 						],
 					],
@@ -808,8 +809,8 @@ function get_views( string $block_id, $args = [] ) {
 
 	if ( ! $result ) {
 		$data = [
-			'start' => date( 'Y-m-d H:i:s', $start ),
-			'end' => date( 'Y-m-d H:i:s', $end ),
+			'start' => date( 'Y-m-d H:i:s', $args['start'] ),
+			'end' => date( 'Y-m-d H:i:s', $args['end'] ),
 			'loads' => 0,
 			'views' => 0,
 			'conversions' => 0,
@@ -834,8 +835,8 @@ function get_views( string $block_id, $args = [] ) {
 		}
 	}
 
-	$data['start'] = date( 'Y-m-d H:i:s', $start );
-	$data['end'] = date( 'Y-m-d H:i:s', $end );
+	$data['start'] = date( 'Y-m-d H:i:s', $args['start'] );
+	$data['end'] = date( 'Y-m-d H:i:s', $args['end'] );
 
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 

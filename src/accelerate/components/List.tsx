@@ -9,6 +9,7 @@ import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
 import { compactMetric, Duration, getConversionRateLift, InitialData, Period, Post, State } from '../../util';
+import Link from './Link';
 
 import './Dashboard.scss';
 import SparkChart from './SparkChart';
@@ -111,7 +112,17 @@ export default function List ( props: Props ) {
 						<RadioGroup
 							label='Period'
 							checked={ period }
-							onChange={ ( value: Duration ) => onSetPeriod( value ) }
+							onChange={ ( value: Duration ) => {
+								onSetPeriod( value );
+								analytics.track(
+									'filter',
+									{
+										location: 'dashboard',
+										filter_type: 'content',
+										filter_value: value,
+									}
+								);
+							} }
 						>
 							{ periods.map( p => (
 								<Radio value={ p.value } checked={ p.value === period } >
@@ -124,7 +135,17 @@ export default function List ( props: Props ) {
 						<RadioGroup
 							label='Filter'
 							checked={ customFilter }
-							onChange={ ( value: string ) => switchCustomFilter( value ) }
+							onChange={ ( value: string ) => {
+								switchCustomFilter( value );
+								analytics.track(
+									'filter',
+									{
+										location: 'dashboard',
+										filter_type: 'author',
+										filter_value: value,
+									}
+								);
+							} }
 						>
 							{ customFilters.map( filter => (
 								<Radio value={ filter.value } checked={ filter.value === customFilter } >
@@ -143,6 +164,14 @@ export default function List ( props: Props ) {
 								timer && clearTimeout( timer );
 								timer = setTimeout( value => {
 									setSearch( value );
+									analytics.track(
+										'filter',
+										{
+											location: 'dashboard',
+											filter_type: 'search',
+											filter_value: value,
+										}
+									);
 								}, 500, e.target.value );
 							} }
 						/>
@@ -280,7 +309,16 @@ export default function List ( props: Props ) {
 											</span>
 										</div>
 										<div className="record-meta__links">
-											{ post.editUrl && ( <>{ ' ' }<a href={ post.editUrl }>{ __( 'Edit', 'altis' ) }</a></> ) }
+											{ post.editUrl && (
+												<>
+													{ ' ' }
+													<Link
+														url={ post.editUrl }
+														location="dashboard"
+														linkText={ __( 'Edit', 'altis-analytics' ) }
+													/>
+												</>
+											) }
 										</div>
 									</td>
 								</tr>

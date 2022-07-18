@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { compactMetric } from '../../../utils';
 import { defaultVariantAnalytics } from '../../data/shapes';
+import periods from '../../../data/periods';
 import Cards from '../components/cards';
 import DateRange from '../components/date-range';
 import Variants from '../components/variants';
@@ -21,15 +22,27 @@ const Personalization = ( {
 	block,
 	clientId,
 } ) => {
-	const [ days, setDays ] = useState( 7 );
+	const [ days, setDays ] = useState( 'P7D' );
+	const [ start, setStart ] = useState( 'P7D' );
+	const [ end, setEnd ] = useState( 'P7D' );
 	const analytics = useSelect( select => {
-		return select( 'analytics/xbs' ).getViews( clientId, { days } );
-	}, [ clientId, days ] );
+		return select( 'analytics/xbs' ).getViews( clientId, {
+			days,
+			start,
+			end,
+		} );
+	}, [ clientId, days, start ] );
 	const lift = useSelect( select => {
-		const current = select( 'analytics/xbs' ).getViews( clientId, { days: 7 } );
+		const current = select( 'analytics/xbs' ).getViews( clientId, {
+			days: 'P7D',
+			start: 'P7D',
+			end: 'P7D',
+		} );
 		const previous = select( 'analytics/xbs' ).getViews( clientId, {
-			days: 7,
-			offset: 7,
+			days: 'P7D',
+			offset: 'P7D',
+			start: 'P7D',
+			end: 'P7D',
 		} );
 		return {
 			current,
@@ -47,7 +60,14 @@ const Personalization = ( {
 	return (
 		<>
 			<div className="altis-analytics-block-metrics">
-				<DateRange ranges={ [ 7, 30, 90 ] } value={ days } onSetRange={ setDays } />
+				<DateRange
+					location="insights"
+					ranges={ periods }
+					value={ days }
+					onSetEnd={ setEnd }
+					onSetRange={ setDays }
+					onSetStart={ setStart }
+				/>
 				<Cards
 					cards={ [
 						{
