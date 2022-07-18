@@ -507,8 +507,8 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			'field' => 'event_timestamp',
 			'interval' => DAY_IN_SECONDS * 1000, // Days.
 			'extended_bounds' => [
-				'min' => (int) sprintf( '%d000', $start ),
-				'max' => (int) sprintf( '%d999', $end ),
+				'min' => (int) sprintf( '%d000', $start + DAY_IN_SECONDS ), // Add a day because the last bucket is the current day.
+				'max' => (int) sprintf( '%d999', min( $end, time() ) ), // Don't go beyond current time.
 			],
 		],
 	];
@@ -705,14 +705,18 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	}
 
 	foreach ( $query->posts as $i => $post ) {
-		$thumbnail_id = 0;
-		if ( $post->post_type === 'attachment' ) {
-			$thumbnail_id = $post->ID;
-		} else {
-			$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
-		}
+		// Check if we can get a thumbnail, set to an empty string if not but support is available.
+		$thumbnail = null;
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+			$thumbnail_id = 0;
+			if ( $post->post_type === 'attachment' ) {
+				$thumbnail_id = $post->ID;
+			} else {
+				$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
+			}
 
-		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
+			$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
+		}
 
 		// Get block thumbnail from screen grab API.
 		if ( $post->post_type === 'wp_block' && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
@@ -751,7 +755,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'name' => get_the_author_meta( 'display_name', $post->post_author ),
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
-			'thumbnail' => $thumbnail ?: '',
+			'thumbnail' => $thumbnail,
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
 			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ),
 		];

@@ -247,7 +247,7 @@ export default function List ( props: Props ) {
 										{ post.thumbnail && (
 											<img src={ post.thumbnail } alt={ post.title }/>
 										) }
-										{ ! post.thumbnail && post.editUrl && (
+										{ post.thumbnail === '' && post.editUrl && (
 											<Button
 												href={ post.editUrl }
 												isLink
