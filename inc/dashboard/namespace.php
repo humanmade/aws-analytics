@@ -167,9 +167,7 @@ function block_preview_check( \WP_Query $query ) : void {
 		return;
 	}
 
-	$allow_block_thumbnails = is_block_thumbnails_allowed( $block_id );
-
-	if ( ! $allow_block_thumbnails ) {
+	if ( ! is_block_thumbnail_allowed( $block_id ) ) {
 		return;
 	}
 
@@ -187,7 +185,7 @@ function block_preview_check( \WP_Query $query ) : void {
  *
  * @return boolean
  */
-function is_block_thumbnails_allowed( int $block_id = null ) : bool {
+function is_block_thumbnail_allowed( int $block_id = null ) : bool {
 	/**
 	 * Filters the ability of using block thumbnail API / service.
 	 *
