@@ -51,6 +51,8 @@ function add_widgets_submenu() : void {
  * @return void
  */
 function load_dashboard() {
+	global $title;
+
 	// Don't replace network admin.
 	if ( is_network_admin() ) {
 		return;
@@ -69,6 +71,8 @@ function load_dashboard() {
 
 	add_filter( 'screen_options_show_screen', '__return_false' );
 
+	// Set admin page title.
+	$title = __( 'Accelerate Dashboard', 'altis' );
 	$user = wp_get_current_user();
 
 	$post_types = array_merge(
