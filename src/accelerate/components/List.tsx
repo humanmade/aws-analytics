@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
-import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio } from '@wordpress/components';
+import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio, Icon } from '@wordpress/components';
 import { Pagination } from 'react-pagination-bar';
 import ContentLoader from "react-content-loader"
 
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Period, Post, State } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
 
 import './Dashboard.scss';
 import SparkChart from './SparkChart';
@@ -17,8 +17,8 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 
 let loaderProps = {
 	speed: 2,
-	foregroundColor: "#e8e8e3",
-	backgroundColor: "#f6f6ef"
+	foregroundColor: "#f5f6f8",
+	backgroundColor: "#fff"
 };
 
 type Props = {
@@ -162,7 +162,7 @@ export default function List ( props: Props ) {
 									{ __( 'Add New', 'altis' ) }
 								</Button>
 							) }
-							renderContent={ ( { onClose } ) => (
+							renderContent={ () => (
 								<MenuGroup>
 									{ createableTypes.map( type => (
 										<MenuItem onClick={ onAddNew( type.name ) }>
@@ -176,47 +176,50 @@ export default function List ( props: Props ) {
 				</form>
 				<div className="table-content">
 					<table aria-live="polite">
-						{ isLoading && [...Array(5)].map( () => (
+						<tbody>
+						{ isLoading && [...Array(8)].map( () => (
 							<tr>
 								<td className="record-thumbnail">
 									<ContentLoader
 										{ ...loaderProps }
-										width={105}
+										width={ 105 }
 										height={ 47 }
-										>
+									>
 										<rect x={0} y={0} rx="5" ry="5" width={105} height={47} />
 									</ContentLoader>
 								</td>
-								<td>
+								<td className="record-name">
 									<ContentLoader
 										{ ...loaderProps }
 										height={46}
-										>
+									>
 										<rect x={0} y={10} rx="5" ry="5" width={50} height={6} />
 										<rect x={0} y={30} rx="5" ry="5" width={100} height={6} />
 									</ContentLoader>
 								</td>
-								<td>
+								<td className="record-traffic">
 									<ContentLoader
 										{ ...loaderProps }
-										height={46}
-										>
-										<rect x={0} y={10} rx="5" ry="5" width={100} height={6} />
-										<rect x={0} y={30} rx="5" ry="5" width={100} height={6} />
+										height={ 46 }
+									>
+										<rect x={0} y={10} rx="5" ry="5" width={75} height={6} />
+										<rect x={0} y={30} rx="5" ry="5" width={75} height={6} />
 
-										<rect x={150} y={20} rx="5" ry="5" width={10} height={35} />
-										<rect x={170} y={30} rx="5" ry="5" width={10} height={25} />
-										<rect x={190} y={20} rx="5" ry="5" width={10} height={35} />
-										<rect x={210} y={40} rx="5" ry="5" width={10} height={15} />
-										<rect x={230} y={20} rx="5" ry="5" width={10} height={35} />
+										<rect x={100} y={20} rx="2" ry="2" width={10} height={35} />
+										<rect x={120} y={30} rx="2" ry="2" width={10} height={25} />
+										<rect x={140} y={20} rx="2" ry="2" width={10} height={35} />
+										<rect x={160} y={40} rx="2" ry="2" width={10} height={15} />
+										<rect x={180} y={20} rx="2" ry="2" width={10} height={35} />
+										<rect x={200} y={40} rx="2" ry="2" width={10} height={10} />
+										<rect x={220} y={45} rx="2" ry="2" width={10} height={5} />
 									</ContentLoader>
 								</td>
-								<td></td>
-								<td>
+								<td className="record-lift">&nbsp;</td>
+								<td className="record-meta">
 									<ContentLoader
 										{ ...loaderProps }
 										height={ 50 }
-										>
+									>
 										<circle cx={ 12 } cy={12} r="12" />
 										<rect x={0} y={40} rx="5" ry="5" width={120} height={6} />
 										<rect x={40} y={12} rx="5" ry="5" width={70} height={6} />
@@ -244,6 +247,16 @@ export default function List ( props: Props ) {
 										{ post.thumbnail && (
 											<img src={ post.thumbnail } alt={ post.title }/>
 										) }
+										{ post.thumbnail === '' && post.editUrl && (
+											<Button
+												href={ post.editUrl }
+												isLink
+												title={ __( 'Set featured image', 'altis' ) }
+											>
+												<Icon icon="plus-alt" />
+												<span className="screen-reader-text">{ __( 'Set featured image' ) }</span>
+											</Button>
+										) }
 									</td>
 									<td className="record-name">
 										<div className='record-name__type'>
@@ -251,7 +264,7 @@ export default function List ( props: Props ) {
 										</div>
 										<div className='record-name__tag'></div>
 										<div className='record-name__title'>
-											<a href={ post.url || '' } target="_blank">{ post.title }</a>
+											<a href={ post.url || post.editUrl || '' }>{ post.title }</a>
 										</div>
 									</td>
 									<td className="record-traffic">
@@ -286,6 +299,7 @@ export default function List ( props: Props ) {
 								</tr>
 							);
 						} ) }
+						</tbody>
 					</table>
 					{ pagination.total > 0 && (
 						<div className="table-footer">
