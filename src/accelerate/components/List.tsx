@@ -149,7 +149,7 @@ export default function List ( props: Props ) {
 							onChange={ e => {
 								timer && clearTimeout( timer );
 								timer = setTimeout( value => {
-									trackEvent( 'Content Explorer', 'Search', {} );
+									trackEvent( 'Content Explorer', 'Search' );
 									setSearch( value );
 								}, 500, e.target.value );
 							} }

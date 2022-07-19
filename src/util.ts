@@ -224,7 +224,7 @@ export const getConversionRateLift = (
  *
  * @returns void;
  */
-export function trackEvent( module: string, action: string, parameters: { [ k: string ]: any } ) {
+export function trackEvent( module: string, action: string, parameters: { [ k: string ]: any } = {} ) {
 	if ( window.analytics ) {
 		window.analytics.track( `${module} - ${ action }`, parameters );
 	}
