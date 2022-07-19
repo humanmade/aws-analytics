@@ -218,14 +218,14 @@ export const getConversionRateLift = (
 /**
  * Track a user action/event to Segment
  *
- * @param module Module where the action happens.
- * @param action Action name.
- * @param parameters Additional details/parameters of the action.
+ * @param {string} module Module where the action happens.
+ * @param {string} action Action name.
+ * @param {object} parameters Additional details/parameters of the action.
  *
  * @returns void;
  */
 export function trackEvent( module: string, action: string, parameters: { [ k: string ]: any } = {} ) {
 	if ( window.analytics ) {
-		window.analytics.track( `${module} - ${ action }`, parameters );
+		window.analytics.track( `${ module } - ${ action }`, parameters );
 	}
 }
