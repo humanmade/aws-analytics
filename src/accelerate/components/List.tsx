@@ -8,7 +8,7 @@ import ContentLoader from "react-content-loader"
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent } from '../../util';
 
 import './Dashboard.scss';
 import SparkChart from './SparkChart';
@@ -86,6 +86,7 @@ export default function List ( props: Props ) {
 	}
 
 	function onAddNew<Function> ( type: string ) {
+		trackEvent( 'Content Explorer', 'Add New', { type } );
 		return () => {
 			window.location.href = '/wp-admin/post-new.php?post_type=' + type;
 		};
@@ -111,7 +112,10 @@ export default function List ( props: Props ) {
 						<RadioGroup
 							label='Period'
 							checked={ period }
-							onChange={ ( value: Duration ) => onSetPeriod( value ) }
+							onChange={ ( value: Duration ) => {
+								trackEvent( 'Content Explorer', 'Period', { type: value } );
+								onSetPeriod( value );
+							} }
 						>
 							{ periods.map( p => (
 								<Radio value={ p.value } checked={ p.value === period } >
@@ -124,7 +128,10 @@ export default function List ( props: Props ) {
 						<RadioGroup
 							label='Filter'
 							checked={ customFilter }
-							onChange={ ( value: string ) => switchCustomFilter( value ) }
+							onChange={ ( value: string ) => {
+								trackEvent( 'Content Explorer', 'Filter', { type: value } );
+								switchCustomFilter( value )
+							} }
 						>
 							{ customFilters.map( filter => (
 								<Radio value={ filter.value } checked={ filter.value === customFilter } >
@@ -142,6 +149,7 @@ export default function List ( props: Props ) {
 							onChange={ e => {
 								timer && clearTimeout( timer );
 								timer = setTimeout( value => {
+									trackEvent( 'Content Explorer', 'Search' );
 									setSearch( value );
 								}, 500, e.target.value );
 							} }
@@ -264,7 +272,9 @@ export default function List ( props: Props ) {
 										</div>
 										<div className='record-name__tag'></div>
 										<div className='record-name__title'>
-											<a href={ post.url || post.editUrl || '' }>{ post.title }</a>
+											<a href={ post.url || post.editUrl || '' } onClick={ () => trackEvent( 'Content Explorer', 'Navigate', { type: post.type } ) }>
+												{ post.title }
+											</a>
 										</div>
 									</td>
 									<td className="record-traffic">
@@ -293,7 +303,12 @@ export default function List ( props: Props ) {
 											</span>
 										</div>
 										<div className="record-meta__links">
-											{ post.editUrl && ( <>{ ' ' }<a href={ post.editUrl }>{ __( 'Edit', 'altis' ) }</a></> ) }
+											{ post.editUrl && ( <>
+												{ ' ' }
+												<a href={ post.editUrl } onClick={ () => trackEvent( 'Content Explorer', 'Action', { action: 'edit', type: post.type } ) }>
+													{ __( 'Edit', 'altis' ) }
+												</a>
+											</> ) }
 										</div>
 									</td>
 								</tr>

@@ -214,3 +214,18 @@ export const getConversionRateLift = (
 	const personalizedRate = getConversionRate( personalized.conversions, personalized.views );
 	return getLift( personalizedRate, fallbackRate );
 };
+
+/**
+ * Track a user action/event to Segment
+ *
+ * @param {string} module Module where the action happens.
+ * @param {string} action Action name.
+ * @param {object} parameters Additional details/parameters of the action.
+ *
+ * @returns void;
+ */
+export function trackEvent( module: string, action: string, parameters: { [ k: string ]: any } = {} ) {
+	if ( window.analytics ) {
+		window.analytics.track( `${ module } - ${ action }`, parameters );
+	}
+}
