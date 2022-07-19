@@ -328,16 +328,29 @@ body.index-php {
 		}
 
 		.record-thumbnail {
-			padding: 0;
-			padding-right: 40px;
-			width: 145px;
+			width: 105px;
+			padding-top: 17px;
 
-			img {
+			img, a {
 				width: 105px;
 				height: 47px;
 				object-fit: cover;
 				object-position: top center;
 				box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
+			}
+
+			a {
+				display: inline-block;
+				text-align: center;
+				vertical-align: middle;
+				padding: 13px;
+				text-decoration: none;
+				box-shadow: none;
+				background-color: #f5f6f8;
+
+				&:hover {
+					box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
+				}
 			}
 		}
 
@@ -370,9 +383,15 @@ body.index-php {
 				}
 			}
 
-			&__title a {
+			&__title {
+				padding-top: 0.15rem;
 				font-weight: 600;
-				text-decoration: none;
+				line-height: 1.15rem;
+
+				a {
+					display: block;
+					text-decoration: none;
+				}
 			}
 		}
 
@@ -394,6 +413,10 @@ body.index-php {
 				display: block;
 				font-size: 0.825rem;
 			}
+		}
+
+		.record-lift {
+			width: 80px;
 		}
 
 		.record-meta {
