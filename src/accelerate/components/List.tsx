@@ -78,7 +78,7 @@ export default function List ( props: Props ) {
 			setType( null );
 			setUser( null );
 		} else if ( filter === 'blocks' ) {
-			setType( 'wp_block' );
+			setType( 'wp_block,xb' );
 			setUser( null );
 		} else if ( filter === 'me' ) {
 			setType( null );

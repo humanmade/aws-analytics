@@ -328,8 +328,9 @@ body.index-php {
 		}
 
 		.record-thumbnail {
-			width: 105px;
+			width: 125px;
 			padding-top: 17px;
+			padding-left: 0;
 
 			img, a {
 				width: 105px;
@@ -421,6 +422,7 @@ body.index-php {
 
 		.record-meta {
 			width: 20%;
+			padding-right: 0;
 
 			&__author {
 
