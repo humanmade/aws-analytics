@@ -77,16 +77,15 @@ function load_dashboard() {
 	$title = __( 'Accelerate Dashboard', 'altis' );
 	$user = wp_get_current_user();
 
-	$post_types = array_merge(
-		// Trackable post types that do not have their own front end URL.
-		[
-			get_post_type_object( 'wp_block' ),
-		],
-		get_post_types( [
-			'show_in_menu' => true,
-			'public' => true,
-		], 'objects' )
-	);
+	$post_types = get_post_types( [
+		'show_in_menu' => true,
+		'public' => true,
+	], 'objects' );
+
+	// Trackable post types that do not have their own front end URL.
+	if ( post_type_exists( 'wp_block' ) ) {
+		$post_types = array_merge( [ get_post_type_object( 'wp_block' ) ], $post_types );
+	}
 
 	// Add XBs first if available.
 	if ( post_type_exists( 'xb' ) ) {
@@ -146,7 +145,7 @@ function render_page() {
 function get_plugin_version() : string {
 	// Only show version if this is embedded in the accelerate plugin.
 	if ( defined( 'Altis\\Accelerate\\VERSION' ) ) {
-		return Altis\Accelerate\VERSION;
+		return \Altis\Accelerate\VERSION;
 	}
 	return '';
 }
@@ -176,8 +175,8 @@ function block_preview_check( \WP_Query $query ) : void {
 	}
 
 	$query->set( 'p', $block_id );
-	$query->set( 'post_type', 'wp_block' );
-	$query->set( 'post_status', 'any' );
+	$query->set( 'post_type', [ 'wp_block', 'xb' ] );
+	$query->set( 'post_status', [ 'publish', 'inherit' ] );
 
 	add_action( 'template_redirect', __NAMESPACE__ . '\\block_thumbnail_template_override' );
 }
@@ -206,7 +205,12 @@ function is_block_thumbnail_allowed( int $block_id = null ) : bool {
  * @return string
  */
 function get_block_thumbnail_request_hmac( int $block_post_id ) : string {
-	return hash_hmac( 'md5', $block_post_id, AUTH_KEY );
+	$auth_key = defined( 'AUTH_KEY' ) ? AUTH_KEY : get_site_option( 'auth_key', '' );
+	if ( empty( $auth_key ) ) {
+		$auth_key = wp_generate_password( 64, true, true );
+		update_site_option( 'auth_key', $auth_key );
+	}
+	return hash_hmac( 'md5', $block_post_id, $auth_key );
 }
 
 /**
