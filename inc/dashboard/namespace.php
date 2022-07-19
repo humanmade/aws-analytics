@@ -221,6 +221,11 @@ function get_block_thumbnail_request_hmac( int $block_post_id ) : string {
 function block_thumbnail_template_override() : void {
 	global $content_width;
 
+	// Set a reasonable default content width if not defined or available.
+	if ( empty( $content_width ) ) {
+		$content_width = 650;
+	}
+
 	get_header();
 	printf( '<style>.altis-block-preview { width: %spx; margin: 0 auto; }</style>', (int) $content_width );
 	echo '<div class="altis-block-preview">';
