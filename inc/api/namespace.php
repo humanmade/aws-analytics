@@ -719,7 +719,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		}
 
 		// Get block thumbnail from screen grab API.
-		if ( $post->post_type === 'wp_block' && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
+		if ( in_array( $post->post_type, [ 'wp_block', 'xb' ], true ) && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
 			$preview_url = sprintf(
 				'%s?preview-block-id=%d&key=%s',
 				get_home_url(),
