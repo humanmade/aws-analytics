@@ -738,7 +738,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				[
 					'url' => urlencode( $preview_url ),
 					'width' => 100,
-					'selector' => 'altis-block-preview',
+					'selector' => '.altis-block-preview',
 					'version' => $version,
 				],
 				'https://eu.accelerate.altis.cloud/block-image'
