@@ -635,9 +635,14 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		$processed[ intval( $id ) ] = $item;
 	}
 
-	// Ensure reusable blocks and XBs are shown.
+	// Ensure reusable blocks and XBs are shown if available.
 	$post_types = get_post_types( [ 'public' => true ] );
-	$post_types = array_merge( [ 'wp_block', 'xb' ], $post_types );
+	if ( post_type_exists( 'wp_block' ) ) {
+		$post_types[] = 'wp_block';
+	}
+	if ( post_type_exists( 'xb' ) ) {
+		$post_types[] = 'xb';
+	}
 	$post_types = array_unique( $post_types );
 
 	$post_ids = array_keys( $processed );
@@ -656,7 +661,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			$default_query_args['s'] = $filter->search;
 		}
 		if ( $filter->type ) {
-			$default_query_args['post_type'] = $filter->type;
+			$default_query_args['post_type'] = explode( ',', $filter->type );
 		}
 		if ( $filter->user ) {
 			$default_query_args['author'] = $filter->user;
