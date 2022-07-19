@@ -10,7 +10,6 @@ import './Dashboard.scss';
 
 interface Props {
 	postTypes: InitialData['postTypes'],
-	tracking: InitialData['tracking'],
 	user: InitialData[ 'user' ],
 	version: InitialData['version'],
 }
