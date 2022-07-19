@@ -1,6 +1,6 @@
 import { sprintf, __ } from '@wordpress/i18n';
 
-import { InitialData } from '../../util';
+import { InitialData, trackEvent } from '../../util';
 
 interface Props {
 	user: InitialData[ 'user' ],
@@ -15,7 +15,7 @@ export default function Welcome( props: Props ) {
 			<p>
 				{ __( 'This is the Altis dashboard', 'altis' ) }
 				{ '  — ' }
-				<a href='?widgets=true'>
+				<a href='?widgets=true' onClick={ () => trackEvent( 'Content Explorer', 'Widgets Page' ) }>
 					{ __( 'your standard WordPress dashboard & widgets are still available here', 'altis' ) }
 				</a>
 				{ ' ' }

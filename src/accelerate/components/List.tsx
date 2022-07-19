@@ -31,6 +31,7 @@ type Props = {
 export default function List ( props: Props ) {
 	const {
 		period,
+		user: userData,
 		onSetPeriod,
 	} = props;
 
@@ -81,11 +82,11 @@ export default function List ( props: Props ) {
 			setUser( null );
 		} else if ( filter === 'me' ) {
 			setType( null );
-			setUser( 1 ); // TODO get the current user id
+			setUser( userData.id || 1 );
 		}
 	}
 
-	function onAddNew<Function> ( type: string ) {
+	function onAddNew( type: string ) {
 		trackEvent( 'Content Explorer', 'Add New', { type } );
 		return () => {
 			window.location.href = '/wp-admin/post-new.php?post_type=' + type;
@@ -95,8 +96,6 @@ export default function List ( props: Props ) {
 	const createableTypes = props.postTypes.filter( type => type.name !== 'xb' );
 
 	const { posts, pagination, isLoading } = query;
-
-	const maxViews = posts.reduce( ( carry, post ) => Math.max( post.views, carry ), 0 );
 
 	return (
 		<div className="List">
@@ -144,7 +143,7 @@ export default function List ( props: Props ) {
 						<span className="dashicons dashicons-search"></span>
 						<input
 							type="text"
-							placeholder="Search Pages, Posts & Blocks"
+							placeholder={ __( 'Search Pages, Posts & Blocks', 'altis' ) }
 							className="search"
 							onChange={ e => {
 								timer && clearTimeout( timer );
@@ -260,6 +259,7 @@ export default function List ( props: Props ) {
 												href={ post.editUrl }
 												isLink
 												title={ __( 'Set featured image', 'altis' ) }
+												onClick={ () => trackEvent( 'Content Explorer', 'Set Feature Image', { type: post.type } ) }
 											>
 												<Icon icon="plus-alt" />
 												<span className="screen-reader-text">{ __( 'Set featured image' ) }</span>
