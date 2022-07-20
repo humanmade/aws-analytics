@@ -46,6 +46,7 @@
 .altis-experience-block-header__toolbar .components-button {
 	margin-left: 3px;
 	color: inherit;
+	white-space: nowrap;
 }
 
 .altis-experience-block-header__toolbar .components-button .dashicon {
