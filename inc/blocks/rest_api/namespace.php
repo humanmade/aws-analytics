@@ -57,13 +57,11 @@ function init() : void {
 				'start' => [
 					'description' => __( 'Start date', 'altis-analytics' ),
 					'type' => 'string',
-					'format' => 'date-time',
 					'required' => true,
 				],
 				'end' => [
 					'description' => __( 'End date', 'altis-analytics' ),
 					'type' => 'string',
-					'format' => 'date-time',
 					'required' => true,
 				],
 			],

@@ -35,7 +35,7 @@ const Form = styled.form`
  * @param {string} props.location The location of the date range.
  * @returns {React.ReactNode} The date range picker component.
  */
-export default function DateRange( { value, ranges, onSetEnd, onSetRange, onSetStart, location } ) {
+export default function DateRange( { value, ranges, onSetRange, location } ) {
 	return (
 		<Form className="altis-analytics-date-range">
 			{ ranges.map( range => (
@@ -47,9 +47,7 @@ export default function DateRange( { value, ranges, onSetEnd, onSetRange, onSetS
 						type="radio"
 						value={ range.value }
 						onChange={ e => {
-							e.target.checked && onSetEnd( range.value );
 							e.target.checked && onSetRange( range.value );
-							e.target.checked && onSetStart( range.value );
 							analytics.track(
 								'filter',
 								{

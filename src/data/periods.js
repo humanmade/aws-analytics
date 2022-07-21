@@ -6,21 +6,15 @@ import { __ } from '@wordpress/i18n';
 const periods = [
 	{
 		label: __( '7 days', 'altis' ),
-		value: 'P7D',
-		diff: 'P7D',
-		number: 7,
+		value: 7,
 	},
 	{
 		label: __( '30 days', 'altis' ),
-		value: 'P30D',
-		diff: 'P30D',
-		number: 30,
+		value: 30,
 	},
 	{
 		label: __( '90 days', 'altis' ),
-		value: 'P90D',
-		diff: null,
-		number: 90,
+		value: 90,
 	},
 ];
 export default periods;

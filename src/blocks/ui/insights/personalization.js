@@ -22,9 +22,12 @@ const Personalization = ( {
 	block,
 	clientId,
 } ) => {
-	const [ days, setDays ] = useState( 'P7D' );
-	const [ start, setStart ] = useState( 'P7D' );
-	const [ end, setEnd ] = useState( 'P7D' );
+	const endDate = Math.floor( Date.now() / 1000 );
+	const [ days, setDays ] = useState( 7 );
+	const [ end, setEnd ] = useState( endDate );
+	const startDate =  end - Math.floor( days * 86400 );
+	const [ start, setStart ] = useState( startDate );
+
 	const analytics = useSelect( select => {
 		return select( 'analytics/xbs' ).getViews( clientId, {
 			days,
@@ -34,15 +37,15 @@ const Personalization = ( {
 	}, [ clientId, days, start ] );
 	const lift = useSelect( select => {
 		const current = select( 'analytics/xbs' ).getViews( clientId, {
-			days: 'P7D',
-			start: 'P7D',
-			end: 'P7D',
+			days: 7,
+			start: start,
+			end: end,
 		} );
 		const previous = select( 'analytics/xbs' ).getViews( clientId, {
-			days: 'P7D',
-			offset: 'P7D',
-			start: 'P7D',
-			end: 'P7D',
+			days: 7,
+			offset: 7,
+			start: start,
+			end: end,
 		} );
 		return {
 			current,
