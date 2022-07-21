@@ -26,6 +26,8 @@ function setup() {
 
 	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_open', 0 );
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_close', 999 );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\block_preview_check' );
 }
@@ -45,6 +47,24 @@ function add_widgets_submenu() : void {
 		'',
 		1
 	);
+}
+
+/**
+ * Adds an opening div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_open() : void {
+	echo '<div class="notices__wrap">';
+}
+
+/**
+ * Adds a closing div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_close() {
+	echo '</div>';
 }
 
 /**

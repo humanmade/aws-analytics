@@ -20,3 +20,12 @@
 .App__blocks--three {
 	grid-template-columns: repeat( 3, 1fr );
 }
+
+.notices__wrap {
+	background-color: #f5f6f8;
+	overflow: hidden;
+}
+
+.notices__wrap > * {
+	margin: 15px 5% 0 5% !important;
+}
