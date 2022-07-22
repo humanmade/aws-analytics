@@ -26,8 +26,6 @@ function setup() {
 
 	add_action( 'load-index.php', __NAMESPACE__ . '\\load_dashboard' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_widgets_submenu' );
-	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_open', 0 );
-	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_close', 999 );
 
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\block_preview_check' );
 }
@@ -47,24 +45,6 @@ function add_widgets_submenu() : void {
 		'',
 		1
 	);
-}
-
-/**
- * Adds an opening div to wrap around notices in the Accelerate Dashboard.
- *
- * @return void
- */
-function add_notices_wrapper_open() : void {
-	echo '<div class="notices__wrap">';
-}
-
-/**
- * Adds a closing div to wrap around notices in the Accelerate Dashboard.
- *
- * @return void
- */
-function add_notices_wrapper_close() {
-	echo '</div>';
 }
 
 /**
@@ -88,6 +68,11 @@ function load_dashboard() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
 		return;
 	}
+
+	// High priority so the opening div is before any notices.
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_open', 0 );
+	// Low priority so the closing div is after any notices.
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_close', 999999 );
 
 	Utils\enqueue_assets( 'accelerate' );
 
@@ -140,6 +125,24 @@ function load_dashboard() {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 	exit;
+}
+
+/**
+ * Adds an opening div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_open() : void {
+	echo '<div id="Altis_Dashboard__notices">';
+}
+
+/**
+ * Adds a closing div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_close() {
+	echo '</div>';
 }
 
 /**

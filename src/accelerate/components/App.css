@@ -21,11 +21,11 @@
 	grid-template-columns: repeat( 3, 1fr );
 }
 
-.notices__wrap {
+#Altis_Dashboard__notices {
 	background-color: #f5f6f8;
 	overflow: hidden;
 }
 
-.notices__wrap > * {
-	margin: 15px 5% 0 5% !important;
+#Altis_Dashboard__notices > * {
+	margin: 15px 5% 5px 5%;
 }
