@@ -20,3 +20,12 @@
 .App__blocks--three {
 	grid-template-columns: repeat( 3, 1fr );
 }
+
+#Altis_Dashboard__notices {
+	background-color: #f5f6f8;
+	overflow: hidden;
+}
+
+#Altis_Dashboard__notices > * {
+	margin: 15px 5% 5px 5%;
+}

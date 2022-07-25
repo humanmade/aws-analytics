@@ -69,6 +69,11 @@ function load_dashboard() {
 		return;
 	}
 
+	// High priority so the opening div is before any notices.
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_open', 0 );
+	// Low priority so the closing div is after any notices.
+	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_close', 999999 );
+
 	Utils\enqueue_assets( 'accelerate' );
 
 	add_filter( 'screen_options_show_screen', '__return_false' );
@@ -120,6 +125,24 @@ function load_dashboard() {
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
 
 	exit;
+}
+
+/**
+ * Adds an opening div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_open() : void {
+	echo '<div id="Altis_Dashboard__notices">';
+}
+
+/**
+ * Adds a closing div to wrap around notices in the Accelerate Dashboard.
+ *
+ * @return void
+ */
+function add_notices_wrapper_close() {
+	echo '</div>';
 }
 
 /**
