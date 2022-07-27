@@ -490,7 +490,7 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 		if ( $test['show_ui'] ) {
 			$js_data[ $test_id ] = [
 				'label' => $test['label'],
-				'singluar_label' => $test['singular_label'],
+				'singular_label' => $test['singular_label'],
 			];
 		}
 
