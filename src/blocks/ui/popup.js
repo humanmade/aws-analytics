@@ -38,7 +38,7 @@ function Popup( { clientId } ) {
 
 	const [ show, setShow ] = useState( false );
 	const block = useSelect( select => {
-		return select( 'analytics/xbs' ).getPost( clientId );
+		return select( 'accelerate/xbs' ).getPost( clientId );
 	}, [ clientId ] );
 
 	if ( ! block || block.error ) {

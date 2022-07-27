@@ -22,7 +22,7 @@ const initialState = {
 // Add API Fetch middleware to rewrite permissions lookups.
 apiFetch.use( ( options, next ) => {
 	if ( options.path ) {
-		options.path = options.path.replace( 'wp/v2/audiences', 'analytics/v1/audiences' );
+		options.path = options.path.replace( 'wp/v2/audiences', 'accelerate/v1/audiences' );
 	}
 	return next( options );
 } );
@@ -205,7 +205,7 @@ const actionGenerators = {
 	*createPost( post ) {
 		yield actions.setIsUpdating( true );
 		const newPost = yield actions.fetch( {
-			path: 'analytics/v1/audiences',
+			path: 'accelerate/v1/audiences',
 			method: 'POST',
 			data: post,
 		} );
@@ -229,7 +229,7 @@ const actionGenerators = {
 			post.title.raw = post.title.rendered;
 		}
 		const updatedPost = yield actions.fetch( {
-			path: `analytics/v1/audiences/${ post.id }`,
+			path: `accelerate/v1/audiences/${ post.id }`,
 			method: 'PATCH',
 			data: post,
 		} );
@@ -245,7 +245,7 @@ const actionGenerators = {
 	*deletePost( id ) {
 		yield actions.setIsDeleting( true );
 		yield actions.fetch( {
-			path: `analytics/v1/audiences/${ id }`,
+			path: `accelerate/v1/audiences/${ id }`,
 			method: 'DELETE',
 		} );
 		yield actions.removePost( id );
@@ -353,7 +353,7 @@ const resolvers = {
 	 */
 	*getFields() {
 		const fields = yield actions.fetch( {
-			path: 'analytics/v1/audiences/fields',
+			path: 'accelerate/v1/audiences/fields',
 		} );
 		return actions.setFields( fields );
 	},
@@ -372,7 +372,7 @@ const resolvers = {
 		} );
 		const audienceQuery = encodeURIComponent( JSON.stringify( audience ) );
 		const estimate = yield actions.fetch( {
-			path: `analytics/v1/audiences/estimate?audience=${ audienceQuery }`,
+			path: `accelerate/v1/audiences/estimate?audience=${ audienceQuery }`,
 		} );
 		estimate.histogram = estimate.histogram || new Array( 28 ).fill( { count: 1 } );
 		estimate.isLoading = false;
@@ -398,7 +398,7 @@ const resolvers = {
 
 		try {
 			const post = yield actions.fetch( {
-				path: addQueryArgs( `analytics/v1/audiences/${ id }`, queryArgs ),
+				path: addQueryArgs( `accelerate/v1/audiences/${ id }`, queryArgs ),
 			} );
 			if ( post.status === 'auto-draft' ) {
 				post.title.rendered = '';
@@ -436,7 +436,7 @@ const resolvers = {
 		}, queryArgs );
 
 		const post = yield actions.fetch( {
-			path: addQueryArgs( `analytics/v1/audiences/${ id }`, queryArgs ),
+			path: addQueryArgs( `accelerate/v1/audiences/${ id }`, queryArgs ),
 		} );
 		if ( post.status === 'auto-draft' ) {
 			post.title.rendered = '';
@@ -466,7 +466,7 @@ const resolvers = {
 		}, queryArgs );
 
 		const response = yield actions.fetch( {
-			path: addQueryArgs( 'analytics/v1/audiences', queryArgs ),
+			path: addQueryArgs( 'accelerate/v1/audiences', queryArgs ),
 			headers: {
 				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
 			},

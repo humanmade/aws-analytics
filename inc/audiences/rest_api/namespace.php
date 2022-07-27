@@ -26,7 +26,7 @@ function setup() {
  */
 function init() {
 	// Fetch data for available fields and possible values.
-	register_rest_route( 'analytics/v1', 'audiences/fields', [
+	register_rest_route( 'accelerate/v1', 'audiences/fields', [
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
@@ -78,7 +78,7 @@ function init() {
 	] );
 
 	// Fetch an audience size estimate.
-	register_rest_route( 'analytics/v1', 'audiences/estimate', [
+	register_rest_route( 'accelerate/v1', 'audiences/estimate', [
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_estimate_request',

@@ -20,8 +20,8 @@ import {
 	Filter,
 } from '../util';
 
-const STATS_ENDPOINT = 'analytics/v1/stats';
-const TOP_ENDPOINT = 'analytics/v1/top';
+const STATS_ENDPOINT = 'accelerate/v1/stats';
+const TOP_ENDPOINT = 'accelerate/v1/top';
 
 export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDate | null ) : Period => {
 	const diffDur = moment.duration( diff as DurationInputArg1 );
@@ -314,7 +314,7 @@ const resolvers = {
 	},
 };
 
-export const store = createReduxStore( 'altis/analytics', {
+export const store = createReduxStore( 'accelerate', {
 	actions,
 	controls,
 	initialState,

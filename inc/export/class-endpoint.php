@@ -30,7 +30,7 @@ class Endpoint {
 	 */
 	public function register_routes() : void {
 		register_rest_route(
-			'analytics/v1',
+			'accelerate/v1',
 			'events/(?P<date>\d{4}-\d{2}-\d{2})',
 			[
 				'args'   => [
@@ -75,7 +75,7 @@ class Endpoint {
 		}
 
 		// Raise memory and timeout limit for export request.
-		wp_raise_memory_limit( 'analytics' );
+		wp_raise_memory_limit( 'accelerate' );
 		set_time_limit( 0 );
 
 		// Manually stream the response, as there is likely too much to hold in memory at once.

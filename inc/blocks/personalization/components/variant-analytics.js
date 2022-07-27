@@ -29,10 +29,10 @@ const VariantAnalytics = ( { variant } ) => {
 
 	// Fetch the stats.
 	const data = useSelect( select => {
-		return select( 'analytics/xbs' ).getViews( clientId );
+		return select( 'accelerate/xbs' ).getViews( clientId );
 	}, [ clientId ] );
 	const isLoading = useSelect( select => {
-		return select( 'analytics/xbs' ).getIsLoading();
+		return select( 'accelerate/xbs' ).getIsLoading();
 	}, [ data ] );
 
 	// Show nothing if no audience selected and not the fallback.

@@ -60,7 +60,7 @@ export default function HeroChart( props: Props ) {
 	// Get stats data.
 	const [ outerWidth, setOuterWidth ] = useState<number>( 0 );
 	const data = useSelect<StatsResult>( select => {
-		return select( 'altis/analytics' ).getStats( {
+		return select( 'accelerate' ).getStats( {
 			period: period?.value || 'P7D',
 			interval: period?.interval || '2h',
 		} );

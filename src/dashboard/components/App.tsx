@@ -25,7 +25,7 @@ export default function App() {
 	const [ filter, setFilter ] = useState<Filter>( {} );
 	const [ period, setPeriod ] = useState<SelectableDate>( 'P7D' );
 	const data = useSelect<StatsResult>( select => {
-		return select( 'altis/analytics' ).getStats( {
+		return select( 'accelerate' ).getStats( {
 			filter,
 			period,
 		} );

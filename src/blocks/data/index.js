@@ -15,7 +15,7 @@ const initialState = {
 // Add API Fetch middleware to rewrite permissions lookups.
 apiFetch.use( ( options, next ) => {
 	if ( options.path ) {
-		options.path = options.path.replace( 'wp/v2/xbs', 'analytics/v1/xbs' );
+		options.path = options.path.replace( 'wp/v2/xbs', 'accelerate/v1/xbs' );
 	}
 	return next( options );
 } );
@@ -212,7 +212,7 @@ const resolvers = {
 	 */
 	*getViews( clientId, args = null ) {
 		yield actions.setIsLoading( true );
-		let path = `analytics/v1/xbs/${ clientId }/views`;
+		let path = `accelerate/v1/xbs/${ clientId }/views`;
 		if ( args ) {
 			path = addQueryArgs( path, args );
 		}
@@ -232,7 +232,7 @@ const resolvers = {
 		yield actions.setIsLoading( true );
 		try {
 			const response = yield actions.fetch( {
-				path: `analytics/v1/xbs/${ clientId }`,
+				path: `accelerate/v1/xbs/${ clientId }`,
 			} );
 			yield actions.addPost( response );
 		} catch ( error ) {
@@ -245,7 +245,7 @@ const resolvers = {
 	},
 };
 
-export const store = registerStore( 'analytics/xbs', {
+export const store = registerStore( 'accelerate/xbs', {
 	actions,
 	controls,
 	initialState,

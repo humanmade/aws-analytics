@@ -69,7 +69,7 @@ const Insights = ( {
 	clientId,
 } ) => {
 	const block = useSelect( select => {
-		return select( 'analytics/xbs' ).getPost( clientId );
+		return select( 'accelerate/xbs' ).getPost( clientId );
 	}, [ clientId ] );
 
 	// Ensure we have a block ID data.
