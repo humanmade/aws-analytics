@@ -23,7 +23,7 @@ export default function Insight( props: Props ) {
 					{ !! props.delta && ! isNaN( props.delta ) && isFinite( props.delta ) && (
 						<div className={ `metrics-delta score-${ props.delta >= 0 ? 'pos' : 'neg' }` }>
 							{ props.delta >= 0 ? '↑' : '↓' }
-							{ compactMetric( parseFloat( props.delta.toFixed( 20 ) ) ) }
+							{ compactMetric( parseFloat( props.delta.toFixed( 20 ) ), '%' ) }
 						</div>
 					) }
 				</div>

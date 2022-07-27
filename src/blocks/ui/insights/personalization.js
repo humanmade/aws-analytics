@@ -94,7 +94,7 @@ const Personalization = ( {
 					return (
 						<li>
 							<p className="description">{ __( 'Audience coverage', 'altis-analytics' ) }</p>
-							<div className="altis-analytics-block-variant__metric blue">{ ( analytics && data ) ? compactMetric( ( data.unique.views / analytics.unique.views ) * 100 ) : '…' }</div>
+							<div className="altis-analytics-block-variant__metric blue">{ ( analytics && data ) ? compactMetric( ( data.unique.views / analytics.unique.views ) * 100, '%' ) : '…' }</div>
 						</li>
 					);
 				} }
