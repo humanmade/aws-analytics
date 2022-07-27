@@ -115,6 +115,7 @@ function enqueue_assets( string $entrypoint ) {
 				'wp-element',
 				'wp-i18n',
 				'wp-url',
+				'wp-html-entities',
 			],
 		]
 	);

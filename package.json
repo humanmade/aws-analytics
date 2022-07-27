@@ -35,6 +35,7 @@
     "@types/wordpress__api-fetch": "^3.2.4",
     "@types/wordpress__components": "^14.0.10",
     "@types/wordpress__data": "^4.6.11",
+    "@types/wordpress__html-entities": "^2.7.0",
     "@types/wordpress__url": "^2.14.0",
     "@visx/visx": "^2.11.1",
     "@webpack-cli/serve": "^1.7.0",

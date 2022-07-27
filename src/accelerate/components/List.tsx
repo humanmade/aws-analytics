@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio, Icon } from '@wordpress/components';
+import { decodeEntities } from '@wordpress/html-entities';
 import { Pagination } from 'react-pagination-bar';
 import ContentLoader from "react-content-loader"
 
@@ -173,7 +174,7 @@ export default function List ( props: Props ) {
 								<MenuGroup>
 									{ createableTypes.map( type => (
 										<MenuItem onClick={ onAddNew( type.name ) }>
-											{ type.singular_label }
+											{ decodeEntities( type.singular_label ) }
 										</MenuItem>
 									) ) }
 								</MenuGroup>
@@ -268,12 +269,12 @@ export default function List ( props: Props ) {
 									</td>
 									<td className="record-name">
 										<div className='record-name__type'>
-											{ post.type.label }
+											{ decodeEntities( post.type.label ) }
 										</div>
 										<div className='record-name__tag'></div>
 										<div className='record-name__title'>
 											<a href={ post.url || post.editUrl || '' } onClick={ () => trackEvent( 'Content Explorer', 'Navigate', { type: post.type } ) }>
-												{ post.title }
+												{ decodeEntities( post.title ) }
 											</a>
 										</div>
 									</td>
@@ -299,7 +300,7 @@ export default function List ( props: Props ) {
 										<div className='record-meta__author'>
 											<img alt="" className="record-meta__author-avatar" src={ post.author.avatar } />
 											<span className='record-meta__author-name'>
-												{ post.author.name }
+												{ decodeEntities( post.author.name ) }
 											</span>
 										</div>
 										<div className="record-meta__links">
