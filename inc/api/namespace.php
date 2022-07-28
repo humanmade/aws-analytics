@@ -522,7 +522,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'ids' => [
 					'terms' => [
 						'field' => 'attributes.postId.keyword',
-						'size' => 10000,
+						'size' => 1000,
 					],
 					'aggregations' => [
 						'histogram' => $histogram_agg,
@@ -538,7 +538,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'ids' => [
 					'terms' => [
 						'field' => 'attributes.blockId.keyword',
-						'size' => 10000,
+						'size' => 1000,
 					],
 					'aggregations' => [
 						'histogram' => $histogram_agg,
@@ -554,7 +554,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'ids' => [
 					'terms' => [
 						'field' => 'attributes.clientId.keyword',
-						'size' => 10000,
+						'size' => 1000,
 					],
 					'aggregations' => [
 						'views' => [
