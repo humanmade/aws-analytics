@@ -434,7 +434,7 @@ function get_views_list( int $days = 7 ) : array {
 				'terms' => [
 					// Get the block data. This will give us the key for the block, which is stored as the post slug.
 					'field' => 'attributes.clientId.keyword',
-					'size' => 10000, // Use arbitrary large size that is more than we're likely to need.
+					'size' => 5000, // Use arbitrary large size that is more than we're likely to need.
 				],
 				'aggs' => [
 					'views' => [
@@ -490,9 +490,7 @@ function get_views_list( int $days = 7 ) : array {
 		return $cache;
 	}
 
-	$result = Utils\query( $query, [
-		'request_cache' => 'true',
-	] );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		$data = [];
@@ -1044,7 +1042,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'ids' => [
 					'terms' => [
 						'field' => 'attributes.postId.keyword',
-						'size' => 10000,
+						'size' => 5000,
 					],
 				],
 			],
@@ -1057,7 +1055,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'ids' => [
 					'terms' => [
 						'field' => 'attributes.clientId.keyword',
-						'size' => 10000,
+						'size' => 5000,
 					],
 					'aggregations' => [
 						'views' => [
