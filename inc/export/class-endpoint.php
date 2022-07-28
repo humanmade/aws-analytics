@@ -132,7 +132,9 @@ class Endpoint {
 
 		// The first query returns just the total number of items
 		// so the results can be sliced later.
-		$total_results = Utils\query( $total_query );
+		$total_results = Utils\query( $total_query, [
+			'request_cache' => 'true',
+		] );
 		$total = $total_results['hits']['total']['value'] ?? $total_results['hits']['total']; // ES 7 compat.
 
 		// Set total found results header.

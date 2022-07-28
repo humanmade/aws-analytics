@@ -290,6 +290,16 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		}
 	}
 
+	// Add performance boosting parameters.
+	if ( strpos( $path, '_search' ) !== false ) {
+		$params = wp_parse_args( $params, [
+			// Cache results for faster subsequent lookups.
+			'request_cache' => 'true',
+			// Prefer shards on the node handling the request before broadening search.
+			'preference' => '_local',
+		] );
+	}
+
 	// Get URL.
 	$url = add_query_arg( $params, sprintf(
 		'%s/%s/%s',
