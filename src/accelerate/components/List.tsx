@@ -45,15 +45,15 @@ export default function List ( props: Props ) {
 
 	const query = useSelect( select => {
 		return {
-			posts: select( 'altis/analytics' ).getPosts<Post[]>( {
+			posts: select( 'accelerate' ).getPosts<Post[]>( {
 				period,
 				search,
 				type,
 				user,
 				page,
 			} ),
-			pagination: select( 'altis/analytics' ).getPagination<State['pagination']>(),
-			isLoading: select( 'altis/analytics' ).getIsLoading<boolean>(),
+			pagination: select( 'accelerate' ).getPagination<State['pagination']>(),
+			isLoading: select( 'accelerate' ).getIsLoading<boolean>(),
 		};
 	}, [ search, page, type, user, period ] );
 
@@ -118,7 +118,11 @@ export default function List ( props: Props ) {
 							} }
 						>
 							{ periods.map( p => (
-								<Radio value={ p.value } checked={ p.value === period } >
+								<Radio
+									checked={ p.value === period }
+									key={ p.value }
+									value={ p.value }
+								>
 									{ p.label.match( /\d+/ ) }
 								</Radio>
 							) ) }
@@ -134,7 +138,11 @@ export default function List ( props: Props ) {
 							} }
 						>
 							{ customFilters.map( filter => (
-								<Radio value={ filter.value } checked={ filter.value === customFilter } >
+								<Radio
+									checked={ filter.value === customFilter }
+									key={ filter.value }
+									value={ filter.value }
+								>
 									{ filter.label }
 								</Radio>
 							) ) }
@@ -185,8 +193,8 @@ export default function List ( props: Props ) {
 				<div className="table-content">
 					<table aria-live="polite">
 						<tbody>
-						{ isLoading && [...Array(8)].map( () => (
-							<tr>
+						{ isLoading && [...Array(8)].map( ( _, i ) => (
+							<tr key={ `placeholder-${ i }` }>
 								<td className="record-thumbnail">
 									<ContentLoader
 										{ ...loaderProps }

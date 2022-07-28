@@ -52,7 +52,7 @@ function enqueue_assets() : void {
 		'altis-analytics-preview',
 		Utils\get_asset_url( 'audiences/preview.js' ),
 		[
-			'altis-analytics',
+			'altis-accelerate',
 			'wp-element',
 		],
 		null,

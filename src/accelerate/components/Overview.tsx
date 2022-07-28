@@ -15,10 +15,10 @@ type Props = {
 export default function Overview( props: Props ) {
 	const period = periods.find( p => p.value === props.period ) || periods[0];
 
-	const current = useSelect<StatsResult>( select => select( 'altis/analytics' ).getStats( {
+	const current = useSelect<StatsResult>( select => select( 'accelerate' ).getStats( {
 		period: period.value || 'P7D',
 	} ) );
-	const previous = useSelect<StatsResult>( select => select( 'altis/analytics' ).getStats( {
+	const previous = useSelect<StatsResult>( select => select( 'accelerate' ).getStats( {
 		period: period.value || 'P7D',
 		diff: period.diff || 'P7D',
 	} ) );

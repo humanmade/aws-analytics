@@ -16,7 +16,7 @@ use WP_REST_Response;
 use WP_REST_Server;
 use WP_Query;
 
-const API_NAMESPACE = 'analytics/v1';
+const API_NAMESPACE = 'accelerate/v1';
 
 /**
  * Bootstrap analytics API.

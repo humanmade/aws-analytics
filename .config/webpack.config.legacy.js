@@ -13,7 +13,7 @@ const mode = process.env.NODE_ENV || 'production';
 const sharedConfig = {
 	mode: mode,
 	entry: {
-		'analytics': path.resolve( __dirname, '../src/analytics.js' ),
+		'accelerate': path.resolve( __dirname, '../src/accelerate.js' ),
 		'audiences/data': path.resolve( __dirname, '../src/audiences/data/index.js' ),
 		'audiences/preview': path.resolve( __dirname, '../src/audiences/preview/index.js' ),
 		'audiences/ui': path.resolve( __dirname, '../src/audiences/index.js' ),

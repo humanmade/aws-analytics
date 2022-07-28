@@ -297,7 +297,7 @@ function enqueue_scripts() {
 
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
-		'altis-analytics-polyfill.io',
+		'altis-accelerate-polyfill.io',
 		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
 		[],
 		'3',
@@ -305,16 +305,16 @@ function enqueue_scripts() {
 	);
 
 	wp_enqueue_script(
-		'altis-analytics',
-		Utils\get_asset_url( 'analytics.js' ),
+		'altis-accelerate',
+		Utils\get_asset_url( 'accelerate.js' ),
 		[
-			'altis-analytics-polyfill.io',
+			'altis-accelerate-polyfill.io',
 		],
 		null,
 		false
 	);
 	wp_add_inline_script(
-		'altis-analytics',
+		'altis-accelerate',
 		sprintf(
 			'var Altis = Altis || {}; Altis.Analytics = %s;' .
 			'Altis.Analytics.onReady = function ( callback ) {' .
@@ -359,10 +359,10 @@ function enqueue_scripts() {
 	);
 
 	// Load async for performance.
-	$wp_scripts->add_data( 'altis-analytics', 'async', true );
+	$wp_scripts->add_data( 'altis-accelerate', 'async', true );
 
 	// Only load polyfills for older browsers.
-	$wp_scripts->add_data( 'altis-analytics-polyfill.io', 'nomodule', true );
+	$wp_scripts->add_data( 'altis-accelerate-polyfill.io', 'nomodule', true );
 
 	/**
 	 * Create our own early hook for queueing

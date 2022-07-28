@@ -78,7 +78,7 @@ function enqueue_scripts() {
 		'altis-experiments',
 		Utils\get_asset_url( 'experiments.js' ),
 		[
-			'altis-analytics',
+			'altis-accelerate',
 		],
 		null
 	);

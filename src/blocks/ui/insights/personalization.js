@@ -23,11 +23,11 @@ const Personalization = ( {
 } ) => {
 	const [ days, setDays ] = useState( 7 );
 	const analytics = useSelect( select => {
-		return select( 'analytics/xbs' ).getViews( clientId, { days } );
+		return select( 'accelerate/xbs' ).getViews( clientId, { days } );
 	}, [ clientId, days ] );
 	const lift = useSelect( select => {
-		const current = select( 'analytics/xbs' ).getViews( clientId, { days: 7 } );
-		const previous = select( 'analytics/xbs' ).getViews( clientId, {
+		const current = select( 'accelerate/xbs' ).getViews( clientId, { days: 7 } );
+		const previous = select( 'accelerate/xbs' ).getViews( clientId, {
 			days: 7,
 			offset: 7,
 		} );

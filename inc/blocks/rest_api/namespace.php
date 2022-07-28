@@ -27,7 +27,7 @@ function setup() {
  */
 function init() : void {
 	// Experience blocks views endpoint.
-	register_rest_route( 'analytics/v1', 'xbs/(?P<id>[a-z0-9-]+)/views', [
+	register_rest_route( 'accelerate/v1', 'xbs/(?P<id>[a-z0-9-]+)/views', [
 		[
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => __NAMESPACE__ . '\\handle_views_request',
