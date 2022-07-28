@@ -68,7 +68,7 @@ export default function List ( props: Props ) {
 		},
 		{
 			value: 'me',
-			label: __( 'Me', 'altis' ),
+			label: __( 'My content', 'altis' ),
 		},
 	];
 
