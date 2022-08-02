@@ -10,12 +10,12 @@ import { Group } from '@visx/group';
 import { GridRows, GridColumns } from '@visx/grid';
 import { LinePath, AreaClosed, Bar } from '@visx/shape';
 import { AxisLeft, AxisBottom } from '@visx/axis';
-import { scaleTime, scaleLinear } from '@visx/scale';
+import { scaleLinear, scaleTime, scaleUtc } from '@visx/scale';
 import { MarkerCircle } from '@visx/marker';
 import { TooltipWithBounds, useTooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, StatsResult } from '../../util';
+import { compactMetric, Duration, padLeft, StatsResult } from '../../util';
 
 import './Dashboard.scss';
 
@@ -37,8 +37,15 @@ const getTooltip = ( data : Datum, period : { interval: string } ) => {
 	const date = getX( data );
 	let dateString = moment( date ).format( 'MMM Do' );
 
-	if ( period.interval === '1h' ) {
-		dateString = `${ ( '0' + date.getHours() ).replace( /0(\d\d)/, '$1' ) }:00`;
+	let isIntervalHours = period.interval.match( /(\d)h/ );
+	let intervalHours = Number( isIntervalHours ? isIntervalHours[1] : 0 );
+
+	if ( intervalHours === 1 ) {
+		dateString = `${ padLeft( date.getUTCHours() ) }:00`;
+	} else if ( intervalHours ) {
+		const offset = date.getUTCHours() + intervalHours;
+		const wrappedOffset = offset < 24 ? offset : 0;
+		dateString = `${ padLeft( date.getUTCHours() ) }:00 — ${ padLeft( wrappedOffset ) }:00`;
 	}
 
 	return (
@@ -80,11 +87,11 @@ export default function HeroChart( props: Props ) {
 		setOuterWidth( document.getElementById( 'hero-chart' )?.offsetWidth || 600 );
 	}, [ outerWidth, data ] );
 
-	const xScale = scaleTime<number>( {
+	const xScale = scaleUtc<number>( {
 		domain: extent( uniques, getX ) as [ Date, Date ],
 	} );
 	const yScale = scaleLinear<number>( {
-		domain: [ 0, max( uniques, getY ) as number + Math.floor( max( uniques, getY ) as number / 6 ) ],
+		domain: [ 0, Math.max( 4, max( uniques, getY ) as number + Math.floor( max( uniques, getY ) as number / 6 ) ) ],
 		nice: true,
 	} );
 
@@ -153,6 +160,10 @@ export default function HeroChart( props: Props ) {
 							style: { textTransform: 'uppercase' },
 							fill: '#777',
 						} ) }
+						tickFormat={ value => {
+							const date = new Date( value as Date );
+							return `${ padLeft( date.getUTCDate() ) }.${ padLeft( date.getUTCMonth() + 1 ) }`;
+						} }
 					/>
 					<AxisLeft
 						hideAxisLine={ true }
@@ -167,7 +178,8 @@ export default function HeroChart( props: Props ) {
 							verticalAnchor: 'middle',
 							textAnchor: 'middle',
 							fontSize: 13,
-							fontWeight: 'bold',
+							fontWeight: 'normal',
+							letterSpacing: '0.1em',
 							style: { textTransform: 'uppercase' },
 							fill: '#777',
 						} }

@@ -229,3 +229,13 @@ export function trackEvent( module: string, action: string, parameters: { [ k: s
 		window.analytics.track( `${ module } - ${ action }`, parameters );
 	}
 }
+
+/**
+ * Pads numbers with a leading zero.
+ *
+ * @param value Number to pad with leading zero.
+ * @returns
+ */
+export function padLeft( value: number ) {
+	return ( '0' + value ).replace( /0(\d\d)/, '$1' );
+}
