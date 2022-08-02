@@ -4,7 +4,7 @@ import { __, sprintf } from '@wordpress/i18n';
 import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio, Icon } from '@wordpress/components';
 import { decodeEntities } from '@wordpress/html-entities';
 import { Pagination } from 'react-pagination-bar';
-import ContentLoader from "react-content-loader"
+import ContentLoader from 'react-content-loader';
 
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
@@ -12,6 +12,7 @@ import { periods } from '../../data/periods';
 import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent } from '../../util';
 
 import './Dashboard.scss';
+import Image from './Image';
 import SparkChart from './SparkChart';
 
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -261,7 +262,12 @@ export default function List ( props: Props ) {
 								<tr key={ post.id }>
 									<td className='record-thumbnail'>
 										{ post.thumbnail && (
-											<img src={ post.thumbnail } alt={ post.title }/>
+											<Image
+												src={ post.thumbnail }
+												alt={ post.title }
+												width={ 105 }
+												height={ 47 }
+											/>
 										) }
 										{ post.thumbnail === '' && post.editUrl && (
 											<Button

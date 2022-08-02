@@ -1,4 +1,3 @@
-import { version } from 'webpack';
 import { __ } from '@wordpress/i18n';
 
 import { InitialData } from '../../util';
