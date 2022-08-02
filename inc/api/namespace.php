@@ -502,6 +502,8 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		],
 	];
 
+	$time_range_days = floor( ( $end - $start ) / DAY_IN_SECONDS );
+
 	$histogram_agg = [
 		'histogram' => [
 			'field' => 'event_timestamp',
@@ -745,6 +747,12 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			);
 		}
 
+		$fallback_histogram = array_fill( 0, $time_range_days, [ 'index' => 0, 'count' => 0 ] );
+		$fallback_histogram = array_map( function ( $datum, $i ) use ( $start ) {
+			$datum['index'] = $start * ( $i + 1 );
+			return $datum;
+		}, $fallback_histogram, array_keys( $fallback_histogram ) );
+
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,
@@ -762,7 +770,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			],
 			'thumbnail' => $thumbnail,
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
-			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ),
+			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ) ?: $fallback_histogram,
 		];
 
 		// Get lift.
