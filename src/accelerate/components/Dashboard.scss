@@ -353,7 +353,12 @@ body.index-php {
 				&:hover {
 					box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
 				}
+
+				&.record-thumbnail__empty {
+					background-color: #ECECEC;
+				}
 			}
+
 		}
 
 		.record-name {
