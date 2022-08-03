@@ -25,9 +25,9 @@ const TOP_ENDPOINT = 'accelerate/v1/top';
 
 export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDate | null ) : Period => {
 	const diffDur = moment.duration( diff as DurationInputArg1 );
-	const end = moment().subtract( diffDur );
+	const end = moment().utc().subtract( diffDur ).endOf( 'day' );
 	const dur = moment.duration( period as DurationInputArg1 );
-	const start = moment( end ).subtract( dur );
+	const start = moment( end ).utc().subtract( dur ).endOf( 'day' );
 	return {
 		start,
 		end,

@@ -300,7 +300,7 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'interval' => $resolution,
 				'extended_bounds' => [
 					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end, time() ),
+					'max' => (int) sprintf( '%d999', $end ),
 				],
 			],
 			'aggregations' => [
@@ -319,7 +319,7 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'interval' => $resolution,
 				'extended_bounds' => [
 					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end, time() ),
+					'max' => (int) sprintf( '%d999', $end ),
 				],
 			],
 		],
