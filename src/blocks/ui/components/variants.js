@@ -56,7 +56,7 @@ function Variants( props ) {
 								<>
 									<li>
 										<p className="description">{ __( 'Conversion rate', 'altis-analytics' ) }</p>
-										<div className="altis-analytics-block-variant__metric">{ data ? compactMetric( ( data.unique.conversions / data.unique.views ) * 100, '%' ) : '…' }</div>
+										<div className="altis-analytics-block-variant__metric">{ data ? compactMetric( ( data.unique.conversions / data.unique.views ) * 100 ) : '…' }</div>
 									</li>
 									{ ! variant.fallback && fallback.goal && fallbackData && (
 										<li>

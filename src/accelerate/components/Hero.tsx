@@ -9,8 +9,6 @@ import './Dashboard.scss';
 type Props = {
 	name: string,
 	period?: Duration,
-	canViewAnalytics: boolean,
-	canViewInsights: boolean,
 	onSetPeriod?: ( value: Duration ) => void,
 };
 
@@ -41,15 +39,10 @@ export default function Hero( props: Props ) {
 							);
 						} ) }
 					</div>
-					{ !! props.period && ( props.canViewAnalytics || props.canViewInsights ) && (
+					{ !! props.period && (
 						<nav className='Hero__links'>
-							{ props.canViewAnalytics && (
-								<a href="index.php?page=altis-analytics">{ __( 'Analytics', 'altis-analytics' ) }</a>
-							)}
-							{ props.canViewInsights && (
-								<a href="edit.php?post_type=xb">{ __( 'Insights', 'altis-analytics' ) }</a>
-							)}
-
+							<a href="index.php?page=altis-analytics">{ __( 'Analytics', 'altis-analytics' ) }</a>
+							<a href="edit.php?post_type=xb">{ __( 'Insights', 'altis-analytics' ) }</a>
 						</nav>
 					) }
 				</div>

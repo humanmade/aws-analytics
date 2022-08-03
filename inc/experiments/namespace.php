@@ -456,7 +456,7 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 		return;
 	}
 
-	wp_register_script(
+	wp_enqueue_script(
 		'altis-experiments-features',
 		Utils\get_asset_url( 'experiments/sidebar.js' ),
 		[
@@ -471,9 +471,6 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 		]
 	);
 
-	// Retrieve the labels for tests that show UI.
-	$js_data = [];
-
 	foreach ( $post_ab_tests as $test_id => $test ) {
 		if ( empty( $test['editor_scripts'] ) ) {
 			continue;
@@ -486,15 +483,13 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 		foreach ( $test['editor_scripts'] as $script => $deps ) {
 			wp_enqueue_script( "altis-experiments-features-{ $test_id }", $script, array_merge( $deps, [ 'altis-experiments-features' ] ), null );
 		}
-
-		if ( $test['show_ui'] ) {
-			$js_data[ $test_id ] = [
-				'label' => $test['label'],
-				'singular_label' => $test['singular_label'],
-			];
-		}
-
 	}
+
+	$js_data = array_filter( array_map( function( array $test ) {
+		return $test['show_ui']
+			? array_intersect_key( $test, array_flip( [ 'label', 'singular_label' ] ) )
+			: false;
+	}, $post_ab_tests ) );
 
 	wp_add_inline_script(
 		'altis-experiments-features',
@@ -1089,6 +1084,8 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'filter_path' => '-hits.hits,-aggregations.**._*',
 		// Return aggregation type with keys.
 		'typed_keys' => '',
+		// Cache requests as most indexes are static.
+		'request_cache' => 'true',
 	] );
 
 	if ( empty( $result ) ) {

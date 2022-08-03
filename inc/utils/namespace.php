@@ -193,16 +193,6 @@ function get_elasticsearch_version() : ?string {
 }
 
 /**
- * Get the index name prefix for analytics indexes.
- *
- * @return string
- */
-function get_elasticsearch_index_prefix() : string {
-	$index_prefix = apply_filters( 'altis.analytics.elasticsearch.index-prefix', 'analytics-' );
-	return $index_prefix;
-}
-
-/**
  * Fetch available analytics indices.
  *
  * @return array
@@ -213,7 +203,7 @@ function get_indices() : array {
 		return $cache;
 	}
 
-	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_prefix() . '*?filter_path=*.aliases' );
+	$indices_response = wp_remote_get( get_elasticsearch_url() . '/analytics-*?filter_path=*.aliases' );
 
 	if ( is_wp_error( $indices_response ) ) {
 		trigger_error( sprintf(
@@ -254,7 +244,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Sanitize path.
 	$path = trim( $path, '/' );
 
-	$index_paths = [ get_elasticsearch_index_prefix() . '*' ];
+	$index_paths = [ 'analytics-*' ];
 
 	// Try to extract specific index names to query if possible.
 	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
@@ -275,7 +265,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 			$available_indices = get_indices();
 
 			foreach ( $available_indices as $index ) {
-				$day = strtotime( str_replace( get_elasticsearch_index_prefix(), '', $index ) ) * 1000;
+				$day = strtotime( str_replace( 'analytics-', '', $index ) ) * 1000;
 				if ( $day >= $from && $day <= $to ) {
 					$index_paths[] = $index;
 				}
@@ -283,21 +273,11 @@ function query( array $query, array $params = [], string $path = '_search', stri
 
 			// Revert to all index if there are no matches.
 			if ( empty( $index_paths ) ) {
-				$index_paths[] = get_elasticsearch_index_prefix() . '*';
+				$index_paths[] = 'analytics-*';
 			}
 
 			break;
 		}
-	}
-
-	// Add performance boosting parameters.
-	if ( strpos( $path, '_search' ) !== false ) {
-		$params = wp_parse_args( $params, [
-			// Cache results for faster subsequent lookups.
-			'request_cache' => 'true',
-			// Prefer shards on the node handling the request before broadening search.
-			'preference' => '_local',
-		] );
 	}
 
 	// Get URL.
@@ -314,7 +294,7 @@ function query( array $query, array $params = [], string $path = '_search', stri
 		$url = add_query_arg( $params, sprintf(
 			'%s/%s/%s',
 			get_elasticsearch_url(),
-			get_elasticsearch_index_prefix() . '*',
+			'analytics-*',
 			$path
 		) );
 	}
@@ -322,12 +302,20 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
+	/**
+	 * Filters the default analytics timeout.
+	 *
+	 * @param int $timeout Seconds to wait for a repsonse from Elasticsearch.
+	 * @return int
+	 */
+	$timeout = (int) apply_filters( 'altis.analytics.elasticsearch.timeout', 20 );
+
 	$request_args = [
 		'method' => $method,
 		'headers' => [
 			'Content-Type' => 'application/json',
 		],
-		'timeout' => 15,
+		'timeout' => min( 30, max( 5, $timeout ) ), // Minimum 5 seconds, max 30 seconds.
 	];
 
 	// Only attach the body if the method supports it.
