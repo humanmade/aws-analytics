@@ -408,6 +408,7 @@ body.index-php {
 				text-align: right;
 				margin-right: 20px;
 				font-size: 0.65rem;
+				color: $color-dark-grey;
 				text-transform: uppercase;
 			}
 
@@ -429,6 +430,7 @@ body.index-php {
 
 				&-name {
 					font-size: 0.65rem;
+					color: $color-dark-grey;
 					display: block;
 					text-transform: uppercase;
 				}
