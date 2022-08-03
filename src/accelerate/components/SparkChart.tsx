@@ -25,7 +25,7 @@ export default function SparkChart( props: Props ) {
 	const {
 		histogram,
 		width = 180,
-		height = 30,
+		height = 20,
 	} = props;
 
 	const yMax = max( histogram, getY ) as number || 0;
