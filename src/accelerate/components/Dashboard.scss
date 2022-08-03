@@ -305,8 +305,8 @@ body.index-php {
 		border-spacing: 0 1rem;
 
 		tr {
-			background: $color-light-grey;
-			box-shadow: 0 0 0 100vmax $color-light-grey;
+			background: $color-light-grey-bg;
+			box-shadow: 0 0 0 100vmax $color-light-grey-bg;
 			clip-path: inset(0 -100vmax);
 			margin-bottom: 10px;
 		}
