@@ -297,7 +297,7 @@ export default function List ( props: Props ) {
 											<span>
 												{ sprintf(
 													'%s Views',
-													periods.filter( p => p.value === period )[ 0 ].label
+													periods.filter( p => p.value === period )[ 0 ].period_label
 												) }
 												<strong>{ new Intl.NumberFormat().format( post.views ) }</strong>
 											</span>

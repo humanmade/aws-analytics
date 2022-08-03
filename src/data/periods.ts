@@ -5,6 +5,7 @@ import { Duration } from '../util';
 export type Periods = {
 	diff: Duration | null,
 	label: string,
+	period_label: string,
 	value: Duration,
 	interval: string,
 }[];
@@ -12,18 +13,21 @@ export type Periods = {
 export const periods: Periods = [
 	{
 		label: __( '7 Days', 'altis' ),
+		period_label: __( '7-Day', 'altis' ),
 		value: 'P7D',
 		diff: 'P7D',
 		interval: '4h',
 	},
 	{
 		label: __( '30 Days', 'altis' ),
+		period_label: __( '30-Day', 'altis' ),
 		value: 'P30D',
 		diff: 'P30D',
 		interval: '1d',
 	},
 	{
 		label: __( '90 Days', 'altis' ),
+		period_label: __( '90-Day', 'altis' ),
 		value: 'P90D',
 		diff: null,
 		interval: '1d',
