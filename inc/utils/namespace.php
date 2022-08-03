@@ -322,12 +322,20 @@ function query( array $query, array $params = [], string $path = '_search', stri
 	// Escape the URL to ensure nothing strange was passed in via $path.
 	$url = esc_url_raw( $url );
 
+	/**
+	 * Filters the default analytics timeout.
+	 *
+	 * @param int $timeout Seconds to wait for a repsonse from Elasticsearch.
+	 * @return int
+	 */
+	$timeout = (int) apply_filters( 'altis.analytics.elasticsearch.timeout', 20 );
+
 	$request_args = [
 		'method' => $method,
 		'headers' => [
 			'Content-Type' => 'application/json',
 		],
-		'timeout' => 15,
+		'timeout' => min( 30, max( 5, $timeout ) ), // Minimum 5 seconds, max 30 seconds.
 	];
 
 	// Only attach the body if the method supports it.
