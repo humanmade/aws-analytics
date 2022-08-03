@@ -300,7 +300,7 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'interval' => $resolution,
 				'extended_bounds' => [
 					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', min( $end, time() ) ), // Don't show beyond current time.
+					'max' => (int) sprintf( '%d999', $end, time() ),
 				],
 			],
 			'aggregations' => [
@@ -319,7 +319,7 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 				'interval' => $resolution,
 				'extended_bounds' => [
 					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', min( $end, time() ) ),
+					'max' => (int) sprintf( '%d999', $end, time() ),
 				],
 			],
 		],
@@ -510,7 +510,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			'interval' => DAY_IN_SECONDS * 1000, // Days.
 			'extended_bounds' => [
 				'min' => (int) sprintf( '%d000', $start + DAY_IN_SECONDS ), // Add a day because the last bucket is the current day.
-				'max' => (int) sprintf( '%d999', min( $end, time() ) ), // Don't go beyond current time.
+				'max' => (int) sprintf( '%d999', $end ),
 			],
 		],
 	];
