@@ -14,7 +14,7 @@ export const periods: Periods = [
 		label: __( '7 Days', 'altis' ),
 		value: 'P7D',
 		diff: 'P7D',
-		interval: '1h',
+		interval: '4h',
 	},
 	{
 		label: __( '30 Days', 'altis' ),

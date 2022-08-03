@@ -13,11 +13,9 @@ export default function Header( props: Props ) {
 		<div className="Header">
 			<div className="Logo">
 				<img src={ Logo } alt="Altis Accelerate" width="64" height="26" />
-				{ props.version?.match( /beta/i ) && (
-					<span className="Beta">
-						{ __( 'BETA', 'altis' ) }
-					</span>
-				) }
+				<span className="Beta">
+					{ __( 'BETA', 'altis' ) }
+				</span>
 			</div>
 			<div className="Version">
 				{ props.version }
