@@ -1,20 +1,21 @@
 import React from 'react';
 
-import { max } from 'd3-array';
+import { max, min } from 'd3-array';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { Bar } from '@visx/shape';
-import { sprintf, _n } from '@wordpress/i18n';
-
-type Props = {
-	histogram: { index: number, count: number }[],
-	maxViews?: number,
-	width?: number,
-	height?: number,
-};
+import { __, sprintf, _n } from '@wordpress/i18n';
 
 type Datum = {
 	index: number,
 	count: number,
+	zeroData?: boolean,
+};
+
+type Props = {
+	histogram: Datum[],
+	maxViews?: number,
+	width?: number,
+	height?: number,
 };
 
 const getX = ( d : Datum ) => d.index;
@@ -28,6 +29,19 @@ export default function SparkChart( props: Props ) {
 	} = props;
 
 	const yMax = max( histogram, getY ) as number || 0;
+	const yMin = min( histogram, getY ) as number || 0;
+
+	// Pad numbers until we get data, always ensure they're less than real data values.
+	const maxPadValue = Math.floor( ( yMin || Math.min( 10, yMax ) || 10 ) / 1.5 );
+	for ( let i = 0; i < histogram.length; i++ ) {
+		if ( histogram[i].count === 0 ) {
+			histogram[i].zeroData = true;
+			histogram[i].count = maxPadValue + 1 - Math.ceil( Math.random() * maxPadValue );
+		} else {
+			break;
+		}
+	}
+
 	const xScale = scaleBand<number>( {
 		domain: histogram.map( getX ),
 		padding: Math.min( 1 / histogram.length, 0.1 ),
@@ -55,16 +69,18 @@ export default function SparkChart( props: Props ) {
 						rx={ 2 }
 						width={ barWidth }
 						height={ barHeight + 10 }
-						fill="var( --wp-admin-theme-color )"
+						fill={ d.zeroData ? '#d2d5d7' : 'var( --wp-admin-theme-color )' }
 						fillOpacity={ 0.8 }
 					>
 						<title>{
-							sprintf(
-								'%d %s on %s',
-								d.count,
-								_n( 'View', 'Views', d.count, 'altis' ),
-								( new Date( d.index ) ).toDateString()
-							)
+							d.zeroData
+								? __( 'No data for this date', 'altis' )
+								: sprintf(
+									'%d %s on %s',
+									d.count,
+									_n( 'View', 'Views', d.count, 'altis' ),
+									( new Date( d.index ) ).toDateString()
+								)
 						}</title>
 					</Bar>
 				);
