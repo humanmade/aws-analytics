@@ -275,6 +275,7 @@ export default function List ( props: Props ) {
 												isLink
 												title={ __( 'Set featured image', 'altis' ) }
 												onClick={ () => trackEvent( 'Content Explorer', 'Set Feature Image', { type: post.type } ) }
+												className='record-thumbnail__empty'
 											>
 												<Icon icon="plus-alt" />
 												<span className="screen-reader-text">{ __( 'Set featured image' ) }</span>
@@ -297,7 +298,7 @@ export default function List ( props: Props ) {
 											<span>
 												{ sprintf(
 													'%s Views',
-													periods.filter( p => p.value === period )[ 0 ].label
+													periods.filter( p => p.value === period )[ 0 ].period_label
 												) }
 												<strong>{ new Intl.NumberFormat().format( post.views ) }</strong>
 											</span>

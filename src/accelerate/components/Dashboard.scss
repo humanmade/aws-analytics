@@ -223,7 +223,7 @@ body.index-php {
 			position: relative;
 
 			input {
-				width: 300px;
+				width: 380px;
 				background: $color-light-grey;
 				border-color: transparent;
 				border-radius: 10px;
@@ -253,7 +253,7 @@ body.index-php {
 			position: relative;
 
 			button {
-				padding: 8px 30px 6px 27px;
+				padding: 7px 30px 7px 27px;
 				font-weight: 600;
 				border-radius: 10px;
 				outline: 0;
@@ -305,8 +305,8 @@ body.index-php {
 		border-spacing: 0 1rem;
 
 		tr {
-			background: $color-light-grey;
-			box-shadow: 0 0 0 100vmax $color-light-grey;
+			background: $color-light-grey-bg;
+			box-shadow: 0 0 0 100vmax $color-light-grey-bg;
 			clip-path: inset(0 -100vmax);
 			margin-bottom: 10px;
 		}
@@ -353,7 +353,12 @@ body.index-php {
 				&:hover {
 					box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
 				}
+
+				&.record-thumbnail__empty {
+					background-color: #ECECEC;
+				}
 			}
+
 		}
 
 		.record-name {
@@ -401,13 +406,14 @@ body.index-php {
 
 			> div {
 				display: flex;
-				align-items: center;
+				align-items: end;
 			}
 
 			span {
 				text-align: right;
 				margin-right: 20px;
 				font-size: 0.65rem;
+				color: $color-dark-grey;
 				text-transform: uppercase;
 			}
 
@@ -429,6 +435,7 @@ body.index-php {
 
 				&-name {
 					font-size: 0.65rem;
+					color: $color-dark-grey;
 					display: block;
 					text-transform: uppercase;
 				}
