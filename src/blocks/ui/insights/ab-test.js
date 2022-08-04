@@ -125,7 +125,7 @@ const ABTest = ( {
 							) }</p>
 							<p>{ sprintf(
 								__( 'Conversion rate: %s, the original version is the best.', 'altis-analytics' ),
-								compactMetric( winningVariantData.rate * 100, '%' )
+								compactMetric( winningVariantData.rate * 100 )
 							) }</p>
 						</>
 					) }
@@ -137,8 +137,8 @@ const ABTest = ( {
 							) }</p>
 							<p>{ sprintf(
 								__( 'The conversion rate was %s, %s higher than the original.', 'altis-analytics' ),
-								compactMetric( winningVariantData.rate * 100, '%' ),
-								compactMetric( getLift( winningVariantData.rate, originalData.rate ), '%' )
+								compactMetric( winningVariantData.rate * 100 ),
+								compactMetric( getLift( winningVariantData.rate, originalData.rate ) )
 							) }</p>
 						</>
 					) }
@@ -161,7 +161,7 @@ const ABTest = ( {
 					return (
 						<li>
 							<p className="description">{ __( 'Probability of best', 'altis-analytics' ) }</p>
-							<div className="altis-analytics-block-variant__metric blue">{ compactMetric( p2bb * 100, '%' ) }</div>
+							<div className="altis-analytics-block-variant__metric blue">{ compactMetric( p2bb * 100 ) }</div>
 						</li>
 					);
 				} }

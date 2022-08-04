@@ -537,7 +537,6 @@ const Analytics = {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
 		const EndpointData = {
-			RequestId: uuid(),
 			Attributes: {},
 			Demographic: {
 				AppVersion: Data.AppVersion || '',
@@ -709,9 +708,6 @@ const Analytics = {
 			},
 		};
 
-		// Track unique request ID.
-		Event[ EventId ].Attributes['x-amz-request-id'] = EventId;
-
 		// Add session stop parameters.
 		if ( type === '_session.stop' ) {
 			Event[ EventId ].Session.Duration = Date.now() - subSessionStart;
@@ -785,6 +781,7 @@ const Analytics = {
 
 		// Build endpoint data.
 		const Endpoint = Analytics.getEndpoint();
+		Endpoint.RequestId = uuid();
 
 		// Reduce events to an object keyed by event ID.
 		const Events = eventsToDeliver.reduce( ( carry, event ) => ( {
