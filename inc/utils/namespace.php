@@ -7,7 +7,6 @@ namespace Altis\Analytics\Utils;
 
 use Altis\Analytics;
 use Asset_Loader;
-use Aws\S3\S3Client;
 
 /**
  * Return asset file name based on generated manifest.json file.
@@ -962,59 +961,4 @@ function get_letter( int $index ) : string {
 		$out = chr( $index % 26 + 0x41 ) . $out;
 	}
 	return $out;
-}
-
-/**
- * Get a configured instance of S3 Client class.
- *
- * @param array $args Additional arguments to use with the client constructor.
- *
- * @return S3Client|null
- */
-function get_s3_client( array $args = [] ) : ? S3Client {
-
-	// These constants are required to continue.
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
-		return null;
-	}
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
-		return null;
-	}
-
-	$params = array_merge( [
-		'version' => '2006-03-01',
-		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
-	], $args );
-
-	// Add defined credentials if available.
-	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
-		$params['credentials'] = [
-			'key' => ALTIS_ANALYTICS_S3_KEY,
-			'secret' => ALTIS_ANALYTICS_S3_SECRET,
-		];
-	}
-
-	// Allow overriding the S3 endpoint.
-	if ( defined( 'ALTIS_ANALYTICS_S3_ENDPOINT' ) ) {
-		$params['endpoint'] = ALTIS_ANALYTICS_S3_ENDPOINT;
-	}
-
-	/**
-	 * Filter the Analytics S3 client params.
-	 *
-	 * @param array $params The parameters used to instantiate the S3Client object.
-	 */
-	$params = apply_filters( 'altis.analytics.s3_client_params', $params );
-
-	$client = new S3Client( $params );
-
-	/**
-	 * Filter the S3 client used by the AWS Analytics plugin.
-	 *
-	 * @param Aws\S3\S3Client $client The S3Client object.
-	 * @param array $params The default params passed to the client.
-	 */
-	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
-
-	return $client;
 }

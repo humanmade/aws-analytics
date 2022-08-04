@@ -13,6 +13,4 @@ namespace Altis\Analytics\Export;
 function setup() {
 	$endpoint = new Endpoint();
 	$endpoint->bootstrap();
-
-	Cron\bootstrap();
 }
