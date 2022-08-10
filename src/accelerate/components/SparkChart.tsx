@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { max, min } from 'd3-array';
-import { scaleBand, scaleLinear } from '@visx/scale';
+import { scaleBand, scaleLog } from '@visx/scale';
 import { Bar } from '@visx/shape';
 import { __, sprintf, _n } from '@wordpress/i18n';
 
@@ -26,6 +26,7 @@ export default function SparkChart( props: Props ) {
 		histogram,
 		width = 180,
 		height = 20,
+		maxViews,
 	} = props;
 
 	const yMax = max( histogram, getY ) as number || 0;
@@ -47,18 +48,16 @@ export default function SparkChart( props: Props ) {
 		padding: Math.min( 1 / histogram.length, 0.1 ),
 		range: [ 0, width ],
 	} );
-	const yScale = scaleLinear<number>( {
-		domain: [ 0, yMax as number ],
-		range: [ 0, height ],
+	const yScale = scaleLog<number>( {
+		domain: [ 1, maxViews || yMax as number ],
+		range: [ height, 0 ],
 	} );
-
-	yScale.range( [ height, 0 ] );
 
 	return (
 		<svg width={ width } height={ height }>
 			{ histogram.map( d => {
 				const barWidth = xScale.bandwidth();
-				const barHeight = height - ( yScale( getY( d ) ) ?? 1 );
+				const barHeight = height - ( yScale( getY( d ) as number || 1 ) );
 				const barX = xScale( getX( d ) );
 				const barY = Math.max( height - barHeight - 1, 0 );
 				return (

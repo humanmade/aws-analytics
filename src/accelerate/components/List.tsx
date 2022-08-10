@@ -9,7 +9,7 @@ import ContentLoader from 'react-content-loader';
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent, StatsResult } from '../../util';
 
 import './Dashboard.scss';
 import Image from './Image';
@@ -57,6 +57,11 @@ export default function List ( props: Props ) {
 			isLoading: select( 'accelerate' ).getIsLoading<boolean>(),
 		};
 	}, [ search, page, type, user, period ] );
+
+	const maxViewsPerUrl = useSelect<number>( select => {
+		const stats: StatsResult = select( 'accelerate' ).getStats( { period } );
+		return Math.max( 0, ...Object.values( stats?.stats.by_url || {} ) );
+	}, [ period ] );
 
 	const customFilters = [
 		{
@@ -303,6 +308,7 @@ export default function List ( props: Props ) {
 												<strong>{ new Intl.NumberFormat().format( post.views ) }</strong>
 											</span>
 											<SparkChart
+												maxViews={ maxViewsPerUrl }
 												histogram={ post?.histogram || [] }
 											/>
 										</div>
