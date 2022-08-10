@@ -24,7 +24,7 @@ const getY = ( d : Datum ) => d.count;
 export default function SparkChart( props: Props ) {
 	const {
 		histogram,
-		width = 180,
+		width = 160,
 		height = 20,
 		maxViews,
 	} = props;
@@ -65,10 +65,10 @@ export default function SparkChart( props: Props ) {
 						key={ `bar-${ d.index }` }
 						x={ barX }
 						y={ barY }
-						rx={ 2 }
+						rx={ 1 }
 						width={ barWidth }
 						height={ barHeight + 10 }
-						fill={ d.zeroData ? '#d2d5d7' : 'var( --wp-admin-theme-color )' }
+						fill={ d.zeroData ? '#E3E5E8' : 'var( --wp-admin-theme-color )' }
 						fillOpacity={ 0.8 }
 					>
 						<title>{

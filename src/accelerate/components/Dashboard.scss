@@ -9,6 +9,9 @@ $color-light-grey: #eef0f4;
 $color-dark-grey: #7B7B7B;
 $color-light-grey-bg: #F5F6F8;
 
+// Variables (Noel edit - will reconcile will above once we have final design)
+$color-light-blue-bg: #ECEEF1; // Thumbnail BG + Ghost Bars
+
 // Override certain WP-specific pieces
 body.index-php {
 
@@ -227,13 +230,13 @@ body.index-php {
 				background: $color-light-grey;
 				border-color: transparent;
 				border-radius: 10px;
-				padding-left: 45px;
+				padding-left: 35px;
 				height: 36px;
 
 				&:focus {
 					outline: 0;
 					box-shadow: none;
-					border-bottom: 1px solid #ddd;
+					border-bottom: none;
 				}
 
 				&::placeholder {
@@ -333,30 +336,19 @@ body.index-php {
 			padding-top: 17px;
 			padding-left: 0;
 
-			img, a {
+			.record-thumbnail-wrap {
+				width: 105px;
+				height: 47px;
+				background-color: $color-light-blue-bg;
+				border-radius: 2px;
+			}
+
+			img {
 				width: 105px;
 				height: 47px;
 				object-fit: cover;
 				object-position: top center;
-				box-shadow: 0 2px 5px rgb(0 0 0 / 40%);
-			}
-
-			a {
-				display: inline-block;
-				text-align: center;
-				vertical-align: middle;
-				padding: 13px;
-				text-decoration: none;
-				box-shadow: none;
-				background-color: #f5f6f8;
-
-				&:hover {
-					box-shadow: 0 2px 4px rgb(0 0 0 / 30%);
-				}
-
-				&.record-thumbnail__empty {
-					background-color: #ECECEC;
-				}
+				box-shadow: 0 4px 7px 0 rgba(21, 42, 79, 0.2);
 			}
 
 		}
@@ -400,6 +392,11 @@ body.index-php {
 					text-decoration: none;
 				}
 			}
+		}
+
+		.record-empty {
+			display: inline-block;
+			min-height: 300px;
 		}
 
 		.record-traffic {

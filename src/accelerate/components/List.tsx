@@ -74,7 +74,7 @@ export default function List ( props: Props ) {
 		},
 		{
 			value: 'me',
-			label: __( 'My content', 'altis' ),
+			label: __( 'My Content', 'altis' ),
 		},
 	];
 
@@ -266,6 +266,7 @@ export default function List ( props: Props ) {
 							return (
 								<tr key={ post.id }>
 									<td className='record-thumbnail'>
+										<div className='record-thumbnail-wrap'>
 										{ post.thumbnail && (
 											<Image
 												src={ post.thumbnail }
@@ -275,17 +276,12 @@ export default function List ( props: Props ) {
 											/>
 										) }
 										{ post.thumbnail === '' && post.editUrl && (
-											<Button
-												href={ post.editUrl }
-												isLink
-												title={ __( 'Set featured image', 'altis' ) }
-												onClick={ () => trackEvent( 'Content Explorer', 'Set Feature Image', { type: post.type } ) }
-												className='record-thumbnail__empty'
-											>
-												<Icon icon="plus-alt" />
-												<span className="screen-reader-text">{ __( 'Set featured image' ) }</span>
-											</Button>
+											<div
+											className='record-thumbnail__empty'
+										>
+										</div>
 										) }
+										</div>
 									</td>
 									<td className="record-name">
 										<div className='record-name__type'>
