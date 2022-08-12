@@ -8,10 +8,14 @@
  * @param {?number} placeholder UUID placeholder.
  * @returns {string} A new UUID.
  */
-export const uuid = placeholder =>
-	placeholder
+export const uuid = placeholder => {
+	if ( typeof window.crypto === 'object' ) {
+		return window.crypto.randomUUID();
+	}
+	return placeholder
 		? ( placeholder ^ ( ( Math.random() * 16 ) >> ( placeholder / 4 ) ) ).toString( 16 )
 		: ( [ 1e7 ] + -1e3 + -4e3 + -8e3 + -1e11 ).replace( /[018]/g, uuid );
+};
 
 /**
  * Escapes only unicode characters to support auth signature generation.

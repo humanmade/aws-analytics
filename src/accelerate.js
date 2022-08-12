@@ -1,8 +1,3 @@
-import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity-browser/CognitoIdentityClient';
-import { GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetCredentialsForIdentityCommand';
-import { GetIdCommand } from '@aws-sdk/client-cognito-identity-browser/commands/GetIdCommand';
-import { PutEventsCommand } from '@aws-sdk/client-pinpoint-browser/commands/PutEventsCommand';
-import { PinpointClient } from '@aws-sdk/client-pinpoint-browser/PinpointClient';
 import { parseQueryString } from '@aws-sdk/querystring-parser';
 import merge from 'deepmerge';
 import UAParser from 'ua-parser-js';
@@ -25,15 +20,13 @@ const {
 	Audiences,
 } = Altis.Analytics;
 
-if ( ! Config.PinpointId || ! Config.CognitoId ) {
+if ( ! Config.PinpointId ) {
 	/* eslint-disable quotes */
 	console.warn(
 		"Altis Analytics: Missing configuration. \
 	You must define the following constants in PHP:\n \
 	define( 'ALTIS_ANALYTICS_PINPOINT_ID', '...' );\n \
-	define( 'ALTIS_ANALYTICS_PINPOINT_REGION', '...' );\n \
-	define( 'ALTIS_ANALYTICS_COGNITO_ID', '...' );\n \
-	define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' );" );
+	define( 'ALTIS_ANALYTICS_PINPOINT_REGION', '...' );" );
 	/* eslint-enable quotes */
 }
 
@@ -165,134 +158,19 @@ const getMetrics = ( extra = {} ) => ( {
 const Analytics = {
 	keys: {
 		UserId: `aws.cognito.identity-id.${ Config.CognitoId }`,
-		UserCredentials: `aws.cognito.identity-credentials.${ Config.CognitoId }`,
 	},
 	/**
-	 * Get the cognito user ID.
+	 * Gets or creates the unique user ID.
 	 *
-	 * @returns {?string} The cognito user UUID.
+	 * @returns {?string} The user UUID.
 	 */
-	getUserId: () => localStorage.getItem( Analytics.keys.UserId ),
-	/**
-	 * Get the user credentials object.
-	 *
-	 * @returns {object|boolean} The user credentials object or false if it doesn't exist.
-	 */
-	getUserCredentials: () => {
-		try {
-			const ParsedCredentials = JSON.parse( localStorage.getItem( Analytics.keys.UserCredentials ) );
-			if ( new Date( ParsedCredentials.Credentials.Expiration ).getTime() > Date.now() ) {
-				return ParsedCredentials;
-			}
-			return false;
-		} catch ( error ) {
-			return false;
+	getUserId: () => {
+		let id = localStorage.getItem( Analytics.keys.UserId );
+		if ( ! id ) {
+			id = uuid();
+			localStorage.setItem( Analytics.keys.UserId, id );
 		}
-	},
-	/**
-	 * Set the user ID.
-	 *
-	 * @param {string} id The user UUID string.
-	 * @returns {boolean} True if updated successfully.
-	 */
-	setUserId: id => localStorage.setItem( Analytics.keys.UserId, id ),
-	/**
-	 * Set the user credntials object.
-	 *
-	 * @param {object} credentials Credentials object from cognito.
-	 * @returns {boolean} True if updated successfully.
-	 */
-	setUserCredentials: credentials => localStorage.setItem( Analytics.keys.UserCredentials, JSON.stringify( credentials ) ),
-	/**
-	 * Authenticates the current user.
-	 *
-	 * @returns {object|boolean} User credentials object on success or false otherwise.
-	 */
-	authenticate: async () => {
-		// Get user credentials from cache.
-		let UserId = Analytics.getUserId();
-		let UserCredentials = Analytics.getUserCredentials();
-		if ( UserCredentials && UserCredentials.Credentials ) {
-			return UserCredentials.Credentials;
-		}
-
-		// Configure Cognito client.
-		const params = {
-			region: Config.CognitoRegion,
-			credentials: {},
-		};
-		if ( Config.CognitoEndpoint ) {
-			params.endpoint = Config.CognitoEndpoint;
-		}
-		const client = new CognitoIdentityClient( params );
-
-		// Get unique ID if not set.
-		if ( ! UserId ) {
-			try {
-				const getIdCommand = new GetIdCommand( { IdentityPoolId: Config.CognitoId } );
-				const result = await client.send( getIdCommand );
-				UserId = result.IdentityId;
-				Analytics.setUserId( UserId );
-			} catch ( error ) {
-				console.error( error );
-			}
-		}
-
-		// Get credentials for user from Cognito.
-		try {
-			const getCredentialsCommand = new GetCredentialsForIdentityCommand( { IdentityId: UserId } );
-			const result = await client.send( getCredentialsCommand );
-			UserCredentials = result;
-			Analytics.setUserCredentials( UserCredentials );
-			return UserCredentials.Credentials;
-		} catch ( error ) {
-			console.error( error );
-		}
-		return false;
-	},
-	/**
-	 * Gets the AWS SDK client object.
-	 *
-	 * @returns {Promise|PinpointClient|null} Returns a promise for the client or the client itself.
-	 */
-	getClient: async () => {
-		// Bail early if we shouldn't set anything up.
-		if ( isBot && Config.ExcludeBots ) {
-			return null;
-		}
-
-		if ( Analytics.client ) {
-			return await Analytics.client;
-		}
-
-		// Ensure repeat calls wait for the same promise.
-		Analytics.client = ( async () => {
-			// Get user credentials for pinpoint client.
-			const Credentials = await Analytics.authenticate();
-			if ( ! Credentials ) {
-				console.error( 'Credentials not found.' );
-				return;
-			}
-
-			// Configure client.
-			const params = {
-				region: Config.PinpointRegion,
-				credentials: {
-					accessKeyId: Credentials.AccessKeyId,
-					secretAccessKey: Credentials.SecretKey,
-					expiration: Credentials.Expiration,
-					sessionToken: Credentials.SessionToken,
-				},
-			};
-			if ( Config.PinpointEndpoint ) {
-				params.endpoint = Config.PinpointEndpoint;
-			}
-			const client = new PinpointClient( params );
-			Analytics.client = client;
-			return client;
-		} )();
-
-		return await Analytics.client;
+		return id;
 	},
 	audiences: [],
 	/**
@@ -673,6 +551,11 @@ const Analytics = {
 			endpoint = {};
 		}
 
+		// No-op if we're excluding bot traffic.
+		if ( isBot && Config.ExcludeBots ) {
+			return;
+		}
+
 		// Merge endpoint data.
 		if ( Object.entries( endpoint ).length ) {
 			await Analytics.mergeEndpointData( endpoint );
@@ -762,21 +645,8 @@ const Analytics = {
 		const eventsToDeliver = Analytics.events;
 		Analytics.events = [];
 
-		// Get the client.
-		const client = await Analytics.getClient();
-		if ( ! client ) {
-			if ( ! isBot ) {
-				console.error( 'Could not create Analytics Client.' );
-			}
-			return;
-		}
-
 		// Events are associated with an endpoint.
 		const UserId = Analytics.getUserId();
-		if ( ! UserId ) {
-			console.error( 'No User ID found. Make sure to call Analytics.authenticate() first.' );
-			return;
-		}
 
 		// Update endpoint data if provided.
 		if ( Object.entries( endpoint ).length ) {
@@ -793,28 +663,22 @@ const Analytics = {
 		} ), {} );
 
 		// Build events request object.
-		const BatchUserId = UserId.replace( `${ Config.CognitoRegion }:`, '' );
 		const EventsRequest = {
 			BatchItem: {
-				[ BatchUserId ]: {
+				[ UserId ]: {
 					Endpoint: Endpoint,
 					Events: Events,
 				},
 			},
 		};
 
-		try {
-			const command = new PutEventsCommand( {
-				ApplicationId: Config.PinpointId,
-				EventsRequest: EventsRequest,
-			} );
-
-			// If event delivery is enabled.
-			if ( ! Noop ) {
-				await client.send( command );
-			}
-		} catch ( error ) {
-			console.error( error );
+		// If event delivery is enabled.
+		if ( ! Noop ) {
+			navigator.sendBeacon( Config.PinpointEndpoint, JSON.stringify( {
+				app_id: Config.PinpointId,
+				region: Config.PinpointRegion,
+				events: EventsRequest,
+			} ) );
 		}
 	},
 };
@@ -874,11 +738,11 @@ function startAnalytics() {
 
 	// Track sessions.
 	document.addEventListener( 'visibilitychange', () => {
-		if ( document.hidden ) {
+		if ( document.visibilityState !== 'visible' ) {
 			// On hide increment elapsed time.
 			elapsed += Date.now() - start;
-			// Fire session stop event.
-			Analytics.record( '_session.stop' );
+			// Fire session stop event - don't queue.
+			Analytics.record( '_session.stop', false );
 		} else {
 			// On show reset start time.
 			start = Date.now();
@@ -905,11 +769,6 @@ function startAnalytics() {
 	} else {
 		window.addEventListener( 'DOMContentLoaded', recordPageView );
 	}
-
-	// Flush remaining events.
-	window.addEventListener( 'beforeunload', () => {
-		Analytics.record( '_session.stop', false );
-	} );
 }
 
 // Check Altis Consent feature is in use.
