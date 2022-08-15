@@ -343,10 +343,7 @@ function enqueue_scripts() {
 					'Config' => [
 						'PinpointId' => defined( 'ALTIS_ANALYTICS_PINPOINT_ID' ) ? ALTIS_ANALYTICS_PINPOINT_ID : null,
 						'PinpointRegion' => defined( 'ALTIS_ANALYTICS_PINPOINT_REGION' ) ? ALTIS_ANALYTICS_PINPOINT_REGION : null,
-						'PinpointEndpoint' => defined( 'ALTIS_ANALYTICS_PINPOINT_ENDPOINT' ) ? ALTIS_ANALYTICS_PINPOINT_ENDPOINT : null,
-						'CognitoId' => defined( 'ALTIS_ANALYTICS_COGNITO_ID' ) ? ALTIS_ANALYTICS_COGNITO_ID : null,
-						'CognitoRegion' => defined( 'ALTIS_ANALYTICS_COGNITO_REGION' ) ? ALTIS_ANALYTICS_COGNITO_REGION : null,
-						'CognitoEndpoint' => defined( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT' ) ? ALTIS_ANALYTICS_COGNITO_ENDPOINT : null,
+						'PinpointEndpoint' => defined( 'ALTIS_ANALYTICS_PINPOINT_ENDPOINT' ) ? ALTIS_ANALYTICS_PINPOINT_ENDPOINT : 'https://eu.accelerate.altis.cloud/log',
 						'ExcludeBots' => $exclude_bots,
 					],
 					'Noop' => $noop,

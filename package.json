@@ -17,8 +17,7 @@
   "author": "Robert O'Rourke <rob@humanmade.com>",
   "license": "GPL-3.0",
   "dependencies": {
-    "@aws-sdk/client-cognito-identity-browser": "0.1.0-preview.2",
-    "@aws-sdk/client-pinpoint-browser": "0.1.0-preview.2",
+    "@aws-sdk/querystring-parser": "^3.127.0",
     "@babel/cli": "^7.18.6",
     "@babel/core": "^7.18.6",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
