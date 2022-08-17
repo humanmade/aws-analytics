@@ -6,7 +6,7 @@ $score-neg: #C6403C;
 $sidebar-padding: 5%;
 $color-grey: #cbc9c9;
 $color-light-grey: #eef0f4;
-$color-dark-grey: #7B7B7B;
+$color-dark-grey: #707070;
 $color-light-grey-bg: #F5F6F8;
 $color-light-blue-bg: #ECEEF1; // Thumbnail BG + Ghost Bars
 
@@ -193,7 +193,7 @@ body.index-php {
 						color: #fff;
 						&::after {
 							content: 'D';
-							padding-left: 3px;
+							padding-left: 1px;
 						}
 						&:focus:not(:disabled) {
 							box-shadow: inset 0 0 0 1px #4667de;
@@ -448,6 +448,7 @@ body.index-php {
 		}
 
 		.record-traffic {
+			width: 330px;
 
 			> div {
 				display: flex;
@@ -491,7 +492,7 @@ body.index-php {
 		}
 
 		.record-meta {
-			width: 25%;
+			width: 20%;
 			padding-right: 0;
 
 			&__author {
