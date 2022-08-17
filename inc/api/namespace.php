@@ -761,6 +761,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'label' => get_post_type_object( $post->post_type )->labels->singular_name,
 			],
 			'title' => trim( wp_strip_all_tags( get_the_title( $post->ID ) ) ),
+			'date' => $post->post_date,
 			'url' => get_post_type_object( $post->post_type )->public ? get_the_permalink( $post->ID ) : null,
 			'editUrl' => get_edit_post_link( $post->ID, 'rest' ),
 			'author' => [
@@ -772,6 +773,13 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
 			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ) ?: $fallback_histogram,
 		];
+
+		if ( $post->post_parent ) {
+			$query->posts[ $i ]['parent'] = [
+				'title' => trim( wp_strip_all_tags( get_the_title( $post->post_parent ) ) ),
+				'editUrl' => get_edit_post_link( $post->post_parent, 'rest' ),
+			];
+		}
 
 		// Get lift.
 		if ( isset( $processed[ $post->ID ]['views'], $processed[ $post->ID ]['conversions'] ) ) {

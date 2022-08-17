@@ -8,8 +8,6 @@ $color-grey: #cbc9c9;
 $color-light-grey: #eef0f4;
 $color-dark-grey: #7B7B7B;
 $color-light-grey-bg: #F5F6F8;
-
-// Variables (Noel edit - will reconcile will above once we have final design)
 $color-light-blue-bg: #ECEEF1; // Thumbnail BG + Ghost Bars
 
 // Override certain WP-specific pieces
@@ -49,6 +47,14 @@ body.index-php {
 .Dashboard {
 	width: 100%;
 
+	a {
+		color: $active-blue;
+		&:hover,
+		&:focus,
+		&:active {
+			color: $dark-blue;
+		}
+	}
 }
 
 .Header {
@@ -160,6 +166,15 @@ body.index-php {
 					cursor: pointer;
 					font-weight: 500;
 					padding: 10px;
+					color: #4667de;
+					border-color: #4667de;
+					box-shadow: inset 0 0 0 1px #4667de;
+					&:hover,
+					&:focus {
+						color: #4667de;
+						border-color: #4667de;
+						box-shadow: inset 0 0 0 1px #4667de;
+					}
 
 					&:first-child {
 						border-top-left-radius: 10px;
@@ -173,9 +188,15 @@ body.index-php {
 
 					&.is-primary {
 						outline: none;
+						background: #4667de;
+						border-color: #4667de;
+						color: #fff;
 						&::after {
 							content: 'D';
 							padding-left: 3px;
+						}
+						&:focus:not(:disabled) {
+							box-shadow: inset 0 0 0 1px #4667de;
 						}
 					}
 				}
@@ -202,10 +223,12 @@ body.index-php {
 					height: 50px;
 					font-weight: 500;
 					border-bottom: 2px solid transparent;
+					color: #4667de;
 
 					&:hover, &:active, &:focus {
 						box-shadow: none;
 						background: none;
+						color: #4667de;
 					}
 
 					&:last-child {
@@ -213,8 +236,8 @@ body.index-php {
 					}
 
 					&.is-primary {
-						color: var( --wp-admin-theme-color );
-						border-bottom: 2px solid var( --wp-admin-theme-color );
+						color: #4667de;
+						border-bottom: 2px solid #4667de;
 					}
 				}
 			}
@@ -264,15 +287,28 @@ body.index-php {
 				border: 0;
 				cursor: pointer;
 
-				&::before {
-					margin-right: 5px;
-					margin-bottom: -3px;
+				&.is-primary {
+					background: $active-blue;
+
+					&:hover, &:active, &:focus {
+						background: $active-blue;
+					}
+
+					&::before {
+						margin-right: 5px;
+						margin-bottom: -3px;
+					}
 				}
 			}
 
 			.components-menu-group > [role=group] {
 				display: flex;
 				flex-flow: column wrap;
+
+				button:hover {
+					color: $active-blue;
+					cursor: pointer;
+				}
 			}
 		}
 
@@ -354,35 +390,47 @@ body.index-php {
 		}
 
 		.record-name {
-			font-size: 0.875rem;
 			color: $color-dark-grey;
-			width: 30%;
+			font-size: 0.65rem;
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
 
-			&__type {
-				font-size: 0.65rem;
-				font-weight: 700;
-				text-transform: uppercase;
-				letter-spacing: .05em;
-				float: left;
+			a {
+				text-decoration: none;
 			}
 
-			&__tag {
-				font-size: 0.65rem;
+			&__meta {
+				text-transform: uppercase;
+				letter-spacing: 0.01em;
 
-				&::before {
-					content: '/';
-					font-weight: normal;
-					padding: 5px;
+				> div {
+					letter-spacing: .03em;
+					display: inline-block;
 				}
 
-				&:empty {
+				> div + div {
 					&::before {
-						content: '';
+						content: '/';
+						font-weight: normal;
+						padding: 5px;
+					}
+
+					&:empty {
+						&::before {
+							content: '';
+						}
 					}
 				}
 			}
 
+			&__type {
+				font-weight: 700;
+			}
+
 			&__title {
+				clear: both;
+				font-size: 0.875rem;
 				padding-top: 0.15rem;
 				font-weight: 600;
 				line-height: 1.15rem;
@@ -403,29 +451,47 @@ body.index-php {
 
 			> div {
 				display: flex;
-				align-items: end;
+				align-items: flex-end;
 			}
 
 			span {
 				text-align: right;
-				margin-right: 20px;
+				margin-right: 10px;
 				font-size: 0.65rem;
 				color: $color-dark-grey;
 				text-transform: uppercase;
+				letter-spacing: 0.01em;
 			}
 
 			strong {
 				display: block;
 				font-size: 0.825rem;
+				color: $dark-blue;
+			}
+
+			svg {
+				margin-bottom: 0.35rem;
 			}
 		}
 
 		.record-lift {
-			width: 80px;
+			width: 100px;
+
+			&__label {
+				font-size: 0.65rem;
+				color: $color-dark-grey;
+				text-transform: uppercase;
+				letter-spacing: 0.01em;
+			}
+
+			&__value {
+				font-size: 0.825rem;
+				font-weight: bold;
+			}
 		}
 
 		.record-meta {
-			width: 20%;
+			width: 25%;
 			padding-right: 0;
 
 			&__author {
@@ -435,6 +501,7 @@ body.index-php {
 					color: $color-dark-grey;
 					display: block;
 					text-transform: uppercase;
+					letter-spacing: 0.01em;
 				}
 
 				&-avatar {
@@ -454,8 +521,13 @@ body.index-php {
 				padding-top: 2px;
 
 				a {
+					margin-right: 10px;
 					text-decoration: none;
-					color: inherit;
+					color: $dark-blue;
+
+					&:hover, &:active, &:focus {
+						color: $active-blue;
+					}
 				}
 			}
 

@@ -3,6 +3,7 @@ import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
 import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio, Icon } from '@wordpress/components';
 import { decodeEntities } from '@wordpress/html-entities';
+import moment from 'moment';
 import { Pagination } from 'react-pagination-bar';
 import ContentLoader from 'react-content-loader';
 
@@ -173,7 +174,7 @@ export default function List ( props: Props ) {
 						<Dropdown
 							className=""
 							contentClassName=""
-							position="bottom right"
+							position="bottom center"
 							renderToggle={ ( { isOpen, onToggle } ) => (
 								<Button
 									isPrimary
@@ -284,10 +285,19 @@ export default function List ( props: Props ) {
 										</div>
 									</td>
 									<td className="record-name">
-										<div className='record-name__type'>
-											{ decodeEntities( post.type.label ) }
+										<div className='record-name__meta'>
+											<div className='record-name__type'>
+												{ decodeEntities( post.type.label ) }
+											</div>
+											{ post.parent && (
+												<div className='record-name__parent'>
+													<a href={ post.parent.editUrl }>{ post.parent.title }</a>
+												</div>
+											) }
+											<div className='record-name__date' title={ post.date }>
+												{ moment( post.date ).fromNow() }
+											</div>
 										</div>
-										<div className='record-name__tag'></div>
 										<div className='record-name__title'>
 											<a href={ post.url || post.editUrl || '' } onClick={ () => trackEvent( 'Content Explorer', 'Navigate', { type: post.type } ) }>
 												{ decodeEntities( post.title ) }
@@ -309,9 +319,12 @@ export default function List ( props: Props ) {
 											/>
 										</div>
 									</td>
-									<td className={ `record-lift score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
-										{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
-										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ), '%' ) }
+									<td className="record-lift">
+										<div className="record-lift__label">{ !! lift && __( 'Lift', 'altis' ) }</div>
+										<div className={ `record-lift__value score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
+											{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
+											{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ), '%' ) }
+										</div>
 									</td>
 									<td className="record-meta">
 										<div className='record-meta__author'>
@@ -325,6 +338,12 @@ export default function List ( props: Props ) {
 												{ ' ' }
 												<a href={ post.editUrl } onClick={ () => trackEvent( 'Content Explorer', 'Action', { action: 'edit', type: post.type } ) }>
 													{ __( 'Edit', 'altis' ) }
+												</a>
+											</> ) }
+											{ post.url && ( <>
+												{ ' ' }
+												<a href={ post.url } onClick={ () => trackEvent( 'Content Explorer', 'Action', { action: 'view', type: post.type } ) }>
+													{ __( 'View', 'altis' ) }
 												</a>
 											</> ) }
 										</div>

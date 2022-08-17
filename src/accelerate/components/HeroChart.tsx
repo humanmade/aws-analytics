@@ -10,7 +10,7 @@ import { Group } from '@visx/group';
 import { GridRows, GridColumns } from '@visx/grid';
 import { LinePath, AreaClosed, Bar } from '@visx/shape';
 import { AxisLeft, AxisBottom } from '@visx/axis';
-import { scaleLinear, scaleTime, scaleUtc } from '@visx/scale';
+import { scaleLinear, scaleUtc } from '@visx/scale';
 import { MarkerCircle } from '@visx/marker';
 import { TooltipWithBounds, useTooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
@@ -138,7 +138,7 @@ export default function HeroChart( props: Props ) {
 			<svg width="100%" height={ graphHeight + ( graphPaddingY * 2 ) }>
 				<MarkerCircle id="marker-circle" fill="#333" size={ 2 } refX={ 2 } />
 				<LinearGradient
-					from="var( --wp-admin-theme-color )"
+					from="#4667de"
 					to="rgba( 255, 255, 255, 0 )"
 					id="hero-gradient"
 				/>
@@ -205,7 +205,7 @@ export default function HeroChart( props: Props ) {
 						data={ uniques }
 						x={ d => xScale( getX( d ) ) ?? 0 }
 						y={ d  => yScale( getY( d ) ) ?? 0 }
-						stroke="var( --wp-admin-theme-color )"
+						stroke="#4667de"
 						strokeWidth={ 2 }
 						strokeOpacity={ 1 }
 						shapeRendering="geometricPrecision"
@@ -262,7 +262,7 @@ export default function HeroChart( props: Props ) {
 								cx={ tooltipLeft }
 								cy={ tooltipTop }
 								r={ 4 }
-								fill="var( --wp-admin-theme-color )"
+								fill="#4667de"
 								stroke="white"
 								strokeWidth={ 2 }
 								pointerEvents="none"

@@ -22,12 +22,22 @@ const getX = ( d : Datum ) => d.index;
 const getY = ( d : Datum ) => d.count;
 
 export default function SparkChart( props: Props ) {
+	const breakPoints = {
+		7: 100,
+		14: 110,
+		30: 120,
+		90: 150,
+	};
+
 	const {
 		histogram,
 		width = 160,
 		height = 20,
 		maxViews,
 	} = props;
+
+	// Override width depending on number of days shown.
+	const trueWidth = breakPoints[ histogram.length as 7|14|30|90 ] || width;
 
 	const yMax = max( histogram, getY ) as number || 0;
 	const yMin = min( histogram, getY ) as number || 0;
@@ -45,8 +55,8 @@ export default function SparkChart( props: Props ) {
 
 	const xScale = scaleBand<number>( {
 		domain: histogram.map( getX ),
-		padding: Math.min( 1 / histogram.length, 0.1 ),
-		range: [ 0, width ],
+		padding: Math.max( 1.5 / histogram.length, 0.15 ),
+		range: [ 0, trueWidth ],
 	} );
 	const yScale = scaleLog<number>( {
 		domain: [ 1, maxViews || yMax as number ],
@@ -54,7 +64,7 @@ export default function SparkChart( props: Props ) {
 	} );
 
 	return (
-		<svg width={ width } height={ height }>
+		<svg width={ trueWidth } height={ height }>
 			{ histogram.map( d => {
 				const barWidth = xScale.bandwidth();
 				const barHeight = height - ( yScale( getY( d ) as number || 1 ) );
@@ -68,7 +78,7 @@ export default function SparkChart( props: Props ) {
 						rx={ 1 }
 						width={ barWidth }
 						height={ barHeight + 10 }
-						fill={ d.zeroData ? '#E3E5E8' : 'var( --wp-admin-theme-color )' }
+						fill={ d.zeroData ? '#ECEEF1' : '#4667de' }
 						fillOpacity={ 0.8 }
 					>
 						<title>{
