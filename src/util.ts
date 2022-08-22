@@ -67,6 +67,10 @@ export interface StatsResult {
 	stats: GroupedStatistics,
 }
 
+export interface DiffsResult {
+	[ k: string ]: HistogramDiff,
+}
+
 export interface Period {
 	start: Moment,
 	end: Moment,
@@ -100,6 +104,23 @@ export type Post = {
 	[ k: string ]: any,
 }
 
+export type HistogramDiff = {
+	previous: {
+		uniques: number,
+		by_date: {
+			index: number,
+			count: number,
+		}[],
+	},
+	current: {
+		uniques: number,
+		by_date: {
+			index: number,
+			count: number,
+		}[],
+	},
+}
+
 export interface State {
 	posts: {
 		[ k: string ]: Post[]
@@ -107,8 +128,14 @@ export interface State {
 	stats: {
 		[ k: string ]: StatsResult,
 	},
+	diffs: {
+		[ k: string ]: {
+			[ k: string ]: HistogramDiff,
+		}
+	},
 	isLoading: boolean,
 	isLoadingStats: boolean,
+	isLoadingDiffs: boolean,
 	pagination: {
 		total: number,
 		pages: number,
@@ -130,6 +157,13 @@ export interface SetStatsAction extends StandardAction {
 	key: string,
 }
 
+export interface SetDiffsAction extends StandardAction {
+	type: 'SET_DIFFS',
+	diffs: {
+		[ k: string ]: DiffsResult,
+	},
+}
+
 export interface RefreshStatsAction extends StandardAction {
 	type: 'REFRESH_STATS',
 }
@@ -144,6 +178,11 @@ export interface SetIsLoadingStatsAction extends StandardAction {
 	isLoading: State['isLoadingStats'],
 }
 
+export interface SetIsLoadingDiffsAction extends StandardAction {
+	type: 'SET_IS_LOADING_DIFFS',
+	isLoading: State['isLoadingDiffs'],
+}
+
 export interface SetPaginationAction extends StandardAction {
 	type: 'SET_PAGINATION',
 	total: number,
@@ -152,7 +191,7 @@ export interface SetPaginationAction extends StandardAction {
 
 export type Action = SetPostsAction | SetStatsAction | SetIsLoadingAction
 					| SetIsLoadingStatsAction | SetPaginationAction
-					| RefreshStatsAction;
+					| RefreshStatsAction | SetDiffsAction | SetIsLoadingDiffsAction;
 
 export interface BlockFillProps {
 	data?: StatsResult,

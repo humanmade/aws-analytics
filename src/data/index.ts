@@ -18,10 +18,15 @@ import {
 	StatsResult,
 	RefreshStatsAction,
 	Filter,
+	DiffsResult,
+	SetDiffsAction,
+	SetIsLoadingDiffsAction,
+	Duration,
 } from '../util';
 
 const STATS_ENDPOINT = 'accelerate/v1/stats';
 const TOP_ENDPOINT = 'accelerate/v1/top';
+const DIFF_ENDPOINT = 'accelerate/v1/diff';
 
 export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDate | null ) : Period => {
 	const diffDur = moment.duration( diff as DurationInputArg1 );
@@ -42,6 +47,7 @@ type QueryArgs = {
 	start?: string,
 	type?: string,
 	filter?: Filter,
+	ids?: number[],
 };
 
 const mapToKey = ( obj: QueryArgs ) : string => {
@@ -69,12 +75,14 @@ const resolveQueryArgs = ( queryArgs: QueryArgs = {} ) : QueryArgs => {
 const initialState: State = {
 	isLoading: false,
 	isLoadingStats: false,
+	isLoadingDiffs: false,
 	pagination: {
 		total: 0,
 		pages: 0,
 	},
 	posts: {},
 	stats: {},
+	diffs: {},
 };
 
 interface FetchAction extends StandardAction {
@@ -87,7 +95,7 @@ interface ResponseAction extends StandardAction {
 	response: Response,
 }
 
-type Responses = Post[] | StatsResult;
+type Responses = Post[] | StatsResult | DiffsResult;
 
 const controls = {
 	/**
@@ -149,6 +157,21 @@ const actions = {
 		};
 	},
 	/**
+	 * Add stats action creator.
+	 *
+	 * @param {Array} diffs Post diffs to add to store.
+	 * @param {string} key A query cache key for the results.
+	 * @returns {object} Add stats action object.
+	 */
+	setDiffs( diffs: DiffsResult, period: Duration ) : SetDiffsAction {
+		return {
+			type: 'SET_DIFFS',
+			diffs: {
+				[ period ]: diffs,
+			},
+		};
+	},
+	/**
 	 * Set is loading action creator.
 	 *
 	 * @param {boolean} isLoading True if UI is loading.
@@ -169,6 +192,18 @@ const actions = {
 	setIsLoadingStats( isLoading: boolean ) : SetIsLoadingStatsAction {
 		return {
 			type: 'SET_IS_LOADING_STATS',
+			isLoading,
+		};
+	},
+	/**
+	 * Set is loading action creator.
+	 *
+	 * @param {boolean} isLoading True if UI is loading.
+	 * @returns {object} Set loading action object.
+	 */
+	setIsLoadingDiffs( isLoading: boolean ) : SetIsLoadingDiffsAction {
+		return {
+			type: 'SET_IS_LOADING_DIFFS',
 			isLoading,
 		};
 	},
@@ -234,6 +269,16 @@ const selectors = {
 		return state.posts[ mapToKey( queryArgs ) ] || [];
 	},
 	/**
+	 * Get all post diffs.
+	 *
+	 * @param {object} state The redux store state.
+	 * @param {object} queryArgs The query args object.
+	 * @returns {object} List of all available post diffs.
+	 */
+	getDiffs( state: State, queryArgs: QueryArgs = {} ) {
+		return state.diffs[ queryArgs?.period as string || 'P7D' ] || {};
+	},
+	/**
 	 * Get pagination data.
 	 *
 	 * @param {object} state The redux store state.
@@ -259,6 +304,15 @@ const selectors = {
 	 */
 	getIsLoadingStats( state: State ) {
 		return state.isLoadingStats;
+	},
+	/**
+	 * Get loading status.
+	 *
+	 * @param {object} state The redux store state.
+	 * @returns {boolean} True if currently loading.
+	 */
+	getIsLoadingDiffs( state: State ) {
+		return state.isLoadingDiffs;
 	},
 };
 
@@ -311,6 +365,24 @@ const resolvers = {
 		}
 		yield actions.setStats( stats, mapToKey( queryArgs ) );
 		return actions.setIsLoadingStats( false );
+	},
+	/**
+	 * Resolve request for diffs.
+	 *
+	 * @param {object} queryArgs Arguments for the diffs request.
+	 * @returns {object} Action objects.
+	 */
+	 *getDiffs( queryArgs: QueryArgs = {} ) {
+		yield actions.setIsLoadingDiffs( true );
+
+		queryArgs = resolveQueryArgs( queryArgs );
+
+		const diffs: DiffsResult = yield actions.fetch( {
+			path: addQueryArgs( DIFF_ENDPOINT, queryArgs ),
+		} );
+
+		yield actions.setDiffs( diffs || {}, queryArgs?.period as Duration || 'P7D' );
+		return actions.setIsLoadingDiffs( false );
 	},
 };
 
