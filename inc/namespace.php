@@ -8,7 +8,6 @@
 namespace Altis\Analytics;
 
 use Altis\Analytics\Utils;
-use Aws\S3\S3Client;
 use DateInterval;
 use DateTime;
 use Exception;
@@ -424,11 +423,9 @@ function delete_old_indexes() {
  */
 function clean_s3_store() : void {
 
-	// These constants are required to continue.
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
-		return;
-	}
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
+	// Get S3 client.
+	$client = Utils\get_s3_client();
+	if ( ! $client ) {
 		return;
 	}
 
@@ -445,42 +442,6 @@ function clean_s3_store() : void {
 	$date = new DateTime( 'midnight' );
 	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
 	$max_age_date = $date->format( 'U' );
-
-	// Get S3 client.
-	$params = [
-		'version' => '2006-03-01',
-		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
-	];
-
-	// Add defined credentials if available.
-	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
-		$params['credentials'] = [
-			'key' => ALTIS_ANALYTICS_S3_KEY,
-			'secret' => ALTIS_ANALYTICS_S3_SECRET,
-		];
-	}
-
-	// Allow overriding the S3 endpoint.
-	if ( defined( 'ALTIS_ANALYTICS_S3_ENDPOINT' ) ) {
-		$params['endpoint'] = ALTIS_ANALYTICS_S3_ENDPOINT;
-	}
-
-	/**
-	 * Filter the Analytics S3 client params.
-	 *
-	 * @param array $params The parameters used to instantiate the S3Client object.
-	 */
-	$params = apply_filters( 'altis.analytics.s3_client_params', $params );
-
-	$client = new S3Client( $params );
-
-	/**
-	 * Filter the S3 client used by the AWS Analytics plugin.
-	 *
-	 * @param Aws\S3\S3Client $client The S3Client object.
-	 * @param array $params The default params passed to the client.
-	 */
-	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
 
 	// Fetch first batch of items.
 	try {
