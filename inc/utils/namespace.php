@@ -470,13 +470,14 @@ function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int
  * it to something easier to work with in JS.
  *
  * @param array $histogram The raw histogram buckets from ES.
+ * @param string|null $sub_count_key An optional sub aggregation key to get the count from.
  * @return array
  */
-function normalise_histogram( array $histogram ) : array {
-	$histogram = array_map( function ( array $bucket ) {
+function normalise_histogram( array $histogram, ?string $sub_count_key = null ) : array {
+	$histogram = array_map( function ( array $bucket ) use ( $sub_count_key ) {
 		return [
 			'index' => intval( $bucket['key'] ),
-			'count' => $bucket['doc_count'],
+			'count' => $bucket[ $sub_count_key ]['value'] ?? $bucket['doc_count'],
 		];
 	}, $histogram );
 	return array_values( $histogram );

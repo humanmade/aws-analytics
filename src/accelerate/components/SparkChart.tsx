@@ -1,9 +1,11 @@
 import React from 'react';
+import moment from 'moment';
 
 import { max, min } from 'd3-array';
 import { scaleBand, scaleLog } from '@visx/scale';
 import { Bar } from '@visx/shape';
 import { __, sprintf, _n } from '@wordpress/i18n';
+import { Duration } from '../../util';
 
 type Datum = {
 	index: number,
@@ -16,28 +18,51 @@ type Props = {
 	maxViews?: number,
 	width?: number,
 	height?: number,
+	period?: Duration,
+};
+
+type Breakpoints = {
+	[ k in Duration ]: number;
 };
 
 const getX = ( d : Datum ) => d.index;
 const getY = ( d : Datum ) => d.count;
 
 export default function SparkChart( props: Props ) {
-	const breakPoints = {
-		7: 100,
-		14: 110,
-		30: 120,
-		90: 150,
+	const breakPoints : Breakpoints = {
+		'P7D': 100,
+		'P14D': 110,
+		'P30D': 120,
+		'P1M': 120,
+		'P60D': 135,
+		'P90D': 150,
 	};
 
+	// Set up default empty histogram to allow for animations.
+	const days = moment.duration( props.period ).asDays();
+
+	let histogram : Datum[] = Array( days ).fill( {
+		index: 0,
+		count: 0,
+	} );
+
+	histogram.forEach( ( d, i ) => {
+		histogram[i] = { index: i, count: 0 };
+	} );
+
+	if ( props.histogram.length > 0 ) {
+		histogram = props.histogram;
+	}
+
 	const {
-		histogram,
 		width = 160,
 		height = 20,
 		maxViews,
+		period = 'P7D',
 	} = props;
 
 	// Override width depending on number of days shown.
-	const trueWidth = breakPoints[ histogram.length as 7|14|30|90 ] || width;
+	const trueWidth = breakPoints[ period ] || width;
 
 	const yMax = max( histogram, getY ) as number || 0;
 	const yMin = min( histogram, getY ) as number || 0;
@@ -65,14 +90,14 @@ export default function SparkChart( props: Props ) {
 
 	return (
 		<svg width={ trueWidth } height={ height }>
-			{ histogram.map( d => {
+			{ histogram.map( ( d, i ) => {
 				const barWidth = xScale.bandwidth();
-				const barHeight = height - ( yScale( getY( d ) as number || 1 ) );
+				const barHeight = height + 1;
 				const barX = xScale( getX( d ) );
-				const barY = Math.max( height - barHeight - 1, 0 );
+				const barY = Math.min( ( yScale( getY( d ) as number || 1 ) ), height - 1 );
 				return (
 					<Bar
-						key={ `bar-${ d.index }` }
+						key={ `bar-${ i }` }
 						x={ barX }
 						y={ barY }
 						rx={ 1 }

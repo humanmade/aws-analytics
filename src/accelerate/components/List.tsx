@@ -10,7 +10,7 @@ import ContentLoader from 'react-content-loader';
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent, StatsResult } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent, StatsResult, HistogramDiff } from '../../util';
 
 import './Dashboard.scss';
 import Image from './Image';
@@ -104,6 +104,17 @@ export default function List ( props: Props ) {
 	const createableTypes = props.postTypes.filter( type => type.name !== 'xb' );
 
 	const { posts, pagination, isLoading } = query;
+
+	const histogramDiffs = useSelect( select => {
+		const postIds = posts.map( p => p.id );
+		if ( postIds.length === 0 ) {
+			return {};
+		}
+		return select( 'accelerate' ).getDiffs<State['diffs'][ Duration ]>( {
+			ids: postIds,
+			period,
+		} );
+	}, [ posts, period ] );
 
 	return (
 		<div className="List">
@@ -225,16 +236,16 @@ export default function List ( props: Props ) {
 										{ ...loaderProps }
 										height={ 46 }
 									>
-										<rect x={0} y={10} rx="5" ry="5" width={75} height={6} />
-										<rect x={0} y={30} rx="5" ry="5" width={75} height={6} />
+										<rect x={0} y={10} rx="5" ry="5" width={68} height={6} />
+										<rect x={0} y={30} rx="5" ry="5" width={68} height={6} />
 
-										<rect x={100} y={20} rx="2" ry="2" width={10} height={35} />
-										<rect x={120} y={30} rx="2" ry="2" width={10} height={25} />
-										<rect x={140} y={20} rx="2" ry="2" width={10} height={35} />
-										<rect x={160} y={40} rx="2" ry="2" width={10} height={15} />
-										<rect x={180} y={20} rx="2" ry="2" width={10} height={35} />
-										<rect x={200} y={40} rx="2" ry="2" width={10} height={10} />
-										<rect x={220} y={45} rx="2" ry="2" width={10} height={5} />
+										<rect x={83} y={20} rx="2" ry="2" width={11} height={15} />
+										<rect x={97} y={30} rx="2" ry="2" width={11} height={5} />
+										<rect x={111} y={20} rx="2" ry="2" width={11} height={15} />
+										<rect x={125} y={30} rx="2" ry="2" width={11} height={5} />
+										<rect x={139} y={20} rx="2" ry="2" width={11} height={15} />
+										<rect x={153} y={25} rx="2" ry="2" width={11} height={10} />
+										<rect x={167} y={30} rx="2" ry="2" width={11} height={5} />
 									</ContentLoader>
 								</td>
 								<td className="record-lift">&nbsp;</td>
@@ -244,8 +255,8 @@ export default function List ( props: Props ) {
 										height={ 50 }
 									>
 										<circle cx={ 12 } cy={12} r="12" />
-										<rect x={0} y={40} rx="5" ry="5" width={120} height={6} />
-										<rect x={40} y={12} rx="5" ry="5" width={70} height={6} />
+										<rect x={30} y={30} rx="5" ry="5" width={120} height={6} />
+										<rect x={30} y={10} rx="5" ry="5" width={70} height={6} />
 									</ContentLoader>
 								</td>
 							</tr>
@@ -259,9 +270,14 @@ export default function List ( props: Props ) {
 						) }
 						{ posts.length > 0 && posts.map( post => {
 							let lift: number | null = null;
+							let change: number | null = null;
 
 							if ( post.lift ) {
 								lift = getConversionRateLift( post.lift.fallback, post.lift.personalized );
+							}
+
+							if ( histogramDiffs[ post.id ] && histogramDiffs[ post.id ].previous.uniques > 0 ) {
+								change = ( ( histogramDiffs[ post.id ].current.uniques - histogramDiffs[ post.id ].previous.uniques ) / histogramDiffs[ post.id ].previous.uniques ) * 100;
 							}
 
 							return (
@@ -315,15 +331,26 @@ export default function List ( props: Props ) {
 											</span>
 											<SparkChart
 												maxViews={ maxViewsPerUrl }
-												histogram={ post?.histogram || [] }
+												histogram={ histogramDiffs[ post.id ]?.current.by_date || [] }
+												period={ period }
 											/>
+											<div
+												className={ `record-traffic__change score-${ change && change >= 0 ? 'pos' : 'neg' }` }
+												title={ __( 'Comparison to previous period', 'altis' ) }
+											>
+												{ !! change && ! isNaN( change ) && ( change > 0 ? '↑' : '↓' ) }
+												{ !! change && ! isNaN( change ) && compactMetric( parseFloat( Math.abs( change ).toFixed( 1 ) ), '%' ) }
+											</div>
 										</div>
 									</td>
 									<td className="record-lift">
 										<div className="record-lift__label">{ !! lift && __( 'Lift', 'altis' ) }</div>
-										<div className={ `record-lift__value score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
+										<div
+											className={ `record-lift__value score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }
+											title={ __( 'Aggregated improvement of variants compared to fallback', 'altis' ) }
+										>
 											{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
-											{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ), '%' ) }
+											{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( Math.abs( lift ).toFixed( 1 ) ), '%' ) }
 										</div>
 									</td>
 									<td className="record-meta">

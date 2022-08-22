@@ -472,6 +472,18 @@ body.index-php {
 
 			svg {
 				margin-bottom: 0.35rem;
+
+				rect {
+					transition: x 0.5s ease-in-out, y 1s ease-in-out, width 0.5s ease-in;
+				}
+			}
+
+			&__change {
+				cursor: help;
+				color: $active-blue;
+				font-weight: 700;
+				margin-left: 15px;
+				font-size: 0.825rem;
 			}
 		}
 
@@ -486,6 +498,7 @@ body.index-php {
 			}
 
 			&__value {
+				cursor: help;
 				font-size: 0.825rem;
 				font-weight: bold;
 			}

@@ -49,7 +49,7 @@ function register_endpoints() {
 		],
 		'interval' => [
 			'type' => 'string',
-			'default' => 'day',
+			'default' => '1d',
 		],
 	];
 
@@ -81,6 +81,20 @@ function register_endpoints() {
 			'page' => [
 				'type' => 'number',
 				'default' => 1,
+			],
+		], $date_args ),
+	] );
+
+	register_rest_route( API_NAMESPACE, 'diff', [
+		'method' => WP_REST_Server::READABLE,
+		'callback' => __NAMESPACE__ . '\\get_diff',
+		'permission_callback' => __NAMESPACE__ . '\\check_analytics_permission',
+		'args' => array_merge( [
+			'ids' => [
+				'type' => 'array',
+				'items' => [
+					'type' => 'number',
+				],
 			],
 		], $date_args ),
 	] );
@@ -153,6 +167,20 @@ function get_top( WP_REST_Request $request ) {
 	] );
 
 	return $response;
+}
+
+/**
+ * Handle diff endpoint.
+ *
+ * @param WP_REST_Request $request The request object.
+ * @return WP_Error|array
+ */
+function get_diff( WP_REST_Request $request ) {
+	$start = strtotime( $request['start'] );
+	$end = strtotime( $request['end'] );
+	$post_ids = $request['ids'] ?? [];
+
+	return get_post_diff_data( $post_ids, $start, $end, $request['interval'] );
 }
 
 
@@ -502,19 +530,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		],
 	];
 
-	$time_range_days = floor( ( $end - $start ) / DAY_IN_SECONDS );
-
-	$histogram_agg = [
-		'histogram' => [
-			'field' => 'event_timestamp',
-			'interval' => DAY_IN_SECONDS * 1000, // Days.
-			'extended_bounds' => [
-				'min' => (int) sprintf( '%d000', $start + DAY_IN_SECONDS ), // Add a day because the last bucket is the current day.
-				'max' => (int) sprintf( '%d999', $end ),
-			],
-		],
-	];
-
 	$aggs = [
 		'posts' => [
 			'filter' => [
@@ -525,9 +540,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 					'terms' => [
 						'field' => 'attributes.postId.keyword',
 						'size' => 1000,
-					],
-					'aggregations' => [
-						'histogram' => $histogram_agg,
 					],
 				],
 			],
@@ -541,9 +553,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 					'terms' => [
 						'field' => 'attributes.blockId.keyword',
 						'size' => 1000,
-					],
-					'aggregations' => [
-						'histogram' => $histogram_agg,
 					],
 				],
 			],
@@ -567,7 +576,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 							'filter' => [ 'term' => [ 'event_type.keyword' => 'conversion' ] ],
 							'aggregations' => $lift_aggs,
 						],
-						'histogram' => $histogram_agg,
 					],
 				],
 			],
@@ -747,12 +755,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			);
 		}
 
-		$fallback_histogram = array_fill( 0, $time_range_days, [ 'index' => 0, 'count' => 0 ] );
-		$fallback_histogram = array_map( function ( $datum, $i ) use ( $start ) {
-			$datum['index'] = $start * ( $i + 1 );
-			return $datum;
-		}, $fallback_histogram, array_keys( $fallback_histogram ) );
-
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,
@@ -771,7 +773,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			],
 			'thumbnail' => $thumbnail,
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
-			'histogram' => Utils\normalise_histogram( $processed[ $post->ID ]['histogram']['buckets'] ?? [] ) ?: $fallback_histogram,
 		];
 
 		if ( $post->post_parent ) {
@@ -964,4 +965,168 @@ function register_term_aggregation( $field, $short_name, $options = [] ) {
 		$aggs[ $short_name ] = $options;
 		return $aggs;
 	} );
+}
+
+/**
+ * Get event stats diff for current and previous time period.
+ *
+ * @param array $post_ids Specific posts to narrow the query down by.
+ * @param int $start The start timestamp.
+ * @param int $end The end timestamp.
+ * @param string|int $resolution Resolution for histogram data.
+ * @return array|WP_error
+ */
+function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' ) {
+	if ( empty( $post_ids ) ) {
+		return new WP_Error(
+			'analytics.error',
+			'List of post IDs cannot be empty.'
+		);
+	}
+
+	// Real start & end.
+	$diff = $end - $start;
+
+	// Store results from query / cache.
+	$data = [];
+
+	$aggs = [
+		'posts' => [
+			'filters' => [
+				'filters' => [],
+			],
+			'aggregations' => [
+				'uniques' => [
+					'cardinality' => [
+						'field' => 'endpoint.Id.keyword',
+					],
+				],
+				'by_date' => [
+					'date_histogram' => [
+						'field' => 'event_timestamp',
+						'interval' => $resolution,
+					],
+					'aggregations' => [
+						'uniques' => [
+							'cardinality' => [
+								'field' => 'endpoint.Id.keyword',
+							],
+						],
+					],
+				],
+			],
+		],
+	];
+
+	foreach ( $post_ids as $id ) {
+		$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+		$cache = wp_cache_get( $key, 'altis' );
+		if ( $cache ) {
+			$data[ $id ] = $cache;
+			continue;
+		}
+
+		$value = $id;
+
+		// Determine attribute to filter results on.
+		if ( is_numeric( $id ) ) {
+			$term = 'attributes.postId.keyword';
+			$event = 'pageView';
+			if ( get_post_type( $id ) === 'wp_block' ) {
+				$term = 'attributes.blockId.keyword';
+				$event = 'blockView';
+			} elseif ( get_post_type( $id ) === 'xb' ) {
+				$term = 'attributes.clientId.keyword';
+				$event = 'experienceView';
+				$value = get_post( $id )->post_name;
+			}
+		} else {
+			$term = 'attributes.clientId.keyword';
+			$event = 'experienceView';
+		}
+
+		// Add a top level aggregation.
+		$aggs['posts']['filters']['filters'][ $id ] = [
+			'bool' => [
+				'filter' => [
+					[ 'term' => [ $term => (string) $value ] ],
+					[ 'term' => [ 'event_type.keyword' => $event ] ],
+				],
+			],
+		];
+	}
+
+	if ( count( $post_ids ) > count( $data ) ) {
+		$results = [
+			'previous' => [],
+			'current' => [],
+		];
+
+		foreach ( array_keys( $results ) as $period ) {
+			$period_start = $period === 'previous' ? $start - $diff : $start;
+			$period_end = $period === 'previous' ? $start : $end;
+
+			// Set extended bounds.
+			$aggs['posts']['aggregations']['by_date']['date_histogram']['extended_bounds'] = [
+				'min' => (int) sprintf( '%d000', $period_start + DAY_IN_SECONDS ),
+				'max' => (int) sprintf( '%d999', $period_end ),
+			];
+
+			$query = get_query(
+				[ 'pageView', 'experienceView', 'blockView' ],
+				$period_start,
+				$period_end,
+				$aggs
+			);
+
+			$res = Utils\query( $query, [
+				'preference' => __FUNCTION__,
+			] );
+
+			if ( ! $res ) {
+				return new WP_Error( 'analytics.error', 'Elasticsearch query error.' );
+			}
+
+			if ( ! empty( $res['_shards']['failures'] ) ) {
+				$message = $res['_shards']['failures'][0]['reason']['reason'];
+				return new WP_Error(
+					'analytics.error',
+					sprintf( 'Error from Elasticsearch: %s', $message ),
+					$res['_shards']['failures']
+				);
+			}
+
+			$results[ $period ] = $res;
+		}
+
+		// Process aggregation and cache results.
+		foreach ( $post_ids as $id ) {
+			if ( isset( $data[ $id ] ) ) {
+				continue;
+			}
+
+			$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+
+			$data[ $id ] = [
+				'previous' => [
+					'uniques' => $results['previous']['aggregations']['posts']['buckets'][ $id ]['uniques']['value'] ?? 0,
+					'by_date' => Utils\normalise_histogram(
+						$results['previous']['aggregations']['posts']['buckets'][ $id ]['by_date']['buckets'] ?? [],
+						'uniques'
+					),
+				],
+				'current' => [
+					'uniques' => $results['current']['aggregations']['posts']['buckets'][ $id ]['uniques']['value'] ?? 0,
+					'by_date' => Utils\normalise_histogram(
+						$results['current']['aggregations']['posts']['buckets'][ $id ]['by_date']['buckets'] ?? [],
+						'uniques'
+					),
+				],
+			];
+
+			wp_cache_set( $key, $data[ $id ], 'altis', MINUTE_IN_SECONDS );
+		}
+	}
+
+	return $data;
 }
