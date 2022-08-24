@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import moment from 'moment';
 
+import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { extent, max, bisector } from 'd3-array';
 import { curveMonotoneX } from '@visx/curve';
@@ -15,12 +16,12 @@ import { MarkerCircle } from '@visx/marker';
 import { TooltipWithBounds, useTooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, padLeft, StatsResult } from '../../util';
+import { compactMetric, Duration, padLeft, StatsResult, trackEvent } from '../../util';
 
 import './Dashboard.scss';
 
 type Props = {
-	period?: Duration,
+	period: Duration,
 };
 
 type Datum = {
@@ -33,11 +34,11 @@ const getX = ( d : Datum ) => d.time;
 const getY = ( d : Datum ) => d.uniques;
 const bisectDate = bisector<Datum, Date>( d => d.time ).left;
 
-const getTooltip = ( data : Datum, period : { interval: string } ) => {
+const getTooltip = ( data : Datum, interval : string ) => {
 	const date = getX( data );
 	let dateString = moment( date ).format( 'MMM Do' );
 
-	let isIntervalHours = period.interval.match( /(\d)h/ );
+	let isIntervalHours = interval.match( /(\d)h/ );
 	let intervalHours = Number( isIntervalHours ? isIntervalHours[1] : 0 );
 
 	if ( intervalHours === 1 ) {
@@ -62,19 +63,20 @@ export default function HeroChart( props: Props ) {
 		period: periodKey,
 	} = props;
 
-	const period = periods.find( p => p.value === periodKey );
+	const period = periods.find( p => p.value === periodKey ) || periods[0];
 
 	// Get stats data.
 	const [ outerWidth, setOuterWidth ] = useState<number>( 0 );
+	const [ resolution, setResolution ] = useState<string>( period.intervals[0].interval );
 	const data = useSelect<StatsResult>( select => {
 		return select( 'accelerate' ).getStats( {
-			period: period?.value || 'P7D',
-			interval: period?.interval || '2h',
+			period: period.value || 'P7D',
+			interval: resolution || period.intervals[0].interval || '1h',
 		} );
-	}, [ period ] );
+	}, [ period, resolution ] );
 
 	const uniques : Datum[] = Object.entries( data?.by_interval || {} ).map( ( [ time, stats ] ) => {
-		const date = new Date( time );
+		const date : Date = new Date( time );
 		const dateNow = new Date();
 		return {
 			time: date < dateNow ? date : dateNow,
@@ -86,6 +88,11 @@ export default function HeroChart( props: Props ) {
 	useEffect( () => {
 		setOuterWidth( document.getElementById( 'hero-chart' )?.offsetWidth || 600 );
 	}, [ outerWidth, data ] );
+
+	// Reset interval on period change.
+	useEffect( () => {
+		setResolution( period.intervals[0].interval );
+	}, [ period ] );
 
 	const xScale = scaleUtc<number>( {
 		domain: extent( uniques, getX ) as [ Date, Date ],
@@ -126,7 +133,7 @@ export default function HeroChart( props: Props ) {
 		  }
 		  showTooltip( {
 			tooltipData: d,
-			tooltipLeft: x - offsetleft,
+			tooltipLeft: xScale( getX( d ) ),
 			tooltipTop: yScale( getY( d ) ),
 		  } );
 		},
@@ -135,6 +142,26 @@ export default function HeroChart( props: Props ) {
 
 	return (
 		<div className="HeroChart" id="hero-chart">
+			<div className="radio-group">
+				<RadioGroup
+					label='Period'
+					checked={ resolution }
+					onChange={ ( value: string ) => {
+						trackEvent( 'Content Explorer', 'Resolution', { type: value } );
+						setResolution( value );
+					} }
+				>
+					{ period.intervals.map( i => (
+						<Radio
+							checked={ i.interval === resolution }
+							key={ i.interval }
+							value={ i.interval }
+						>
+							{ i.label }
+						</Radio>
+					) ) }
+				</RadioGroup>
+			</div>
 			<svg width="100%" height={ graphHeight + ( graphPaddingY * 2 ) }>
 				<MarkerCircle id="marker-circle" fill="#333" size={ 2 } refX={ 2 } />
 				<LinearGradient
@@ -146,6 +173,7 @@ export default function HeroChart( props: Props ) {
 					left={ offsetleft }
 					top={ graphPaddingY / 2 }
 					height={ graphHeight + graphPaddingY }
+					onMouseLeave={ () => hideTooltip() }
 				>
 					<AxisBottom
 						hideAxisLine={ true }
@@ -237,7 +265,7 @@ export default function HeroChart( props: Props ) {
 						width={ outerWidthWithOffset }
 						height={ graphHeight }
 						stroke="transparent"
-						strokeWidth={ 2 }
+						strokeWidth={ outerWidthWithOffset / uniques.length }
 						fill="transparent"
 						rx={ 14 }
 						numTicks={ uniques.length }
@@ -278,7 +306,7 @@ export default function HeroChart( props: Props ) {
 						top={ tooltipTop - 12 }
 						left={ tooltipLeft + 6 + offsetleft }
 					>
-						{ getTooltip( tooltipData as Datum, period as { interval : string } ) }
+						{ getTooltip( tooltipData as Datum, resolution ) }
 					</TooltipWithBounds>
 				</div>
 			) }

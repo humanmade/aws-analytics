@@ -1068,7 +1068,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' )
 
 			// Set extended bounds.
 			$aggs['posts']['aggregations']['by_date']['date_histogram']['extended_bounds'] = [
-				'min' => (int) sprintf( '%d000', $period_start + DAY_IN_SECONDS ),
+				'min' => (int) sprintf( '%d000', $period_start ),
 				'max' => (int) sprintf( '%d999', $period_end ),
 			];
 

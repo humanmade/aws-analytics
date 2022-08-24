@@ -28,6 +28,7 @@ export default function App() {
 		return select( 'accelerate' ).getStats( {
 			filter,
 			period,
+			interval: '1d',
 		} );
 	}, [ filter, period ] );
 

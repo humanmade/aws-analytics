@@ -6,6 +6,7 @@ import { DateRangePicker, FocusedInputShape } from 'react-dates';
 
 import { Duration, Filter, SelectableDate } from '../../util';
 
+import Logo from '../../accelerate/assets/altis-logo.svg';
 import './Header.css';
 
 type FilterItemProps = {
@@ -72,6 +73,10 @@ export default function Header( props: Props ) {
 		<header
 			className="Header"
 		>
+			<h1 className="Logo">
+				<img src={ Logo } alt="Altis Accelerate" width="64" height="26" />
+				{ __( 'Analytics Dashboard', 'altis' ) }
+			</h1>
 			<DropdownMenu
 				className="Header__duration-dropdown"
 				label="Select date duration"

@@ -32,7 +32,7 @@ export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDat
 	const diffDur = moment.duration( diff as DurationInputArg1 );
 	const end = moment().utc().subtract( diffDur ).endOf( 'day' );
 	const dur = moment.duration( period as DurationInputArg1 );
-	const start = moment( end ).utc().subtract( dur ).endOf( 'day' );
+	const start = moment( end ).utc().subtract( dur ).add( 1, 'day' ).startOf( 'day' );
 	return {
 		start,
 		end,

@@ -76,6 +76,17 @@ export interface Period {
 	end: Moment,
 }
 
+export type PeriodObject = {
+	diff: Duration | null,
+	label: string,
+	period_label: string,
+	value: Duration,
+	intervals: {
+		interval: string,
+		label: string,
+	}[],
+};
+
 export type Duration = 'P7D' | 'P14D' | 'P30D' | 'P60D' | 'P90D' | 'P1M';
 export type SelectableDate = Period | Duration;
 
