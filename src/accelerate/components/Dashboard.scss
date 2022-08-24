@@ -80,16 +80,60 @@ body.index-php {
 	}
 }
 
+@keyframes altis-bounce {
+    0% {
+        opacity: 0.5;
+    }
+}
+
 .HeroChart {
 	position: relative;
 	margin: 20px 0;
+
+	&__loader {
+		margin-left: 5%;
+		float: left;
+		margin-bottom: -16px;
+		opacity: 0;
+		transition: opacity 1s ease-out 2s;
+		display: flex;
+		align-items: center;
+
+		&--loading {
+			transition: opacity 0s linear;
+			opacity: 1;
+		}
+
+		svg {
+			display: inline-block;
+			margin-right: 8px;
+		}
+	}
 
 	.radio-group {
 		position: relative;
 		z-index: 2;
 		float: right;
-		margin-bottom: -80px;
+		margin-bottom: -16px;
 		margin-right: 5%;
+	}
+
+	&__group {
+		opacity: 1;
+		transition: opacity 0.5s ease-out;
+
+		&--loading {
+			opacity: 0.5;
+		}
+
+		* {
+			transition: stroke 0.3s ease-in-out, fill 0.3s ease-in-out;
+		}
+	}
+
+	&__waiting {
+		opacity: 1;
+		animation: altis-bounce 1.5s ease-in-out infinite alternate;
 	}
 }
 

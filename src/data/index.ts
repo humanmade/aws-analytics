@@ -73,9 +73,9 @@ const resolveQueryArgs = ( queryArgs: QueryArgs = {} ) : QueryArgs => {
 };
 
 const initialState: State = {
-	isLoading: false,
-	isLoadingStats: false,
-	isLoadingDiffs: false,
+	isLoading: true,
+	isLoadingStats: true,
+	isLoadingDiffs: true,
 	pagination: {
 		total: 0,
 		pages: 0,
