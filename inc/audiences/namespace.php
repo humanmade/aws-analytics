@@ -430,7 +430,7 @@ function admin_enqueue_scripts() {
  * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
-	$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
+	$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
 
 	$query = [
 		'query' => [
@@ -494,7 +494,9 @@ function get_estimate( array $audience ) : ?array {
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -536,7 +538,7 @@ function get_estimate( array $audience ) : ?array {
  */
 function get_unique_endpoint_count( int $since = null, bool $force_update = false ) : ?int {
 	if ( $since === null ) {
-		$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
+		$since = Utils\date_in_milliseconds( '-1 week', HOUR_IN_SECONDS );
 	}
 
 	$query = [
@@ -588,6 +590,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 	}
 
 	$result = Utils\query( $query, [
+		'request_cache' => 'true',
 	] );
 
 	if ( ! $result ) {
@@ -649,13 +652,6 @@ function get_field_data() : ?array {
 					// Query for current site.
 					[
 						'term' => [
-							'event_type.keyword' => 'pageView',
-						],
-					],
-
-					// Query for current site.
-					[
-						'term' => [
 							'attributes.blogId.keyword' => (string) get_current_blog_id(),
 						],
 					],
@@ -664,7 +660,7 @@ function get_field_data() : ?array {
 					[
 						'range' => [
 							'event_timestamp' => [
-								'gte' => Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
+								'gte' => Utils\milliseconds() - ( WEEK_IN_SECONDS * 1000 ),
 							],
 						],
 					],
@@ -687,72 +683,70 @@ function get_field_data() : ?array {
 				],
 			];
 		}
-		// Default to terms aggregations for top 20 different values available for each field.
+		// Default to terms aggregations for top 100 different values available for each field.
 		if ( Utils\get_field_type( $map['name'] ) === 'string' ) {
 			$query['aggs'][ $map['name'] ] = [
 				'terms' => [
 					'field' => "{$map['name']}.keyword",
-					'size' => 20,
-				],
-				'aggs' => [
-					'uniques' => [
-						'cardinality' => [
-							'field' => 'endpoint.Id.keyword',
-						],
-					],
+					'size' => 100,
 				],
 			];
 		}
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
-	// Don't bail if we get nothing back so the UI is usable still, there just won't be any sample values.
 	if ( ! $result ) {
-		$result = [];
+		return $result;
 	}
 
-	// Get the total uniques to get percentage distribution.
-	$total = get_unique_endpoint_count();
+	// Get the total in a backwards compatible way.
+	$total = $result['hits']['total']['value'] ?? $result['hits']['total'];
 
-	// Get aggregations if we have any results.
-	$aggregations = $result['aggregations'] ?? [];
+	// Do we have any results? If not, there's no aggregations.
+	if ( $total === 0 && empty( $result['aggregations'] ) ) {
+		// Cache the data.
+		wp_cache_set( $key, [], 'altis-audiences', HOUR_IN_SECONDS );
+
+		return [];
+	}
+
+	$aggregations = $result['aggregations'];
 
 	// Normalise aggregations to useful just the useful data.
 	$fields = [];
 	foreach ( $maps as $field ) {
 		$field_name = $field['name'];
-		if ( isset( $aggregations[ $field_name ] ) ) {
-			if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
-				$options = $field['options']['options'] ?? null;
-				if ( is_callable( $options ) ) {
-					$options = call_user_func( $options );
-				}
-				if ( is_array( $options ) ) {
-					$buckets = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'doc_count', 'key' );
-					$uniques = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'uniques', 'key' );
-					$field_data = array_map( function ( $value, $label ) use ( $buckets, $uniques, $total ) {
-						return [
-							'value' => $value,
-							'label' => $label,
-							'count' => $buckets[ $value ] ?? 0,
-							'percent' => isset( $uniques[ $value ] ) ? intval( ( $uniques[ $value ]['value'] / $total ) * 100 ) : 0,
-						];
-					}, array_keys( $options ), $options );
-					unset( $field['options']['options'] );
-				} else {
-					$field_data = array_map( function ( $bucket ) use ( $total ) {
-						return [
-							'value' => $bucket['key'],
-							'count' => $bucket['doc_count'],
-							'percent' => isset( $bucket['uniques'] ) ? intval( ( $bucket['uniques']['value'] / $total ) * 100 ) : 0,
-						];
-					}, $aggregations[ $field_name ]['buckets'] );
-				}
-				$field['data'] = $field_data;
-			} else {
-				$field['stats'] = $aggregations[ $field_name ];
+		if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
+			$options = $field['options']['options'] ?? null;
+			if ( is_callable( $options ) ) {
+				$options = call_user_func( $options );
 			}
+			if ( is_array( $options ) ) {
+				$buckets = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'doc_count', 'key' );
+				$field_data = array_map( function( $value, $label ) use ( $buckets, $total ) {
+					return [
+						'value' => $value,
+						'label' => $label,
+						'count' => $buckets[ $value ] ?? 0,
+						'percent' => isset( $buckets[ $value ] ) ? intval( $buckets[ $value ] / $total * 100 ) : 0,
+					];
+				}, array_keys( $options ), $options );
+				unset( $field['options']['options'] );
+			} else {
+				$field_data = array_map( function ( $bucket ) use ( $total ) {
+					return [
+						'value' => $bucket['key'],
+						'count' => $bucket['doc_count'],
+						'percent' => $bucket['doc_count'] ? intval( $bucket['doc_count'] / $total * 100 ) : 0,
+					];
+				}, $aggregations[ $field_name ]['buckets'] );
+			}
+			$field['data'] = $field_data;
+		} else {
+			$field['stats'] = $aggregations[ $field_name ];
 		}
 
 		$fields[] = $field;

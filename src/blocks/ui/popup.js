@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 import Modal from '../../components/modal';
 
-import Insights from './insights';
+import Block from './block';
 
 const { Button } = wp.components;
 const { useSelect } = wp.data;
@@ -60,7 +60,7 @@ function Popup( { clientId } ) {
 					portalId="altis-analytics-xb-block-modal"
 					onClose={ () => setShow( false ) }
 				>
-					<Insights clientId={ clientId } showPosts={ false } />
+					<Block clientId={ clientId } showPosts={ false } />
 				</StyledModal>
 			) }
 		</StyledPopup>
