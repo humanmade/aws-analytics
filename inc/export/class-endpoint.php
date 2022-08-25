@@ -132,7 +132,9 @@ class Endpoint {
 
 		// The first query returns just the total number of items
 		// so the results can be sliced later.
-		$total_results = Utils\query( $total_query );
+		$total_results = Utils\query( $total_query, [
+			'request_cache' => 'true',
+		] );
 		$total = $total_results['hits']['total']['value'] ?? $total_results['hits']['total']; // ES 7 compat.
 
 		// Set total found results header.
@@ -223,8 +225,10 @@ class Endpoint {
 			if ( $format === 'json' ) {
 				// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped
 				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
-				// Add a comma in between result sets except for the last page.
-				echo $page === $total_pages - 1 ? '' : ',';
+				if ( ! empty( $events ) ) {
+					// Add a comma in between result sets except for the last page.
+					echo $page === $total_pages - 1 ? '' : ',';
+				}
 				flush();
 			} else {
 				foreach ( $events as $event ) {
