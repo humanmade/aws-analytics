@@ -402,11 +402,9 @@ function register_post_ab_test( string $test_id, array $options ) {
 	if (
 		( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) &&
 		is_admin() &&
-		! wp_cache_get( "{$test_id}_cron", 'altis.analytics' ) &&
 		! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] )
 	) {
 		wp_schedule_event( time(), 'hourly', 'altis_post_ab_test_cron', [ $test_id ] );
-		wp_cache_set( "{$test_id}_cron", 1, 'altis.analytics', HOUR_IN_SECONDS );
 	}
 
 	/**
