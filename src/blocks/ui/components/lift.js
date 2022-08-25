@@ -32,7 +32,7 @@ export default function Lift( props ) {
 	return (
 		<StyledLift className={ className } lift={ lift }>
 			<span>{ lift >= 0 || isNaN( lift ) ? '⬆' : '⬇' }</span>
-			{ compactMetric( lift, '%' ) }
+			{ compactMetric( lift ) }
 		</StyledLift>
 	);
 }

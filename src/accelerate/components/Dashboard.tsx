@@ -21,8 +21,6 @@ export default function Dashboard( props: Props ) {
 			<Hero
 				name={ props.user.name }
 				period={ period }
-				canViewAnalytics={ props.user.canViewAnalytics }
-				canViewInsights={ props.user.canViewInsights }
 				onSetPeriod={ value => setPeriod( value ) }
 			/>
 			<Overview period={ period } />

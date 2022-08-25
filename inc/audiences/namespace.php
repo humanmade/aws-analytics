@@ -494,7 +494,9 @@ function get_estimate( array $audience ) : ?array {
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -588,6 +590,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 	}
 
 	$result = Utils\query( $query, [
+		'request_cache' => 'true',
 	] );
 
 	if ( ! $result ) {
@@ -705,7 +708,9 @@ function get_field_data() : ?array {
 		}
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\query( $query, [
+		'request_cache' => 'true',
+	] );
 
 	// Don't bail if we get nothing back so the UI is usable still, there just won't be any sample values.
 	if ( ! $result ) {

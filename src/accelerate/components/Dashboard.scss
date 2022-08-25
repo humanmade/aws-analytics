@@ -4,12 +4,11 @@ $active-blue: #4667de;
 $score-pos: #3CC66D;
 $score-neg: #C6403C;
 $sidebar-padding: 5%;
-$color-grey: #cbc9c9;
 
 // Override certain WP-specific pieces
 body.index-php {
 
-	background-color: #f3f5f9;
+	background-color: $dark-blue;
 
 	.altis-telemetry-opt-in {
 		margin-left: 0;
@@ -328,15 +327,11 @@ body.index-php {
 			border-bottom: 1px solid #eee;
 		}
 
-		.table-th-views {
-			min-width: 100px;
+		.th-table-links {
+			min-width: 120px;
 		}
 
-		.table-th-links {
-			min-width: 80px;
-		}
-
-		.table-th-author {
+		.th-table-links {
 			min-width: 160px;
 		}
 
@@ -383,11 +378,6 @@ body.index-php {
 			}
 		}
 
-		.record-author {
-			display: flex;
-			align-items: baseline;
-		}
-
 		.record-links {
 			color: $active-blue;
 			font-weight: 500;
@@ -405,21 +395,19 @@ body.index-php {
 		padding: 20px 0;
 		display: flex;
 		justify-content: center;
-		flex-wrap: wrap;
 		font-size: 0.9rem;
 		color: $active-blue;
 		font-weight: 500;
-		text-align: center;
-		align-items: baseline;
 
-		.rpb-item {
+		> div,
+		> button {
 			padding: 2px 10px;
 			margin: 0 2px;
 			border: 0;
 			border-radius: 4px;
 			background: none;
 
-			&.rpb-item--active {
+			&.current {
 				background: fade-out( $active-blue, 0.9 );
 			}
 
@@ -427,29 +415,7 @@ body.index-php {
 				background: fade-out( $active-blue, 0.95 );
 			}
 
-			&.rpb-item--disabled {
-				color: $color-grey;
-			}
-
 		}
-
-		.rpb-root {
-			ul {
-				margin: 0;
-			}
-
-			li {
-				display: inline-block;
-			}
-
-		}
-
-		.current-page {
-			color: $color-grey;
-			margin-left: 5px;
-		}
-
-
 	}
 
 }
