@@ -70,9 +70,8 @@ function setup_cron_schedule() : void {
 	$frequency = apply_filters( 'altis.analytics.export.cron.frequency', ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY );
 
 	// Setup cron Schedule.
-	if ( ! wp_cache_get( 'export_cron', 'altis.analytics' ) && ! wp_next_scheduled( 'altis.analytics.export.cron' ) ) {
+	if ( ! wp_next_scheduled( 'altis.analytics.export.cron' ) ) {
 		wp_schedule_event( time(), $frequency, 'altis.analytics.export.cron' );
-		wp_cache_set( 'export_cron', 1, 'altis.analytics', ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL );
 	}
 }
 

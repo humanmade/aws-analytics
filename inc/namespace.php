@@ -65,12 +65,6 @@ function schedule_events() {
 		return;
 	}
 
-	// Check if we've scheduled these events already from persistent cache.
-	// Note: In Altis, Cavalcade is not able to make use of the persistent cache hence adding handling here.
-	if ( wp_cache_get( 'maintenance_cron', 'altis.analytics' ) ) {
-		return;
-	}
-
 	/**
 	 * Schedule index maintenance daily at midnight.
 	 */
@@ -80,9 +74,6 @@ function schedule_events() {
 	if ( ! wp_next_scheduled( 'altis.analytics.long_term_storage_maintenance' ) ) {
 		wp_schedule_event( strtotime( 'midnight tomorrow' ), 'daily', 'altis.analytics.long_term_storage_maintenance' );
 	}
-
-	// Confirm schedule exists once per day.
-	wp_cache_set( 'maintenance_cron', 1, 'altis.analytics', DAY_IN_SECONDS );
 }
 
 /**
