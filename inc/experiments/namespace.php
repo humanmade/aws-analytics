@@ -375,7 +375,11 @@ function register_post_ab_test( string $test_id, array $options ) {
 	add_action( "altis.experiments.test.winner_found.{$test_id}", $options['winner_callback'], 10, 2 );
 
 	// Set up background task.
-	if ( ( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) && ! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] ) ) {
+	if (
+		( ! defined( 'WP_INSTALLING' ) || ! WP_INSTALLING ) &&
+		is_admin() &&
+		! wp_next_scheduled( 'altis_post_ab_test_cron', [ $test_id ] )
+	) {
 		wp_schedule_event( time(), 'hourly', 'altis_post_ab_test_cron', [ $test_id ] );
 	}
 }
