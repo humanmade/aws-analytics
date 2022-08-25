@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
 import { __, sprintf } from '@wordpress/i18n';
-import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio, Icon } from '@wordpress/components';
+import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio } from '@wordpress/components';
 import { decodeEntities } from '@wordpress/html-entities';
 import moment from 'moment';
 import { Pagination } from 'react-pagination-bar';
@@ -10,7 +10,7 @@ import ContentLoader from 'react-content-loader';
 import { Dropdown, Button, MenuGroup, MenuItem } from '@wordpress/components';
 
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent, StatsResult, HistogramDiff } from '../../util';
+import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State, trackEvent, StatsResult } from '../../util';
 
 import './Dashboard.scss';
 import Image from './Image';
@@ -59,10 +59,14 @@ export default function List ( props: Props ) {
 		};
 	}, [ search, page, type, user, period ] );
 
+	const currentPeriod = periods.find( p => p.value === period ) || periods[0];
 	const maxViewsPerUrl = useSelect<number>( select => {
-		const stats: StatsResult = select( 'accelerate' ).getStats( { period } );
+		const stats: StatsResult = select( 'accelerate' ).getStats( {
+			period: currentPeriod.value,
+			interval: currentPeriod.intervals[0].interval,
+		} );
 		return Math.max( 0, ...Object.values( stats?.stats.by_url || {} ) );
-	}, [ period ] );
+	}, [ currentPeriod ] );
 
 	const customFilters = [
 		{
@@ -126,7 +130,7 @@ export default function List ( props: Props ) {
 						e.preventDefault();
 					} }
 				>
-					<div className="table-filter table-filter__period">
+					<div className="table-filter table-filter__period radio-group">
 						<RadioGroup
 							label='Period'
 							checked={ period }
@@ -294,9 +298,9 @@ export default function List ( props: Props ) {
 										) }
 										{ post.thumbnail === '' && post.editUrl && (
 											<div
-											className='record-thumbnail__empty'
-										>
-										</div>
+												className='record-thumbnail__empty'
+											>
+											</div>
 										) }
 										</div>
 									</td>
@@ -339,6 +343,7 @@ export default function List ( props: Props ) {
 												title={ __( 'Comparison to previous period', 'altis' ) }
 											>
 												{ !! change && ! isNaN( change ) && ( change > 0 ? '↑' : '↓' ) }
+												{ ' ' }
 												{ !! change && ! isNaN( change ) && compactMetric( parseFloat( Math.abs( change ).toFixed( 1 ) ), '%' ) }
 											</div>
 										</div>
@@ -350,6 +355,7 @@ export default function List ( props: Props ) {
 											title={ __( 'Aggregated improvement of variants compared to fallback', 'altis' ) }
 										>
 											{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
+											{ ' ' }
 											{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( Math.abs( lift ).toFixed( 1 ) ), '%' ) }
 										</div>
 									</td>
