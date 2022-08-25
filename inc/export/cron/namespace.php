@@ -52,6 +52,16 @@ function bootstrap() : void {
 	// Hook our cron job handler.
 	add_action( 'altis.analytics.export.cron', __NAMESPACE__ . '\cron_handler' );
 
+	// Setup cron schedule.
+	add_action( 'admin_footer', __NAMESPACE__ . '\setup_cron_schedule' );
+}
+
+/**
+ * Schedule data export background task.
+ *
+ * @return void
+ */
+function setup_cron_schedule() : void {
 	/**
 	 * Filter the cron job schedule interval.
 	 *
@@ -60,8 +70,9 @@ function bootstrap() : void {
 	$frequency = apply_filters( 'altis.analytics.export.cron.frequency', ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY );
 
 	// Setup cron Schedule.
-	if ( ! wp_next_scheduled( 'altis.analytics.export.cron' ) ) {
+	if ( ! wp_cache_get( 'export_cron', 'altis.analytics' ) && ! wp_next_scheduled( 'altis.analytics.export.cron' ) ) {
 		wp_schedule_event( time(), $frequency, 'altis.analytics.export.cron' );
+		wp_cache_set( 'export_cron', 1, 'altis.analytics', ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL );
 	}
 }
 
