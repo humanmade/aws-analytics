@@ -47,7 +47,7 @@ function setup() {
 	// Check whether we are previewing a page.
 	add_filter( 'altis.analytics.noop', __NAMESPACE__ . '\\check_preview' );
 	// Schedule cron tasks.
-	add_action( 'init', __NAMESPACE__ . '\\schedule_events' );
+	add_action( 'admin_footer', __NAMESPACE__ . '\\schedule_events' );
 }
 
 /**
