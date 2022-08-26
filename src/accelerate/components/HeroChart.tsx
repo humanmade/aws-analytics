@@ -337,7 +337,7 @@ export default function HeroChart( props: Props ) {
 							/>
 						</g>
 					) }
-					{ ( Object.values( data?.by_interval || {} ).length || 0 ) < 1 && (
+					{ !! data?.by_interval && ( Object.values( data.by_interval ).length || 0 ) < 1 && (
 						<Text
 							className="HeroChart__waiting"
 							verticalAnchor="middle"
