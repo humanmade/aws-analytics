@@ -168,6 +168,9 @@ This defaults to true but can switched off to allow tracking bots that can run J
 
 You can check if a recorded event was created by a bot by checking if the `attributes.isBot` value exists.
 
+**`altis.analytics.elasticsearch.timeout <int>`**
+Filter the amount of seconds to wait for a repsonse from Elasticsearch. The default value is `20` seconds. The minimum value is `5` seconds and the maximum is `30` seconds.
+
 ### Functions
 
 **`Altis\Analytics\Utils\query( array $query, array $params = [] ) : array`**
