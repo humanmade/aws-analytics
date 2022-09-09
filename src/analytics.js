@@ -49,10 +49,6 @@ const isBot = detectRobot( navigator.userAgent || '' );
 let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
 let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
 
-// Secondary check for force enabled consent.
-hasAnonConsent = hasAnonConsent || Consent.Allowed.indexOf( 'statistics-anonymous' ) >= 0;
-hasFullConsent = hasFullConsent || Consent.Allowed.indexOf( 'statistics' ) >= 0;
-
 /**
  * Custom global attributes and metrics, extended by the
  * registerAttribute and registerMetric functions.
@@ -537,7 +533,6 @@ const Analytics = {
 		const Existing = Analytics.getEndpoint();
 		const UAData = UAParser( navigator.userAgent );
 		const EndpointData = {
-			RequestId: uuid(),
 			Attributes: {},
 			Demographic: {
 				AppVersion: Data.AppVersion || '',
@@ -709,9 +704,6 @@ const Analytics = {
 			},
 		};
 
-		// Track unique request ID.
-		Event[ EventId ].Attributes['x-amz-request-id'] = EventId;
-
 		// Add session stop parameters.
 		if ( type === '_session.stop' ) {
 			Event[ EventId ].Session.Duration = Date.now() - subSessionStart;
@@ -785,6 +777,7 @@ const Analytics = {
 
 		// Build endpoint data.
 		const Endpoint = Analytics.getEndpoint();
+		Endpoint.RequestId = uuid();
 
 		// Reduce events to an object keyed by event ID.
 		const Events = eventsToDeliver.reduce( ( carry, event ) => ( {
@@ -849,11 +842,6 @@ Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
 };
-
-// Fire a loaded event when the global is fully set up but before we check consent to start logging.
-Altis.Analytics.Loaded = true;
-const loadedEvent = new CustomEvent( 'altis.analytics.loaded' );
-window.dispatchEvent( loadedEvent );
 
 /**
  * Start recording default events and trigger onReady event.
