@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useRef, useEffect } from 'react';
+import React, { Fragment, useState, useRef, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
 import SelectOperator from './select-operator';
@@ -225,7 +225,9 @@ export default function Rule( props ) {
 	} = props;
 
 	const fields = useSelect( select => select( 'audience' ).getFields(), [] );
-	const currentField = fields.find( fieldData => fieldData.name === field ) || {};
+	const currentField = useMemo( () => {
+		return fields.find( fieldData => fieldData.name === field ) || {};
+	}, [ fields, field ] );
 
 	const persistentFields = fields.filter( fieldData => fieldData.name.match( /^endpoint\./ ) );
 	const pointInTimeFields = fields.filter( fieldData => ! fieldData.name.match( /^endpoint\./ ) );
@@ -299,9 +301,9 @@ export default function Rule( props ) {
 				</Button>
 			) }
 
-			{ currentField.description && (
+			{ currentField.options?.description && (
 				<p className="description">
-					{ currentField.description }
+					{ currentField.options?.description }
 				</p>
 			) }
 		</StyledRule>

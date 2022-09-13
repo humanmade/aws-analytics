@@ -59,6 +59,7 @@ function init() {
 							'properties' => [
 								'value' => [ 'type' => 'string' ],
 								'count' => [ 'type' => 'number' ],
+								'percent' => [ 'type' => 'number' ],
 							],
 						],
 					],
