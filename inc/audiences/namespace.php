@@ -149,7 +149,7 @@ function pre_get_posts( WP_Query $query ) {
 function register_default_event_data_maps() {
 	// Traffic source data.
 	register_field( 'endpoint.Attributes.initialReferer', __( 'First Referrer', 'altis-analytics' ), [
-		'column' => 'endpoint_attributes[\'initialRefere\']',
+		'column' => 'endpoint_attributes[\'initialReferer\']',
 		'description' => __( 'The first external website a visitor arrived from', 'altis-analytics' ),
 	] );
 	register_field( 'endpoint.Attributes.referer', __( 'Referrer', 'altis-analytics' ), [
