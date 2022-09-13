@@ -1096,11 +1096,11 @@ function get_s3_client( array $args = [] ) : ? S3Client {
  *
  * Returns null for zero results, object for a single row / or an array of objects.
  *
- * @param string $body The query body. Can be an SQL statement or data in another format if using the $url_query.
- * @param string $url_query Optional SQL statement encoded into the request URL. For use with queries like INSERT with JsonEachRow format.
+ * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
+ * @param string $body Optional query body. For use with queries like INSERT with JsonEachRow format.
  * @return null|stdClass|stdClass[]|WP_Error
  */
-function clickhouse_query( string $query = '', string $body = '' ) {
+function clickhouse_query( string $query, string $body = '' ) {
 	$config = [
 		'host' => defined( 'ALTIS_CLICKHOUSE_HOST' ) ? ALTIS_CLICKHOUSE_HOST : 'clickhouse',
 		'port' => defined( 'ALTIS_CLICKHOUSE_PORT' ) ? ALTIS_CLICKHOUSE_PORT : 8123,
@@ -1133,7 +1133,7 @@ function clickhouse_query( string $query = '', string $body = '' ) {
 		],
 	];
 
-	// Append the URL query if body is present and overwite request arg.
+	// Append $query as the URL `query` parameter if $body is present and overwite request arg.
 	if ( ! empty( $body ) ) {
 		$clickhouse_url = sprintf( '%s?query=%s',
 			$clickhouse_url,
