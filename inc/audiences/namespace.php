@@ -560,7 +560,7 @@ function get_estimate( array $audience ) : ?array {
 	$key = sprintf( 'estimate:%s', sha1( serialize( $audience ) ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
-		// return $cache;
+		return $cache;
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
