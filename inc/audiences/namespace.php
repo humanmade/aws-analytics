@@ -795,9 +795,9 @@ function build_audience_query( array $audience ) : string {
 
 	// Map the include values to elasticsearch query filters.
 	$include_map = [
-		'any' => 'OR',
-		'all' => 'AND',
-		'none' => 'AND NOT',
+		'any' => ' OR ',
+		'all' => ' AND ',
+		'none' => ' AND NOT ',
 	];
 
 	$group_queries = [];
