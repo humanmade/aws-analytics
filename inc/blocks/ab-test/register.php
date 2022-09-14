@@ -204,15 +204,10 @@ function register_test() {
 	Experiments\register_post_ab_test( 'xb', [
 		'label' => __( 'A/B Test Block', 'altis-analytics' ),
 		'goal' => 'conversion',
-		'query_filter' => function ( $test_id, $post_id ) : array {
-			// Filter by experience views and conversion events for this block.
-			$block = get_post( $post_id );
-			return [
-				'filter' => [
-					[ 'terms' => [ 'event_type.keyword' => [ 'experienceView', 'conversion' ] ] ],
-					[ 'term' => [ 'attributes.clientId.keyword' => $block->post_name ] ],
-				],
-			];
+		'view' => 'experienceView',
+		'query_filter' => function ( $post_id ) : array {
+			global $wpdb;
+			return $wpdb->prepare( "attributes['clientId'] = %s", get_post( $post_id )->post_name );
 		},
 		'post_types' => [ Blocks\POST_TYPE ],
 	] );

@@ -1129,6 +1129,7 @@ function clickhouse_query( string $query, string $body = '' ) {
 			'X-Clickhouse-Key' => $config['pass'],
 			'X-Clickhouse-Database' => $config['db'],
 			'X-Clickhouse-Format' => 'JSONEachRow',
+			'X-Clickhouse-Timezone' => 'UTC',
 			'Accept-Encoding' => 'gzip',
 		],
 	];
