@@ -1,12 +1,18 @@
 // Ensure Experiments global object is set.
 window.Altis.Analytics.Experiments = window.Altis.Analytics.Experiments || {};
 
+// Track if an AB test has been seen- only need to record the first view even if the
+// component occurs multiple times on a page.
+const testIsTracked = {};
+
 /**
  * Test element base class.
  */
 class Test extends HTMLElement {
 
 	storageKey = '_altis_ab_tests';
+
+	tracked = false;
 
 	get testId() {
 		return this.getAttribute( 'test-id' );
@@ -118,9 +124,38 @@ class Test extends HTMLElement {
 			} );
 		}
 
-		// Log active test variant for all events.
-		if ( window.Altis && window.Altis.Analytics ) {
-			window.Altis.Analytics.registerAttribute( `test_${ testId }`, variantId );
+		// Log an event for tracking test views when scrolled into view for first time.
+		if ( variantId !== false && ! testIsTracked[ testId ] ) {
+			let observer = new IntersectionObserver( ( entries, observer ) => {
+				entries.forEach( entry => {
+					if ( entry.target !== this || ! entry.isIntersecting ) {
+						return;
+					}
+
+					if ( testIsTracked[ testId ] ) {
+						return;
+					}
+
+					// Prevent spamming events.
+					testIsTracked[ testId ] = true;
+					observer.disconnect();
+
+					window.Altis.Analytics.onReady( () => {
+						window.Altis.Analytics.record( 'testView', {
+							attributes: {
+								eventTestId: this.testId,
+								eventPostId: this.postId,
+								eventVariantId: variantId,
+							},
+						} );
+					} );
+				} );
+			}, {
+				threshold: 0.75,
+			} );
+
+			// Trigger scroll handler.
+			observer.observe( this );
 		}
 
 		return variantId;

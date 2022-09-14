@@ -360,7 +360,7 @@ function register_post_ab_test( string $test_id, array $options ) {
 		'rest_api_variants_field' => 'ab_test_' . $test_id,
 		'rest_api_variants_type' => 'string',
 		'goal' => 'click',
-		'view' => 'pageView',
+		'view' => 'testView',
 		'closest' => '',
 		'selector' => '',
 		'variant_callback' => function ( $value, int $post_id, array $args ) {
@@ -959,9 +959,6 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		return;
 	}
 
-	// Get a unique ID for the test.
-	$test_id_with_post = $test_id . '_' . $post_id;
-
 	// Get existing data for use with queries.
 	$data = get_ab_test_results_for_post( $test_id, $post_id );
 
@@ -995,11 +992,9 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	// Filter by the goal event name by default.
 	$goal = explode( ':', $test['goal'] ); // Extract just the event type and not the selector.
 
-	$test_field = sprintf( "attributes['test_%s']", $test_id_with_post );
-
 	// Build SQL query.
 	$query = $wpdb->prepare( "SELECT
-				{$test_field} as variant_id,
+				attributes['eventVariantId'] as variant_id,
 				event_type,
 				max(toUnixTimestamp64Milli(event_timestamp)) as max_timestamp,
 				uniqCombined64(endpoint_id) as uniques,
@@ -1009,17 +1004,16 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 				attributes['blogId'] = %s
 				AND event_timestamp > toDateTime64(intDiv(%d,1000), 3)
 				AND event_type IN (%s, %s)
-				AND {$test_field} IS NOT NULL
-				AND {$test_field} != ''
-				AND attributes['eventTestId'] IN ('', %s)
-				AND attributes['eventPostId'] IN ('', %s)
+				AND attributes['eventVariantId'] != ''
+				AND attributes['eventTestId'] = %s
+				AND attributes['eventPostId'] = %s
 				AND ({$query_filter})
-			GROUP BY {$test_field}, event_type
+			GROUP BY attributes['eventVariantId'], event_type
 			ORDER BY variant_id ASC, event_type DESC;",
 		get_current_blog_id(),
 		$data['timestamp'] ?? 0,
-		$test['view'] ?? 'pageView',
-		$goal[0],
+		$test['view'] ?? 'testView',
+		$goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
 		$test_id,
 		$post_id
 	);
