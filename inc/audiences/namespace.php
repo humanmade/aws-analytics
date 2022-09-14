@@ -148,44 +148,101 @@ function pre_get_posts( WP_Query $query ) {
  */
 function register_default_event_data_maps() {
 	// Traffic source data.
-	register_field( 'endpoint.Attributes.initialReferer', __( 'First Referrer', 'altis-analytics' ), __( 'The first external website a visitor arrived from', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.referer', __( 'Referrer', 'altis-analytics' ), __( 'Any external website a visitor has ever arrived from', 'altis-analytics' ) );
-	register_field( 'attributes.referer', __( 'Current Referrer', 'altis-analytics' ), __( 'The previous URL a visitor came from for the current page view only', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initialReferer', __( 'First Referrer', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initialReferer\']',
+		'description' => __( 'The first external website a visitor arrived from', 'altis-analytics' ),
+	] );
+	register_field( 'endpoint.Attributes.referer', __( 'Referrer', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'referer\']',
+		'description' => __( 'Any external website a visitor has ever arrived from', 'altis-analytics' ),
+	] );
+	register_field( 'attributes.referer', __( 'Current Referrer', 'altis-analytics' ), [
+		'column' => 'attributes[\'referer\']',
+		'description' => __( 'The previous URL a visitor came from for the current page view only', 'altis-analytics' ),
+	] );
 
 	// Device data.
-	register_field( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ) );
-	register_field( 'endpoint.Demographic.ModelVersion', __( 'Browser version', 'altis-analytics' ) );
-	register_field( 'endpoint.Demographic.Locale', __( 'Browser Locale', 'altis-analytics' ) );
-	register_field( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ) );
-	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ) );
+	register_field( 'endpoint.Demographic.Model', __( 'Browser', 'altis-analytics' ), [
+		'column' => 'model',
+	] );
+	register_field( 'endpoint.Demographic.ModelVersion', __( 'Browser version', 'altis-analytics' ), [
+		'column' => 'model_version',
+	] );
+	register_field( 'endpoint.Demographic.Locale', __( 'Browser Locale', 'altis-analytics' ), [
+		'column' => 'locale',
+	] );
+	register_field( 'endpoint.Demographic.Platform', __( 'Operating system', 'altis-analytics' ), [
+		'column' => 'platform',
+	] );
+	register_field( 'endpoint.Demographic.PlatformVersion', __( 'Operating system version', 'altis-analytics' ), [
+		'column' => 'platform_version',
+	] );
 
 	// Location data.
-	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ), null, [
+	register_field( 'endpoint.Location.Country', __( 'Country', 'altis-analytics' ), [
+		'column' => 'country',
 		'options' => '\\Altis\\Analytics\\Utils\\get_countries',
 		'disable_free_text' => true,
 	] );
 
 	// UTM Campaign parameters.
-	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'First UTM Campaign', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_source', __( 'First UTM Source', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_medium', __( 'First UTM Medium', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_term', __( 'First UTM Term', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.initial_utm_content', __( 'First UTM Content', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.utm_source', __( 'UTM Source', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.utm_term', __( 'UTM Term', 'altis-analytics' ) );
-	register_field( 'endpoint.Attributes.utm_content', __( 'UTM Content', 'altis-analytics' ) );
+	register_field( 'endpoint.Attributes.initial_utm_campaign', __( 'First UTM Campaign', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initial_utm_campaign\']',
+	] );
+	register_field( 'endpoint.Attributes.initial_utm_source', __( 'First UTM Source', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initial_utm_source\']',
+	] );
+	register_field( 'endpoint.Attributes.initial_utm_medium', __( 'First UTM Medium', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initial_utm_medium\']',
+	] );
+	register_field( 'endpoint.Attributes.initial_utm_term', __( 'First UTM Term', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initial_utm_term\']',
+	] );
+	register_field( 'endpoint.Attributes.initial_utm_content', __( 'First UTM Content', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'initial_utm_content\']',
+	] );
+	register_field( 'endpoint.Attributes.utm_campaign', __( 'UTM Campaign', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'utm_campaign\']',
+	] );
+	register_field( 'endpoint.Attributes.utm_source', __( 'UTM Source', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'utm_source\']',
+	] );
+	register_field( 'endpoint.Attributes.utm_medium', __( 'UTM Medium', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'utm_medium\']',
+	] );
+	register_field( 'endpoint.Attributes.utm_term', __( 'UTM Term', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'utm_term\']',
+	] );
+	register_field( 'endpoint.Attributes.utm_content', __( 'UTM Content', 'altis-analytics' ), [
+		'column' => 'endpoint_attributes[\'utm_content\']',
+	] );
 
 	// Time based parameters.
-	register_field( 'metrics.hour', __( 'Hour', 'altis-analytics' ), __( '24 hour clock format. For example 0 = midnight and 18 = 6pm.', 'altis-analytics' ) );
-	register_field( 'metrics.day', __( 'Day', 'altis-analytics' ), __( 'Day of the week by number. 1 = Sunday, 2 = Monday and so on.' ) );
-	register_field( 'metrics.month', __( 'Month', 'altis-analytics' ), __( 'Month by number. 1 = January and 12 = December.', 'altis-analytics' ) );
-	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ) );
+	register_field( 'metrics.hour', __( 'Hour', 'altis-analytics' ), [
+		'column' => 'metrics[\'hour\']',
+		'description' => __( '24 hour clock format. For example 0 = midnight and 18 = 6pm.', 'altis-analytics' ),
+	] );
+	register_field( 'metrics.day', __( 'Day', 'altis-analytics' ), [
+		'column' => 'metrics[\'day\']',
+		'description' => __( 'Day of the week by number. 1 = Sunday, 2 = Monday and so on.' ),
+	] );
+	register_field( 'metrics.month', __( 'Month', 'altis-analytics' ), [
+		'column' => 'metrics[\'month\']',
+		'description' => __( 'Month by number. 1 = January and 12 = December.', 'altis-analytics' ),
+	] );
+	register_field( 'metrics.year', __( 'Year', 'altis-analytics' ), [
+		'column' => 'metrics[\'year\']',
+	] );
 
 	// Sessions & page view counts.
-	register_field( 'endpoint.Metrics.sessions', __( 'Sessions', 'altis-analytics' ), __( 'Total separate visits per endpoint.', 'altis-analytics' ) );
-	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ), __( 'Total page views across all sessions.', 'altis-analytics' ) );
+	register_field( 'endpoint.Metrics.sessions', __( 'Sessions', 'altis-analytics' ), [
+		'column' => 'endpoint_metrics[\'sessions\']',
+		'description' => __( 'Total separate visits per endpoint.', 'altis-analytics' ),
+	] );
+	register_field( 'endpoint.Metrics.pageViews', __( 'Page views', 'altis-analytics' ), [
+		'column' => 'endpoint_metrics[\'pageViews\']',
+		'description' => __( 'Total page views across all sessions.', 'altis-analytics' ),
+	] );
 }
 
 /**
@@ -273,6 +330,9 @@ function save_audience( int $post_id, array $audience ) : bool {
 	// Clear the client side audience config cache returned by get_audience_config().
 	wp_cache_delete( 'audiences', 'altis.analytics' );
 
+	// Set audience version.
+	update_post_meta( $post_id, 'audience_version', 2 );
+
 	// Save the audience configuration.
 	return (bool) update_post_meta( $post_id, 'audience', wp_slash( $audience ) );
 }
@@ -326,18 +386,17 @@ function get_audience( int $post_id ) : ?array {
  */
 function get_fields() : array {
 	global $altis_analytics_event_data_maps;
-	return array_values( $altis_analytics_event_data_maps ?: [] );
+	return $altis_analytics_event_data_maps ?: [];
 }
 
 /**
- * Adds an elasticsearch to field data mapping.
+ * Adds a database to field data mapping.
  *
- * @param string $field The elasticsearch field name.
+ * @param string $field The field name.
  * @param string $label A human readable label for the field.
- * @param string $description An optional long description for the field.
  * @param array $options An optional object with further field attributes.
  */
-function register_field( string $field, string $label, ?string $description = null, array $options = [] ) {
+function register_field( string $field, string $label, array $options = [] ) {
 	global $altis_analytics_event_data_maps;
 	if ( empty( $altis_analytics_event_data_maps ) ) {
 		$altis_analytics_event_data_maps = [];
@@ -346,7 +405,6 @@ function register_field( string $field, string $label, ?string $description = nu
 	$altis_analytics_event_data_maps[ $field ] = [
 		'name' => $field,
 		'label' => $label,
-		'description' => $description,
 		'type' => Utils\get_field_type( $field ),
 		'options' => $options,
 	];
@@ -430,6 +488,7 @@ function admin_enqueue_scripts() {
  * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
+	global $wpdb;
 	$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 
 	$query = [
@@ -485,7 +544,18 @@ function get_estimate( array $audience ) : ?array {
 	];
 
 	// Append the groups query.
-	$query['query']['bool']['filter'][] = build_audience_query( $audience );
+	$audience_where = build_audience_query( $audience );
+
+	$query = $wpdb->prepare(
+		"SELECT uniqCombined64(endpoint_id) as uniques, histogram(42)(toUnixTimestamp64Milli(event_timestamp)) as `histogram`
+			FROM analytics
+			WHERE
+				attributes['blogId'] = %s AND event_type = 'pageView'
+				AND event_timestamp >= toDateTime(intDiv(%d,1000))
+				AND {$audience_where}",
+		get_current_blog_id(),
+		$since
+	);
 
 	$key = sprintf( 'estimate:%s', sha1( serialize( $audience ) ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
@@ -494,7 +564,7 @@ function get_estimate( array $audience ) : ?array {
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\query( $query );
+	$result = Utils\clickhouse_query( $query );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -505,10 +575,10 @@ function get_estimate( array $audience ) : ?array {
 		return $no_result;
 	}
 
-	$histogram = Utils\normalise_histogram( $result['aggregations']['histogram']['buckets'] );
+	$histogram = Utils\normalise_clickhouse_histogram( $result->histogram ?? [] );
 
 	// Get number of unique IDs within the audience.
-	$estimate_count = $result['aggregations']['estimate']['value'];
+	$estimate_count = intval( $result->uniques );
 
 	$estimate = [
 		'count' => $estimate_count,
@@ -530,51 +600,21 @@ function get_estimate( array $audience ) : ?array {
  * @return integer|null
  */
 function get_unique_endpoint_count( int $since = null, bool $force_update = false ) : ?int {
+	global $wpdb;
+
 	if ( $since === null ) {
 		$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 	}
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Set current site.
-					[
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
-
-					// Last 7 days.
-					[
-						'range' => [
-							'event_timestamp' => [
-								'gte' => $since,
-							],
-						],
-					],
-
-					// Limit event type to pageView.
-					[
-						'term' => [
-							'event_type.keyword' => 'pageView',
-						],
-					],
-				],
-			],
-		],
-		'aggs' => [
-			'count' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-		],
-		'size' => 0,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
+	$query = $wpdb->prepare(
+		"SELECT uniqCombined64(endpoint_id) as uniques FROM analytics
+			WHERE
+				event_type = 'pageView' AND
+				event_timestamp > toDateTime(intDiv(%d,1000)) AND
+				attributes['blogId'] = %s",
+		$since,
+		get_current_blog_id()
+	);
 
 	$key = sprintf( 'total-uniques-%d', $since );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
@@ -582,14 +622,14 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\clickhouse_query( $query );
 
 	if ( ! $result ) {
 		wp_cache_set( $key, 0, 'altis-audiences', MINUTE_IN_SECONDS );
 		return $result;
 	}
 
-	$count = intval( $result['aggregations']['count']['value'] );
+	$count = intval( $result->uniques );
 
 	wp_cache_set( $key, $count, 'altis-audiences', MINUTE_IN_SECONDS );
 
@@ -608,8 +648,8 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
  *         'label' => 'Country',
  *         'type' => 'string',
  *         'data' => [
- *             [ 'key' => 'GB', 'doc_count' => 281 ],
- *             [ 'key' => 'US', 'doc_count' => 127 ]
+ *             [ 'val' => 'GB', 'uniques' => 281 ],
+ *             [ 'val' => 'US', 'uniques' => 127 ]
  *         ]
  *     ],
  *     [
@@ -617,6 +657,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
  *         'label' => 'Total User Spend',
  *         'type' => 'number',
  *         'stats' => [
+ *             'count' => 42,
  *             'sum' => 560,
  *             'min' => 10,
  *             'max' => 210,
@@ -628,6 +669,8 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
  * @return array|null
  */
 function get_field_data() : ?array {
+	global $wpdb;
+
 	$maps = get_fields();
 
 	$key = sprintf( 'fields:%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
@@ -636,119 +679,102 @@ function get_field_data() : ?array {
 		return $cache;
 	}
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Query for current site.
-					[
-						'term' => [
-							'event_type.keyword' => 'pageView',
-						],
-					],
-
-					// Query for current site.
-					[
-						'term' => [
-							'attributes.blogId.keyword' => (string) get_current_blog_id(),
-						],
-					],
-
-					// Last 7 days.
-					[
-						'range' => [
-							'event_timestamp' => [
-								'gte' => Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
-							],
-						],
-					],
-				],
-			],
-		],
-		'size' => 0,
-		'aggs' => [],
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
+	$results = [];
 
 	foreach ( $maps as $map ) {
+		if ( ! isset( $map['options']['column'] ) ) {
+			continue;
+		}
+
+		$column = $map['options']['column'];
+
 		// For numeric fields get a simple stats aggregation.
 		if ( Utils\get_field_type( $map['name'] ) === 'number' ) {
-			$query['aggs'][ $map['name'] ] = [
-				'stats' => [
-					'field' => $map['name'],
-				],
-			];
+			// Select basic stats about the metric.
+			$fields = sprintf( 'count(event_type) as `count`, min(%1$s) as min, max(%1$s) as max, avg(%1$s) as avg, sum(%1$s) as sum', $column );
+			$query = $wpdb->prepare( "SELECT {$fields} FROM analytics
+				WHERE event_timestamp >= toDateTime(intDiv(%d,1000))
+					AND attributes['blogId'] = %s
+					AND event_type = 'pageView'
+				",
+				Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
+				get_current_blog_id()
+			);
 		}
-		// Default to terms aggregations for top 20 different values available for each field.
+
+		// Default to topK aggregation for top 20 different values available for each field.
 		if ( Utils\get_field_type( $map['name'] ) === 'string' ) {
-			$query['aggs'][ $map['name'] ] = [
-				'terms' => [
-					'field' => "{$map['name']}.keyword",
-					'size' => 20,
-				],
-				'aggs' => [
-					'uniques' => [
-						'cardinality' => [
-							'field' => 'endpoint.Id.keyword',
-						],
-					],
-				],
-			];
+			$join = '';
+			// Handle array type sub fields with ARRAY JOIN to generate additional rows.
+			if ( strpos( $column, '_attributes' ) !== false ) {
+				$join = "LEFT ARRAY JOIN {$column} as sub_fields";
+				$column = 'sub_fields';
+			}
+
+			$fields = sprintf( 'topK(20)(%1$s)[1] as val, count(event_type) as views, uniqCombined64(endpoint_id) as uniques', $column );
+			$query = $wpdb->prepare( "SELECT {$fields} FROM analytics
+				{$join}
+				WHERE event_timestamp >= toDateTime(intDiv(%d,1000))
+					AND attributes['blogId'] = %s
+					AND event_type = 'pageView'
+					GROUP BY {$column}
+					HAVING notEmpty(val)
+					ORDER BY uniques DESC
+				",
+				Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
+				get_current_blog_id()
+			);
 		}
+
+		$results[ $map['name'] ] = Utils\clickhouse_query( $query );
 	}
 
-	$result = Utils\query( $query );
-
-	// Don't bail if we get nothing back so the UI is usable still, there just won't be any sample values.
-	if ( ! $result ) {
-		$result = [];
-	}
+	$results = array_filter( $results, function ( $result ) {
+		return ! is_wp_error( $result );
+	} );
 
 	// Get the total uniques to get percentage distribution.
 	$total = get_unique_endpoint_count();
-
-	// Get aggregations if we have any results.
-	$aggregations = $result['aggregations'] ?? [];
 
 	// Normalise aggregations to useful just the useful data.
 	$fields = [];
 	foreach ( $maps as $field ) {
 		$field_name = $field['name'];
-		if ( isset( $aggregations[ $field_name ] ) ) {
-			if ( isset( $aggregations[ $field_name ]['buckets'] ) ) {
+		if ( isset( $results[ $field_name ] ) ) {
+			// Process string field result.
+			if ( Utils\get_field_type( $field_name ) === 'string' ) {
 				$options = $field['options']['options'] ?? null;
 				if ( is_callable( $options ) ) {
 					$options = call_user_func( $options );
 				}
 				if ( is_array( $options ) ) {
-					$buckets = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'doc_count', 'key' );
-					$uniques = wp_list_pluck( $aggregations[ $field_name ]['buckets'], 'uniques', 'key' );
-					$field_data = array_map( function ( $value, $label ) use ( $buckets, $uniques, $total ) {
+					$buckets = array_combine( array_column( $results[ $field_name ], 'val' ), $results[ $field_name ] );
+					$field_data = array_map( function ( $value, $label ) use ( $buckets, $total ) {
 						return [
 							'value' => $value,
 							'label' => $label,
-							'count' => $buckets[ $value ] ?? 0,
-							'percent' => isset( $uniques[ $value ] ) ? intval( ( $uniques[ $value ]['value'] / $total ) * 100 ) : 0,
+							'count' => $buckets[ $value ]->views ?? 0,
+							'percent' => isset( $buckets[ $value ]->uniques ) ? intval( ( $buckets[ $value ]->uniques / $total ) * 100 ) : 0,
 						];
 					}, array_keys( $options ), $options );
 					unset( $field['options']['options'] );
 				} else {
 					$field_data = array_map( function ( $bucket ) use ( $total ) {
 						return [
-							'value' => $bucket['key'],
-							'count' => $bucket['doc_count'],
-							'percent' => isset( $bucket['uniques'] ) ? intval( ( $bucket['uniques']['value'] / $total ) * 100 ) : 0,
+							'value' => $bucket->val,
+							'count' => $bucket->views,
+							'percent' => isset( $bucket->uniques ) ? intval( ( $bucket->uniques / $total ) * 100 ) : 0,
 						];
-					}, $aggregations[ $field_name ]['buckets'] );
+					}, $results[ $field_name ] );
 				}
 				$field['data'] = $field_data;
 			} else {
-				$field['stats'] = $aggregations[ $field_name ];
+				$field['stats'] = (array) $results[ $field_name ];
 			}
 		}
 
+		// Cleanup data not needed for front end.
+		unset( $field['options']['column'] );
 		$fields[] = $field;
 	}
 
@@ -759,50 +785,32 @@ function get_field_data() : ?array {
 }
 
 /**
- * Convert an audience config array to an Elasticsearch query.
- * The response is designed to be used within a bool filter query eg:
- *
- * $query = [
- *     'query' => [
- *         'bool' => [
- *             'filter' => [
- *                 get_filter_query( $audience ),
- *             ],
- *         ],
- *     ],
- * ];
+ * Convert an audience config array to an SQL query.
  *
  * @param array $audience Audience configuration array.
- * @return array
+ * @return string SQL WHERE clauses component.
  */
-function build_audience_query( array $audience ) : array {
+function build_audience_query( array $audience ) : string {
+	$fields = get_fields();
+
 	// Map the include values to elasticsearch query filters.
 	$include_map = [
-		'any' => 'should',
-		'all' => 'filter',
-		'none' => 'must_not',
+		'any' => ' OR ',
+		'all' => ' AND ',
+		'none' => ' AND NOT ',
 	];
 
 	$group_queries = [];
 
 	foreach ( $audience['groups'] as $group ) {
 		$group_include = $include_map[ $group['include'] ];
-		$group_query = [
-			'bool' => [
-				$group_include => [],
-			],
-		];
+		$group_query = [];
 
 		foreach ( $group['rules'] as $rule ) {
-			$rule_query = [
-				'bool' => [
-					'filter' => [],
-					'must_not' => [],
-				],
-			];
+			$rule_query = '';
 
-			// Ignore rules with an empty field.
-			if ( empty( $rule['field'] ) ) {
+			// Ignore rules with an empty field or no db column name.
+			if ( empty( $rule['field'] ) || ! isset( $fields[ $rule['field'] ]['options']['column'] ) ) {
 				continue;
 			}
 
@@ -810,39 +818,19 @@ function build_audience_query( array $audience ) : array {
 			if ( Utils\get_field_type( $rule['field'] ) === 'string' ) {
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query['bool']['filter'][] = [
-							'term' => [
-								"{$rule['field']}.keyword" => $rule['value'],
-							],
-						];
+						$rule_query .= "= '{$rule['value']}'";
 						break;
 					case '!=':
-						$rule_query['bool']['must_not'][] = [
-							'term' => [
-								"{$rule['field']}.keyword" => $rule['value'],
-							],
-						];
+						$rule_query .= "!= '{$rule['value']}'";
 						break;
 					case '*=':
-						$rule_query['bool']['filter'][] = [
-							'wildcard' => [
-								"{$rule['field']}.keyword" => "*{$rule['value']}*",
-							],
-						];
+						$rule_query .= "LIKE '*{$rule['value']}*'";
 						break;
 					case '!*':
-						$rule_query['bool']['must_not'][] = [
-							'wildcard' => [
-								"{$rule['field']}.keyword" => "*{$rule['value']}*",
-							],
-						];
+						$rule_query .= "NOT LIKE '*{$rule['value']}*'";
 						break;
 					case '^=':
-						$rule_query['bool']['filter'][] = [
-							'wildcard' => [
-								"{$rule['field']}.keyword" => "{$rule['value']}*",
-							],
-						];
+						$rule_query .= "LIKE '{$rule['value']}*'";
 						break;
 				}
 			}
@@ -851,44 +839,38 @@ function build_audience_query( array $audience ) : array {
 			if ( Utils\get_field_type( $rule['field'] ) === 'number' ) {
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query['bool']['filter'][] = [
-							'term' => [
-								"{$rule['field']}" => $rule['value'],
-							],
-						];
+						$rule_query .= "= {$rule['value']}";
 						break;
 					case '!=':
-						$rule_query['bool']['must_not'][] = [
-							'term' => [
-								"{$rule['field']}" => $rule['value'],
-							],
-						];
+						$rule_query .= "!= {$rule['value']}";
 						break;
 					default:
-						$rule_query['bool']['filter'][] = [
-							'range' => [
-								$rule['field'] => [
-									$rule['operator'] => intval( $rule['value'] ),
-								],
-							],
-						];
+						$operator = [
+							'gt' => '>',
+							'gte' => '>=',
+							'lt' => '<',
+							'lte' => '<=',
+						][ $rule['operator'] ] ?? '=';
+						$rule_query .= "{$operator} {$rule['value']}";
 				}
 			}
 
 			// Add the rule query to the group.
-			$group_query['bool'][ $group_include ][] = $rule_query;
+			if ( ! empty( $rule_query ) ) {
+				$group_query[] = sprintf(
+					'%s %s',
+					$fields[ $rule['field'] ]['options']['column'],
+					$rule_query
+				);
+			}
 		}
 
 		// Add the group query to the list of group queries.
-		$group_queries[] = $group_query;
+		$group_queries[] = sprintf( ' (%s) ', implode( $group_include, $group_query ) );
 	}
 
 	$groups_include = $include_map[ $audience['include'] ];
-	$groups_query = [
-		'bool' => [
-			$groups_include => $group_queries,
-		],
-	];
+	$groups_query = sprintf( ' (%s) ', implode( $groups_include, $group_queries ) );
 
 	return $groups_query;
 }

@@ -8,6 +8,7 @@ namespace Altis\Analytics\Utils;
 use Altis\Analytics;
 use Asset_Loader;
 use Aws\S3\S3Client;
+use WP_Error;
 
 /**
  * Return asset file name based on generated manifest.json file.
@@ -484,6 +485,23 @@ function normalise_histogram( array $histogram, ?string $sub_count_key = null ) 
 }
 
 /**
+ * Takes the 'buckets' from a ClickHouse historgam aggregation and normalises
+ * it to something easier to work with in JS.
+ *
+ * @param array $histogram The raw histogram buckets from ClickHouse.
+ * @return array
+ */
+function normalise_clickhouse_histogram( array $histogram ) : array {
+	$histogram = array_map( function ( array $bucket ) {
+		return [
+			'index' => intval( $bucket[0] ), // Index 0 is the start number, 1 is the end.
+			'count' => floatval( $bucket[2] ), // Index 2 is the value / number of records in the range.
+		];
+	}, $histogram );
+	return array_values( $histogram );
+}
+
+/**
  * Merge aggregations from ES results.
  *
  * @todo work out how to merge percentiles & percentile ranks.
@@ -588,10 +606,7 @@ function get_field_type( string $field ) : ?string {
 	}
 
 	$numeric_fields = [
-		'event_timestamp',
-		'arrival_timestamp',
-		'session.start_timestamp',
-		'session.stop_timestamp',
+		'session.duration',
 	];
 
 	$is_numeric_field = in_array( $field, $numeric_fields, true );
@@ -602,6 +617,10 @@ function get_field_type( string $field ) : ?string {
 	}
 
 	$date_fields = [
+		'event_timestamp',
+		'arrival_timestamp',
+		'session.start_timestamp',
+		'session.stop_timestamp',
 		'endpoint.CreationDate',
 		'endpoint.EffectiveDate',
 	];
@@ -1070,4 +1089,88 @@ function get_s3_client( array $args = [] ) : ? S3Client {
 	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
 
 	return $client;
+}
+
+/**
+ * Make an HTTP request to ClickHouse.
+ *
+ * Returns null for zero results, object for a single row / or an array of objects.
+ *
+ * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
+ * @param string $body Optional query body. For use with queries like INSERT with JsonEachRow format.
+ * @return null|stdClass|stdClass[]|WP_Error
+ */
+function clickhouse_query( string $query, string $body = '' ) {
+	$config = [
+		'host' => defined( 'ALTIS_CLICKHOUSE_HOST' ) ? ALTIS_CLICKHOUSE_HOST : 'clickhouse',
+		'port' => defined( 'ALTIS_CLICKHOUSE_PORT' ) ? ALTIS_CLICKHOUSE_PORT : 8123,
+		'user' => defined( 'ALTIS_CLICKHOUSE_USER' ) ? ALTIS_CLICKHOUSE_USER : 'default',
+		'pass' => defined( 'ALTIS_CLICKHOUSE_PASS' ) ? ALTIS_CLICKHOUSE_PASS : '',
+		'db' => defined( 'ALTIS_CLICKHOUSE_DB' ) ? ALTIS_CLICKHOUSE_DB : 'default',
+	];
+
+	/**
+	 * Filter the default Clickhouse connection configuration.
+	 */
+	$config = apply_filters( 'altis.analytics.clickhouse_config', $config );
+
+	$clickhouse_url = sprintf( '%s://%s:%s',
+		strpos( $config['port'], '443' ) !== false ? 'https' : 'http',
+		$config['host'],
+		$config['port']
+	);
+
+	// Build request args.
+	$request_args = [
+		'body' => $query,
+		'timeout' => 20,
+		'headers' => [
+			'X-Clickhouse-User' => $config['user'],
+			'X-Clickhouse-Key' => $config['pass'],
+			'X-Clickhouse-Database' => $config['db'],
+			'X-Clickhouse-Format' => 'JSONEachRow',
+			'Accept-Encoding' => 'gzip',
+		],
+	];
+
+	// Append $query as the URL `query` parameter if $body is present and overwite request arg.
+	if ( ! empty( $body ) ) {
+		$clickhouse_url = sprintf( '%s?query=%s',
+			$clickhouse_url,
+			urlencode( $query )
+		);
+
+		$request_args['body'] = $body;
+	}
+
+	/**
+	 * Filter the args used to control the request type.
+	 */
+	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $body );
+
+	$response = wp_remote_post(
+		$clickhouse_url,
+		$request_args
+	);
+
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+
+	if ( wp_remote_retrieve_response_code( $response ) > 299 ) {
+		return new WP_Error( 'clickhouse_query_error', wp_remote_retrieve_body( $response ) );
+	}
+
+	// Map rows of JSON to objects.
+	$result = wp_remote_retrieve_body( $response );
+	$result = explode( "\n", $result );
+	$result = array_filter( $result );
+	$result = array_map( 'json_decode', $result );
+
+	// For single or zero results assume this is just a row of aggregate values and return it.
+	if ( count( $result ) <= 1 ) {
+		return array_shift( $result );
+	}
+
+	return $result;
 }
