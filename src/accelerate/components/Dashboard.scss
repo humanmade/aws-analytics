@@ -542,7 +542,6 @@ body.index-php {
 			padding-right: 0;
 
 			&__author {
-
 				&-name {
 					font-size: 0.65rem;
 					color: $color-dark-grey;
@@ -708,7 +707,7 @@ body.index-php {
 
 		&:hover,
 		&:active,
-		&:focus	{
+		&:focus {
 			color: #fff !important; /* stylelint-disable-line declaration-no-important */
 		}
 	}
