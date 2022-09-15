@@ -1,6 +1,7 @@
 {
   "extends": "@humanmade/stylelint-config",
   "rules": {
-    "selector-class-pattern": "^(?<block>(?:[a-zA-Z][a-zA-Z0-9]*)(?:-[a-zA-Z0-9]+)*)(?<element>(?:__[a-zA-Z][a-zA-Z0-9]*(?:-[a-zA-Z0-9]+)*))?(?<modifier>(?:--[a-zA-Z][a-zA-Z0-9]*)(?:-[a-zA-Z0-9]+)*)?$"
+    "selector-class-pattern": "^(?<block>(?:[a-zA-Z][a-zA-Z0-9]*)(?:-[a-zA-Z0-9]+)*)(?<element>(?:__[a-zA-Z][a-zA-Z0-9]*(?:-[a-zA-Z0-9]+)*))?(?<modifier>(?:--[a-zA-Z][a-zA-Z0-9]*)(?:-[a-zA-Z0-9]+)*)?$",
+    "declaration-property-unit-blacklist": {}
   }
 }

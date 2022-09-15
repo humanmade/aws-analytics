@@ -497,7 +497,6 @@ function enqueue_experiments_editor_scripts( string $hook ) : void {
 				'singular_label' => $test['singular_label'],
 			];
 		}
-
 	}
 
 	wp_add_inline_script(

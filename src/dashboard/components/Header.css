@@ -96,7 +96,7 @@
 }
 
 .Header__filter-text {
-	line-height: 24px;
+	line-height: 1.8;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -111,7 +111,7 @@
 	cursor: pointer;
 	padding: 0 2px;
 	color: #757575;
-	line-height: 10px;
+	line-height: 0.8;
 	overflow: initial;
 }
 

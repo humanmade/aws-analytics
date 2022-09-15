@@ -7,14 +7,14 @@
 
 namespace Altis\Analytics\API;
 
-use Altis\Analytics\Dashboard;
 use Altis\Analytics\Blocks;
+use Altis\Analytics\Dashboard;
 use Altis\Analytics\Utils;
 use WP_Error;
+use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-use WP_Query;
 
 const API_NAMESPACE = 'accelerate/v1';
 
@@ -182,7 +182,6 @@ function get_diff( WP_REST_Request $request ) {
 
 	return get_post_diff_data( $post_ids, $start, $end, $request['interval'] );
 }
-
 
 /**
  * Get the filter portion of the Elasticsearch queries.
@@ -826,7 +825,6 @@ function get_available_thumbnail_size() : string {
 
 	return $size; // Return the fallback size.
 }
-
 
 /**
  * Add default aggeregations for stats.

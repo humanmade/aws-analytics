@@ -1,6 +1,8 @@
 <?php
 /**
  * Helper functions for stats and significance.
+ *
+ * phpcs:disable WordPress.NamingConventions.ValidHookName.UseUnderscores
  */
 
 namespace Altis\Analytics\Utils;
@@ -61,8 +63,6 @@ function get_asset_url( string $filename ) {
 function is_feature_enabled( string $feature ) : bool {
 	/**
 	 * Toggle plugin feature.
-	 *
-	 *
 	 *
 	 * Note: personalisation blocks require audiences and A/B blocks require experiments.
 	 *

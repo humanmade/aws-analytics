@@ -1,14 +1,15 @@
+/* stylelint-disable max-nesting-depth, no-descending-specificity */
 // Variables
 $dark-blue: #152a4e;
 $active-blue: #4667de;
-$score-pos: #3CC66D;
-$score-neg: #C6403C;
+$score-pos: #3cc66d;
+$score-neg: #c6403c;
 $sidebar-padding: 5%;
 $color-grey: #cbc9c9;
 $color-light-grey: #eef0f4;
 $color-dark-grey: #707070;
-$color-light-grey-bg: #F5F6F8;
-$color-light-blue-bg: #ECEEF1; // Thumbnail BG + Ghost Bars
+$color-light-grey-bg: #f5f6f8;
+$color-light-blue-bg: #eceef1; // Thumbnail BG + Ghost Bars
 
 // Override certain WP-specific pieces
 body.index-php {
@@ -49,6 +50,7 @@ body.index-php {
 
 	a {
 		color: $active-blue;
+
 		&:hover,
 		&:focus,
 		&:active {
@@ -75,15 +77,15 @@ body.index-php {
 		border-radius: 10px;
 		padding: 0 6px;
 		height: 1.6em;
-		line-height: 1.6em;
+		line-height: 1.6;
 		margin-left: 5px;
 	}
 }
 
 @keyframes altis-bounce {
-    0% {
-        opacity: 0.5;
-    }
+	0% {
+		opacity: 0.5;
+	}
 }
 
 .HeroChart {
@@ -95,12 +97,12 @@ body.index-php {
 		float: left;
 		margin-bottom: -16px;
 		opacity: 0;
-		transition: opacity 1s ease-out 2s;
+		transition: opacity 1000ms ease-out 2000ms;
 		display: flex;
 		align-items: center;
 
 		&--loading {
-			transition: opacity 0s linear;
+			transition: opacity 0ms linear;
 			opacity: 1;
 		}
 
@@ -120,20 +122,20 @@ body.index-php {
 
 	&__group {
 		opacity: 1;
-		transition: opacity 0.5s ease-out;
+		transition: opacity 500ms ease-out;
 
 		&--loading {
 			opacity: 0.5;
 		}
 
 		* {
-			transition: stroke 0.3s ease-in-out, fill 0.3s ease-in-out;
+			transition: stroke 300ms ease-in-out, fill 300ms ease-in-out;
 		}
 	}
 
 	&__waiting {
 		opacity: 1;
-		animation: altis-bounce 1.5s ease-in-out infinite alternate;
+		animation: altis-bounce 1500ms ease-in-out infinite alternate;
 	}
 }
 
@@ -173,66 +175,15 @@ body.index-php {
 		margin-right: 1em;
 		font-size: inherit;
 
-		span[role=img] {
+		span[role="img"] {
 			margin-left: 0.5em;
-		}
-	}
-}
-
-.radio-group .components-button-group {
-	button {
-		border-right: 0;
-		cursor: pointer;
-		font-weight: 500;
-		padding: 10px;
-		color: #4667de;
-		border-color: #4667de;
-		box-shadow: inset 0 0 0 1px #4667de;
-		background: #fff;
-		&:hover,
-		&:focus {
-			color: #4667de;
-			border-color: #4667de;
-			box-shadow: inset 0 0 0 1px #4667de;
-		}
-
-		&:first-child {
-			border-top-left-radius: 10px;
-			border-bottom-left-radius: 10px;
-		}
-
-		&:last-child {
-			border-top-right-radius: 10px;
-			border-bottom-right-radius: 10px;
-		}
-
-		&.is-secondary:hover,
-		&.is-secondary:active,
-		&.is-secondary:focus {
-			color: #4667de;
-			border-color: #4667de;
-			box-shadow: inset 0 0 0 1px #4667de;
-		}
-
-		&.is-primary,
-		&.is-primary:hover,
-		&.is-primary:active,
-		&.is-primary:focus {
-			outline: none;
-			background: #4667de;
-			border-color: #4667de;
-			color: #fff;
-			box-shadow: none;
-			&:focus:not(:disabled) {
-				box-shadow: inset 0 0 0 1px #4667de;
-			}
 		}
 	}
 }
 
 .List {
 	position: relative;
-	font-size: .875rem;
+	font-size: 0.875rem;
 	padding: 5px $sidebar-padding 40px;
 	overflow: hidden;
 
@@ -246,7 +197,7 @@ body.index-php {
 
 		/* Bottom border for the table controls */
 		&::after {
-			content: '';
+			content: "";
 			height: 2px;
 			background-color: $color-light-grey;
 			position: absolute;
@@ -254,6 +205,38 @@ body.index-php {
 			left: -50vw;
 			right: -50vw;
 			z-index: -1;
+		}
+
+		.table-search {
+			display: flex;
+			justify-content: flex-start;
+			position: relative;
+
+			input {
+				width: 380px;
+				background: $color-light-grey;
+				border-color: transparent;
+				border-radius: 10px;
+				padding-left: 35px;
+				height: 36px;
+
+				&:focus {
+					outline: 0;
+					box-shadow: none;
+					border-bottom: none;
+				}
+
+				&::placeholder {
+					color: #7b7b7b;
+				}
+			}
+
+			.dashicons-search {
+				position: absolute;
+				left: 0;
+				margin: 8px 10px;
+				color: $color-grey;
+			}
 		}
 
 		.table-filter {
@@ -270,8 +253,9 @@ body.index-php {
 						background: #4667de;
 						border-color: #4667de;
 						color: #fff;
+
 						&::after {
-							content: 'D';
+							content: "D";
 							padding-left: 1px;
 						}
 					}
@@ -301,7 +285,9 @@ body.index-php {
 					border-bottom: 2px solid transparent;
 					color: #4667de;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						box-shadow: none;
 						background: none;
 						color: #4667de;
@@ -316,38 +302,6 @@ body.index-php {
 						border-bottom: 2px solid #4667de;
 					}
 				}
-			}
-		}
-
-		.table-search {
-			display:flex;
-			justify-content: flex-start;
-			position: relative;
-
-			input {
-				width: 380px;
-				background: $color-light-grey;
-				border-color: transparent;
-				border-radius: 10px;
-				padding-left: 35px;
-				height: 36px;
-
-				&:focus {
-					outline: 0;
-					box-shadow: none;
-					border-bottom: none;
-				}
-
-				&::placeholder {
-					color: #7B7B7B;
-				}
-			}
-
-			.dashicons-search {
-				position: absolute;
-				left: 0;
-				margin: 8px 10px;
-				color: $color-grey;
 			}
 		}
 
@@ -366,7 +320,9 @@ body.index-php {
 				&.is-primary {
 					background: $active-blue;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						background: $active-blue;
 					}
 
@@ -377,7 +333,7 @@ body.index-php {
 				}
 			}
 
-			.components-menu-group > [role=group] {
+			.components-menu-group > [role="group"] {
 				display: flex;
 				flex-flow: column wrap;
 
@@ -422,11 +378,12 @@ body.index-php {
 		tr {
 			background: $color-light-grey-bg;
 			box-shadow: 0 0 0 100vmax $color-light-grey-bg;
-			clip-path: inset(0 -100vmax);
+			clip-path: inset( 0 -100vmax );
 			margin-bottom: 10px;
 		}
 
-		th,td {
+		th,
+		td {
 			text-align: left;
 			padding: 20px 20px 17px 20px;
 			border: none;
@@ -460,7 +417,7 @@ body.index-php {
 				height: 47px;
 				object-fit: cover;
 				object-position: top center;
-				box-shadow: 0 4px 7px 0 rgba(21, 42, 79, 0.2);
+				box-shadow: 0 4px 7px 0 rgba( 21, 42, 79, 0.2 );
 			}
 
 		}
@@ -481,20 +438,20 @@ body.index-php {
 				letter-spacing: 0.01em;
 
 				> div {
-					letter-spacing: .03em;
+					letter-spacing: 0.03em;
 					display: inline-block;
 				}
 
 				> div + div {
 					&::before {
-						content: '/';
-						font-weight: normal;
+						content: "/";
+						font-weight: 400;
 						padding: 5px;
 					}
 
 					&:empty {
 						&::before {
-							content: '';
+							content: "";
 						}
 					}
 				}
@@ -509,7 +466,7 @@ body.index-php {
 				font-size: 0.875rem;
 				padding-top: 0.15rem;
 				font-weight: 600;
-				line-height: 1.15rem;
+				line-height: 1.15;
 
 				a {
 					display: block;
@@ -550,7 +507,7 @@ body.index-php {
 				margin-bottom: 0.35rem;
 
 				rect {
-					transition: x 0.5s ease-in-out, y 1s ease-in-out, width 0.5s ease-in;
+					transition: x 500ms ease-in-out, y 1000ms ease-in-out, width 500ms ease-in;
 				}
 			}
 
@@ -576,7 +533,7 @@ body.index-php {
 			&__value {
 				cursor: help;
 				font-size: 0.825rem;
-				font-weight: bold;
+				font-weight: 700;
 			}
 		}
 
@@ -585,7 +542,6 @@ body.index-php {
 			padding-right: 0;
 
 			&__author {
-
 				&-name {
 					font-size: 0.65rem;
 					color: $color-dark-grey;
@@ -615,7 +571,9 @@ body.index-php {
 					text-decoration: none;
 					color: $dark-blue;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						color: $active-blue;
 					}
 				}
@@ -630,6 +588,59 @@ body.index-php {
 			a {
 				margin-right: 10px;
 			}
+		}
+	}
+}
+
+.radio-group .components-button-group {
+	button {
+		border-right: 0;
+		cursor: pointer;
+		font-weight: 500;
+		padding: 10px;
+		color: #4667de;
+		border-color: #4667de;
+		box-shadow: inset 0 0 0 1px #4667de;
+		background: #fff;
+
+		&:hover,
+		&:focus {
+			color: #4667de;
+			border-color: #4667de;
+			box-shadow: inset 0 0 0 1px #4667de;
+		}
+
+		&:first-child {
+			border-top-left-radius: 10px;
+			border-bottom-left-radius: 10px;
+		}
+
+		&:last-child {
+			border-top-right-radius: 10px;
+			border-bottom-right-radius: 10px;
+		}
+
+		&.is-secondary:hover,
+		&.is-secondary:active,
+		&.is-secondary:focus {
+			color: #4667de;
+			border-color: #4667de;
+			box-shadow: inset 0 0 0 1px #4667de;
+		}
+
+		&.is-primary,
+		&.is-primary:hover,
+		&.is-primary:active,
+		&.is-primary:focus {
+			outline: none;
+			background: #4667de;
+			border-color: #4667de;
+			color: #fff;
+			box-shadow: none;
+		}
+
+		&.is-primary:focus:not(:disabled) {
+			box-shadow: inset 0 0 0 1px #4667de;
 		}
 	}
 }
@@ -664,7 +675,6 @@ body.index-php {
 			&.rpb-item--disabled {
 				color: $color-grey;
 			}
-
 		}
 
 		.rpb-root {
@@ -675,17 +685,13 @@ body.index-php {
 			li {
 				display: inline-block;
 			}
-
 		}
 
 		.current-page {
 			color: $color-grey;
 			margin-left: 5px;
 		}
-
-
 	}
-
 }
 
 .Footer {
@@ -701,8 +707,8 @@ body.index-php {
 
 		&:hover,
 		&:active,
-		&:focus	 {
-			color: #fff !important;
+		&:focus {
+			color: #fff !important; /* stylelint-disable-line declaration-no-important */
 		}
 	}
 }
@@ -719,7 +725,7 @@ body.index-php {
 	display: block;
 	height: 2em;
 	fill: transparent;
-	stroke: #152A4E;
+	stroke: #152a4e;
 	stroke-width: 3px;
 
 	&.Loader--light {
@@ -734,6 +740,6 @@ body.index-php {
 	.altis-shape {
 		stroke-dasharray: 1200;
 		stroke-dashoffset: 1200;
-		animation: paint 1.5s ease-in-out infinite alternate;
+		animation: paint 1500ms ease-in-out infinite alternate;
 	}
 }
