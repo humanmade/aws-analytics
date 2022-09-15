@@ -11,10 +11,10 @@ use Altis\Analytics\Blocks;
 use Altis\Analytics\Dashboard;
 use Altis\Analytics\Utils;
 use WP_Error;
+use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-use WP_Query;
 
 const API_NAMESPACE = 'accelerate/v1';
 

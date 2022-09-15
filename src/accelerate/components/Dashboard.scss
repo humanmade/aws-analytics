@@ -1,3 +1,4 @@
+/* stylelint-disable max-nesting-depth, no-descending-specificity */
 // Variables
 $dark-blue: #152a4e;
 $active-blue: #4667de;
@@ -196,7 +197,7 @@ body.index-php {
 
 		/* Bottom border for the table controls */
 		&::after {
-			content: '';
+			content: "";
 			height: 2px;
 			background-color: $color-light-grey;
 			position: absolute;
@@ -204,6 +205,38 @@ body.index-php {
 			left: -50vw;
 			right: -50vw;
 			z-index: -1;
+		}
+
+		.table-search {
+			display: flex;
+			justify-content: flex-start;
+			position: relative;
+
+			input {
+				width: 380px;
+				background: $color-light-grey;
+				border-color: transparent;
+				border-radius: 10px;
+				padding-left: 35px;
+				height: 36px;
+
+				&:focus {
+					outline: 0;
+					box-shadow: none;
+					border-bottom: none;
+				}
+
+				&::placeholder {
+					color: #7b7b7b;
+				}
+			}
+
+			.dashicons-search {
+				position: absolute;
+				left: 0;
+				margin: 8px 10px;
+				color: $color-grey;
+			}
 		}
 
 		.table-filter {
@@ -222,7 +255,7 @@ body.index-php {
 						color: #fff;
 
 						&::after {
-							content: 'D';
+							content: "D";
 							padding-left: 1px;
 						}
 					}
@@ -252,7 +285,9 @@ body.index-php {
 					border-bottom: 2px solid transparent;
 					color: #4667de;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						box-shadow: none;
 						background: none;
 						color: #4667de;
@@ -267,38 +302,6 @@ body.index-php {
 						border-bottom: 2px solid #4667de;
 					}
 				}
-			}
-		}
-
-		.table-search {
-			display:flex;
-			justify-content: flex-start;
-			position: relative;
-
-			input {
-				width: 380px;
-				background: $color-light-grey;
-				border-color: transparent;
-				border-radius: 10px;
-				padding-left: 35px;
-				height: 36px;
-
-				&:focus {
-					outline: 0;
-					box-shadow: none;
-					border-bottom: none;
-				}
-
-				&::placeholder {
-					color: #7B7B7B;
-				}
-			}
-
-			.dashicons-search {
-				position: absolute;
-				left: 0;
-				margin: 8px 10px;
-				color: $color-grey;
 			}
 		}
 
@@ -317,7 +320,9 @@ body.index-php {
 				&.is-primary {
 					background: $active-blue;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						background: $active-blue;
 					}
 
@@ -373,7 +378,7 @@ body.index-php {
 		tr {
 			background: $color-light-grey-bg;
 			box-shadow: 0 0 0 100vmax $color-light-grey-bg;
-			clip-path: inset(0 -100vmax);
+			clip-path: inset( 0 -100vmax );
 			margin-bottom: 10px;
 		}
 
@@ -433,20 +438,20 @@ body.index-php {
 				letter-spacing: 0.01em;
 
 				> div {
-					letter-spacing: .03em;
+					letter-spacing: 0.03em;
 					display: inline-block;
 				}
 
 				> div + div {
 					&::before {
-						content: '/';
-						font-weight: normal;
+						content: "/";
+						font-weight: 400;
 						padding: 5px;
 					}
 
 					&:empty {
 						&::before {
-							content: '';
+							content: "";
 						}
 					}
 				}
@@ -461,7 +466,7 @@ body.index-php {
 				font-size: 0.875rem;
 				padding-top: 0.15rem;
 				font-weight: 600;
-				line-height: 1.15rem;
+				line-height: 1.15;
 
 				a {
 					display: block;
@@ -502,7 +507,7 @@ body.index-php {
 				margin-bottom: 0.35rem;
 
 				rect {
-					transition: x 0.5s ease-in-out, y 1s ease-in-out, width 0.5s ease-in;
+					transition: x 500ms ease-in-out, y 1000ms ease-in-out, width 500ms ease-in;
 				}
 			}
 
@@ -528,7 +533,7 @@ body.index-php {
 			&__value {
 				cursor: help;
 				font-size: 0.825rem;
-				font-weight: bold;
+				font-weight: 700;
 			}
 		}
 
@@ -567,7 +572,9 @@ body.index-php {
 					text-decoration: none;
 					color: $dark-blue;
 
-					&:hover, &:active, &:focus {
+					&:hover,
+					&:active,
+					&:focus {
 						color: $active-blue;
 					}
 				}
@@ -701,8 +708,8 @@ body.index-php {
 
 		&:hover,
 		&:active,
-		&:focus	 {
-			color: #fff !important;
+		&:focus	{
+			color: #fff !important; /* stylelint-disable-line declaration-no-important */
 		}
 	}
 }
@@ -719,7 +726,7 @@ body.index-php {
 	display: block;
 	height: 2em;
 	fill: transparent;
-	stroke: #152A4E;
+	stroke: #152a4e;
 	stroke-width: 3px;
 
 	&.Loader--light {
@@ -734,6 +741,6 @@ body.index-php {
 	.altis-shape {
 		stroke-dasharray: 1200;
 		stroke-dashoffset: 1200;
-		animation: paint 1.5s ease-in-out infinite alternate;
+		animation: paint 1500ms ease-in-out infinite alternate;
 	}
 }
