@@ -35,16 +35,8 @@ function init() {
 			'goal' => 'click',
 			'closest' => 'a',
 			// Exclude all events from the target post page.
-			'query_filter' => function ( $test_id, $post_id ) : array {
-				$url = get_the_permalink( $post_id );
-				return [
-					'filter' => [
-						[ 'terms' => [ 'event_type.keyword' => [ 'click', 'pageView' ] ] ],
-					],
-					'must_not' => [
-						[ 'prefix' => [ 'attributes.url.keyword' => $url ] ],
-					],
-				];
+			'query_filter' => function ( $post_id ) : string {
+				return sprintf( "attributes['postId'] != '%d'", $post_id );
 			},
 			// Update the actual post title.
 			'winner_callback' => function ( int $post_id, string $title ) {

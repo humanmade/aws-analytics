@@ -491,58 +491,6 @@ function get_estimate( array $audience ) : ?array {
 	global $wpdb;
 	$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Set current site.
-					[
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
-
-					// Last 7 days.
-					[
-						'range' => [
-							'event_timestamp' => [
-								'gte' => $since,
-							],
-						],
-					],
-
-					// Limit event type to pageView.
-					[
-						'term' => [
-							'event_type.keyword' => 'pageView',
-						],
-					],
-				],
-			],
-		],
-		'aggs' => [
-			'estimate' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-			'histogram' => [
-				'histogram' => [
-					'field' => 'event_timestamp',
-					'interval' => 6 * HOUR_IN_SECONDS * 1000, // 6 hour chunks.
-					'extended_bounds' => [
-						'min' => $since,
-						'max' => Utils\milliseconds(),
-					],
-				],
-			],
-		],
-		'size' => 0,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
-
 	// Append the groups query.
 	$audience_where = build_audience_query( $audience );
 

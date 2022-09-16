@@ -334,7 +334,8 @@ function register_post_ab_tests_rest_fields() {
  *       'show_ui' => (boolean) Whether to show this test in the sidebar.
  *       'rest_api_variants_field' => (string) REST API field name to return variants on.
  *       'rest_api_variants_type' => (string) REST API field data type.
- *       'goal' => (string) The event handler.
+ *       'goal' => (string) The conversion event name.
+ *       'view' => (string) The view event name.
  *       'closest' => (string) A CSS selector for a parent element to bind the listener to.
  *       'selector' => (string) A CSS selector for children of the current element to bind the listener to.
  *       'variant_callback' => (callable) Callback for providing the variant output.
@@ -346,8 +347,7 @@ function register_post_ab_tests_rest_fields() {
  *                            Arguments:
  *                              int $post_id The post ID.
  *                              mixed $value The stored variant value.
- *       'query_filter' => (array|callable) Elasticsearch bool filter to narrow down overall result set.
- *       'goal_filter' => (array|callable) Elasticsearch bool filter to determine conversion events.
+ *       'query_filter' => (string|callable) SQL WHERE filter to narrow down overall result set.
  *       'post_types' => (array) List of supported post types for the test, default to `post` and `page`.
  *     ]
  */
@@ -360,6 +360,7 @@ function register_post_ab_test( string $test_id, array $options ) {
 		'rest_api_variants_field' => 'ab_test_' . $test_id,
 		'rest_api_variants_type' => 'string',
 		'goal' => 'click',
+		'view' => 'testView',
 		'closest' => '',
 		'selector' => '',
 		'variant_callback' => function ( $value, int $post_id, array $args ) {
@@ -949,14 +950,13 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
  * @return void
  */
 function process_post_ab_test_result( string $test_id, int $post_id ) {
+	global $wpdb;
+
 	$test = get_post_ab_test( $test_id );
 
 	if ( empty( $test ) ) {
 		return;
 	}
-
-	// Get a unique ID for the test.
-	$test_id_with_post = $test_id . '_' . $post_id;
 
 	// Get existing data for use with queries.
 	$data = get_ab_test_results_for_post( $test_id, $post_id );
@@ -972,13 +972,14 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	}
 
 	// Process event filter.
+	$query_filter = '1=1';
 	if ( is_callable( $test['query_filter'] ) ) {
-		$query_filter = call_user_func_array( $test['query_filter'], [ $test_id, $post_id ] );
+		$query_filter = call_user_func_array( $test['query_filter'], [ $post_id ] );
 	} else {
 		$query_filter = $test['query_filter'];
 	}
 
-	if ( ! is_array( $query_filter ) ) {
+	if ( ! is_string( $query_filter ) ) {
 		trigger_error( sprintf(
 			'AB Tests: Query filter for test %s on post %d is not an array',
 			esc_html( $test_id ),
@@ -987,115 +988,51 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		return;
 	}
 
-	$query_filter = wp_parse_args( $query_filter, [
-		'filter' => [],
-		'should' => [],
-		'must' => [],
-		'must_not' => [],
-	] );
-
-	// Scope to events associated with this test.
-	$query_filter['filter'][] = [
-		'exists' => [
-			'field' => sprintf( 'attributes.test_%s.keyword', $test_id_with_post ),
-		],
-	];
-
-	// Add time based filter from last updated timestamp.
-	$query_filter['filter'][] = [
-		'range' => [
-			'event_timestamp' => [
-				'gt' => $data['timestamp'] ?? 0,
-			],
-		],
-	];
-
-	// Build conversion filters.
-	if ( is_callable( $test['goal_filter'] ) ) {
-		$goal_filter = call_user_func_array( $test['goal_filter'], [ $test_id, $post_id ] );
-	} else {
-		$goal_filter = $test['goal_filter'];
-	}
-
-	if ( ! is_array( $goal_filter ) ) {
-		trigger_error( sprintf(
-			'AB Tests: Goal filter for test %s on post %d is not an array',
-			esc_html( $test_id ),
-			intval( $post_id )
-		), E_USER_WARNING );
-		return;
-	}
-
-	$goal_filter = wp_parse_args( $goal_filter, [
-		'filter' => [],
-		'should' => [],
-		'must' => [],
-		'must_not' => [],
-	] );
-
 	// Filter by the goal event name by default.
-	$goal = explode( ':', $test['goal'] ); // Extract the event type and not the selector.
-	$goal_filter['filter'][] = [
-		'term' => [ 'event_type.keyword' => $goal[0] ],
-	];
-	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventTestId.keyword' => $test_id ],
-	];
-	$goal_filter['filter'][] = [
-		'term' => [ 'attributes.eventPostId.keyword' => $post_id ],
-	];
+	$goal = explode( ':', $test['goal'] ); // Extract just the event type and not the selector.
 
-	// Collect aggregates for statistical analysis.
-	$test_aggregation = [
-		// Variant buckets.
-		'test' => [
-			'terms' => [
-				'field' => 'attributes.eventVariantId.keyword',
-				'order' => [ '_key' => 'asc' ],
-			],
-			'aggs' => [
-				// Conversion events.
-				'conversions' => [
-					'filter' => [
-						'bool' => $goal_filter,
-					],
-				],
-				// Number of unique page sessions where test is running.
-				'impressions' => [
-					'cardinality' => [
-						'field' => 'attributes.pageSession.keyword',
-					],
-				],
-			],
-		],
-		'timestamp' => [
-			'max' => [
-				'field' => 'event_timestamp',
-			],
-		],
-	];
-
-	$query = [
-		'size' => 0,
-		'query' => [
-			'bool' => $query_filter,
-		],
-		'aggs' => $test_aggregation,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
+	// Build SQL query.
+	$query = $wpdb->prepare( "SELECT
+				attributes['eventVariantId'] as variant_id,
+				event_type,
+				max(toUnixTimestamp64Milli(event_timestamp)) as max_timestamp,
+				uniqCombined64(endpoint_id) as uniques,
+				uniqCombined64(attributes['pageSession']) as `count`
+			FROM analytics
+			WHERE
+				attributes['blogId'] = %s
+				AND event_timestamp > toDateTime64(intDiv(%d,1000), 3)
+				AND event_type IN (%s, %s)
+				AND attributes['eventVariantId'] != ''
+				AND attributes['eventTestId'] = %s
+				AND attributes['eventPostId'] = %s
+				AND ({$query_filter})
+			GROUP BY attributes['eventVariantId'], event_type
+			ORDER BY variant_id ASC, event_type DESC;",
+		get_current_blog_id(),
+		$data['timestamp'] ?? 0,
+		$test['view'] ?? 'testView',
+		$goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
+		$test_id,
+		$post_id
+	);
 
 	// Fetch results & exclude underscore prefixed buckets.
-	$result = Utils\query( $query, [
-		// Exclude hit data and underscore prefixed aggs.
-		'filter_path' => '-hits.hits,-aggregations.**._*',
-		// Return aggregation type with keys.
-		'typed_keys' => '',
-	] );
+	$result = Utils\clickhouse_query( $query );
+
+	if ( is_wp_error( $result ) ) {
+		trigger_error( $result->get_error_message(), E_USER_WARNING );
+		return;
+	}
 
 	if ( empty( $result ) ) {
 		return;
+	}
+
+	// Ensure even a single row returned is in an array for processing.
+	// Can happen if only one event type and one variant are found for the time range.
+	if ( ! is_array( $result ) ) {
+		$result = [ $result ];
 	}
 
 	// Merge existing data.
@@ -1107,24 +1044,36 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'variants' => [],
 	] );
 
-	$merged_data['timestamp'] = max(
-		$merged_data['timestamp'],
-		$result['aggregations']['max#timestamp']['value'] ?? 0
-	);
-
 	// Sort buckets by variant ID.
 	$variants = get_ab_test_variants_for_post( $test_id, $post_id );
-	$new_aggs = $result['aggregations']['sterms#test']['buckets'] ?? [];
 	$sorted_aggs = array_fill( 0, count( $variants ), [] );
 
-	foreach ( $new_aggs as $aggregation ) {
-		$sorted_aggs[ $aggregation['key'] ] = $aggregation;
+	// Process the results.
+	foreach ( $result as $row ) {
+		// Track max timestamp queried.
+		$merged_data['timestamp'] = max(
+			$merged_data['timestamp'],
+			(int) $row->max_timestamp ?? 0
+		);
+
+		$variant_id = (int) $row->variant_id;
+		$event_type = $row->event_type === $test['goal'] ? 'conversions' : 'impressions';
+
+		// Back compat aggregate names for keys.
+		if ( isset( $merged_data['aggs'][ $variant_id ]['cardinality#impressions'] ) ) {
+			$merged_data['aggs'][ $variant_id ]['impressions'] = $merged_data['aggs'][ $variant_id ]['cardinality#impressions']['value'] ?? 0;
+		}
+		if ( isset( $merged_data['aggs'][ $variant_id ]['filter#conversions'] ) ) {
+			$merged_data['aggs'][ $variant_id ]['conversions'] = $merged_data['aggs'][ $variant_id ]['filter#conversions']['doc_count'] ?? 0;
+		}
+
+		// Add previous values to new.
+		$sorted_aggs[ $variant_id ][ $event_type ] =
+			( $merged_data['aggs'][ $variant_id ][ $event_type ] ?? 0 )
+			+ $row->count;
 	}
 
-	$merged_data['aggs'] = Utils\merge_aggregates(
-		$merged_data['aggs'],
-		$sorted_aggs
-	);
+	$merged_data['aggs'] = $sorted_aggs;
 
 	// Process for a winner.
 	$processed_results = analyse_ab_test_results( $merged_data['aggs'], $test_id, $post_id );
@@ -1152,8 +1101,8 @@ function analyse_ab_test_results( array $aggregations, string $test_id, int $pos
 	$variants = [];
 
 	foreach ( $aggregations as $id => $agg ) {
-		$size = $agg['cardinality#impressions']['value'] ?? 0;
-		$hits = $agg['filter#conversions']['doc_count'] ?? 0;
+		$size = $agg['impressions'] ?? 0;
+		$hits = $agg['conversions'] ?? 0;
 		$rate = $size ? $hits / $size : 0;
 
 		$variants[ $id ] = [
