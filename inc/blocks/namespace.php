@@ -644,6 +644,8 @@ function map_aggregations( array $event_buckets ) : array {
  * @return array|\WP_Error
  */
 function get_views( string $block_id, $args = [] ) {
+	global $wpdb;
+
 	if ( ! empty( $args ) && is_numeric( $args ) ) {
 		_deprecated_argument(
 			__FUNCTION__,
@@ -661,7 +663,7 @@ function get_views( string $block_id, $args = [] ) {
 	] );
 
 	// Set default vary key for back compat.
-	$vary_on = 'attributes.audience.id';
+	$vary_on = "attributes['audience']";
 
 	// Determine index value to get variants on by block type.
 	$block_post = get_block_post( $block_id );
@@ -674,127 +676,38 @@ function get_views( string $block_id, $args = [] ) {
 	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					// Set current site.
-					[
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
-
-					// Set block ID.
-					[
-						'term' => [
-							'attributes.clientId.keyword' => $block_id,
-						],
-					],
-
-					// Limit event type to experience block related records.
-					[
-						'terms' => [
-							'event_type.keyword' => [ 'experienceLoad', 'experienceView', 'conversion' ],
-						],
-					],
-
-					// Limit to date range.
-					[
-						'range' => [
-							'event_timestamp' => [
-								'gte' => $start * 1000,
-								'lt' => $end * 1000,
-							],
-						],
-					],
-				],
-			],
-		],
-		'aggs' => [
-			'events' => [
-				// Get buckets for each event type.
-				'terms' => [
-					'field' => 'event_type.keyword',
-				],
-				'aggs' => [
-					// Get unique views by event.
-					'uniques' => [
-						'cardinality' => [
-							'field' => 'endpoint.Id.keyword',
-						],
-					],
-					// Get the split by variant.
-					'variants' => [
-						'terms' => [
-							'field' => $vary_on,
-							'order' => [ '_key' => 'asc' ],
-						],
-						'aggs' => [
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-						],
-					],
-				],
-			],
-			// Get the split by post ID and variant.
-			'posts' => [
-				'terms' => [
-					'field' => 'attributes.postId.keyword',
-					'size' => 100,
-				],
-				'aggs' => [
-					'events' => [
-						// Get buckets for each even type.
-						'terms' => [
-							'field' => 'event_type.keyword',
-						],
-						'aggs' => [
-							// Get uniques by event.
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-							// Get the split by variant.
-							'variants' => [
-								'terms' => [
-									'field' => $vary_on,
-									'order' => [ '_key' => 'asc' ],
-								],
-								'aggs' => [
-									'uniques' => [
-										'cardinality' => [
-											'field' => 'endpoint.Id.keyword',
-										],
-									],
-								],
-							],
-						],
-					],
-				],
-			],
-		],
-		'size' => 0,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
+	$query_where = '';
 
 	// Add post ID query filter.
 	if ( $args['post_id'] ) {
-		// Remove the posts aggregation.
-		unset( $query['aggs']['posts'] );
-
-		$query['query']['bool']['filter'][] = [
-			'term' => [
-				'attributes.postId.keyword' => (string) $args['post_id'],
-			],
-		];
+		$query_where .= $wpdb->prepare( "AND attributes['postId'] = %s", $args['post_id'] );
 	}
+
+	$query = $wpdb->prepare(
+		"SELECT
+			{$vary_on} as variant,
+			countIf(event_type = 'experienceLoad') as loads,
+			countIf(event_type = 'experienceView') as views,
+			countIf(event_type = 'conversion') as conversions,
+			uniqCombined64If(endpoint_id, event_type = 'experienceLoad') as unique_loads,
+			uniqCombined64If(endpoint_id, event_type = 'experienceView') as unique_views,
+			uniqCombined64If(endpoint_id, event_type = 'conversion') as unique_conversions,
+			groupUniqArray(attributes['postId']) as post_ids
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_type IN ('experienceLoad', 'experienceView', 'conversion')
+			AND attributes['clientId'] = %s
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000), 3)
+			AND event_timestamp < toDateTime64(intDiv(%d,1000), 3)
+			{$query_where}
+		GROUP BY {$vary_on} WITH ROLLUP
+		ORDER BY variant ASC",
+		get_current_blog_id(),
+		$block_id,
+		$start * 1000,
+		$end * 1000
+	);
 
 	$key = sprintf( 'views:%s:%s', $block_id, hash( 'crc32', serialize( $args ) ) );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
@@ -802,7 +715,7 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$result = Utils\clickhouse_query( $query );
 
 	if ( ! $result ) {
 		$data = [
@@ -817,23 +730,53 @@ function get_views( string $block_id, $args = [] ) {
 		return $data;
 	}
 
-	// Collect metrics.
-	$data = map_aggregations( $result['aggregations']['events']['buckets'] ?? [] );
-
-	// Add the post ID or posts aggregation.
-	if ( $args['post_id'] ) {
-		$data['post_id'] = $args['post_id'];
-	} else {
-		$data['posts'] = [];
-		foreach ( $result['aggregations']['posts']['buckets'] as $posts_bucket ) {
-			$post_metrics = map_aggregations( $posts_bucket['events']['buckets'] );
-			$post_metrics = [ 'id' => absint( $posts_bucket['key'] ) ] + $post_metrics;
-			$data['posts'][] = $post_metrics;
-		}
+	if ( ! is_array( $result ) ) {
+		$result = [ $result ];
 	}
 
-	$data['start'] = date( 'Y-m-d H:i:s', $start );
-	$data['end'] = date( 'Y-m-d H:i:s', $end );
+	// Collect metrics.
+	$data = array_reduce( $result, function ( $data, $row ) use ( $args ) {
+		// Rolled up aggregate values.
+		if ( $row->variant === '' ) {
+			$data['loads'] = (int) $row->loads;
+			$data['views'] = (int) $row->views;
+			$data['conversions'] = (int) $row->conversions;
+			$data['unique'] = [
+				'loads' => (int) $row->unique_loads,
+				'views' => (int) $row->unique_views,
+				'conversions' => (int) $row->unique_conversions,
+			];
+		} else {
+			$data['variants'][] = [
+				'id' => (int) $row->variant,
+				'loads' => (int) $row->loads,
+				'views' => (int) $row->views,
+				'conversions' => (int) $row->conversions,
+				'unique' => [
+					'loads' => (int) $row->unique_loads,
+					'views' => (int) $row->unique_views,
+					'conversions' => (int) $row->unique_conversions,
+				],
+			];
+		}
+
+		if ( $args['post_id'] ) {
+			$data['post_id'] = (int) $args['post_id'];
+		} else {
+			$data['posts'] = array_merge( $data['posts'] ?? [], $row->post_ids );
+			$data['posts'] = array_map( 'intval', $data['posts'] );
+			$data['posts'] = array_unique( $data['posts'] );
+		}
+
+		return $data;
+	}, [
+		'start' => date( 'Y-m-d H:i:s', $start ),
+		'end' => date( 'Y-m-d H:i:s', $end ),
+		'loads' => 0,
+		'views' => 0,
+		'conversions' => 0,
+		'variants' => [],
+	] );
 
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 

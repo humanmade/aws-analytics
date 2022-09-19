@@ -1,8 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import { compactMetric } from '../../../utils';
-
 import Lift from './lift';
 
 const { Icon } = wp.components;
@@ -94,7 +92,7 @@ function Cards( { cards = [] } ) {
 				<Card className={ [ 'altis-analytics-card', card.color ].join( ' ' ) }>
 					<h3>{ card.icon && <Icon icon={ card.icon } /> } { card.title }</h3>
 					<div className="altis-analytics-card__metrics">
-						<div className="altis-analytics-card__metric">{ card.metric !== null ? compactMetric( card.metric ) : '…' }</div>
+						<div className="altis-analytics-card__metric">{ card.metric !== null ? card.metric : '…' }</div>
 						{ card.lift && (
 							<Lift className="altis-analytics-card__lift" { ...card.lift } />
 						) }

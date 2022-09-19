@@ -28,7 +28,7 @@ function Variants( props ) {
 		return null;
 	}
 
-	const fallback = ( variants && variants.find( variant => variant.fallback ) ) || {};
+	const fallback = variants.find( variant => variant.fallback ) || {};
 	const fallbackData = analytics ? ( analytics.variants.find( variant => variant.id === 0 ) || defaultVariantAnalytics ) : null;
 
 	return (
