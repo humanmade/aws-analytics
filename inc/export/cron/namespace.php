@@ -90,6 +90,7 @@ function setup_cron_interval( $schedules ) : array {
 	return array_merge( $schedules, [
 		ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY => [
 			'interval' => ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL,
+			'display' => __( 'Altis Analytics Schedule (10 mins)', 'altis-analytics' ),
 		],
 	] );
 }
