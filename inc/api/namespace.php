@@ -360,6 +360,10 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 		$query['aggs'][ $name ] = $agg_options['aggregation'];
 	}
 
+	// Build SQL query.
+	$query = $wpdb->prepare();
+
+
 	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
@@ -892,7 +896,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 			if ( get_post_type( $id ) === 'wp_block' ) {
 				$block_view_ids[] = $id;
 			} elseif ( get_post_type( $id ) === 'xb' ) {
-				$experience_view_ids[] = get_post( $id )->post_name;
+				$experience_view_ids[ $id ] = get_post( $id )->post_name;
 			} else {
 				$page_view_ids[] = $id;
 			}
@@ -960,9 +964,11 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	}
 
 	if ( count( $post_ids ) > count( $data ) ) {
+		$experience_block_ids = array_flip( $experience_view_ids );
+
 		// Process aggregation and cache results.
 		foreach ( $res as $row ) {
-			$id = is_numeric( $row->id ) ? (int) $row->id : $row->id;
+			$id = is_numeric( $row->id ) ? (int) $row->id : $experience_block_ids[ $row->id ];
 			if ( isset( $data[ $id ] ) ) {
 				continue;
 			}
