@@ -40,7 +40,7 @@ const getTooltip = ( data : Datum, interval : string ) => {
 	const date = getX( data );
 	let dateString = moment( date ).format( 'MMM Do' );
 
-	let isIntervalHours = interval.match( /(\d)h/ );
+	let isIntervalHours = interval.match( /(\d) hour/ );
 	let intervalHours = Number( isIntervalHours ? isIntervalHours[1] : 0 );
 
 	if ( intervalHours === 1 ) {
@@ -110,8 +110,10 @@ export default function HeroChart( props: Props ) {
 		setResolution( period.intervals[0].interval );
 	}, [ period ] );
 
+	const dateDomain = extent( uniques, getX ) as [ Date, Date ];
+	dateDomain[1] = moment( dateDomain[1] ).add( 1, 'hours' ).toDate(); // Ensure last data point is not left out by visx.
 	const xScale = scaleUtc<number>( {
-		domain: extent( uniques, getX ) as [ Date, Date ],
+		domain: dateDomain,
 	} );
 	const yScale = scaleLinear<number>( {
 		domain: [ 0, Math.max( 4, max( uniques, getY ) as number + Math.floor( max( uniques, getY ) as number / 6 ) ) ],

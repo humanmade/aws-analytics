@@ -184,36 +184,18 @@ function get_diff( WP_REST_Request $request ) {
 }
 
 /**
- * Get the filter portion of the Elasticsearch queries.
+ * Get global page view stats.
  *
- * @param array $events The events to get results for.
- * @param int $start Start timestamp.
- * @param int $end End timestamp.
- * @param array $aggs Aggregation queries.
- * @param Filter|null $filter Optional query filter object.
- * @return array
+ * @param int $start The start timestamp.
+ * @param int $end The end timestamp.
+ * @param string $resolution Resolution for histogram data.
+ * @param Filter|null $filter Query filter object.
+ * @return array|WP_error
  */
-function get_query( array $events, int $start, int $end, array $aggs, ?Filter $filter = null ) : array {
-	$filter_clause = [
-		[
-			'terms' => [
-				'event_type.keyword' => $events,
-			],
-		],
-		[
-			'term' => [
-				'attributes.blogId.keyword' => (string) get_current_blog_id(),
-			],
-		],
-		[
-			'range' => [
-				'event_timestamp' => [
-					'gte' => (int) sprintf( '%d000', $start ),
-					'lt' => (int) sprintf( '%d999', $end ),
-				],
-			],
-		],
-	];
+function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = null ) {
+	global $wpdb;
+
+	$query_where = [ '1=1' ];
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->path ) {
@@ -223,198 +205,143 @@ function get_query( array $events, int $start, int $end, array $aggs, ?Filter $f
 			} else {
 				$url_path_alt = 'http' . substr( $url_path, 5 );
 			}
-			$filter_clause[] = [
-				'bool' => [
-					'should' => [
-						[
-							'term' => [
-								'attributes.url.keyword' => $url_path,
-							],
-						],
-						[
-							'term' => [
-								'attributes.url.keyword' => $url_path_alt,
-							],
-						],
-					],
-				],
-			];
+			$query_where[] = $wpdb->prepare(
+				"attributes['url'] = %s OR attributes['url'] = %s",
+				$url_path,
+				$url_path_alt
+			);
 		}
 	}
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => $filter_clause,
-				'must_not' => [],
-				'should' => [],
-			],
-		],
-		'size' => 0,
-		'aggs' => $aggs,
-	];
-
-	return $query;
-}
-
-/**
- * Get global page view stats.
- *
- * @param int $start The start timestamp.
- * @param int $end The end timestamp.
- * @param string|int $resolution Resolution for histogram data.
- * @param Filter|null $filter Query filter object.
- * @return array|WP_error
- */
-function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = null ) {
-	$returning = [
-		'filter' => [
-			'range' => [
-				'endpoint.Metrics.sessions' => [
-					'gt' => 1,
-				],
-			],
-		],
-		'aggregations' => [
-			'user' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-		],
-	];
-
-	$bounce = [
-		'range' => [
-			'field' => 'endpoint.Metrics.pageViews',
-			'keyed' => true,
-			'ranges' => [
-				[
-					'key' => 'single',
-					'to' => 2,
-				],
-				[
-					'key' => 'multiple',
-					'from' => 2,
-				],
-			],
-		],
-		'aggregations' => [
-			'user' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-		],
-	];
-
-	$aggs = [
-		'views' => [
-			'value_count' => [
-				'field' => 'event_timestamp',
-			],
-		],
-		'visitors' => [
-			'cardinality' => [
-				'field' => 'endpoint.Id.keyword',
-			],
-		],
-		'returning' => $returning,
-		'bounce' => $bounce,
-		'by_date_and_user' => [
-			'date_histogram' => [
-				'field' => 'event_timestamp',
-				'interval' => $resolution,
-				'extended_bounds' => [
-					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end ),
-				],
-			],
-			'aggregations' => [
-				'user' => [
-					'cardinality' => [
-						'field' => 'endpoint.Id.keyword',
-					],
-				],
-				'returning' => $returning,
-				'bounce' => $bounce,
-			],
-		],
-		'by_date_bucket' => [
-			'date_histogram' => [
-				'field' => 'event_timestamp',
-				'interval' => $resolution,
-				'extended_bounds' => [
-					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end ),
-				],
-			],
-		],
-	];
-
-	$query = get_query( [ 'pageView' ], $start, $end, $aggs, $filter );
-
-	// Add registered term aggregations.
-	$registered_aggs = apply_filters( 'altis.analytics.ui.graph_aggregations', [] );
-	foreach ( $registered_aggs as $name => $agg_options ) {
-		$query['aggs'][ $name ] = $agg_options['aggregation'];
-	}
+	$query_where = sprintf( 'AND (%s)', implode( ') AND (', $query_where ) );
 
 	// Build SQL query.
-	$query = $wpdb->prepare();
-
+	$query = $wpdb->prepare(
+		"SELECT
+			toUnixTimestamp(toStartOfInterval(event_timestamp, INTERVAL {$resolution})) as `date`,
+			-- views
+			count() as views,
+			-- uniques
+			uniqCombined64(endpoint_id) as uniques,
+			-- returning
+			uniqCombined64If(endpoint_id, endpoint_metrics['sessions'] > 1) as returning,
+			-- bounce
+			uniqCombined64If(endpoint_id, endpoint_metrics['pageViews'] < 2) as bounce
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+			AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+			AND event_type = 'pageView'
+			{$query_where}
+		GROUP BY
+			`date`
+			WITH ROLLUP
+		ORDER BY `date` ASC",
+		get_current_blog_id(),
+		(int) sprintf( '%d000', $start ),
+		(int) sprintf( '%d999', $end ),
+	);
 
 	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
-		return $cache;
+		// return $cache;
 	}
 
-	$res = Utils\query( $query );
+	$res = Utils\clickhouse_query( $query, '', 'array' );
+
+	if ( is_wp_error( $res ) ) {
+		var_dump( $res, $query );
+		return $res;
+	}
 
 	if ( ! $res ) {
+		var_dump( $res, $query );
 		return new WP_Error( 'analytics.error' );
 	}
 
-	if ( ! empty( $res['_shards']['failures'] ) ) {
-		$message = $res['_shards']['failures'][0]['reason']['reason'];
-		return new WP_Error(
-			'analytics.error',
-			sprintf( 'Error from Elasticsearch: %s', $message ),
-			$res['_shards']['failures']
-		);
-	}
-
-	$by_interval = [];
-	$format = $resolution === 'day' ? 'Y-m-d' : 'c';
-	foreach ( $res['aggregations']['by_date_and_user']['buckets'] as $hour ) {
-		$date = date( $format, $hour['key'] / 1000 );
-		$by_interval[ $date ] = [
-			'views' => $hour['doc_count'],
-			'visitors' => $hour['user']['value'],
-			'returning' => $hour['returning'],
-			'bounce' => $hour['bounce'],
-		];
-	}
-
 	$data = [
-		'by_interval' => $by_interval,
+		'by_interval' => [],
 		'stats' => [
 			'summary' => [
-				'views' => $res['aggregations']['views']['value'],
-				'visitors' => $res['aggregations']['visitors']['value'],
-				'returning' => $res['aggregations']['returning'],
-				'bounce' => $res['aggregations']['bounce'],
+				'views' => 0,
+				'visitors' => 0,
+				'returning' => 0,
+				'bounce' => 0,
 			],
 		],
 	];
 
+	foreach ( $res as $row ) {
+		if ( empty( $row->date ) ) {
+			$data['stats']['summary'] = [
+				'views' => (int) $row->views,
+				'visitors' => (int) $row->uniques,
+				'returning' => (int) $row->returning,
+				'bounce' => (int) $row->bounce,
+			];
+		} else {
+			$date = date( 'Y-m-d H:i:s', (int) $row->date );
+			$data['by_interval'][ $date ] = [
+				'views' => (int) $row->views,
+				'visitors' => (int) $row->uniques,
+				'returning' => (int) $row->returning,
+				'bounce' => (int) $row->bounce,
+			];
+		}
+	}
+
+	// Add registered term aggregations.
+	$registered_aggs = apply_filters( 'altis.analytics.ui.graph_aggregations', [] );
 	foreach ( $registered_aggs as $name => $agg_options ) {
+		$field = $agg_options['field'];
+		$aggregation = $agg_options['aggregation'];
+
+		if ( ! preg_match( '/^[a-zA-Z0-9_\[\]\']+$/', $field ) ) {
+			trigger_error( sprintf( 'Field name "%s" is not valid for term aggregation', $field ), E_USER_WARNING );
+			continue;
+		}
+
+		if ( ! preg_match( '/^[a-zA-Z0-9]+\(.*?\)$/', $aggregation ) ) {
+			trigger_error( sprintf( 'Aggregation function "%s" is not valid for term aggregation', $field ), E_USER_WARNING );
+			continue;
+		}
+
+		$query = $wpdb->prepare(
+			"SELECT
+				{$field} as `key`,
+				{$aggregation} as `value`
+			FROM analytics
+			WHERE
+				attributes['blogId'] = %s
+				AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+				AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+				AND event_type = %s
+				{$query_where}
+			GROUP BY {$field}
+			ORDER BY `value` DESC
+			LIMIT %d",
+			get_current_blog_id(),
+			(int) sprintf( '%d000', $start ),
+			(int) sprintf( '%d999', $end ),
+			$agg_options['event'],
+			$agg_options['limit']
+		);
+
+		$res = Utils\clickhouse_query( $query, '', 'array' );
+
+		if ( is_wp_error( $res ) ) {
+			trigger_error( $res->get_error_message(), E_USER_WARNING );
+			continue;
+		}
+
 		if ( ! isset( $agg_options['parse_result'] ) ) {
 			continue;
 		}
+
 		$callback = $agg_options['parse_result'] ?? __NAMESPACE__ . '\\collect_aggregation';
-		$data['stats'][ $name ] = call_user_func( $callback, $res['aggregations'][ $name ] );
+		$data['stats'][ $name ] = call_user_func( $callback, $res );
 	}
 
 	wp_cache_set( $key, $data, 'altis', MINUTE_IN_SECONDS );
@@ -720,8 +647,29 @@ function get_available_thumbnail_size() : string {
  * @return void
  */
 function register_default_aggregations() {
-	register_term_aggregation( 'model', 'by_browser' );
+	register_term_aggregation( "attributes['url']", 'by_url', [
+		'title' => __( 'Top URLs', 'altis-accelerate' ),
+		'total' => 'stats.summary.views',
+		'filter_key' => 'path',
+		'parse_result' => function ( $res ) {
+			return relativize_urls( home_url(), collect_aggregation( $res ) );
+		},
+	] );
+	register_term_aggregation( "attributes['referer']", 'by_referer', [
+		'title' => __( 'Referrers', 'altis-accelerate' ),
+		'where' => sprintf( "attributes['referer'] NOT ILIKE '%s%%'", home_url() ),
+		'parse_result' => function ( $res ) {
+			$result = collect_aggregation( $res['referers'] );
+			if ( isset( $result[''] ) ) {
+				$result[ __( 'Direct traffic', 'altis' ) ] = $result[''];
+				unset( $result[''] );
+			}
+			arsort( $result );
+			return $result;
+		},
+	] );
 	register_term_aggregation( 'country', 'by_country', [
+		'title' => __( 'Countries', 'altis-accelerate' ),
 		'parse_result' => function ( $res ) {
 			$result = collect_aggregation( $res );
 			$keys = array_keys( $result );
@@ -734,47 +682,15 @@ function register_default_aggregations() {
 			return array_combine( $keys, array_values( $result ) );
 		},
 	] );
-	register_term_aggregation( 'platform', 'by_os' );
-	register_term_aggregation( "attributes['referer']", 'by_referer', [
-		'aggregation' => [
-			'filter' => [
-				'bool' => [
-					'must_not' => [
-						[ 'prefix' => [ 'attributes.referer.keyword' => home_url() ] ],
-					],
-				],
-			],
-			'aggs' => [
-				'referers' => [
-					'terms' => [
-						'field' => 'attributes.referer.keyword',
-					],
-				],
-			],
-		],
-		'parse_result' => function ( $res ) {
-			$result = collect_aggregation( $res['referers'] );
-			if ( isset( $result[''] ) ) {
-				$result[ __( 'Direct traffic', 'altis' ) ] = $result[''];
-				unset( $result[''] );
-			}
-			arsort( $result );
-			return $result;
-		},
+	register_term_aggregation( 'model', 'by_browser', [
+		'title' => __( 'Browsers', 'altis-accelerate' ),
 	] );
-	register_term_aggregation( "attributes['url']", 'by_url', [
-		'parse_result' => function ( $res ) {
-			return relativize_urls( home_url(), collect_aggregation( $res ) );
-		},
+	register_term_aggregation( 'platform', 'by_os', [
+		'title' => __( 'Operating System', 'altis-accelerate' ),
 	] );
 	register_term_aggregation( "attributes['search']", 'by_search_term', [
-		'aggregation' => [
-			'terms' => [
-				'field' => 'attributes.search.keyword',
-				'min_doc_count' => 1,
-				'exclude' => [ '' ],
-			],
-		],
+		'title' => __( 'On-site Search Terms', 'altis-accelerate' ),
+		'where' => "attributes['search'] != ''",
 	] );
 }
 
@@ -789,8 +705,8 @@ function collect_aggregation( ?array $aggregation ) : array {
 		return [];
 	}
 	$data = [];
-	foreach ( $aggregation['buckets'] as $bucket ) {
-		$data[ $bucket['key'] ] = $bucket['doc_count'];
+	foreach ( $aggregation as $bucket ) {
+		$data[ $bucket->key ] = (int) $bucket->value;
 	}
 	return $data;
 }
@@ -824,19 +740,23 @@ function relativize_urls( string $base_url, array $data ) : array {
 /**
  * Add a terms aggregation to the global stats query.
  *
- * @param string $field The field name in the Elasticsearch index.
+ * @param string $field The field name in the ClickHouse database.
  * @param string $short_name Short version of the field name for the aggregation.
  * @param array $options Allows modifying the aggregation query result parsing.
  * @return void
  */
 function register_term_aggregation( $field, $short_name, $options = [] ) {
 	$options = wp_parse_args( $options, [
-		'aggregation' => [
-			'terms' => [
-				'field' => $field,
-				'missing' => __( 'Unknown', 'altis' ),
-			],
-		],
+		'title' => $short_name,
+		'value_title' => __( 'Views', 'altis-accelerate' ),
+		'limit' => 5,
+		'total' => false,
+		'filter_key' => false,
+		'field' => $field,
+		'aggregation' => 'count()',
+		'event' => 'pageView',
+		'where' => '',
+		'missing' => __( 'Unknown', 'altis' ),
 		'parse_result' => __NAMESPACE__ . '\\collect_aggregation',
 	] );
 
