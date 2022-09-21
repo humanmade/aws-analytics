@@ -73,7 +73,7 @@ export default function HeroChart( props: Props ) {
 	const data = useSelect<StatsResult>( select => {
 		return select( 'accelerate' ).getStats( {
 			period: period.value || 'P7D',
-			interval: resolution || period.intervals[0].interval || '1d',
+			interval: resolution || period.intervals[0].interval || '1 day',
 		} );
 	}, [ period, resolution ] );
 	const isLoading = useSelect<StatsResult>( select => {

@@ -128,6 +128,7 @@ const getAttributes = ( extra = {} ) => ( {
 	queryString: window.location.search,
 	hash: window.location.hash,
 	referer: document.referrer,
+	title: document.title,
 	...qvParams,
 	...( Data.Attributes || {} ),
 	...extra,

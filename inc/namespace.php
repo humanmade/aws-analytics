@@ -550,6 +550,7 @@ function track_reusable_blocks( $block_content, $parsed_block, WP_Block $block )
 	$block_event_properties = apply_filters( 'altis.analytics.block_view_properties', [
 		'attributes' => [
 			'blockId' => (string) $block_post->ID,
+			'blockTitle' => (string) $block_post->post_title,
 			'blockAuthorID' => (string) $block_post->post_author,
 			'blockAuthor' => get_user_by( 'id', $block_post->post_author )->user_nicename,
 		],

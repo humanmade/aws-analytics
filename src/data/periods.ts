@@ -9,8 +9,8 @@ export const periods: PeriodObject[] = [
 		value: 'P7D',
 		diff: 'P7D',
 		intervals: [
-			{ interval: '1h', label:  __( 'Hourly', 'altis' ), },
-			{ interval: '1d', label:  __( 'Daily', 'altis' ), },
+			{ interval: '1 hour', label:  __( 'Hourly', 'altis' ), },
+			{ interval: '1 day', label:  __( 'Daily', 'altis' ), },
 		],
 	},
 	{
@@ -19,7 +19,8 @@ export const periods: PeriodObject[] = [
 		value: 'P30D',
 		diff: 'P30D',
 		intervals: [
-			{ interval: '1d', label: __( 'Daily', 'altis' ), },
+			{ interval: '1 day', label: __( 'Daily', 'altis' ), },
+			{ interval: '7 day', label: __( 'Weekly', 'altis' ), },
 		],
 	},
 	{
@@ -28,8 +29,8 @@ export const periods: PeriodObject[] = [
 		value: 'P90D',
 		diff: null,
 		intervals: [
-			{ interval: '1d', label: __( 'Daily', 'altis' ), },
-			{ interval: '1w', label: __( 'Weekly', 'altis' ), },
+			{ interval: '1 day', label: __( 'Daily', 'altis' ), },
+			{ interval: '7 day', label: __( 'Weekly', 'altis' ), },
 		],
 	},
 ];
