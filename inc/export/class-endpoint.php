@@ -6,6 +6,7 @@
 namespace Altis\Analytics\Export;
 
 use Altis\Analytics\Utils;
+use DateInterval;
 use DateTime;
 use Exception;
 use WP_Error;
@@ -68,6 +69,8 @@ class Endpoint {
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
 	public function get_items( WP_REST_Request $request ) {
+		global $wpdb;
+
 		$dates = $this->get_date_query_arguments( $request->get_param( 'date' ) );
 
 		if ( is_wp_error( $dates ) ) {
@@ -100,146 +103,65 @@ class Endpoint {
 		}
 
 		// Default part of the query to get all events for the current site.
-		$main_query = [
-			'bool' => [
-				'filter' => [
-					[
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
-					[
-						'range' => [
-							'event_timestamp' => [
-								'gte' => $dates['start'],
-								'lt' => $dates['end'],
-							],
-						],
-					],
-				],
-			],
-		];
+		$query_where = $wpdb->prepare(
+			"attributes['blogId'] = %s AND event_timestamp >= toDateTime64(%s,3) AND event_timestamp < toDateTime64(%s,3)",
+			get_current_blog_id(),
+			$dates['start'],
+			$dates['end']
+		);
 
-		$total_query = [
-			'query' => $main_query,
-			'size' => 0,
-		];
-
-		// Ensure we're tracking the total hits for ES 7.3+ so our slices aren't too large.
-		if ( version_compare( Utils\get_elasticsearch_version(), '7.2', '>' ) ) {
-			$total_query['track_total_hits'] = true;
-		}
-
-		// The first query returns just the total number of items
-		// so the results can be sliced later.
-		$total_results = Utils\query( $total_query );
-		$total = $total_results['hits']['total']['value'] ?? $total_results['hits']['total']; // ES 7 compat.
+		// The first query returns just the total number of items for reporting purposes.
+		$total = Utils\clickhouse_query( "SELECT count() as total FROM analytics WHERE {$query_where}" );
+		$total = intval( $total->total ?? 0 );
 
 		// Set total found results header.
 		header( sprintf( 'X-WP-Total: %d', $total ) );
 
 		// Determine the chunk size.
 		$chunk_size = $request->get_param( 'chunk_size' ); // Should not be more than 10000.
-		$chunk_size = min( 9000, max( 1, $chunk_size ) );
+		$chunk_size = min( 10000, max( 1, $chunk_size ) );
 
-		// Elasticsearch slices need at least 2 pages and no more than 1024 by default.
+		// Determine number of pages.
 		$total_pages = (int) ceil( $total / $chunk_size );
-		$total_pages = min( 1024, max( $total_pages, 2 ) );
-
-		// Collect all the fields we'll need ahead of time for CSV output.
-		$fields = [];
 
 		// Begin output.
 		if ( $format === 'json' ) {
 			echo "[\n";
 			flush();
-		} else {
-			// Field mapping include a type key before the property names.
-			$filter_path = '-*.mappings.*.*keyword,-*.mappings.*._*,-*.mappings.*.*.*.*';
-			if ( version_compare( Utils\get_elasticsearch_version(), '7', '>=' ) ) {
-				$filter_path = '-*.mappings.*keyword,-*.mappings._*,-*.mappings.*.*.*';
-			}
-
-			// Fetch all available columns across all indices if we're sending a csv, we need these for the 1st line.
-			$index_mappings = Utils\query( [], [
-				'ignore_unavailable' => 'false',
-				'include_defaults' => 'false',
-				'filter_path' => $filter_path,
-			], '_mapping/field/*', 'GET' );
-
-			foreach ( $index_mappings as $mapping ) {
-				// ES 6.x compatibility.
-				if ( version_compare( Utils\get_elasticsearch_version(), '7', '<' ) ) {
-					$fields = array_merge( $fields, array_keys( $mapping['mappings']['_doc'] ?? [] ) );
-					$fields = array_merge( $fields, array_keys( $mapping['mappings']['record'] ?? [] ) );
-				} else {
-					$fields = array_merge( $fields, array_keys( $mapping['mappings'] ) );
-				}
-
-				$fields = array_unique( $fields );
-			}
-
-			sort( $fields );
-
-			// Get PHP output handle.
-			$handle = fopen( 'php://output', 'w' );
-
-			// Write columns headings line.
-			fputcsv( $handle, $fields ) . "\n";
-			fflush( $handle );
 		}
-
-		// Track the scroll ID, default to _all.
-		$scroll_ids = [];
 
 		// Page through the events for the desired day.
 		for ( $page = 0; $page < $total_pages; $page++ ) {
-			$query = [
-				'query' => $main_query,
-				'slice' => [
-					'id' => $page,
-					'max' => $total_pages,
-				],
-				// Elasticsearch needs this even if slice is set, maximum value is 10000.
-				// We give it a higher number than per_page so all results within the slice are returned.
-				'size' => min( 10000, $chunk_size + 1000 ),
-			];
+			$query_format = '';
+			if ( $format === 'csv' ) {
+				$query_format = 'FORMAT CSV' . ( $page === 0 ? 'WithNames' : '' );
+			}
 
-			// Keep the scroll query alive for 1 minute per page of data.
-			$results = Utils\query( $query, [ 'scroll' => $total_pages . 'm' ] );
+			$results = Utils\clickhouse_query( $wpdb->prepare(
+				"SELECT * FROM analytics WHERE {$query_where} LIMIT %d OFFSET %d {$query_format}",
+				$chunk_size,
+				$chunk_size * $page
+			), '', 'raw' );
 
-			if ( ! is_array( $results ) ) {
+			if ( is_wp_error( $results ) ) {
+				trigger_error( 'Analytics export error: ' . $results->get_error_message(), E_USER_WARNING );
+				continue;
+			}
+
+			if ( ! is_string( $results ) || empty( $results ) ) {
 				break;
 			}
 
-			// Get the scroll ID.
-			if ( isset( $results['_scroll_id'] ) ) {
-				$scroll_ids[] = $results['_scroll_id'];
-			}
-
-			// Extract the event source data only.
-			$events = wp_list_pluck( $results['hits']['hits'], '_source' );
-
 			if ( $format === 'json' ) {
-				// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped
-				echo trim( wp_json_encode( $events, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ), '[]' ) . "\n";
-				if ( ! empty( $events ) ) {
+				$results = trim( str_replace( "\n", ",\n", $results ), "\n," );
+				if ( ! empty( $results ) ) {
 					// Add a comma in between result sets except for the last page.
-					echo $page === $total_pages - 1 ? '' : ',';
-				}
-				flush();
-			} else {
-				foreach ( $events as $event ) {
-					$event = Utils\flatten_array( $event );
-					$row = [];
-					foreach ( $fields as $field ) {
-						$row[ $field ] = $event[ $field ] ?? null;
-					}
-
-					fputcsv( fopen( 'php://output', 'w' ), $row ) . "\n";
-					fflush( $handle );
+					$results .= $page === $total_pages - 1 ? '' : ',';
 				}
 			}
+
+			echo $results;
+			flush();
 		}
 
 		// Close out the JSON array.
@@ -248,29 +170,7 @@ class Endpoint {
 			flush();
 		}
 
-		// Cleanup resource heavy scroll query.
-		$this->clear_search_scroll( $scroll_ids );
-
 		exit;
-	}
-
-	/**
-	 * Removes any existing Elasticsearch search scrolls.
-	 *
-	 * @param array $scroll_ids A list of scroll IDs to be removed.
-	 * @return void
-	 */
-	private function clear_search_scroll( array $scroll_ids ) {
-		// Clear search scrolls.
-		wp_remote_request( Utils\get_elasticsearch_url() . '/_search/scroll', [
-			'method' => 'DELETE',
-			'headers' => [
-				'Content-Type' => 'application/json',
-			],
-			'body' => wp_json_encode( [
-				'scroll_id' => $scroll_ids,
-			] ),
-		] );
 	}
 
 	/**
@@ -291,8 +191,8 @@ class Endpoint {
 		}
 
 		return [
-			'start' => (int) ( $start_date->format( 'U' ) * 1000 ),
-			'end' => ( (int) $start_date->format( 'U' ) + DAY_IN_SECONDS ) * 1000,
+			'start' => $start_date->format( 'Y-m-d H:i:s' ),
+			'end' => $start_date->add( new DateInterval( 'P1D' ) )->format( 'Y-m-d H:i:s' ),
 		];
 	}
 
