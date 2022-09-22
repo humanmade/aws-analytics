@@ -246,18 +246,16 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
-		// return $cache;
+		return $cache;
 	}
 
 	$res = Utils\clickhouse_query( $query, '', 'array' );
 
 	if ( is_wp_error( $res ) ) {
-		var_dump( $res, $query );
 		return $res;
 	}
 
 	if ( ! $res ) {
-		var_dump( $res, $query );
 		return new WP_Error( 'analytics.error' );
 	}
 
