@@ -75,5 +75,9 @@
     "webpack-dev-server": "^3.11.3",
     "webpack-manifest-plugin": "^2.2.0",
     "webpack-subresource-integrity": "^1.5.2"
+  },
+  "devDependencies": {
+    "debounce-promise": "^3.1.2",
+    "svg-inline-loader": "^0.8.2"
   }
 }
