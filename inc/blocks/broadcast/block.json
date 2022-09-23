@@ -1,0 +1,21 @@
+{
+    "name": "altis/broadcast",
+    "settings": {
+        "category": "altis-experience-blocks",
+        "supports": {
+            "alignWide": true,
+            "html": false,
+            "align": true
+        },
+        "attributes": {
+            "clientId": {
+                "type": "string",
+                "required": true
+            },
+            "broadcast": {
+                "type": "number",
+                "required": true
+            }
+        }
+    }
+}
