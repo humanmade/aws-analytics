@@ -3,6 +3,8 @@
  * Audiences.
  *
  * @package aws-analytics
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Audiences;

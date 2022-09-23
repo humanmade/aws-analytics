@@ -152,7 +152,7 @@ function sanitize_id( $param ) : string {
  */
 function check_views_permission() : bool {
 	$type = get_post_type_object( Audiences\POST_TYPE );
-	return true; // current_user_can( $type->cap->read );
+	return current_user_can( $type->cap->read );
 }
 
 /**

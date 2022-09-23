@@ -3,6 +3,8 @@
  * A/B Tests.
  *
  * @package aws-analytics
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Experiments;

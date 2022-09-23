@@ -3,6 +3,8 @@
  * Experience Block functions.
  *
  * @package aws-analytics
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Blocks;
@@ -735,48 +737,52 @@ function get_views( string $block_id, $args = [] ) {
 	}
 
 	// Collect metrics.
-	$data = array_reduce( $result, function ( $data, $row ) use ( $args ) {
-		// Rolled up aggregate values.
-		if ( $row->variant === '' ) {
-			$data['loads'] = (int) $row->loads;
-			$data['views'] = (int) $row->views;
-			$data['conversions'] = (int) $row->conversions;
-			$data['unique'] = [
-				'loads' => (int) $row->unique_loads,
-				'views' => (int) $row->unique_views,
-				'conversions' => (int) $row->unique_conversions,
-			];
-		} else {
-			$data['variants'][] = [
-				'id' => (int) $row->variant,
-				'loads' => (int) $row->loads,
-				'views' => (int) $row->views,
-				'conversions' => (int) $row->conversions,
-				'unique' => [
+	$data = array_reduce(
+		$result,
+		function ( $data, $row ) use ( $args ) {
+			// Rolled up aggregate values.
+			if ( $row->variant === '' ) {
+				$data['loads'] = (int) $row->loads;
+				$data['views'] = (int) $row->views;
+				$data['conversions'] = (int) $row->conversions;
+				$data['unique'] = [
 					'loads' => (int) $row->unique_loads,
 					'views' => (int) $row->unique_views,
 					'conversions' => (int) $row->unique_conversions,
-				],
-			];
-		}
+				];
+			} else {
+				$data['variants'][] = [
+					'id' => (int) $row->variant,
+					'loads' => (int) $row->loads,
+					'views' => (int) $row->views,
+					'conversions' => (int) $row->conversions,
+					'unique' => [
+						'loads' => (int) $row->unique_loads,
+						'views' => (int) $row->unique_views,
+						'conversions' => (int) $row->unique_conversions,
+					],
+				];
+			}
 
-		if ( $args['post_id'] ) {
-			$data['post_id'] = (int) $args['post_id'];
-		} else {
-			$data['posts'] = array_merge( $data['posts'] ?? [], $row->post_ids );
-			$data['posts'] = array_map( 'intval', $data['posts'] );
-			$data['posts'] = array_unique( $data['posts'] );
-		}
+			if ( $args['post_id'] ) {
+				$data['post_id'] = (int) $args['post_id'];
+			} else {
+				$data['posts'] = array_merge( $data['posts'] ?? [], $row->post_ids );
+				$data['posts'] = array_map( 'intval', $data['posts'] );
+				$data['posts'] = array_unique( $data['posts'] );
+			}
 
-		return $data;
-	}, [
-		'start' => date( 'Y-m-d H:i:s', $start ),
-		'end' => date( 'Y-m-d H:i:s', $end ),
-		'loads' => 0,
-		'views' => 0,
-		'conversions' => 0,
-		'variants' => [],
-	] );
+			return $data;
+		},
+		[
+			'start' => date( 'Y-m-d H:i:s', $start ),
+			'end' => date( 'Y-m-d H:i:s', $end ),
+			'loads' => 0,
+			'views' => 0,
+			'conversions' => 0,
+			'variants' => [],
+		]
+	);
 
 	wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS * 5 );
 
