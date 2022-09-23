@@ -863,7 +863,7 @@ function query( string $query, array $params = [], string $return = 'array', ?st
  *
  * @param string $prefix The cache key prefix.
  * @param mixed ...$args List of arguments to generate a cache key from.
- * @return void
+ * @return string
  */
 function get_cache_key( string $prefix, ...$args ) : string {
 	return sprintf( '%s:%s', $prefix, hash( 'crc32', serialize( $args ) ) );
