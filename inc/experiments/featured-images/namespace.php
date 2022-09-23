@@ -46,8 +46,11 @@ function init() {
 				'page',
 			],
 			// Exclude all events from the target post page.
-			'query_filter' => function ( $post_id ) : string {
-				return sprintf( "attributes['postId'] != '%d'", $post_id );
+			'query_filter' => "attributes['postId'] != {post_id:String}",
+			'query_filter_params' => function ( $post_id ) : array {
+				return [
+					'param_post_id' => $post_id,
+				];
 			},
 			'show_ui' => true,
 			'editor_scripts' => [

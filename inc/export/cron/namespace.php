@@ -177,15 +177,16 @@ function get_analytics_data() : ? string {
 	} );
 
 	// Fetch max timestamp for next batch.
-	$query = $wpdb->prepare(
+	$next_processed = Utils\clickhouse_query(
 		'SELECT toUnixTimestamp64Milli(max(event_timestamp)) as `key` FROM analytics
-			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-			ORDER BY event_timestamp ASC LIMIT %d',
-		$last_processed_key ?: 0,
-		$max_rows
+			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3)
+			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt64}',
+		[
+			'param_last_key' => $last_processed_key ?: 0,
+			'param_max_rows' => $max_rows,
+		],
+		'object'
 	);
-
-	$next_processed = Utils\clickhouse_query( $query );
 
 	if ( is_wp_error( $next_processed ) ) {
 		// Log the error.
@@ -197,16 +198,17 @@ function get_analytics_data() : ? string {
 	$next_processed_key = (int) $next_processed->key;
 
 	// Fetch batch of NDJSON.
-	$query = $wpdb->prepare(
+	$result = Utils\clickhouse_query(
 		'SELECT * FROM analytics
-			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3) AND event_timestamp < toDateTime64(intDiv(%s,1000),3)
-			ORDER BY event_timestamp ASC LIMIT %d',
-		$last_processed_key,
-		$next_processed_key,
-		$max_rows
+			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3) AND event_timestamp < toDateTime64(intDiv({next_key:UInt64},1000),3)
+			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt16}',
+		[
+			'param_last_key' => $last_processed_key,
+			'param_next_key' => $next_processed_key,
+			'param_max_rows' => $max_rows,
+		],
+		'raw'
 	);
-
-	$result = Utils\clickhouse_query( $query, '', 'raw' );
 
 	if ( is_wp_error( $result ) ) {
 		// Log the error.

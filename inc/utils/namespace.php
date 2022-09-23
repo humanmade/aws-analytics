@@ -1094,14 +1094,13 @@ function get_s3_client( array $args = [] ) : ? S3Client {
 /**
  * Make an HTTP request to ClickHouse.
  *
- * Returns null for zero results, object for a single row / or an array of objects.
- *
  * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
- * @param string $body Optional query body. For use with queries like INSERT with JsonEachRow format.
- * @param string $return Optional return type. Can be 'auto', 'array', 'object' or 'raw'.
+ * @param array $params Array of query parameters to add to the query string, use `param_` prefixed keys for interpolation of values.
+ * @param string $return Optional return type. Can be 'array', 'object' or 'raw', default 'array'.
+ * @param string|null $body Optional query body. For use with queries like INSERT with JsonEachRow format.
  * @return null|\stdClass|\stdClass[]|WP_Error
  */
-function clickhouse_query( string $query, string $body = '', string $return = 'auto' ) {
+function clickhouse_query( string $query, array $params = [], string $return = 'array', ?string $body = null ) {
 	$config = [
 		'host' => defined( 'ALTIS_CLICKHOUSE_HOST' ) ? ALTIS_CLICKHOUSE_HOST : 'clickhouse',
 		'port' => defined( 'ALTIS_CLICKHOUSE_PORT' ) ? ALTIS_CLICKHOUSE_PORT : 8123,
@@ -1145,10 +1144,15 @@ function clickhouse_query( string $query, string $body = '', string $return = 'a
 		$request_args['body'] = $body;
 	}
 
+	// Add query parameters.
+	if ( ! empty( $params ) ) {
+		$clickhouse_url = add_query_arg( urlencode_deep( $params ), $clickhouse_url );
+	}
+
 	/**
 	 * Filter the args used to control the request type.
 	 */
-	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $body );
+	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $params, $body );
 
 	$response = wp_remote_post(
 		$clickhouse_url,
@@ -1174,7 +1178,7 @@ function clickhouse_query( string $query, string $body = '', string $return = 'a
 	$result = array_map( 'json_decode', $result );
 
 	// For single or zero results assume this is just a row of aggregate values and return it.
-	if ( $return === 'object' || ( $return === 'auto' && count( $result ) <= 1 ) ) {
+	if ( $return === 'object' ) {
 		return reset( $result );
 	}
 

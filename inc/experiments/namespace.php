@@ -350,6 +350,7 @@ function register_post_ab_tests_rest_fields() {
  *                              int $post_id The post ID.
  *                              mixed $value The stored variant value.
  *       'query_filter' => (string|callable) SQL WHERE filter to narrow down overall result set.
+ *       'query_filter_param' => (array|callable) SQL WHERE filter parameters for parameterised query.
  *       'post_types' => (array) List of supported post types for the test, default to `post` and `page`.
  *     ]
  */
@@ -371,8 +372,9 @@ function register_post_ab_test( string $test_id, array $options ) {
 		'winner_callback' => function ( int $post_id, $value ) {
 			// Default no-op.
 		},
-		'query_filter' => [],
-		'goal_filter' => [],
+		'query_filter' => '1=1',
+		'query_filter_params' => [],
+		'goal_filter' => '',
 		'post_types' => [
 			'post',
 			'page',
@@ -952,8 +954,6 @@ function output_ab_test_html_for_post( string $test_id, int $post_id, string $de
  * @return void
  */
 function process_post_ab_test_result( string $test_id, int $post_id ) {
-	global $wpdb;
-
 	$test = get_post_ab_test( $test_id );
 
 	if ( empty( $test ) ) {
@@ -974,16 +974,28 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	}
 
 	// Process event filter.
-	$query_filter = '1=1';
-	if ( is_callable( $test['query_filter'] ) ) {
-		$query_filter = call_user_func_array( $test['query_filter'], [ $post_id ] );
+	$query_filter = $test['query_filter'] ?: '1=1';
+	$query_params = [
+		'param_blog_id' => get_current_blog_id(),
+		'param_ts' => $data['timestamp'] ?? 0,
+		'param_view_event' => $test['view'] ?? 'testView',
+		'param_goal_event' => $goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
+		'param_test_id' => $test_id,
+		'param_post_id' => $post_id,
+	];
+
+	if ( is_callable( $test['query_filter_params'] ) ) {
+		$query_params = array_merge(
+			$query_params,
+			(array) call_user_func_array( $test['query_filter_params'], [ $post_id ] )
+		);
 	} else {
-		$query_filter = $test['query_filter'];
+		$query_params = array_merge( $query_params, (array) $test['query_filter_params'] );
 	}
 
 	if ( ! is_string( $query_filter ) ) {
 		trigger_error( sprintf(
-			'AB Tests: Query filter for test %s on post %d is not an array',
+			'AB Tests: Query filter for test %s on post %d is not a string',
 			esc_html( $test_id ),
 			intval( $post_id )
 		), E_USER_WARNING );
@@ -993,34 +1005,27 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	// Filter by the goal event name by default.
 	$goal = explode( ':', $test['goal'] ); // Extract just the event type and not the selector.
 
-	// Build SQL query.
-	$query = $wpdb->prepare( "SELECT
-				attributes['eventVariantId'] as variant_id,
-				event_type,
-				max(toUnixTimestamp64Milli(event_timestamp)) as max_timestamp,
-				uniqCombined64(endpoint_id) as uniques,
-				uniqCombined64(attributes['pageSession']) as `count`
-			FROM analytics
-			WHERE
-				attributes['blogId'] = %s
-				AND event_timestamp > toDateTime64(intDiv(%d,1000), 3)
-				AND event_type IN (%s, %s)
-				AND attributes['eventVariantId'] != ''
-				AND attributes['eventTestId'] = %s
-				AND attributes['eventPostId'] = %s
-				AND ({$query_filter})
-			GROUP BY attributes['eventVariantId'], event_type
-			ORDER BY variant_id ASC, event_type DESC;",
-		get_current_blog_id(),
-		$data['timestamp'] ?? 0,
-		$test['view'] ?? 'testView',
-		$goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
-		$test_id,
-		$post_id
-	);
-
 	// Fetch results & exclude underscore prefixed buckets.
-	$result = Utils\clickhouse_query( $query );
+	$result = Utils\clickhouse_query(
+		"SELECT
+			attributes['eventVariantId'] as variant_id,
+			event_type,
+			max(toUnixTimestamp64Milli(event_timestamp)) as max_timestamp,
+			uniqCombined64(endpoint_id) as uniques,
+			uniqCombined64(attributes['pageSession']) as `count`
+		FROM analytics
+		WHERE
+			blog_id = {blog_id:String}
+			AND event_timestamp > toDateTime64(intDiv({ts:UInt64},1000), 3)
+			AND event_type IN ({view_event:String}, {goal_event:String})
+			AND attributes['eventVariantId'] != ''
+			AND attributes['eventTestId'] = {test_id:String}
+			AND attributes['eventPostId'] = {post_id:String}
+			AND ({$query_filter})
+		GROUP BY attributes['eventVariantId'], event_type
+		ORDER BY variant_id ASC, event_type DESC",
+		$query_params
+	);
 
 	if ( is_wp_error( $result ) ) {
 		trigger_error( $result->get_error_message(), E_USER_WARNING );
