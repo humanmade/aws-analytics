@@ -866,5 +866,5 @@ function query( string $query, array $params = [], string $return = 'array', ?st
  * @return string
  */
 function get_cache_key( string $prefix, ...$args ) : string {
-	return sprintf( '%s:%s', $prefix, hash( 'crc32', serialize( $args ) ) );
+	return sprintf( '%s:%s', $prefix, hash( 'sha1', serialize( $args ) ) );
 }
