@@ -98,7 +98,7 @@ const ABTest = ( {
 							color: 'green',
 							icon: 'thumbs-up',
 							title: __( 'Conversion Rate', 'altis-analytics' ),
-							metric: aggregateData.size > 0 ? ( aggregateData.rate * 100 ) : null,
+							metric: aggregateData.size > 0 ? compactMetric( aggregateData.rate * 100, '%' ) : null,
 							description: aggregateData.hits && aggregateData.hits === 0
 								? __( 'There are no conversions recorded yet, you may need to choose a conversion goal other than impressions for your variants.' )
 								: __( 'Average conversion rate of the block as a percentage of total views of the block.', 'altis-analytics' ),
@@ -107,7 +107,7 @@ const ABTest = ( {
 							color: 'blue',
 							icon: 'chart-line',
 							title: __( 'Lift', 'altis-analytics' ),
-							metric: getLift( variantsData.rate, originalData.rate ),
+							metric: compactMetric( getLift( variantsData.rate, originalData.rate ), '%' ),
 							description: __( 'The aggregated lift of all variants versus the original.', 'altis-analytics' ),
 						},
 					] }

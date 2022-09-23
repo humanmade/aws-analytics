@@ -1,6 +1,6 @@
 {
     "name": "altis/ab-test",
-    "varyOn": "attributes.eventVariantId.keyword",
+    "varyOn": "attributes['eventVariantId']",
     "settings": {
         "category": "altis-experience-blocks",
         "icon": "lightbulb",

@@ -3,11 +3,21 @@ import styled from 'styled-components';
 
 import { compactMetric, getLift } from '../../../utils';
 
+const { __ } = wp.i18n;
+
 const StyledLift = styled.div`
 	font-weight: bold;
-	color: ${ props => props.lift >= 0 ? '#29A36A' : '#E85984' };
-	span {
+	color: ${ props => isNaN( props.lift ) || props.lift >= 0 ? '#29A36A' : '#E85984' };
+	transition: color 250ms linear;
+	> span {
 		font-size: 80%;
+	}
+	.dashicons {
+		vertical-align: baseline;
+		display: inline-block;
+		position: relative;
+		top: 0.1rem;
+		font-size: 70%;
 	}
 `;
 
@@ -31,8 +41,10 @@ export default function Lift( props ) {
 
 	return (
 		<StyledLift className={ className } lift={ lift }>
-			<span>{ lift >= 0 || isNaN( lift ) ? '⬆' : '⬇' }</span>
-			{ compactMetric( lift, '%' ) }
+			{ lift >= 0 || isNaN( lift )
+				? <span className="dashicons dashicons-arrow-up-alt"><span className="screen-reader-text">{ __( 'Up', 'altis-accelerate' ) }</span></span>
+				: <span className="dashicons dashicons-arrow-down-alt"><span className="screen-reader-text">{ __( 'Down', 'altis-accelerate' ) }</span></span> }
+			{ compactMetric( ( isNaN( lift ) ? lift : Math.abs( lift ) ), '%' ) }
 		</StyledLift>
 	);
 }
