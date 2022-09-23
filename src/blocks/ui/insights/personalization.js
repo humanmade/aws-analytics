@@ -54,7 +54,7 @@ const Personalization = ( {
 							color: 'yellow',
 							icon: 'visibility',
 							title: __( 'Block Views', 'altis-analytics' ),
-							metric: analytics ? analytics.unique.views : null,
+							metric: analytics ? compactMetric( analytics.unique.views ) : null,
 							lift: {
 								current: lift.current && lift.current.unique.views,
 								previous: lift.previous && lift.previous.unique.views,
@@ -65,7 +65,7 @@ const Personalization = ( {
 							color: 'green',
 							icon: 'thumbs-up',
 							title: __( 'Conversion Rate', 'altis-analytics' ),
-							metric: analytics ? ( ( analytics.unique.conversions / analytics.unique.views ) * 100 ) : null,
+							metric: analytics ? compactMetric( ( analytics.unique.conversions / analytics.unique.views ) * 100, '%' ) : null,
 							lift: {
 								current: lift.current && ( lift.current.unique.conversions / lift.current.unique.views ),
 								previous: lift.previous && ( lift.previous.unique.conversions / lift.previous.unique.views ),
@@ -78,7 +78,7 @@ const Personalization = ( {
 							color: 'blue',
 							icon: 'groups',
 							title: __( 'Personalization Coverage', 'altis-analytics' ),
-							metric: personalisedCoverage,
+							metric: compactMetric( personalisedCoverage ?? 0, '%' ),
 							description: __( 'The percentage of visitors who are seeing personalised content.', 'altis-analytics' ),
 						},
 					] }

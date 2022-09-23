@@ -325,91 +325,8 @@ function get_aggregate_data( array $buckets ) : array {
  * @return array The array of list data from ElasticSearch.
  */
 function get_views_list( int $days = 7 ) : array {
+	global $wpdb;
 	$date_start = time() - ( $days * DAY_IN_SECONDS );
-
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => [
-					[
-						// Query from the current site.
-						'term' => [
-							'attributes.blogId.keyword' => get_current_blog_id(),
-						],
-					],
-					[
-						// We're interested in views and conversions.
-						'terms' => [
-							'event_type.keyword' => [
-								'experienceView',
-								'conversion',
-							],
-						],
-					],
-					[
-						// Limit to date range.
-						'range' => [
-							'event_timestamp' => [
-								'gte' => $date_start * 1000,
-							],
-						],
-					],
-				],
-			],
-		],
-		'aggs' => [
-			'blocks' => [
-				'terms' => [
-					// Get the block data. This will give us the key for the block, which is stored as the post slug.
-					'field' => 'attributes.clientId.keyword',
-					'size' => 5000, // Use arbitrary large size that is more than we're likely to need.
-				],
-				'aggs' => [
-					'views' => [
-						'filter' => [
-							'term' => [
-								'event_type.keyword' => 'experienceView',
-							],
-						],
-						'aggs' => [
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-						],
-					],
-					'conversions' => [
-						'filter' => [
-							'term' => [
-								'event_type.keyword' => 'conversion',
-							],
-						],
-						'aggs' => [
-							'uniques' => [
-								'cardinality' => [
-									'field' => 'endpoint.Id.keyword',
-								],
-							],
-						],
-					],
-					'conversion_rate' => [
-						'bucket_script' => [
-							'buckets_path' => [
-								'views' => 'views>uniques',
-								'conversions' => 'conversions>uniques',
-							],
-							'script' => 'params.conversions / params.views',
-						],
-					],
-				],
-			],
-		],
-		'size' => 0,
-		'sort' => [
-			'event_timestamp' => 'desc',
-		],
-	];
 
 	$key = sprintf( 'views:list:days:%d', $days );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
@@ -418,16 +335,45 @@ function get_views_list( int $days = 7 ) : array {
 		return $cache;
 	}
 
-	$result = Utils\query( $query );
+	$query = $wpdb->prepare(
+		"SELECT
+			attributes['clientId'] as block_id,
+			uniqCombined64If(endpoint_id, event_type = 'experienceView') as unique_views,
+			uniqCombined64If(endpoint_id, event_type = 'conversion') as unique_conversions,
+			(unique_conversions / unique_views) as conversion_rate,
+			groupUniqArray(attributes['postId']) as post_ids
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_type IN ('experienceView', 'conversion')
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000), 3)
+		GROUP BY attributes['clientId']
+		ORDER BY unique_views DESC",
+		get_current_blog_id(),
+		$date_start * 1000
+	);
+
+	$result = Utils\clickhouse_query( $query );
+	$data = [];
 
 	if ( ! $result ) {
-		$data = [];
-
 		wp_cache_set( $key, $data, 'altis-xbs', MINUTE_IN_SECONDS );
 		return $data;
 	}
 
-	$data = get_aggregate_data( $result['aggregations']['blocks']['buckets'] ?? [] );
+	if ( ! is_array( $result ) ) {
+		$result = [ $result ];
+	}
+
+	$data = [];
+	foreach ( $result as $row ) {
+		$data[ $row->block_id ] = [
+			'views' => $row->unique_views,
+			'conversions' => $row->unique_conversions,
+			'conversion_rate' => $row->conversion_rate,
+		];
+	}
+
 	wp_cache_set( $key, $data, 'altis-xbs', 5 * MINUTE_IN_SECONDS );
 
 	return $data;

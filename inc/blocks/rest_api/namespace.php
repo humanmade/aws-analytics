@@ -77,14 +77,10 @@ function init() : void {
 				'posts' => [
 					'type' => 'array',
 					'items' => [
-						'type' => 'object',
-						'properties' => array_merge(
-							get_variants_data_schema()['properties'],
-							[ 'variants' => get_variants_data_schema() ]
-						),
+						'type' => 'number',
 					],
 				],
-				'postId' => [ 'type' => 'number' ],
+				'post_id' => [ 'type' => 'number' ],
 			],
 		],
 	] );
