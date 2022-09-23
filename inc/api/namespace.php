@@ -195,8 +195,6 @@ function get_diff( WP_REST_Request $request ) {
  * @return array|WP_error
  */
 function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = null ) {
-	global $wpdb;
-
 	$query_where = [ '1=1' ];
 	$query_params = [
 		'blog_id' => get_current_blog_id(),
@@ -325,10 +323,14 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			GROUP BY {$field}
 			ORDER BY `value` DESC
 			LIMIT {limit:UInt8}",
-			array_merge( $query_params, [
-				'event_type' => $agg_options['event'],
-				'limit' => $agg_options['limit'],
-			], $agg_options['where_params'] ?? [] )
+			array_merge(
+				$query_params,
+				[
+					'event_type' => $agg_options['event'],
+					'limit' => $agg_options['limit'],
+				],
+				$agg_options['where_params'] ?? []
+			)
 		);
 
 		if ( is_wp_error( $res ) ) {
@@ -367,16 +369,17 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->type ) {
-			$types_where = array_map( function ( $type ) use ( $query_params ) {
+			$types = explode( ',', $filter->type );
+			$types_where = array_map( function ( $type, $idx ) use ( &$query_params ) {
 				if ( $type === 'xb' ) {
 					return "event_type IN ('experienceView', 'conversion')";
 				}
 				if ( $type === 'wp_block' ) {
 					return "event_type = 'blockView'";
 				}
-				$query_params[ 'type_' . $type ] = $type;
-				return sprintf( "event_type = 'pageView' AND attributes['postType'] = {type_%s:String}", $type );
-			}, explode( ',', $filter->type ) );
+				$query_params[ 'type_' . $idx ] = $type;
+				return sprintf( "event_type = 'pageView' AND attributes['postType'] = {type_%s:String}", $idx );
+			}, $types, array_keys( $types ) );
 			$query_where[] = sprintf( '(%s)', implode( ') OR (', $types_where ) );
 		}
 		if ( $filter->path ) {

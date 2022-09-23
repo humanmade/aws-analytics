@@ -814,11 +814,11 @@ function query( string $query, array $params = [], string $return = 'array', ?st
 
 	// Add query parameters.
 	if ( ! empty( $params ) ) {
-		$param_keys = array_map( function ( $key ) {
-			return "param_{$key}";
-		}, array_keys( $params ) );
-		$params = array_combine( $param_keys, array_values( $params ) );
-		$clickhouse_url = add_query_arg( urlencode_deep( $params ), $clickhouse_url );
+		$prepared = [];
+		foreach ( $params as $key => $value ) {
+			$prepared[ 'param_' . urlencode( $key ) ] = urlencode_deep( $value );
+		}
+		$clickhouse_url = add_query_arg( $prepared, $clickhouse_url );
 	}
 
 	/**

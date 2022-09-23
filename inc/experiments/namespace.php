@@ -15,6 +15,7 @@ use MathPHP\Probability\Distribution\Discrete;
 use WP_Post;
 use WP_Query;
 
+// Special fallback value - if no goal is set the test will never convert.
 const NULL_GOAL = '__none__';
 
 /**
