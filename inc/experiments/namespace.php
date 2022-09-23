@@ -15,6 +15,8 @@ use MathPHP\Probability\Distribution\Discrete;
 use WP_Post;
 use WP_Query;
 
+const NULL_GOAL = '__none__';
+
 /**
  * Bootstrap the plugin.
  */
@@ -979,7 +981,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 		'blog_id' => get_current_blog_id(),
 		'ts' => $data['timestamp'] ?? 0,
 		'view_event' => $test['view'] ?? 'testView',
-		'goal_event' => $goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
+		'goal_event' => $goal[0] ?? NULL_GOAL, // Special fallback value - if no goal is set the test will never convert.
 		'test_id' => $test_id,
 		'post_id' => $post_id,
 	];
