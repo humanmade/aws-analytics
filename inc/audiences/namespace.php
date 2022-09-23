@@ -866,7 +866,7 @@ function get_audience_config() : array {
 	// Note this cache is cleared in save_audience().
 	$config = wp_cache_get( 'audiences', 'altis.analytics' );
 
-	if ( $config ) {
+	if ( is_array( $config ) ) {
 		return $config;
 	}
 
