@@ -1134,3 +1134,14 @@ function clickhouse_query( string $query, array $params = [], string $return = '
 	// Return array.
 	return $result;
 }
+
+/**
+ * Get a unique cache key from a set of arguments.
+ *
+ * @param string $prefix The cache key prefix.
+ * @param mixed ...$args List of arguments to generate a cache key from.
+ * @return void
+ */
+function get_cache_key( string $prefix, ...$args ) : string {
+	return sprintf( '%s:%s', $prefix, hash( 'crc32', serialize( $args ) ) );
+}

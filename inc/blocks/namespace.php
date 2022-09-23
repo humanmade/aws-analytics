@@ -714,7 +714,7 @@ function get_views( string $block_id, $args = [] ) {
 		GROUP BY variant WITH ROLLUP
 		ORDER BY variant ASC";
 
-	$key = sprintf( 'views:%s:%s', $block_id, hash( 'crc32', serialize( $args ) ) );
+	$key = Utils\get_cache_key( 'block_views', $block_id, $args );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
 	if ( $cache ) {
 		return $cache;

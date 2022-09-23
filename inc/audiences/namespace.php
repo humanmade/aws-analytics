@@ -509,7 +509,7 @@ function get_estimate( array $audience ) : ?array {
 				AND event_timestamp >= toDateTime64(intDiv({since:UInt64},1000),3)
 				AND {$audience_where}";
 
-	$key = sprintf( 'estimate:%s', sha1( serialize( $audience ) ) );
+	$key = Utils\get_cache_key( 'estimate', $audience );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
 		return $cache;
@@ -623,7 +623,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 function get_field_data() : ?array {
 	$maps = get_fields();
 
-	$key = sprintf( 'fields:%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
+	$key = Utils\get_cache_key( 'fields', wp_list_pluck( $maps, 'name' ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
 		return $cache;

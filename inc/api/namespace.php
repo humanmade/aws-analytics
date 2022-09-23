@@ -245,7 +245,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 		ORDER BY `date` ASC
 			WITH FILL FROM toDateTime({start:UInt64}) STEP INTERVAL {$resolution}";
 
-	$key = sprintf( 'analytics:stats:%s', sha1( serialize( [ $query, $query_params ] ) ) );
+	$key = Utils\get_cache_key( 'analytics:stats', $query, $query_params );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
 		return $cache;
@@ -420,7 +420,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		ORDER BY views DESC
 		LIMIT 300"; // Limit of the top content returned for Content Explorer, max 12 pages worth.
 
-	$key = sprintf( 'analytics:top:%s', sha1( serialize( [ $query, $query_params ] ) ) );
+	$key = Utils\get_cache_key( 'analytics:top', $query, $query_params );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
 		return $cache;
@@ -808,7 +808,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	$experience_view_ids = [];
 
 	foreach ( $post_ids as $id ) {
-		$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+		$key = Utils\get_cache_key( 'analytics:post_diff', $id, $start, $end, $resolution );
 		$cache = wp_cache_get( $key, 'altis' );
 		if ( $cache ) {
 			$data[ $id ] = $cache;
@@ -890,7 +890,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				continue;
 			}
 
-			$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+			$key = Utils\get_cache_key( 'analytics:post_diff', $id, $start, $end, $resolution );
 
 			$data[ $id ] = [
 				'previous' => [
