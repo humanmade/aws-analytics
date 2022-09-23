@@ -775,13 +775,13 @@ function build_audience_query( array $audience ) : string {
 						$rule_query .= "!= '{$rule['value']}'";
 						break;
 					case '*=':
-						$rule_query .= "LIKE '*{$rule['value']}*'";
+						$rule_query .= "ILIKE '%{$rule['value']}%'";
 						break;
 					case '!*':
-						$rule_query .= "NOT LIKE '*{$rule['value']}*'";
+						$rule_query .= "NOT ILIKE '%{$rule['value']}%'";
 						break;
 					case '^=':
-						$rule_query .= "LIKE '{$rule['value']}*'";
+						$rule_query .= "ILIKE '{$rule['value']}%'";
 						break;
 				}
 			}

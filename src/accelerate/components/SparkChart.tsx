@@ -84,7 +84,7 @@ export default function SparkChart( props: Props ) {
 		range: [ 0, trueWidth ],
 	} );
 	const yScale = scaleLog<number>( {
-		domain: [ 1, maxViews || yMax as number ],
+		domain: [ 1, Math.max( 10, maxViews || yMax as number ) ],
 		range: [ height, 0 ],
 	} );
 
