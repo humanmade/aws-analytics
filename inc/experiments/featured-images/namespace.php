@@ -49,7 +49,7 @@ function init() {
 			'query_filter' => "attributes['postId'] != {post_id:String}",
 			'query_filter_params' => function ( $post_id ) : array {
 				return [
-					'param_post_id' => $post_id,
+					'post_id' => $post_id,
 				];
 			},
 			'show_ui' => true,

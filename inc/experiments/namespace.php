@@ -976,12 +976,12 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	// Process event filter.
 	$query_filter = $test['query_filter'] ?: '1=1';
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_ts' => $data['timestamp'] ?? 0,
-		'param_view_event' => $test['view'] ?? 'testView',
-		'param_goal_event' => $goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
-		'param_test_id' => $test_id,
-		'param_post_id' => $post_id,
+		'blog_id' => get_current_blog_id(),
+		'ts' => $data['timestamp'] ?? 0,
+		'view_event' => $test['view'] ?? 'testView',
+		'goal_event' => $goal[0] ?? '__none__', // Special fallback value - if no goal is set the test will never convert.
+		'test_id' => $test_id,
+		'post_id' => $post_id,
 	];
 
 	if ( is_callable( $test['query_filter_params'] ) ) {

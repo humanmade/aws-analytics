@@ -496,8 +496,8 @@ function get_estimate( array $audience ) : ?array {
 	$audience_where = build_audience_query( $audience );
 
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_since' => $since,
+		'blog_id' => get_current_blog_id(),
+		'since' => $since,
 	];
 
 	$query =
@@ -557,8 +557,8 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 	}
 
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_since' => $since,
+		'blog_id' => get_current_blog_id(),
+		'since' => $since,
 	];
 
 	$query =
@@ -631,8 +631,8 @@ function get_field_data() : ?array {
 
 	$results = [];
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_start' => Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
+		'blog_id' => get_current_blog_id(),
+		'start' => Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
 	];
 
 	foreach ( $maps as $map ) {

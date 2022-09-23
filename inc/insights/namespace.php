@@ -311,8 +311,8 @@ function get_views_list( int $days = 7 ) : array {
 	}
 
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_start' => $date_start,
+		'blog_id' => get_current_blog_id(),
+		'start' => $date_start,
 	];
 
 	$query =

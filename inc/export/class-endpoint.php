@@ -109,9 +109,9 @@ class Endpoint {
 
 		// Default part of the query to get all events for the current site.
 		$query_where = 'blog_id = {blog_id:String} AND event_timestamp >= toDateTime64({start:String},3) AND event_timestamp < toDateTime64({end:String},3)';
-		$query_params['param_blog_id'] = get_current_blog_id();
-		$query_params['param_start'] = $dates['start'];
-		$query_params['param_end'] = $dates['end'];
+		$query_params['blog_id'] = get_current_blog_id();
+		$query_params['start'] = $dates['start'];
+		$query_params['end'] = $dates['end'];
 
 		// The first query returns just the total number of items for reporting purposes.
 		$total = Utils\clickhouse_query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params );
@@ -143,8 +143,8 @@ class Endpoint {
 			$results = Utils\clickhouse_query(
 				"SELECT * FROM analytics WHERE {$query_where} LIMIT {limit:UInt64} OFFSET {offset:UInt64} {$query_format}",
 				array_merge( $query_params, [
-					'param_limit' => $chunk_size,
-					'param_offset' => $chunk_size * $page,
+					'limit' => $chunk_size,
+					'offset' => $chunk_size * $page,
 				] ),
 				'raw'
 			);

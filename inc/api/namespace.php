@@ -199,9 +199,9 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 
 	$query_where = [ '1=1' ];
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_start' => (int) $start,
-		'param_end' => (int) $end,
+		'blog_id' => get_current_blog_id(),
+		'start' => (int) $start,
+		'end' => (int) $end,
 	];
 
 	if ( ! empty( $filter ) ) {
@@ -213,8 +213,8 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 				$url_path_alt = 'http' . substr( $url_path, 5 );
 			}
 			$query_where[] = "attributes['url'] = {path:String} OR attributes['url'] = {path_alt:String}";
-			$query_params['param_path'] = $url_path;
-			$query_params['param_path_alt'] = $url_path_alt;
+			$query_params['path'] = $url_path;
+			$query_params['path_alt'] = $url_path_alt;
 		}
 	}
 
@@ -326,8 +326,8 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			ORDER BY `value` DESC
 			LIMIT {limit:UInt8}",
 			array_merge( $query_params, [
-				'param_event_type' => $agg_options['event'],
-				'param_limit' => $agg_options['limit'],
+				'event_type' => $agg_options['event'],
+				'limit' => $agg_options['limit'],
 			], $agg_options['where_params'] ?? [] )
 		);
 
@@ -360,9 +360,9 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 function get_top_data( $start, $end, ?Filter $filter = null ) {
 	$query_where = [ '1=1' ];
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_start' => (int) $start,
-		'param_end' => (int) $end,
+		'blog_id' => get_current_blog_id(),
+		'start' => (int) $start,
+		'end' => (int) $end,
 	];
 
 	if ( ! empty( $filter ) ) {
@@ -374,7 +374,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				if ( $type === 'wp_block' ) {
 					return "event_type = 'blockView'";
 				}
-				$query_params[ 'param_type_' . $type ] = $type;
+				$query_params[ 'type_' . $type ] = $type;
 				return sprintf( "event_type = 'pageView' AND attributes['postType'] = {type_%s:String}", $type );
 			}, explode( ',', $filter->type ) );
 			$query_where[] = sprintf( '(%s)', implode( ') OR (', $types_where ) );
@@ -382,7 +382,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		if ( $filter->path ) {
 			$url = home_url( $filter->path );
 			$query_where[] = "attributes['url'] = {url:String}";
-			$query_params['param_url'] = $url;
+			$query_params['url'] = $url;
 		}
 	}
 
@@ -794,10 +794,10 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	$diff = $end - $start;
 
 	$query_params = [
-		'param_start' => (int) $start,
-		'param_blog_id' => get_current_blog_id(),
-		'param_prev_start' => $start - $diff,
-		'param_end' => $end,
+		'start' => (int) $start,
+		'blog_id' => get_current_blog_id(),
+		'prev_start' => $start - $diff,
+		'end' => $end,
 	];
 
 	// Store results from query / cache.

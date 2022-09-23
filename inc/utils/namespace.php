@@ -1037,65 +1037,10 @@ function get_letter( int $index ) : string {
 }
 
 /**
- * Get a configured instance of S3 Client class.
- *
- * @param array $args Additional arguments to use with the client constructor.
- *
- * @return S3Client|null
- */
-function get_s3_client( array $args = [] ) : ? S3Client {
-
-	// These constants are required to continue.
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
-		return null;
-	}
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
-		return null;
-	}
-
-	$params = array_merge( [
-		'version' => '2006-03-01',
-		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
-	], $args );
-
-	// Add defined credentials if available.
-	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
-		$params['credentials'] = [
-			'key' => ALTIS_ANALYTICS_S3_KEY,
-			'secret' => ALTIS_ANALYTICS_S3_SECRET,
-		];
-	}
-
-	// Allow overriding the S3 endpoint.
-	if ( defined( 'ALTIS_ANALYTICS_S3_ENDPOINT' ) ) {
-		$params['endpoint'] = ALTIS_ANALYTICS_S3_ENDPOINT;
-	}
-
-	/**
-	 * Filter the Analytics S3 client params.
-	 *
-	 * @param array $params The parameters used to instantiate the S3Client object.
-	 */
-	$params = apply_filters( 'altis.analytics.s3_client_params', $params );
-
-	$client = new S3Client( $params );
-
-	/**
-	 * Filter the S3 client used by the AWS Analytics plugin.
-	 *
-	 * @param Aws\S3\S3Client $client The S3Client object.
-	 * @param array $params The default params passed to the client.
-	 */
-	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
-
-	return $client;
-}
-
-/**
  * Make an HTTP request to ClickHouse.
  *
  * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
- * @param array $params Array of query parameters to add to the query string, use `param_` prefixed keys for interpolation of values.
+ * @param array $params Array of query parameters to add to the query string, will be automatically prefixed with `param_` for interpolation of values.
  * @param string $return Optional return type. Can be 'array', 'object' or 'raw', default 'array'.
  * @param string|null $body Optional query body. For use with queries like INSERT with JsonEachRow format.
  * @return null|\stdClass|\stdClass[]|WP_Error
@@ -1146,6 +1091,10 @@ function clickhouse_query( string $query, array $params = [], string $return = '
 
 	// Add query parameters.
 	if ( ! empty( $params ) ) {
+		$param_keys = array_map( function ( $key ) {
+			return "param_{$key}";
+		}, array_keys( $params ) );
+		$params = array_combine( $param_keys, array_values( $params ) );
 		$clickhouse_url = add_query_arg( urlencode_deep( $params ), $clickhouse_url );
 	}
 

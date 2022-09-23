@@ -208,7 +208,7 @@ function register_test() {
 		'query_filter' => "attributes['clientId'] = {client_id:String}",
 		'query_filter_params' => function ( $post_id ) : array {
 			return [
-				'param_client_id' => get_post( $post_id )->post_name,
+				'client_id' => get_post( $post_id )->post_name,
 			];
 		},
 		'post_types' => [ Blocks\POST_TYPE ],

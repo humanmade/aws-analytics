@@ -182,8 +182,8 @@ function get_analytics_data() : ? string {
 			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3)
 			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt64}',
 		[
-			'param_last_key' => $last_processed_key ?: 0,
-			'param_max_rows' => $max_rows,
+			'last_key' => $last_processed_key ?: 0,
+			'max_rows' => $max_rows,
 		],
 		'object'
 	);
@@ -203,9 +203,9 @@ function get_analytics_data() : ? string {
 			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3) AND event_timestamp < toDateTime64(intDiv({next_key:UInt64},1000),3)
 			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt16}',
 		[
-			'param_last_key' => $last_processed_key,
-			'param_next_key' => $next_processed_key,
-			'param_max_rows' => $max_rows,
+			'last_key' => $last_processed_key,
+			'next_key' => $next_processed_key,
+			'max_rows' => $max_rows,
 		],
 		'raw'
 	);

@@ -679,10 +679,10 @@ function get_views( string $block_id, $args = [] ) {
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
 
 	$query_params = [
-		'param_blog_id' => get_current_blog_id(),
-		'param_block_id' => $block_id,
-		'param_start' => $start,
-		'param_end' => $end,
+		'blog_id' => get_current_blog_id(),
+		'block_id' => $block_id,
+		'start' => $start,
+		'end' => $end,
 	];
 
 	$query_where = '';
@@ -690,7 +690,7 @@ function get_views( string $block_id, $args = [] ) {
 	// Add post ID query filter.
 	if ( $args['post_id'] ) {
 		$query_where .= "AND attributes['postId'] = {post_id:String}";
-		$query_params['param_post_id'] = $args['post_id'];
+		$query_params['post_id'] = $args['post_id'];
 	}
 
 	$query =
