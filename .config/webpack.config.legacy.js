@@ -24,6 +24,7 @@ const sharedConfig = {
 		'blocks/ab-test': path.resolve( __dirname, '../inc/blocks/ab-test/index.js' ),
 		'blocks/ab-test-variant': path.resolve( __dirname, '../inc/blocks/ab-test-variant/index.js' ),
 		'blocks/ab-test-preview': path.resolve( __dirname, '../src/ab-test-preview.js' ),
+		'blocks/broadcast': path.resolve( __dirname, '../inc/blocks/broadcast/index.js' ),
 		'experiments': path.resolve( __dirname, '../src/experiments.js' ),
 		'experiments/sidebar': path.resolve( __dirname, '../src/experiments/index.js' ),
 		'titles': path.resolve( __dirname, '../src/experiments/titles/index.js' ),
@@ -57,6 +58,10 @@ const sharedConfig = {
 						],
 					},
 				},
+			},
+			{
+				test: /\.svg$/,
+				loader: 'svg-inline-loader'
 			},
 		],
 	},
