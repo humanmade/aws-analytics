@@ -3,6 +3,8 @@
  * Altis Accelerate analytics API.
  *
  * @package altis/accelerate
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\API;
