@@ -492,13 +492,17 @@ function admin_enqueue_scripts() {
 function get_estimate( array $audience ) : ?array {
 	$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 
-	// Append the groups query.
-	$audience_where = build_audience_query( $audience );
+	// Get the audience query and params.
+	[ $audience_where, $audience_params ] = build_audience_query( $audience );
 
-	$query_params = [
-		'blog_id' => get_current_blog_id(),
-		'since' => $since,
-	];
+	$query_params = array_merge(
+		$audience_params,
+		[
+
+			'blog_id' => get_current_blog_id(),
+			'since' => $since,
+		]
+	);
 
 	$query =
 		"SELECT uniqCombined64(endpoint_id) as uniques, histogram(42)(toUnixTimestamp64Milli(event_timestamp)) as `histogram`
@@ -527,7 +531,7 @@ function get_estimate( array $audience ) : ?array {
 		return $no_result;
 	}
 
-	$histogram = Utils\normalise_clickhouse_histogram( $result->histogram ?? [] );
+	$histogram = Utils\normalise_histogram( $result->histogram ?? [] );
 
 	// Get number of unique IDs within the audience.
 	$estimate_count = intval( $result->uniques );
@@ -736,9 +740,9 @@ function get_field_data() : ?array {
  * Convert an audience config array to an SQL query.
  *
  * @param array $audience Audience configuration array.
- * @return string SQL WHERE clauses component.
+ * @return array Tuple of SQL WHERE clause component and interpolation parameters.
  */
-function build_audience_query( array $audience ) : string {
+function build_audience_query( array $audience ) : array {
 	$fields = get_fields();
 
 	// Map the include values to elasticsearch query filters.
@@ -751,49 +755,63 @@ function build_audience_query( array $audience ) : string {
 	$group_queries = [];
 	$placeholders = [];
 
-	foreach ( $audience['groups'] as $group ) {
+	foreach ( $audience['groups'] as $gid => $group ) {
 		$group_include = $include_map[ $group['include'] ];
 		$group_query = [];
 
-		foreach ( $group['rules'] as $rule ) {
+		foreach ( $group['rules'] as $rid => $rule ) {
 			$rule_query = '';
+			$rule_query_pattern = '%s %s';
 
 			// Ignore rules with an empty field or no db column name.
 			if ( empty( $rule['field'] ) || ! isset( $fields[ $rule['field'] ]['options']['column'] ) ) {
 				continue;
 			}
 
+			$placeholder_key = "audience_{$gid}_{$rid}";
+
 			// Handle string comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'string' ) {
-				$rule['value'] = esc_sql( (string) $rule['value'] );
+				$placeholders[ $placeholder_key ] = (string) $rule['value'];
+				$placeholder = sprintf( '{%s:String}', $placeholder_key );
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query .= "= '{$rule['value']}'";
+						$rule_query .= "= {$placeholder}";
 						break;
 					case '!=':
-						$rule_query .= "!= '{$rule['value']}'";
+						$rule_query .= "!= {$placeholder}";
 						break;
 					case '*=':
-						$rule_query .= "ILIKE '%{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) > 0';
+						$rule_query .= $placeholder;
 						break;
 					case '!*':
-						$rule_query .= "NOT ILIKE '%{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) = 0';
+						$rule_query .= $placeholder;
 						break;
 					case '^=':
-						$rule_query .= "ILIKE '{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) = 1';
+						$rule_query .= $placeholder;
 						break;
 				}
 			}
 
 			// Handle numeric field comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'number' ) {
-				$rule['value'] = is_float( $rule['value'] ) ? floatval( $rule['value'] ) : intval( $rule['value'] );
+				$placeholders[ $placeholder_key ] = is_float( $rule['value'] )
+					? floatval( $rule['value'] )
+					: intval( $rule['value'] );
+				$placeholder = sprintf(
+					'{%s:%s}',
+					$placeholder_key,
+					is_float( $rule['value'] ) ? 'Float64' : 'UInt64'
+				);
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query .= "= {$rule['value']}";
+						$rule_query .= "= {$placeholder}";
 						break;
 					case '!=':
-						$rule_query .= "!= {$rule['value']}";
+						$rule_query .= "!= {$placeholder}";
 						break;
 					default:
 						$operator = [
@@ -802,14 +820,14 @@ function build_audience_query( array $audience ) : string {
 							'lt' => '<',
 							'lte' => '<=',
 						][ $rule['operator'] ] ?? '=';
-						$rule_query .= "{$operator} {$rule['value']}";
+						$rule_query .= "{$operator} {$placeholder}";
 				}
 			}
 
 			// Add the rule query to the group.
 			if ( ! empty( $rule_query ) ) {
 				$group_query[] = sprintf(
-					'%s %s',
+					$rule_query_pattern,
 					$fields[ $rule['field'] ]['options']['column'],
 					$rule_query
 				);
@@ -823,7 +841,7 @@ function build_audience_query( array $audience ) : string {
 	$groups_include = $include_map[ $audience['include'] ];
 	$groups_query = sprintf( ' (%s) ', implode( $groups_include, $group_queries ) );
 
-	return $groups_query;
+	return [ $groups_query, $placeholders ];
 }
 
 /**
