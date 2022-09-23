@@ -1,6 +1,8 @@
 <?php
 /**
  * Altis Analytics Data Export Cron Job.
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Export\Cron;
@@ -175,9 +177,9 @@ function get_analytics_data() : ? string {
 
 	// Fetch max timestamp for next batch.
 	$query = $wpdb->prepare(
-		"SELECT toUnixTimestamp64Milli(max(event_timestamp)) as `key` FROM analytics
+		'SELECT toUnixTimestamp64Milli(max(event_timestamp)) as `key` FROM analytics
 			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-			ORDER BY event_timestamp ASC LIMIT %d",
+			ORDER BY event_timestamp ASC LIMIT %d',
 		$last_processed_key ?: 0,
 		$max_rows
 	);
@@ -195,9 +197,9 @@ function get_analytics_data() : ? string {
 
 	// Fetch batch of NDJSON.
 	$query = $wpdb->prepare(
-		"SELECT * FROM analytics
+		'SELECT * FROM analytics
 			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3) AND event_timestamp < toDateTime64(intDiv(%s,1000),3)
-			ORDER BY event_timestamp ASC LIMIT %d",
+			ORDER BY event_timestamp ASC LIMIT %d',
 		$last_processed_key,
 		$next_processed_key,
 		$max_rows

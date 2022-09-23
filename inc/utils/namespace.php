@@ -1098,7 +1098,8 @@ function get_s3_client( array $args = [] ) : ? S3Client {
  *
  * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
  * @param string $body Optional query body. For use with queries like INSERT with JsonEachRow format.
- * @return null|\stdClass|\stdClass[]|\WP_Error
+ * @param string $return Optional return type. Can be 'auto', 'array', 'object' or 'raw'.
+ * @return null|\stdClass|\stdClass[]|WP_Error
  */
 function clickhouse_query( string $query, string $body = '', string $return = 'auto' ) {
 	$config = [
@@ -1173,9 +1174,10 @@ function clickhouse_query( string $query, string $body = '', string $return = 'a
 	$result = array_map( 'json_decode', $result );
 
 	// For single or zero results assume this is just a row of aggregate values and return it.
-	if ( count( $result ) <= 1 ) {
-		return array_shift( $result );
+	if ( $return === 'object' || ( $return === 'auto' && count( $result ) <= 1 ) ) {
+		return reset( $result );
 	}
 
+	// Return array.
 	return $result;
 }

@@ -3,6 +3,8 @@
  * Audiences.
  *
  * @package aws-analytics
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Audiences;
@@ -659,7 +661,7 @@ function get_field_data() : ?array {
 				$column = 'sub_fields';
 			}
 
-			$fields = sprintf( 'topK(20)(%1$s)[1] as val, count(event_type) as views, uniqCombined64(endpoint_id) as uniques', $column );
+			$fields = sprintf( '%1$s as val, count(event_type) as views, uniqCombined64(endpoint_id) as uniques', $column );
 			$query = $wpdb->prepare( "SELECT {$fields} FROM analytics
 				{$join}
 				WHERE event_timestamp >= toDateTime(intDiv(%d,1000))
@@ -668,6 +670,7 @@ function get_field_data() : ?array {
 					GROUP BY {$column}
 					HAVING notEmpty(val)
 					ORDER BY uniques DESC
+					LIMIT 20
 				",
 				Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
 				get_current_blog_id()
@@ -772,13 +775,13 @@ function build_audience_query( array $audience ) : string {
 						$rule_query .= "!= '{$rule['value']}'";
 						break;
 					case '*=':
-						$rule_query .= "LIKE '*{$rule['value']}*'";
+						$rule_query .= "ILIKE '%{$rule['value']}%'";
 						break;
 					case '!*':
-						$rule_query .= "NOT LIKE '*{$rule['value']}*'";
+						$rule_query .= "NOT ILIKE '%{$rule['value']}%'";
 						break;
 					case '^=':
-						$rule_query .= "LIKE '{$rule['value']}*'";
+						$rule_query .= "ILIKE '{$rule['value']}%'";
 						break;
 				}
 			}

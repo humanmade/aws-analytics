@@ -3,6 +3,8 @@
  * Altis Accelerate analytics API.
  *
  * @package altis/accelerate
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\API;
@@ -49,7 +51,7 @@ function register_endpoints() {
 		],
 		'interval' => [
 			'type' => 'string',
-			'default' => '1d',
+			'default' => '1 day',
 		],
 	];
 
@@ -184,36 +186,18 @@ function get_diff( WP_REST_Request $request ) {
 }
 
 /**
- * Get the filter portion of the Elasticsearch queries.
+ * Get global page view stats.
  *
- * @param array $events The events to get results for.
- * @param int $start Start timestamp.
- * @param int $end End timestamp.
- * @param array $aggs Aggregation queries.
- * @param Filter|null $filter Optional query filter object.
- * @return array
+ * @param int $start The start timestamp.
+ * @param int $end The end timestamp.
+ * @param string $resolution Resolution for histogram data.
+ * @param Filter|null $filter Query filter object.
+ * @return array|WP_error
  */
-function get_query( array $events, int $start, int $end, array $aggs, ?Filter $filter = null ) : array {
-	$filter_clause = [
-		[
-			'terms' => [
-				'event_type.keyword' => $events,
-			],
-		],
-		[
-			'term' => [
-				'attributes.blogId.keyword' => (string) get_current_blog_id(),
-			],
-		],
-		[
-			'range' => [
-				'event_timestamp' => [
-					'gte' => (int) sprintf( '%d000', $start ),
-					'lt' => (int) sprintf( '%d999', $end ),
-				],
-			],
-		],
-	];
+function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = null ) {
+	global $wpdb;
+
+	$query_where = [ '1=1' ];
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->path ) {
@@ -223,142 +207,43 @@ function get_query( array $events, int $start, int $end, array $aggs, ?Filter $f
 			} else {
 				$url_path_alt = 'http' . substr( $url_path, 5 );
 			}
-			$filter_clause[] = [
-				'bool' => [
-					'should' => [
-						[
-							'term' => [
-								'attributes.url.keyword' => $url_path,
-							],
-						],
-						[
-							'term' => [
-								'attributes.url.keyword' => $url_path_alt,
-							],
-						],
-					],
-				],
-			];
+			$query_where[] = $wpdb->prepare(
+				"attributes['url'] = %s OR attributes['url'] = %s",
+				$url_path,
+				$url_path_alt
+			);
 		}
 	}
 
-	$query = [
-		'query' => [
-			'bool' => [
-				'filter' => $filter_clause,
-				'must_not' => [],
-				'should' => [],
-			],
-		],
-		'size' => 0,
-		'aggs' => $aggs,
-	];
+	$query_where = sprintf( 'AND (%s)', implode( ') AND (', $query_where ) );
 
-	return $query;
-}
-
-/**
- * Get global page view stats.
- *
- * @param int $start The start timestamp.
- * @param int $end The end timestamp.
- * @param string|int $resolution Resolution for histogram data.
- * @param Filter|null $filter Query filter object.
- * @return array|WP_error
- */
-function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = null ) {
-	$returning = [
-		'filter' => [
-			'range' => [
-				'endpoint.Metrics.sessions' => [
-					'gt' => 1,
-				],
-			],
-		],
-		'aggregations' => [
-			'user' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-		],
-	];
-
-	$bounce = [
-		'range' => [
-			'field' => 'endpoint.Metrics.pageViews',
-			'keyed' => true,
-			'ranges' => [
-				[
-					'key' => 'single',
-					'to' => 2,
-				],
-				[
-					'key' => 'multiple',
-					'from' => 2,
-				],
-			],
-		],
-		'aggregations' => [
-			'user' => [
-				'cardinality' => [
-					'field' => 'endpoint.Id.keyword',
-				],
-			],
-		],
-	];
-
-	$aggs = [
-		'views' => [
-			'value_count' => [
-				'field' => 'event_timestamp',
-			],
-		],
-		'visitors' => [
-			'cardinality' => [
-				'field' => 'endpoint.Id.keyword',
-			],
-		],
-		'returning' => $returning,
-		'bounce' => $bounce,
-		'by_date_and_user' => [
-			'date_histogram' => [
-				'field' => 'event_timestamp',
-				'interval' => $resolution,
-				'extended_bounds' => [
-					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end ),
-				],
-			],
-			'aggregations' => [
-				'user' => [
-					'cardinality' => [
-						'field' => 'endpoint.Id.keyword',
-					],
-				],
-				'returning' => $returning,
-				'bounce' => $bounce,
-			],
-		],
-		'by_date_bucket' => [
-			'date_histogram' => [
-				'field' => 'event_timestamp',
-				'interval' => $resolution,
-				'extended_bounds' => [
-					'min' => (int) sprintf( '%d000', $start ),
-					'max' => (int) sprintf( '%d999', $end ),
-				],
-			],
-		],
-	];
-
-	$query = get_query( [ 'pageView' ], $start, $end, $aggs, $filter );
-
-	// Add registered term aggregations.
-	$registered_aggs = apply_filters( 'altis.analytics.ui.graph_aggregations', [] );
-	foreach ( $registered_aggs as $name => $agg_options ) {
-		$query['aggs'][ $name ] = $agg_options['aggregation'];
-	}
+	// Build SQL query.
+	$query = $wpdb->prepare(
+		"SELECT
+			toUnixTimestamp(toStartOfInterval(event_timestamp, INTERVAL {$resolution})) as `date`,
+			-- views
+			count() as views,
+			-- uniques
+			uniqCombined64(endpoint_id) as uniques,
+			-- returning
+			uniqCombined64If(endpoint_id, endpoint_metrics['sessions'] > 1) as returning,
+			-- bounce
+			uniqCombined64If(endpoint_id, endpoint_metrics['pageViews'] < 2) as bounce
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+			AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+			AND event_type = 'pageView'
+			{$query_where}
+		GROUP BY
+			`date`
+			WITH ROLLUP
+		ORDER BY `date` ASC",
+		get_current_blog_id(),
+		(int) sprintf( '%d000', $start ),
+		(int) sprintf( '%d999', $end )
+	);
 
 	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
 	$cache = wp_cache_get( $key, 'altis' );
@@ -366,142 +251,102 @@ function get_graph_data( $start, $end, $resolution = 'day', ?Filter $filter = nu
 		return $cache;
 	}
 
-	$res = Utils\query( $query );
+	$res = Utils\clickhouse_query( $query, '', 'array' );
+
+	if ( is_wp_error( $res ) ) {
+		return $res;
+	}
 
 	if ( ! $res ) {
 		return new WP_Error( 'analytics.error' );
 	}
 
-	if ( ! empty( $res['_shards']['failures'] ) ) {
-		$message = $res['_shards']['failures'][0]['reason']['reason'];
-		return new WP_Error(
-			'analytics.error',
-			sprintf( 'Error from Elasticsearch: %s', $message ),
-			$res['_shards']['failures']
-		);
-	}
-
-	$by_interval = [];
-	$format = $resolution === 'day' ? 'Y-m-d' : 'c';
-	foreach ( $res['aggregations']['by_date_and_user']['buckets'] as $hour ) {
-		$date = date( $format, $hour['key'] / 1000 );
-		$by_interval[ $date ] = [
-			'views' => $hour['doc_count'],
-			'visitors' => $hour['user']['value'],
-			'returning' => $hour['returning'],
-			'bounce' => $hour['bounce'],
-		];
-	}
-
-	$lift = get_lift( $start, $end, $filter );
-
 	$data = [
-		'by_interval' => $by_interval,
+		'by_interval' => [],
 		'stats' => [
 			'summary' => [
-				'views' => $res['aggregations']['views']['value'],
-				'visitors' => $res['aggregations']['visitors']['value'],
-				'returning' => $res['aggregations']['returning'],
-				'bounce' => $res['aggregations']['bounce'],
-				'lift' => is_wp_error( $lift ) ? null : $lift,
+				'views' => 0,
+				'visitors' => 0,
+				'returning' => 0,
+				'bounce' => 0,
 			],
 		],
 	];
 
+	foreach ( $res as $row ) {
+		if ( empty( $row->date ) ) {
+			$data['stats']['summary'] = [
+				'views' => (int) $row->views,
+				'visitors' => (int) $row->uniques,
+				'returning' => (int) $row->returning,
+				'bounce' => (int) $row->bounce,
+			];
+		} else {
+			$date = date( 'Y-m-d H:i:s', (int) $row->date );
+			$data['by_interval'][ $date ] = [
+				'views' => (int) $row->views,
+				'visitors' => (int) $row->uniques,
+				'returning' => (int) $row->returning,
+				'bounce' => (int) $row->bounce,
+			];
+		}
+	}
+
+	// Add registered term aggregations.
+	$registered_aggs = apply_filters( 'altis.analytics.ui.graph_aggregations', [] );
 	foreach ( $registered_aggs as $name => $agg_options ) {
+		$field = $agg_options['field'];
+		$aggregation = $agg_options['aggregation'];
+
+		if ( ! preg_match( '/^[a-zA-Z0-9_\[\]\']+$/', $field ) ) {
+			trigger_error( sprintf( 'Field name "%s" is not valid for term aggregation', $field ), E_USER_WARNING );
+			continue;
+		}
+
+		if ( ! preg_match( '/^[a-zA-Z0-9]+\(.*?\)$/', $aggregation ) ) {
+			trigger_error( sprintf( 'Aggregation function "%s" is not valid for term aggregation', $field ), E_USER_WARNING );
+			continue;
+		}
+
+		$query = $wpdb->prepare(
+			"SELECT
+				{$field} as `key`,
+				{$aggregation} as `value`
+			FROM analytics
+			WHERE
+				attributes['blogId'] = %s
+				AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+				AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+				AND event_type = %s
+				{$query_where}
+			GROUP BY {$field}
+			ORDER BY `value` DESC
+			LIMIT %d",
+			get_current_blog_id(),
+			(int) sprintf( '%d000', $start ),
+			(int) sprintf( '%d999', $end ),
+			$agg_options['event'],
+			$agg_options['limit']
+		);
+
+		$res = Utils\clickhouse_query( $query, '', 'array' );
+
+		if ( is_wp_error( $res ) ) {
+			trigger_error( $res->get_error_message(), E_USER_WARNING );
+			continue;
+		}
+
 		if ( ! isset( $agg_options['parse_result'] ) ) {
 			continue;
 		}
+
 		$callback = $agg_options['parse_result'] ?? __NAMESPACE__ . '\\collect_aggregation';
-		$data['stats'][ $name ] = call_user_func( $callback, $res['aggregations'][ $name ] );
+		$data['stats'][ $name ] = call_user_func( $callback, $res );
 	}
 
 	wp_cache_set( $key, $data, 'altis', MINUTE_IN_SECONDS );
 
 	return $data;
-}
-
-/**
- * Get global aggregated lift.
- *
- * @param int $start Start timestamp.
- * @param int $end End timestamp.
- * @param Filter|null $filter Query filter object.
- * @return array|WP_error
- */
-function get_lift( $start, $end, ?Filter $filter = null ) {
-	$lift_aggs = [
-		'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-		'fallback' => [
-			'filter' => [ 'term' => [ 'attributes.audience.keyword' => '0' ] ],
-			'aggs' => [
-				'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-			],
-		],
-		'personalized' => [
-			'filter' => [ 'bool' => [ 'must_not' => [ 'term' => [ 'attributes.audience.keyword' => '0' ] ] ] ],
-			'aggs' => [
-				'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-			],
-		],
-	];
-
-	$aggs = [
-		'views' => [
-			'filter' => [ 'term' => [ 'event_type.keyword' => 'experienceView' ] ],
-			'aggregations' => $lift_aggs,
-		],
-		'conversions' => [
-			'filter' => [ 'term' => [ 'event_type.keyword' => 'conversion' ] ],
-			'aggregations' => $lift_aggs,
-		],
-	];
-
-	$query = get_query(
-		[ 'experienceView', 'conversion' ],
-		$start,
-		$end,
-		$aggs,
-		$filter
-	);
-
-	$key = sprintf( 'analytics:lift:%s', sha1( serialize( $query ) ) );
-	$cache = wp_cache_get( $key, 'altis' );
-	if ( $cache ) {
-		return $cache;
-	}
-
-	$res = Utils\query( $query );
-
-	if ( ! $res ) {
-		return new WP_Error( 'analytics.error' );
-	}
-
-	if ( ! empty( $res['_shards']['failures'] ) ) {
-		$message = $res['_shards']['failures'][0]['reason']['reason'];
-		return new WP_Error(
-			'analytics.error',
-			sprintf( 'Error from Elasticsearch: %s', $message ),
-			$res['_shards']['failures']
-		);
-	}
-
-	$response = [
-		'views' => $res['aggregations']['views']['unique']['value'],
-		'conversions' => $res['aggregations']['conversions']['unique']['value'],
-		'fallback' => [
-			'views' => $res['aggregations']['views']['fallback']['unique']['value'],
-			'conversions' => $res['aggregations']['conversions']['fallback']['unique']['value'],
-		],
-		'personalized' => [
-			'views' => $res['aggregations']['views']['personalized']['unique']['value'],
-			'conversions' => $res['aggregations']['conversions']['personalized']['unique']['value'],
-		],
-	];
-
-	wp_cache_set( $key, $response, 'altis', MINUTE_IN_SECONDS );
-
-	return $response;
 }
 
 /**
@@ -513,80 +358,70 @@ function get_lift( $start, $end, ?Filter $filter = null ) {
  * @return array|WP_Error
  */
 function get_top_data( $start, $end, ?Filter $filter = null ) {
-	$lift_aggs = [
-		'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-		'fallback' => [
-			'filter' => [ 'term' => [ 'attributes.audience.keyword' => '0' ] ],
-			'aggs' => [
-				'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-			],
-		],
-		'personalized' => [
-			'filter' => [ 'bool' => [ 'must_not' => [ 'term' => [ 'attributes.audience.keyword' => '0' ] ] ] ],
-			'aggs' => [
-				'unique' => [ 'cardinality' => [ 'field' => 'endpoint.Id.keyword' ] ],
-			],
-		],
-	];
+	global $wpdb;
 
-	$aggs = [
-		'posts' => [
-			'filter' => [
-				'term' => [ 'event_type.keyword' => 'pageView' ],
-			],
-			'aggregations' => [
-				'ids' => [
-					'terms' => [
-						'field' => 'attributes.postId.keyword',
-						'size' => 1000,
-					],
-				],
-			],
-		],
-		'blocks' => [
-			'filter' => [
-				'term' => [ 'event_type.keyword' => 'blockView' ],
-			],
-			'aggregations' => [
-				'ids' => [
-					'terms' => [
-						'field' => 'attributes.blockId.keyword',
-						'size' => 1000,
-					],
-				],
-			],
-		],
-		'xbs' => [
-			'filter' => [
-				'terms' => [ 'event_type.keyword' => [ 'experienceView', 'conversion' ] ],
-			],
-			'aggregations' => [
-				'ids' => [
-					'terms' => [
-						'field' => 'attributes.clientId.keyword',
-						'size' => 1000,
-					],
-					'aggregations' => [
-						'views' => [
-							'filter' => [ 'term' => [ 'event_type.keyword' => 'experienceView' ] ],
-							'aggregations' => $lift_aggs,
-						],
-						'conversions' => [
-							'filter' => [ 'term' => [ 'event_type.keyword' => 'conversion' ] ],
-							'aggregations' => $lift_aggs,
-						],
-					],
-				],
-			],
-		],
-	];
+	$query_where = [ '1=1' ];
 
-	$query = get_query(
-		[ 'pageView', 'blockView', 'experienceView', 'conversion' ],
-		$start,
-		$end,
-		$aggs,
-		$filter
+	if ( ! empty( $filter ) ) {
+		if ( $filter->type ) {
+			$types_where = array_map( function ( $type ) use ( $wpdb ) {
+				if ( $type === 'xb' ) {
+					return "event_type IN ('experienceView', 'conversion')";
+				}
+				if ( $type === 'wp_block' ) {
+					return "event_type = 'blockView'";
+				}
+				return $wpdb->prepare( "event_type = 'pageView' AND attributes['postType'] = %s", $type );
+			}, explode( ',', $filter->type ) );
+			$query_where[] = sprintf( '(%s)', implode( ') OR (', $types_where ) );
+		}
+		if ( $filter->path ) {
+			$url = home_url( $filter->path );
+			$query_where[] = $wpdb->prepare( "attributes['url'] = %s", $url );
+		}
+	}
+
+	$query_where = sprintf( ' AND (%s) ', implode( ') AND (', $query_where ) );
+
+	$query = $wpdb->prepare(
+		"SELECT
+			-- Section: group ID
+			multiIf(
+				event_type = 'pageView' AND attributes['postId'] != '', attributes['postId'],
+				event_type = 'blockView', attributes['blockId'],
+				event_type IN ('experienceView', 'conversion'), attributes['clientId'],
+				attributes['url']
+			) as id,
+			-- Section: event counts
+			countIf(event_type != 'conversion') as views,
+			uniqCombined64If(endpoint_id, event_type != 'conversion') as unique_views,
+			(
+				uniqCombined64If(endpoint_id, event_type = 'experienceView' AND attributes['audience'] = '0') +
+				uniqCombined64If(endpoint_id, event_type = 'experienceView' AND attributes['eventVariantId'] = '0')
+			) as unique_fallback_views,
+			uniqCombined64If(endpoint_id, event_type = 'conversion') as unique_conversions,
+			(
+				uniqCombined64If(endpoint_id, event_type = 'conversion' AND attributes['audience'] = '0') +
+				uniqCombined64If(endpoint_id, event_type = 'conversion' AND attributes['eventVariantId'] = '0')
+			) as unique_fallback_conversions
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+			AND event_timestamp < toDateTime64(intDiv(%d,1000),3)
+			AND event_type IN ('pageView', 'blockView', 'experienceView', 'conversion')
+			{$query_where}
+		GROUP BY multiIf(
+			event_type = 'pageView' AND attributes['postId'] != '', attributes['postId'],
+			event_type = 'blockView', attributes['blockId'],
+			event_type IN ('experienceView', 'conversion'), attributes['clientId'],
+			attributes['url']
+		)
+		ORDER BY views DESC
+		LIMIT 300", // Limit of the top content returned for Content Explorer, max 12 pages worth.
+		get_current_blog_id(),
+		(int) sprintf( '%d000', $start ),
+		(int) sprintf( '%d999', $end )
 	);
 
 	$key = sprintf( 'analytics:top:%s', sha1( serialize( $query ) ) );
@@ -595,43 +430,23 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		return $cache;
 	}
 
-	$res = Utils\query( $query );
+	$res = Utils\clickhouse_query( $query, '', 'array' );
 
-	if ( ! $res ) {
-		return new WP_Error( 'analytics.error' );
+	if ( is_wp_error( $res ) ) {
+		return $res;
 	}
-
-	if ( ! empty( $res['_shards']['failures'] ) ) {
-		$message = $res['_shards']['failures'][0]['reason']['reason'];
-		return new WP_Error(
-			'analytics.error',
-			sprintf( 'Error from Elasticsearch: %s', $message ),
-			$res['_shards']['failures']
-		);
-	}
-
-	$posts = $res['aggregations']['posts']['ids']['buckets'] ?? [];
-	$blocks = $res['aggregations']['blocks']['ids']['buckets'] ?? [];
-	$xbs = $res['aggregations']['xbs']['ids']['buckets'] ?? [];
-
-	$all = array_merge( $posts, $blocks, $xbs );
-	$all = array_map( function ( $bucket ) {
-		$bucket['total'] = $bucket['doc_count'];
-		if ( isset( $bucket['views'] ) ) {
-			$bucket['total'] = $bucket['views']['doc_count'];
-		}
-		return $bucket;
-	}, $all );
-
-	$all = wp_list_sort( $all, 'total', 'DESC' );
 
 	$processed = [];
 
-	foreach ( $all as $item ) {
-		$id = $item['key'];
-		if ( ! is_numeric( $item['key'] ) ) {
+	foreach ( $res as $row ) {
+		$id = $row->id;
+		if ( ! is_numeric( $id ) ) {
+			if ( strpos( $id, 'http' ) === 0 ) {
+				// This is not a block or post ID but other "unknown" URL.
+				continue;
+			}
 			if ( function_exists( 'Altis\\Analytics\\Blocks\\get_block_post' ) ) {
-				$block = Blocks\get_block_post( $item['key'] );
+				$block = Blocks\get_block_post( $id );
 				if ( $block ) {
 					$id = $block->ID;
 				} else {
@@ -641,7 +456,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				continue;
 			}
 		}
-		$processed[ intval( $id ) ] = $item;
+		$processed[ intval( $id ) ] = $row;
 	}
 
 	// Ensure reusable blocks and XBs are shown if available.
@@ -746,7 +561,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			$thumbnail = add_query_arg(
 				[
 					'url' => urlencode( $preview_url ),
-					'width' => 100,
+					'width' => 200,
 					'selector' => '.altis-block-preview',
 					'version' => $version,
 				],
@@ -771,7 +586,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
 			'thumbnail' => $thumbnail,
-			'views' => $processed[ $post->ID ]['total'] ?? 0,
+			'views' => intval( $processed[ $post->ID ]->views ?? 0 ),
 		];
 
 		if ( $post->post_parent ) {
@@ -782,17 +597,17 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		}
 
 		// Get lift.
-		if ( isset( $processed[ $post->ID ]['views'], $processed[ $post->ID ]['conversions'] ) ) {
+		if ( isset( $processed[ $post->ID ]->unique_views, $processed[ $post->ID ]->unique_conversions ) ) {
 			$query->posts[ $i ]['lift'] = [
-				'views' => $processed[ $post->ID ]['views']['unique']['value'],
-				'conversions' => $processed[ $post->ID ]['conversions']['unique']['value'],
+				'views' => (int) $processed[ $post->ID ]->unique_views,
+				'conversions' => (int) $processed[ $post->ID ]->unique_conversions,
 				'fallback' => [
-					'views' => $processed[ $post->ID ]['views']['fallback']['unique']['value'],
-					'conversions' => $processed[ $post->ID ]['conversions']['fallback']['unique']['value'],
+					'views' => (int) $processed[ $post->ID ]->unique_fallback_views,
+					'conversions' => (int) $processed[ $post->ID ]->unique_fallback_conversions,
 				],
 				'personalized' => [
-					'views' => $processed[ $post->ID ]['views']['personalized']['unique']['value'],
-					'conversions' => $processed[ $post->ID ]['conversions']['personalized']['unique']['value'],
+					'views' => (int) $processed[ $post->ID ]->unique_views - $processed[ $post->ID ]->unique_fallback_views,
+					'conversions' => (int) $processed[ $post->ID ]->unique_conversions - $processed[ $post->ID ]->unique_fallback_conversions,
 				],
 			];
 		}
@@ -832,8 +647,29 @@ function get_available_thumbnail_size() : string {
  * @return void
  */
 function register_default_aggregations() {
-	register_term_aggregation( 'device.model.keyword', 'by_browser' );
-	register_term_aggregation( 'endpoint.Location.Country.keyword', 'by_country', [
+	register_term_aggregation( "attributes['url']", 'by_url', [
+		'title' => __( 'Top URLs', 'altis-accelerate' ),
+		'total' => 'stats.summary.views',
+		'filter_key' => 'path',
+		'parse_result' => function ( $res ) {
+			return relativize_urls( home_url(), collect_aggregation( $res ) );
+		},
+	] );
+	register_term_aggregation( "attributes['referer']", 'by_referer', [
+		'title' => __( 'Referrers', 'altis-accelerate' ),
+		'where' => sprintf( "attributes['referer'] NOT ILIKE '%s%%'", home_url() ),
+		'parse_result' => function ( $res ) {
+			$result = collect_aggregation( $res['referers'] );
+			if ( isset( $result[''] ) ) {
+				$result[ __( 'Direct traffic', 'altis' ) ] = $result[''];
+				unset( $result[''] );
+			}
+			arsort( $result );
+			return $result;
+		},
+	] );
+	register_term_aggregation( 'country', 'by_country', [
+		'title' => __( 'Countries', 'altis-accelerate' ),
 		'parse_result' => function ( $res ) {
 			$result = collect_aggregation( $res );
 			$keys = array_keys( $result );
@@ -846,55 +682,16 @@ function register_default_aggregations() {
 			return array_combine( $keys, array_values( $result ) );
 		},
 	] );
-	register_term_aggregation( 'endpoint.Attributes.DeviceType.keyword', 'by_device' );
-	register_term_aggregation( 'device.platform.name.keyword', 'by_os' );
-	register_term_aggregation( 'attributes.referer.keyword', 'by_referer', [
-		'aggregation' => [
-			'filter' => [
-				'bool' => [
-					'must_not' => [
-						[ 'prefix' => [ 'attributes.referer.keyword' => home_url() ] ],
-					],
-				],
-			],
-			'aggs' => [
-				'referers' => [
-					'terms' => [
-						'field' => 'attributes.referer.keyword',
-					],
-				],
-			],
-		],
-		'parse_result' => function ( $res ) {
-			$result = collect_aggregation( $res['referers'] );
-			if ( isset( $result[''] ) ) {
-				$result[ __( 'Direct traffic', 'altis' ) ] = $result[''];
-				unset( $result[''] );
-			}
-			arsort( $result );
-			return $result;
-		},
+	register_term_aggregation( 'model', 'by_browser', [
+		'title' => __( 'Browsers', 'altis-accelerate' ),
 	] );
-	register_term_aggregation( 'attributes.url.keyword', 'by_url', [
-		'parse_result' => function ( $res ) {
-			return relativize_urls( home_url(), collect_aggregation( $res ) );
-		},
+	register_term_aggregation( 'platform', 'by_os', [
+		'title' => __( 'Operating System', 'altis-accelerate' ),
 	] );
-	register_term_aggregation( 'attributes.search.keyword', 'by_search_term', [
-		'aggregation' => [
-			'terms' => [
-				'field' => 'attributes.search.keyword',
-				'min_doc_count' => 1,
-				'exclude' => [ '' ],
-			],
-		],
+	register_term_aggregation( "attributes['search']", 'by_search_term', [
+		'title' => __( 'On-site Search Terms', 'altis-accelerate' ),
+		'where' => "attributes['search'] != ''",
 	] );
-
-	register_term_aggregation( 'endpoint.Attributes.initial_utm_campaign.keyword', 'by_utm_campaign' );
-	register_term_aggregation( 'endpoint.Attributes.initial_utm_source.keyword', 'by_utm_source' );
-	register_term_aggregation( 'endpoint.Attributes.initial_utm_medium.keyword', 'by_utm_medium' );
-	register_term_aggregation( 'endpoint.Attributes.initial_utm_term.keyword', 'by_utm_term' );
-	register_term_aggregation( 'endpoint.Attributes.initial_utm_content.keyword', 'by_utm_content' );
 }
 
 /**
@@ -908,8 +705,8 @@ function collect_aggregation( ?array $aggregation ) : array {
 		return [];
 	}
 	$data = [];
-	foreach ( $aggregation['buckets'] as $bucket ) {
-		$data[ $bucket['key'] ] = $bucket['doc_count'];
+	foreach ( $aggregation as $bucket ) {
+		$data[ $bucket->key ] = (int) $bucket->value;
 	}
 	return $data;
 }
@@ -943,19 +740,23 @@ function relativize_urls( string $base_url, array $data ) : array {
 /**
  * Add a terms aggregation to the global stats query.
  *
- * @param string $field The field name in the Elasticsearch index.
+ * @param string $field The field name in the ClickHouse database.
  * @param string $short_name Short version of the field name for the aggregation.
  * @param array $options Allows modifying the aggregation query result parsing.
  * @return void
  */
 function register_term_aggregation( $field, $short_name, $options = [] ) {
 	$options = wp_parse_args( $options, [
-		'aggregation' => [
-			'terms' => [
-				'field' => $field,
-				'missing' => __( 'Unknown', 'altis' ),
-			],
-		],
+		'title' => $short_name,
+		'value_title' => __( 'Views', 'altis-accelerate' ),
+		'limit' => 5,
+		'total' => false,
+		'filter_key' => false,
+		'field' => $field,
+		'aggregation' => 'count()',
+		'event' => 'pageView',
+		'where' => '',
+		'missing' => __( 'Unknown', 'altis' ),
 		'parse_result' => __NAMESPACE__ . '\\collect_aggregation',
 	] );
 
@@ -971,14 +772,24 @@ function register_term_aggregation( $field, $short_name, $options = [] ) {
  * @param array $post_ids Specific posts to narrow the query down by.
  * @param int $start The start timestamp.
  * @param int $end The end timestamp.
- * @param string|int $resolution Resolution for histogram data.
+ * @param string|array $resolution Resolution for histogram data. Can be any `toStartOf*` suffix, or array of toStartOfInterval values.
+ *                     See https://clickhouse.com/docs/en/sql-reference/functions/date-time-functions#tostartofintervaltime_or_data-interval-x-unit--time_zone
  * @return array|WP_error
  */
-function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' ) {
+function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day' ) {
+	global $wpdb;
+
 	if ( empty( $post_ids ) ) {
 		return new WP_Error(
 			'analytics.error',
 			'List of post IDs cannot be empty.'
+		);
+	}
+
+	if ( ! preg_match( '/\d+ (second|minute|hour|day|week|month|year)/', $resolution ) ) {
+		return new WP_Error(
+			'analytics.error.resolution',
+			'The requested histogram resolution did not match the expected pattern e.g. "1 day", "4 hour"'
 		);
 	}
 
@@ -988,33 +799,9 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' )
 	// Store results from query / cache.
 	$data = [];
 
-	$aggs = [
-		'posts' => [
-			'filters' => [
-				'filters' => [],
-			],
-			'aggregations' => [
-				'uniques' => [
-					'cardinality' => [
-						'field' => 'endpoint.Id.keyword',
-					],
-				],
-				'by_date' => [
-					'date_histogram' => [
-						'field' => 'event_timestamp',
-						'interval' => $resolution,
-					],
-					'aggregations' => [
-						'uniques' => [
-							'cardinality' => [
-								'field' => 'endpoint.Id.keyword',
-							],
-						],
-					],
-				],
-			],
-		],
-	];
+	$page_view_ids = [];
+	$block_view_ids = [];
+	$experience_view_ids = [];
 
 	foreach ( $post_ids as $id ) {
 		$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
@@ -1024,81 +811,84 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' )
 			continue;
 		}
 
-		$value = $id;
-
 		// Determine attribute to filter results on.
 		if ( is_numeric( $id ) ) {
-			$term = 'attributes.postId.keyword';
-			$event = 'pageView';
 			if ( get_post_type( $id ) === 'wp_block' ) {
-				$term = 'attributes.blockId.keyword';
-				$event = 'blockView';
+				$block_view_ids[] = $id;
 			} elseif ( get_post_type( $id ) === 'xb' ) {
-				$term = 'attributes.clientId.keyword';
-				$event = 'experienceView';
-				$value = get_post( $id )->post_name;
+				$experience_view_ids[ $id ] = get_post( $id )->post_name;
+			} else {
+				$page_view_ids[] = $id;
 			}
 		} else {
-			$term = 'attributes.clientId.keyword';
-			$event = 'experienceView';
+			$experience_view_ids[] = $id;
 		}
+	}
 
-		// Add a top level aggregation.
-		$aggs['posts']['filters']['filters'][ $id ] = [
-			'bool' => [
-				'filter' => [
-					[ 'term' => [ $term => (string) $value ] ],
-					[ 'term' => [ 'event_type.keyword' => $event ] ],
-				],
-			],
-		];
+	$page_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $page_view_ids ), '%s' ) ), ...$page_view_ids );
+	$block_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $block_view_ids ), '%s' ) ), ...$block_view_ids );
+	$experience_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $experience_view_ids ), '%s' ) ), ...$experience_view_ids );
+
+	$resolution = esc_sql( $resolution );
+
+	// Generate fields for histogram of current date range.
+	$buckets = [];
+	$bucket_start = $start;
+	while ( $bucket_start < $end ) {
+		$bucket_end = strtotime( "+{$resolution}", $bucket_start );
+		$buckets[ $bucket_start ] = sprintf(
+			'uniqCombined64If(endpoint_id, event_timestamp >= toDateTime64(%1$d,3) AND event_timestamp < toDateTime64(%2$d,3)) as `%1$d`',
+			$bucket_start,
+			$bucket_end
+		);
+		$bucket_start = $bucket_end;
+	}
+	$bucket_sql = implode( ',', $buckets );
+
+	$query = $wpdb->prepare(
+		"SELECT
+			multiIf(
+				event_type = 'blockView', attributes['blockId'],
+				event_type = 'experienceView', attributes['clientId'],
+				attributes['postId']
+			) as id,
+			uniqCombined64(endpoint_id) as uniques,
+			uniqCombined64If(endpoint_id, event_timestamp < toDateTime64(intDiv(%d,1000),3)) as uniques_previous,
+			uniqCombined64If(endpoint_id, event_timestamp >= toDateTime64(intDiv(%d,1000),3)) as uniques_current,
+			{$bucket_sql}
+		FROM analytics
+		WHERE
+			attributes['blogId'] = %s
+			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+			AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+			AND event_type IN ('pageView', 'blockView', 'experienceView')
+			AND (
+				attributes['postId'] IN ({$page_ids_sql})
+				OR attributes['blockId'] IN ({$block_ids_sql})
+				OR attributes['clientId'] IN ({$experience_ids_sql})
+			)
+		GROUP BY
+			id
+		ORDER BY id",
+		(int) sprintf( '%d000', $start ),
+		(int) sprintf( '%d000', $start ),
+		get_current_blog_id(),
+		(int) sprintf( '%d000', $start - $diff ),
+		(int) sprintf( '%d999', $end )
+	);
+
+	$res = Utils\clickhouse_query( $query, '', 'array' );
+
+	if ( is_wp_error( $res ) ) {
+		return $res;
 	}
 
 	if ( count( $post_ids ) > count( $data ) ) {
-		$results = [
-			'previous' => [],
-			'current' => [],
-		];
-
-		foreach ( array_keys( $results ) as $period ) {
-			$period_start = $period === 'previous' ? $start - $diff : $start;
-			$period_end = $period === 'previous' ? $start : $end;
-
-			// Set extended bounds.
-			$aggs['posts']['aggregations']['by_date']['date_histogram']['extended_bounds'] = [
-				'min' => (int) sprintf( '%d000', $period_start ),
-				'max' => (int) sprintf( '%d999', $period_end ),
-			];
-
-			$query = get_query(
-				[ 'pageView', 'experienceView', 'blockView' ],
-				$period_start,
-				$period_end,
-				$aggs
-			);
-
-			$res = Utils\query( $query, [
-				'preference' => __FUNCTION__,
-			] );
-
-			if ( ! $res ) {
-				return new WP_Error( 'analytics.error', 'Elasticsearch query error.' );
-			}
-
-			if ( ! empty( $res['_shards']['failures'] ) ) {
-				$message = $res['_shards']['failures'][0]['reason']['reason'];
-				return new WP_Error(
-					'analytics.error',
-					sprintf( 'Error from Elasticsearch: %s', $message ),
-					$res['_shards']['failures']
-				);
-			}
-
-			$results[ $period ] = $res;
-		}
+		$experience_block_ids = array_flip( $experience_view_ids );
 
 		// Process aggregation and cache results.
-		foreach ( $post_ids as $id ) {
+		foreach ( $res as $row ) {
+			$id = is_numeric( $row->id ) ? (int) $row->id : $experience_block_ids[ $row->id ];
 			if ( isset( $data[ $id ] ) ) {
 				continue;
 			}
@@ -1107,22 +897,20 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1d' )
 
 			$data[ $id ] = [
 				'previous' => [
-					'uniques' => $results['previous']['aggregations']['posts']['buckets'][ $id ]['uniques']['value'] ?? 0,
-					'by_date' => Utils\normalise_histogram(
-						$results['previous']['aggregations']['posts']['buckets'][ $id ]['by_date']['buckets'] ?? [],
-						'uniques'
-					),
+					'uniques' => intval( $row->uniques_previous ?? 0 ),
 				],
 				'current' => [
-					'uniques' => $results['current']['aggregations']['posts']['buckets'][ $id ]['uniques']['value'] ?? 0,
-					'by_date' => Utils\normalise_histogram(
-						$results['current']['aggregations']['posts']['buckets'][ $id ]['by_date']['buckets'] ?? [],
-						'uniques'
-					),
+					'uniques' => intval( $row->uniques_current ?? 0 ),
+					'by_date' => array_map( function ( $bucket_start ) use ( $row ) {
+						return [
+							'index' => (int) sprintf( '%d000', $bucket_start ),
+							'count' => intval( $row->$bucket_start ?? 0 ),
+						];
+					}, array_keys( $buckets ) ),
 				],
 			];
 
-			wp_cache_set( $key, $data[ $id ], 'altis', MINUTE_IN_SECONDS );
+			wp_cache_set( $key, $data[ $id ], 'altis', MINUTE_IN_SECONDS * 5 );
 		}
 	}
 
