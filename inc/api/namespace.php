@@ -242,7 +242,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 		ORDER BY `date` ASC",
 		get_current_blog_id(),
 		(int) sprintf( '%d000', $start ),
-		(int) sprintf( '%d999', $end ),
+		(int) sprintf( '%d999', $end )
 	);
 
 	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
