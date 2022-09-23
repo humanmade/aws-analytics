@@ -1,13 +1,13 @@
 <?php
 /**
  * Altis Analytics Data Export Cron Job.
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Export\Cron;
 
 use Altis\Analytics\Utils;
-use Aws\S3\Exception\S3Exception;
-use Aws\S3\S3Client;
 
 /**
  * Frequency of the export job
@@ -129,20 +129,8 @@ function cron_handler() : void {
 		return;
 	}
 
-	// Get an S3 client.
-	$client = Utils\get_s3_client( [
-		'retries' => [
-			'mode' => 'adaptive',
-			'max_attempts' => 3,
-		],
-	] );
-
-	if ( ! $client ) {
-		return;
-	}
-
 	// Get the files to process.
-	$data = get_analytics_data( $client );
+	$data = get_analytics_data();
 	if ( ! isset( $data ) ) {
 		return;
 	}
@@ -166,84 +154,76 @@ function cron_handler() : void {
 /**
  * Get analytics data from S3 bucket.
  *
- * @param S3Client $client S3 client.
- *
  * @return string NDJSON string of analytics data.
  */
-function get_analytics_data( S3Client $client ) : ? string {
+function get_analytics_data() : ? string {
+	global $wpdb;
 
 	// Check the last processed file key.
-	$last_processed_key = get_option( ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY );
+	$last_processed_key = get_option( ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY, 0 );
 
 	/**
-	 * Limit the query to X number of files, in case the last timestamp isn't found.
+	 * Limit the query to X number of rows, in case the last timestamp isn't found.
 	 *
 	 * @param int Number of files to limit the query to.
 	 */
-	$max_files = apply_filters( 'altis.analytics.export.max.files', 100 );
+	$max_rows = apply_filters( 'altis.analytics.export.cron.max_rows', 15000 );
 
-	/**
-	 * Filter the analytics bucket ARN.
-	 *
-	 * @param string Analytics bucket ARN.
-	 */
-	$bucket_arn = apply_filters( 'altis.analytics.export.bucket.arn', ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN );
+	// Increase the timeout for this large request.
+	add_filter( 'altis.analytics.clickhouse_request_args', function ( array $args ) : array {
+		$args['timeout'] = ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL;
+		return $args;
+	} );
 
-	// Fetch first batch of items.
-	try {
-		$keys = [];
+	// Fetch max timestamp for next batch.
+	$query = $wpdb->prepare(
+		'SELECT toUnixTimestamp64Milli(max(event_timestamp)) as `key` FROM analytics
+			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3)
+			ORDER BY event_timestamp ASC LIMIT %d',
+		$last_processed_key ?: 0,
+		$max_rows
+	);
 
-		$list_params = [
-			'Bucket' => $bucket_arn,
-			'MaxKeys' => $max_files,
-		];
+	$next_processed = Utils\clickhouse_query( $query );
 
-		if ( $last_processed_key ) {
-			$list_params['StartAfter'] = $last_processed_key;
-		}
-
-		$result = $client->listObjectsV2( $list_params );
-
-		// Store keys to fetch.
-		foreach ( $result['Contents'] as $item ) {
-			// Check prefix matches a date.
-			if ( ! preg_match( '#^(\d{4}/\d{2}/\d{2})#', $item['Key'], $date_match ) ) {
-				continue;
-			}
-
-			$keys[] = [
-				'Bucket' => $bucket_arn,
-				'Key' => $item['Key'],
-			];
-		}
-
-		// Nothing more to do if there's nothing to fetch.
-		if ( empty( $keys ) ) {
-			log( 'Warning: No analytics data files were found, consider increasing the interval of the data export via the `altis.analytics.export.cron.frequency` filter.', E_USER_WARNING );
-			return null;
-		}
-	} catch ( \Exception $error ) {
+	if ( is_wp_error( $next_processed ) ) {
 		// Log the error.
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		log( 'Error: Could not fetch list of analytics data files. Got: ' . $error->getMessage(), E_USER_ERROR );
+		log( 'Error: Could not fetch max date for next analytics data export batch. Got: ' . $next_processed->get_error_message(), E_USER_ERROR );
 		return null;
 	}
 
-	$data = '';
+	$next_processed_key = (int) $next_processed->key;
 
-	foreach ( $keys as $key ) {
-		try {
-			$result = $client->getObject( $key );
-			$data .= $result['Body'];
-			$last_processed_key = $key;
-		} catch ( S3Exception $e ) {
-			log( sprintf( 'Error: Could not fetch analytics data file: "%s", error: "%s".', $key, $e->getMessage() ), E_USER_ERROR );
-		}
+	// Fetch batch of NDJSON.
+	$query = $wpdb->prepare(
+		'SELECT * FROM analytics
+			WHERE event_timestamp >= toDateTime64(intDiv(%d,1000),3) AND event_timestamp < toDateTime64(intDiv(%s,1000),3)
+			ORDER BY event_timestamp ASC LIMIT %d',
+		$last_processed_key,
+		$next_processed_key,
+		$max_rows
+	);
+
+	$result = Utils\clickhouse_query( $query, '', 'raw' );
+
+	if ( is_wp_error( $result ) ) {
+		// Log the error.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		log( 'Error: Could not fetch list of analytics data files. Got: ' . $result->get_error_message(), E_USER_ERROR );
+		return null;
 	}
 
-	if ( $last_processed_key ) {
-		update_option( ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY, $last_processed_key );
+	// Nothing more to do if there's nothing to fetch.
+	if ( empty( $result ) ) {
+		log( 'Warning: No analytics data files were found, consider increasing the interval of the data export via the `altis.analytics.export.cron.frequency` filter.', E_USER_WARNING );
+		return null;
 	}
 
-	return $data;
+	// Update last processed key.
+	if ( $next_processed_key ) {
+		update_option( ALTIS_ANALYTICS_EXPORT_LAST_PROCESSED_KEY, $next_processed_key );
+	}
+
+	return $result;
 }
