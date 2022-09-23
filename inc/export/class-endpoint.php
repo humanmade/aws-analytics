@@ -108,7 +108,7 @@ class Endpoint {
 		$query_params = [];
 
 		// Default part of the query to get all events for the current site.
-		$query_where = "blog_id = {blog_id:String} AND event_timestamp >= toDateTime64({start:String},3) AND event_timestamp < toDateTime64({end:String},3)";
+		$query_where = 'blog_id = {blog_id:String} AND event_timestamp >= toDateTime64({start:String},3) AND event_timestamp < toDateTime64({end:String},3)';
 		$query_params['param_blog_id'] = get_current_blog_id();
 		$query_params['param_start'] = $dates['start'];
 		$query_params['param_end'] = $dates['end'];
@@ -166,6 +166,7 @@ class Endpoint {
 				}
 			}
 
+			// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped -- raw data from ClickHouse.
 			echo $results;
 			flush();
 		}

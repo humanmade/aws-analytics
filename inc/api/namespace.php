@@ -307,7 +307,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			continue;
 		}
 
-		if ( ! empty(  $agg_options['where'] ) ) {
+		if ( ! empty( $agg_options['where'] ) ) {
 			$query_where .= sprintf( ' AND (%s)', $agg_options['where'] );
 		}
 
