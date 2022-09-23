@@ -1006,7 +1006,7 @@ function process_post_ab_test_result( string $test_id, int $post_id ) {
 	$goal = explode( ':', $test['goal'] ); // Extract just the event type and not the selector.
 
 	// Fetch results & exclude underscore prefixed buckets.
-	$result = Utils\clickhouse_query(
+	$result = Utils\query(
 		"SELECT
 			attributes['eventVariantId'] as variant_id,
 			event_type,

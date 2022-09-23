@@ -251,7 +251,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 		return $cache;
 	}
 
-	$res = Utils\clickhouse_query( $query, $query_params );
+	$res = Utils\query( $query, $query_params );
 
 	if ( is_wp_error( $res ) ) {
 		return $res;
@@ -311,7 +311,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			$query_where .= sprintf( ' AND (%s)', $agg_options['where'] );
 		}
 
-		$res = Utils\clickhouse_query(
+		$res = Utils\query(
 			"SELECT
 				{$field} as `key`,
 				{$aggregation} as `value`
@@ -426,7 +426,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		return $cache;
 	}
 
-	$res = Utils\clickhouse_query( $query, $query_params );
+	$res = Utils\query( $query, $query_params );
 
 	if ( is_wp_error( $res ) ) {
 		return $res;
@@ -849,7 +849,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	}
 	$bucket_sql = implode( ',', $buckets );
 
-	$res = Utils\clickhouse_query(
+	$res = Utils\query(
 		"SELECT
 			multiIf(
 				event_type = 'blockView', attributes['blockId'],

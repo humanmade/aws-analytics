@@ -330,7 +330,7 @@ function get_views_list( int $days = 7 ) : array {
 		GROUP BY attributes['clientId']
 		ORDER BY unique_views DESC";
 
-	$result = Utils\clickhouse_query( $query, $query_params );
+	$result = Utils\query( $query, $query_params );
 	$data = [];
 
 	if ( ! $result ) {

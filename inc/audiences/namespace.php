@@ -516,7 +516,7 @@ function get_estimate( array $audience ) : ?array {
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\clickhouse_query( $query, $query_params, 'object' );
+	$result = Utils\query( $query, $query_params, 'object' );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -574,7 +574,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 		return $cache;
 	}
 
-	$result = Utils\clickhouse_query( $query, $query_params, 'object' );
+	$result = Utils\query( $query, $query_params, 'object' );
 
 	if ( ! $result ) {
 		wp_cache_set( $key, 0, 'altis-audiences', MINUTE_IN_SECONDS );
@@ -673,7 +673,7 @@ function get_field_data() : ?array {
 					LIMIT 20";
 		}
 
-		$results[ $map['name'] ] = Utils\clickhouse_query( $query, $query_params );
+		$results[ $map['name'] ] = Utils\query( $query, $query_params );
 	}
 
 	$results = array_filter( $results, function ( $result ) {

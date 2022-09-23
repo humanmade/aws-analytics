@@ -114,7 +114,7 @@ class Endpoint {
 		$query_params['end'] = $dates['end'];
 
 		// The first query returns just the total number of items for reporting purposes.
-		$total = Utils\clickhouse_query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params );
+		$total = Utils\query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params );
 		$total = intval( $total->total ?? 0 );
 
 		// Set total found results header.
@@ -140,7 +140,7 @@ class Endpoint {
 				$query_format = 'FORMAT CSV' . ( $page === 0 ? 'WithNames' : '' );
 			}
 
-			$results = Utils\clickhouse_query(
+			$results = Utils\query(
 				"SELECT * FROM analytics WHERE {$query_where} LIMIT {limit:UInt64} OFFSET {offset:UInt64} {$query_format}",
 				array_merge( $query_params, [
 					'limit' => $chunk_size,

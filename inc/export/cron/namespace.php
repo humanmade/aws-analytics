@@ -177,7 +177,7 @@ function get_analytics_data() : ? string {
 	} );
 
 	// Fetch max timestamp for next batch.
-	$next_processed = Utils\clickhouse_query(
+	$next_processed = Utils\query(
 		'SELECT toUnixTimestamp64Milli(max(event_timestamp)) as `key` FROM analytics
 			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3)
 			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt64}',
@@ -198,7 +198,7 @@ function get_analytics_data() : ? string {
 	$next_processed_key = (int) $next_processed->key;
 
 	// Fetch batch of NDJSON.
-	$result = Utils\clickhouse_query(
+	$result = Utils\query(
 		'SELECT * FROM analytics
 			WHERE event_timestamp >= toDateTime64(intDiv({last_key:UInt64},1000),3) AND event_timestamp < toDateTime64(intDiv({next_key:UInt64},1000),3)
 			ORDER BY event_timestamp ASC LIMIT {max_rows:UInt16}',

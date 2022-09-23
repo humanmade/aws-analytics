@@ -720,7 +720,7 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\clickhouse_query( $query, $query_params );
+	$result = Utils\query( $query, $query_params );
 
 	if ( ! $result ) {
 		$data = [
