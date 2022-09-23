@@ -1,6 +1,8 @@
 <?php
 /**
  * REST API endpoint to retrieve all the Altis Analytics data for a particular date.
+ *
+ * phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
  */
 
 namespace Altis\Analytics\Export;
