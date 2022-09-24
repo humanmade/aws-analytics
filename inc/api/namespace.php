@@ -18,6 +18,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+use function Altis\Analytics\Blocks\get_block_post;
+
 const API_NAMESPACE = 'accelerate/v1';
 
 /**
@@ -777,8 +779,6 @@ function register_term_aggregation( $field, $short_name, $options = [] ) {
  * @return array|WP_error
  */
 function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day' ) {
-	global $wpdb;
-
 	if ( empty( $post_ids ) ) {
 		return new WP_Error(
 			'analytics.error',
@@ -828,13 +828,13 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				$page_view_ids[] = $id;
 			}
 		} else {
-			$experience_view_ids[] = $id;
+			$experience_view_ids[ get_block_post( $id )->ID ] = $id;
 		}
 	}
 
-	$page_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $page_view_ids ), '%s' ) ), ...$page_view_ids );
-	$block_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $block_view_ids ), '%s' ) ), ...$block_view_ids );
-	$experience_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $experience_view_ids ), '%s' ) ), ...$experience_view_ids );
+	$query_params['page_ids'] = $page_view_ids;
+	$query_params['block_ids'] = $block_view_ids;
+	$query_params['experience_ids'] = array_values( $experience_view_ids );
 
 	$resolution = esc_sql( $resolution );
 
@@ -870,9 +870,9 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 			AND event_timestamp <= toDateTime64({end:UInt64},3)
 			AND event_type IN ('pageView', 'blockView', 'experienceView')
 			AND (
-				attributes['postId'] IN ({$page_ids_sql})
-				OR attributes['blockId'] IN ({$block_ids_sql})
-				OR attributes['clientId'] IN ({$experience_ids_sql})
+				(event_type = 'pageView' AND attributes['postId'] IN {page_ids:Array(UInt32)})
+				OR attributes['blockId'] IN {block_ids:Array(UInt32)}
+				OR attributes['clientId'] IN {experience_ids:Array(String)}
 			)
 		GROUP BY id
 		ORDER BY id",

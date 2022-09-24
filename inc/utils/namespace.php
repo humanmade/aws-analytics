@@ -816,7 +816,10 @@ function query( string $query, array $params = [], string $return = 'array', ?st
 	if ( ! empty( $params ) ) {
 		$prepared = [];
 		foreach ( $params as $key => $value ) {
-			$prepared[ 'param_' . urlencode( $key ) ] = urlencode_deep( $value );
+			$value = is_array( $value )
+				? str_replace( '"', "'", json_encode( $value ) ) // Arrays must be JSON encoded with single quotes.
+				: $value;
+			$prepared[ 'param_' . urlencode( $key ) ] = urlencode( $value );
 		}
 		$clickhouse_url = add_query_arg( $prepared, $clickhouse_url );
 	}
