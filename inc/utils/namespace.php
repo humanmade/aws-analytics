@@ -827,7 +827,7 @@ function query( string $query, array $params = [], string $return = 'array', ?st
 	/**
 	 * Filter the args used to control the request type.
 	 */
-	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $params, $body );
+	$request_args = apply_filters( 'altis.analytics.clickhouse.request_args', $request_args, $query, $params, $body );
 
 	$response = wp_remote_post(
 		$clickhouse_url,

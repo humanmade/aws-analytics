@@ -98,9 +98,12 @@ Removes an event listener returned by `Altis.Analytics.on()`.
 
 ### Constants
 
-**`ALTIS_ANALYTICS_ELASTICSEARCH_URL`**
+ClickHouse connection constants:
 
-Allows you to define the Elasticsearch server URL directly.
+- **`ALTIS_CLICKHOUSE_HOST`**: Host name for ClickHouse server.
+- **`ALTIS_CLICKHOUSE_PORT`**: Port to connect to ClickHouse on.
+- **`ALTIS_CLICKHOUSE_USER`**: Username for authentication.
+- **`ALTIS_CLICKHOUSE_PASS`**: Password for authentication.
 
 **`ALTIS_ANALYTICS_LOG_QUERIES`**
 
@@ -111,14 +114,6 @@ Define as true to enable logging queries to the error log.
 By default, Altis Analytics will grant any role who can edit pages the ability to edit audiences. You can explicitly remove the capabilities from a role (i.e. `'edit_audiences' => false`), but in some cases you may wish to remove this fallback entirely.
 
 Define as false to disable the capability fallback to page capabilities.
-
-**`ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN`**
-
-If you have the Pinpoint Kinesis Firehose set to back up data to S3, defining this constant allows for data to be cleaned from the backups periodically.
-
-**`ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION`**
-
-The region for the Kinsesis Firehose S3 bucket (if configured).
 
 ### Filters
 
@@ -144,23 +139,9 @@ Similar to the `altis.analytics.data.attributes` filter but allows you to pass m
 
 Filters the entire array passed to the client side.
 
-**`altis.analytics.elasticsearch.url <string>`**
-
-Filters the Elasticsearch server URL.
-
 **`altis.analytics.noop <bool>`**
 
 Returning `false` from this filter will prevent any events or updated endpoint data from being sent to Pinpoint. The built in usage for this is to prevent logging events on page previews.
-
-**`altis.analytics.max_index_age <int>`**
-
-Filter the maximum number of days to keep real time stats available for. The default number of days is the maximum of 90, after which data is removed. This is important for streamlining your user's privacy.
-
-Insights and aggregated analytics data can be calculated, updated and stored in the database in cases where you wish to retain information for longer periods of time such as number of page views.
-
-**`altis.analytics.max_s3_backup_age <int>`**
-
-Filter the maximum number of days to keep backup data for. The default number of days is 90, in accordance with AWS Pinpoint, after which time data is removed. This is important for streamlining your users' privacy. There is no upper limit on this value, however you should make sure any long term data storage is explained to users when opting in to tracking.
 
 **`altis.analytics.exclude_bots <bool>`**
 
@@ -168,40 +149,77 @@ This defaults to true but can switched off to allow tracking bots that can run J
 
 You can check if a recorded event was created by a bot by checking if the `attributes.isBot` value exists.
 
-**`altis.analytics.elasticsearch.timeout <int>`**
-Filter the amount of seconds to wait for a repsonse from Elasticsearch. The default value is `20` seconds. The minimum value is `5` seconds and the maximum is `30` seconds.
+**`altis.analytics.clickhouse.request_args <array>`**
+
+Filters the arguments for `wp_remote_post()` when querying ClickHouse. Can be used to set the `timeout` for example:
+
+```php
+add_filter( 'altis.analytics.clickhouse.request_args', function ( $args, $query, $params, $body ) {
+  $args['timeout'] = 60;
+  return $args;
+}, 10, 4 );
+```
 
 ### Functions
 
-**`Altis\Analytics\Utils\query( array $query, array $params = [] ) : array`**
+**`Altis\Analytics\Utils\query( array $query, array $params = [], string $return = 'array', ?string $body = null ) : array`**
 
-Queries the analytics data with the Elasticsearch Query DSL provided in `$query`. `$params` will be added as query string parameters to the Elasticsearch request URL.
+Queries the analytics data with the ClickHouse SQL provided in `$query`.
 
-**`Altis\Analytics\Utils\get_elasticsearch_url() : string`**
+`$params` will be added as query string parameters to the request URL for parameterised queries. The parameters are interpolated into the SQL wherever the pattern `{<key>:<data type>}` is encountered.
 
-Get the Elasticsearch server URL.
+Example:
+
+```php
+$result = Utils\query(
+  "SELECT uniqCombined64(endpoint_id)
+    FROM analytics
+    WHERE blog_id = {blog_id:String}
+      AND endpoint_metrics['pageViews'] >= {views:UInt16}
+      AND attributes['postID'] IN {post_ids:Array(String)}",
+  [
+    'blog_id' => get_current_blog_id(),
+    'views' => 3,
+    'post_ids' => [ 1, 12, 34 ],
+  ]
+);
+```
+
+[See ClickHouse Data Types for more](https://clickhouse.com/docs/en/sql-reference/data-types/).
+
+`$return` controls the format of the returned data. The options are:
+
+- `array`: Default value. Returns an array of `stdClass` objects with properties matching the fields from the `SELECT` statement.
+- `object`: Returns the first `stdClass` object from the array of results. Useful if your aggregation only returns a single row.
+- `raw`: Returns the raw output from ClickHouse. The default format is line separated NDJSON but can be overridden using `FORMAT <format>` in the SQL query.
+
+`$body` allows you to optionally pass a POST body with the request. Causes `$query` to be sent in the URL query string. In some cases this might be useful such as `INSERT` queries.
 
 **`Altis\Analytics\Utils\milliseconds() : integer`**
 
 Get the current time since the unix epoch in milliseconds.
 
-**`Altis\Analytics\Utils\merge_aggregations( array $current, array $new, string $bucket_type = '' ) : array`**
+**`Altis\Analytics\Utils\date_in_milliseconds( string $point_in_time, $round_to = 0 ) : integer`**
 
-A utility function for merging aggregations returned by Elasticsearch queries. This is necessary to keep a store of your analytics data as Elasticsearch indexes can be rotated or lost.
+Get a date in milliseconds since the unix epoch, optionally rounded to the nearest number of seconds.
+
+Example usage: `Utils\date_in_milliseconds( '-7 days', DAY_IN_SECONDS )`
 
 ## Querying Data
 
-Data can be queried from Elasticsearch, providing a powerful tool for filtering and aggregating records. If you are using Altis requests are automatically signed.
+Data can be queried from ClickHouse using SQL plus its extra functions, providing a powerful tool for filtering and aggregating records. [See the ClickHouse SQL reference for more details](https://clickhouse.com/docs/en/sql-reference).
 
 It is recommended to use the `Altis\Analytics\Utils\query()` function for this.
 
 ### Anatomy of an event record
 
-A user session covers every event recorded between opening the website and closing it. For every event recorded the following data is recorded depending on the scope.
+A user session covers every event recorded between opening the website and closing it. For every event recorded the following data is recorded to the database.
 
+- `app_id`: The Pinpoint Project ID. You likely won't need to use this directly.
+- `blog_id`: The blog ID of the site recording events.
 - `event_type`: The type of event recorded, eg. `pageView`, `click`, `_session.start` or `_session.stop`.
 - `event_timestamp`: The timestamp in milliseconds of when the event was recorded on the site.
-- `attributes`
+- `attributes`: An extensible key value map of strings.
   - `date`: ISO-8601 standard date string.
   - `session`: Unique ID across all page views.
   - `pageSession`: Unique ID for one page view.
@@ -218,7 +236,7 @@ A user session covers every event recorded between opening the website and closi
   - `qv_*`: Any query string parameters will be recorded with the prefix `qv_`.
   - Any attributes added via the `altis.analytics.data.attributes` filter.
   - Any attributes added via `Altis.Analytics.registerAttribute()` or passed to `Altis.Analytics.record()`.
-- `metrics`
+- `metrics`: And extensible key value map of numbers.
   - `scrollDepthMax`: Maximum scroll depth on page so far. Percentage value between 1-100.
   - `scrollDepthNow`: Scroll depth at time of event. Percentage value between 1-100.
   - `elapsed`: Time elapsed in milliseconds since the start of the page view.
@@ -226,119 +244,60 @@ A user session covers every event recorded between opening the website and closi
   - `hour`: The hour of the day in 24 hour format.
   - `month`: The month of the year.
   - Any metrics added via `Altis.Analytics.registerMetric()` or passed to `Altis.Analytics.record()`.
-- `endpoint`
-  - `Id`: A unique UUID for the endpoint.
-  - `Address`: An optional target for push notifications such as an email address or phone number.
-  - `OptOut`: The push notification channels this visitor has opted out of. Defaults to "ALL".
-  - `Attributes`
-    - Any custom attributes associated with this endpoint.
-  - `Metrics`
-    - `sessions`: Number of separate browsing sessions for this endpoint.
-    - `pageViews`: Number of total page views for this endpoint.
-    - Any custom metrics associated with the endpoint.
-  - `Demographic`
-    - `AppVersion`: Current application version, can be provided via the `altis.analytics.data` filter.
-    - `Locale`: Locale code of the endpoint, derived from the browser.
-    - `Make`: Make of the current browser / browser engine eg. "Blink".
-    - `Model`: Model of the current browser eg "Chrome"
-    - `ModelVersion`: Browser version.
-    - `Platform`: The device operating system.
-    - `PlatformVersion`: The operating system version.
-  - `Location`
-    - `Country`: The endpoint's country if known / available.
-    - `City`: The endpoint's city if known or available.
-  - `User`
-    - `UserAttributes`
-      - Any custom attributes associated with the user if known.
-    - `UserId`: An ID associated with the user in your application. Useful for linking endpoints across devices.
-- `session`
-  - `session_id`: Persists for a subsession, triggered by page visibility changes. Recorded with `_session.start` and `_session.stop` events.
-  - `start_timestamp`: Time in milliseconds when the subsession started. Recorded with `_session.start` events.
-  - `stop_timestamp`: Time in milliseconds when the subsession ended. Recorded with `_session.stop` events.
-  - `duration`: Duration in milliseconds for a subsession. Recorded with `_session.stop` events.
+- `endpoint_id`: A unique UUID for the endpoint (current visitor's browser).
+- `endpoint_address`: An optional target for push notifications such as an email address or phone number.
+- `endpoint_optOut`: The push notification channels this visitor has opted out of. Defaults to "ALL".
+- `endpoint_attributes`
+  - Any custom attributes associated with this endpoint. Values are arrays of strings.
+- `endpoint_metrics`
+  - `sessions`: Number of separate browsing sessions for this endpoint.
+  - `pageViews`: Number of total page views for this endpoint.
+  - Any custom metrics associated with the endpoint.
+- `app_version`: Current application version, can be provided via the `altis.analytics.data` filter.
+- `locale`: Locale code of the endpoint, derived from the browser.
+- `make`: Make of the current browser / browser engine eg. "Blink".
+- `model`: Model of the current browser eg "Chrome"
+- `model_version`: Browser version.
+- `platform`: The device operating system.
+- `platform_version`: The operating system version.
+- `country`: The endpoint's country if known / available.
+- `city`: The endpoint's city if known or available.
+- `user_attributes`
+  - Any custom attributes associated with the user if known. Values are arrays of strings.
+- `user_id`: An ID associated with the user in your application. Useful for linking endpoints across devices.
+- `session_id`: Persists for a subsession, triggered by page visibility changes. Recorded with `_session.start` and `_session.stop` events.
+- `session_start`: Time in milliseconds when the subsession started. Recorded with `_session.start` events.
+- `session_stop`: Time in milliseconds when the subsession ended. Recorded with `_session.stop` events.
+- `session_duration`: Duration in milliseconds for a subsession. Recorded with `_session.stop` events.
 
-### Time on page stats example
+### Top posts example
 
 ```php
 <?php
-$result = Altis\Analytics\Utils\query( [
-  // Don't return any hits to keep the response size small.
-  'size' => 0,
-  // Restrict the results to a single page we're interested in.
-  'query' => [
-    'bool' => [
-      'filter' => [
-        [ 'term' => [ 'attributes.url.keyword' => 'https://example.com/page' ] ]
-      ]
-    ]
-  ],
-  // Aggregate data sets
-  'aggs' => [
-    'sessions' => [
-      // Create buckets by page session ID so all records in each bucket belong
-      // to a single user and page session.
-      'terms' => [
-        'field' => 'attributes.pageSession.keyword',
-        // Use data from the top 100 unique page sessions.
-        // By default terms aggregations return the top 10 hits.
-        'size' => 100
-      ],
-      // Sub aggregations.
-      'aggs' => [
-        // Get the time on page by summing all session.duration values for the page session.
-        'time_on_page' => [
-          'sum' => [ 'field' => 'session.duration' ]
-        ]
-      ]
-    ],
-    // Create a stats aggregation for all the time on page values found above.
-    'stats' => [
-      'stats_bucket' => [
-        'buckets_path' => 'sessions>time_in_page'
-      ]
-    ]
-  ],
-  // Order by latest events.
-  'order' => [ 'event_timestamp' => 'desc' ]
-] );
+$result = Altis\Analytics\Utils\query(
+  "SELECT attributes['url'] as link, count() as views
+    FROM analytics
+    WHERE event_type = 'pageView'
+      AND blog_id = {blog_id:String}
+      AND event_timestamp >= toDateTime({since:UInt64})
+    GROUP BY link
+    ORDER BY views DESC",
+  [
+    'blog_id' => get_current_blog_id(),
+    'since' => strtotime( '-7 days' ),
+  ]
+);
 ```
 
-The output will look something like the following:
+The output will be an array of `stdClass` objects with a `url` and `views` property. Something like the following:
 
-```json
-{
-  "took": 15,
-  "timed_out": false,
-  "_shards": {
-    "total": 5,
-    "successful": 5,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": 329,
-    "max_score": 0
-  },
-  "aggregations": {
-    "sessions": {
-      "doc_count_error_upper_bound": 0,
-      "sum_other_doc_count": 0,
-      "buckets": [
-        { "...": "..." }
-      ]
-    },
-    "stats": {
-      "count": 92,
-      "min": 0,
-      "max": 4963998,
-      "avg": 78251.14130434782,
-      "sum": 7199105
-    }
-  }
-}
+```php
+[
+  (object)[ 'url' => 'http://example.com/', 'views' => 12882 ],
+  (object)[ 'url' => 'http://example.com/sample-page/', 'views' => 2504 ],
+  // ...
+]
 ```
-
-You can further trim the size of the returned response using the `filter_path` query parameter. For example if we're only interested in the stats aggregation we can set `filter_path=-aggregations.sessions` to remove it from the response.
 
 ## Audiences
 
@@ -355,10 +314,11 @@ use function Altis\Analytics\Audiences\register_field;
 
 add_action( 'init', function () {
   register_field(
-    'endpoint.Location.Country', // The Elasticsearch field to query.
+    'endpoint.Location.Country', // The endpoint object field for the front end.
     __( 'Country' ), // A label for the field.
-    __( 'The visitor country.' ) // Optional description for the field.
     [ // Optional field arguments
+      'column' => 'country', // The database column representing the data in the endpoint object.
+      'description' => __( 'The visitor country.' ) // Optional description for the field.
       'options' => '\\Altis\\Analytics\\Utils\\get_countries', // A callback to provide prepopulated list of options.
       'disable_free_text' => false, // Whether to allow free text to be used or to restrict to available options.
     ]
@@ -370,8 +330,9 @@ In the above example the 1st parameter `endpoint.Location.Country` represents th
 
 The 2nd parameter is a human readable label for the audience field, and the 3rd is the human readable description that goes below the field UI.
 
-The 4th parameter is an optional arguments array, which can include:
+The 4th parameter is an arguments array, which can include:
 
+- `column` is the name of the column where the data can be found in the database.
 - `options` which is a callback that returns a list of valid options, that will complement existing data for that field.
 - `disable_free_text` is a boolean to allow/restrict the user to set custom strings rather than choose from the list.
 
@@ -382,9 +343,7 @@ A specific infrastructure set up is required to use this plugin:
 - AWS Pinpoint Project
   - Event stream configured to point to below Kinesis Firehose
   - Associated Cognito Identity Pool ID
-- AWS Kinesis Firehose
-  - Backing up to AWS S3 Bucket
-  - Sending data to AWS Elasticsearch Instance to an index called `analytics`
+- ClickHouse Database
 
 ## Build process
 
@@ -408,8 +367,6 @@ You must define the following constants:
 ```php
 define( 'ALTIS_ANALYTICS_PINPOINT_ID', '...' );
 define( 'ALTIS_ANALYTICS_PINPOINT_REGION', '...' );
-define( 'ALTIS_ANALYTICS_COGNITO_ID', '...' );
-define( 'ALTIS_ANALYTICS_COGNITO_REGION', '...' );
 ```
 
 ### Custom enpoints
@@ -418,23 +375,6 @@ If you wish to test locally you can use the following constants to override the 
 
 ```php
 define( 'ALTIS_ANALYTICS_PINPOINT_ENDPOINT', 'your-pinpoint-endpoint.com' );
-define( 'ALTIS_ANALYTICS_COGNITO_ENDPOINT', 'your-cognito-endpoint.com' );
-```
-
-The `humanmade/local-pinpoint` and `humanmade/local-cognito` docker images provide a local version of the AWS Pinpoint API, limited to just the necessary methods.
-
-```bash
-docker pull humanmade/local-pinpoint
-docker run -d \
-  --name local-pinpoint \
-  -e ELASTICSEARCH_HOST=<your elasticsearch instance url> \
-  -p 3000 \
-  humanmade/local-pinpoint
-docker pull humanmade/local-cognito
-docker run -d \
-  --name local-cognito \
-  -p 3000:3001 \
-  humanmade/local-cognito
 ```
 
 You can then point the above endpoint constants to `http://localhost:3000` and `http://localhost:3001` respectively.
