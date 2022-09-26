@@ -18,8 +18,6 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
-use function Altis\Analytics\Blocks\get_block_post;
-
 const API_NAMESPACE = 'accelerate/v1';
 
 /**
@@ -828,7 +826,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				$page_view_ids[] = $id;
 			}
 		} else {
-			$experience_view_ids[ get_block_post( $id )->ID ] = $id;
+			$experience_view_ids[ Blocks\get_block_post( $id )->ID ] = $id;
 		}
 	}
 
