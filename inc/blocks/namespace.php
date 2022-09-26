@@ -678,14 +678,22 @@ function get_views( string $block_id, $args = [] ) {
 	$start = time() - ( ( $args['days'] + $args['offset'] ) * DAY_IN_SECONDS );
 	$end = time() - ( $args['offset'] * DAY_IN_SECONDS );
 
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'block_id' => $block_id,
+		'start' => $start,
+		'end' => $end,
+	];
+
 	$query_where = '';
 
 	// Add post ID query filter.
 	if ( $args['post_id'] ) {
-		$query_where .= $wpdb->prepare( "AND attributes['postId'] = %s", $args['post_id'] );
+		$query_where .= "AND attributes['postId'] = {post_id:String}";
+		$query_params['post_id'] = $args['post_id'];
 	}
 
-	$query = $wpdb->prepare(
+	$query =
 		"SELECT
 			{$vary_on} as variant,
 			countIf(event_type = 'experienceLoad') as loads,
@@ -697,27 +705,22 @@ function get_views( string $block_id, $args = [] ) {
 			groupUniqArray(attributes['postId']) as post_ids
 		FROM analytics
 		WHERE
-			attributes['blogId'] = %s
+			blog_id = {blog_id:String}
 			AND event_type IN ('experienceLoad', 'experienceView', 'conversion')
-			AND attributes['clientId'] = %s
-			AND event_timestamp >= toDateTime64(intDiv(%d,1000), 3)
-			AND event_timestamp < toDateTime64(intDiv(%d,1000), 3)
+			AND attributes['clientId'] = {block_id:String}
+			AND event_timestamp >= toDateTime64({start:UInt64}, 3)
+			AND event_timestamp <= toDateTime64({end:UInt64}, 3)
 			{$query_where}
-		GROUP BY {$vary_on} WITH ROLLUP
-		ORDER BY variant ASC",
-		get_current_blog_id(),
-		$block_id,
-		$start * 1000,
-		$end * 1000
-	);
+		GROUP BY variant WITH ROLLUP
+		ORDER BY variant ASC";
 
-	$key = sprintf( 'views:%s:%s', $block_id, hash( 'crc32', serialize( $args ) ) );
+	$key = Utils\get_cache_key( 'block_views', $block_id, $args );
 	$cache = wp_cache_get( $key, 'altis-xbs' );
 	if ( $cache ) {
 		return $cache;
 	}
 
-	$result = Utils\clickhouse_query( $query );
+	$result = Utils\query( $query, $query_params );
 
 	if ( ! $result ) {
 		$data = [

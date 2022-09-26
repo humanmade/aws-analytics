@@ -195,9 +195,12 @@ function get_diff( WP_REST_Request $request ) {
  * @return array|WP_error
  */
 function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = null ) {
-	global $wpdb;
-
 	$query_where = [ '1=1' ];
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'start' => (int) $start,
+		'end' => (int) $end,
+	];
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->path ) {
@@ -207,20 +210,18 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			} else {
 				$url_path_alt = 'http' . substr( $url_path, 5 );
 			}
-			$query_where[] = $wpdb->prepare(
-				"attributes['url'] = %s OR attributes['url'] = %s",
-				$url_path,
-				$url_path_alt
-			);
+			$query_where[] = "attributes['url'] = {path:String} OR attributes['url'] = {path_alt:String}";
+			$query_params['path'] = $url_path;
+			$query_params['path_alt'] = $url_path_alt;
 		}
 	}
 
 	$query_where = sprintf( 'AND (%s)', implode( ') AND (', $query_where ) );
 
 	// Build SQL query.
-	$query = $wpdb->prepare(
+	$query =
 		"SELECT
-			toUnixTimestamp(toStartOfInterval(event_timestamp, INTERVAL {$resolution})) as `date`,
+			toStartOfInterval(event_timestamp, INTERVAL {$resolution}) as `date`,
 			-- views
 			count() as views,
 			-- uniques
@@ -231,27 +232,24 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			uniqCombined64If(endpoint_id, endpoint_metrics['pageViews'] < 2) as bounce
 		FROM analytics
 		WHERE
-			attributes['blogId'] = %s
-			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-			AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+			blog_id = {blog_id:String}
+			AND event_timestamp >= toDateTime64({start:UInt64},3)
+			AND event_timestamp <= toDateTime64({end:UInt64},3)
 			AND event_type = 'pageView'
 			{$query_where}
 		GROUP BY
 			`date`
 			WITH ROLLUP
-		ORDER BY `date` ASC",
-		get_current_blog_id(),
-		(int) sprintf( '%d000', $start ),
-		(int) sprintf( '%d999', $end )
-	);
+		ORDER BY `date` ASC
+			WITH FILL FROM toDateTime({start:UInt64}) STEP INTERVAL {$resolution}";
 
-	$key = sprintf( 'analytics:stats:%s', sha1( serialize( $query ) ) );
+	$key = Utils\get_cache_key( 'analytics:stats', $query, $query_params );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
 		return $cache;
 	}
 
-	$res = Utils\clickhouse_query( $query, '', 'array' );
+	$res = Utils\query( $query, $query_params );
 
 	if ( is_wp_error( $res ) ) {
 		return $res;
@@ -274,7 +272,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 	];
 
 	foreach ( $res as $row ) {
-		if ( empty( $row->date ) ) {
+		if ( empty( strtotime( $row->date ) ) ) {
 			$data['stats']['summary'] = [
 				'views' => (int) $row->views,
 				'visitors' => (int) $row->uniques,
@@ -282,8 +280,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 				'bounce' => (int) $row->bounce,
 			];
 		} else {
-			$date = date( 'Y-m-d H:i:s', (int) $row->date );
-			$data['by_interval'][ $date ] = [
+			$data['by_interval'][ $row->date ] = [
 				'views' => (int) $row->views,
 				'visitors' => (int) $row->uniques,
 				'returning' => (int) $row->returning,
@@ -308,28 +305,33 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			continue;
 		}
 
-		$query = $wpdb->prepare(
+		if ( ! empty( $agg_options['where'] ) ) {
+			$query_where .= sprintf( ' AND (%s)', $agg_options['where'] );
+		}
+
+		$res = Utils\query(
 			"SELECT
 				{$field} as `key`,
 				{$aggregation} as `value`
 			FROM analytics
 			WHERE
-				attributes['blogId'] = %s
-				AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-				AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
-				AND event_type = %s
+				blog_id = {blog_id:String}
+				AND event_timestamp >= toDateTime64({start:UInt64},3)
+				AND event_timestamp <= toDateTime64({end:UInt64},3)
+				AND event_type = {event_type:String}
 				{$query_where}
 			GROUP BY {$field}
 			ORDER BY `value` DESC
-			LIMIT %d",
-			get_current_blog_id(),
-			(int) sprintf( '%d000', $start ),
-			(int) sprintf( '%d999', $end ),
-			$agg_options['event'],
-			$agg_options['limit']
+			LIMIT {limit:UInt8}",
+			array_merge(
+				$query_params,
+				[
+					'event_type' => $agg_options['event'],
+					'limit' => $agg_options['limit'],
+				],
+				$agg_options['where_params'] ?? []
+			)
 		);
-
-		$res = Utils\clickhouse_query( $query, '', 'array' );
 
 		if ( is_wp_error( $res ) ) {
 			trigger_error( $res->get_error_message(), E_USER_WARNING );
@@ -358,32 +360,38 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
  * @return array|WP_Error
  */
 function get_top_data( $start, $end, ?Filter $filter = null ) {
-	global $wpdb;
-
 	$query_where = [ '1=1' ];
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'start' => (int) $start,
+		'end' => (int) $end,
+	];
 
 	if ( ! empty( $filter ) ) {
 		if ( $filter->type ) {
-			$types_where = array_map( function ( $type ) use ( $wpdb ) {
+			$types = explode( ',', $filter->type );
+			$types_where = array_map( function ( $type, $idx ) use ( &$query_params ) {
 				if ( $type === 'xb' ) {
 					return "event_type IN ('experienceView', 'conversion')";
 				}
 				if ( $type === 'wp_block' ) {
 					return "event_type = 'blockView'";
 				}
-				return $wpdb->prepare( "event_type = 'pageView' AND attributes['postType'] = %s", $type );
-			}, explode( ',', $filter->type ) );
+				$query_params[ 'type_' . $idx ] = $type;
+				return sprintf( "event_type = 'pageView' AND attributes['postType'] = {type_%s:String}", $idx );
+			}, $types, array_keys( $types ) );
 			$query_where[] = sprintf( '(%s)', implode( ') OR (', $types_where ) );
 		}
 		if ( $filter->path ) {
 			$url = home_url( $filter->path );
-			$query_where[] = $wpdb->prepare( "attributes['url'] = %s", $url );
+			$query_where[] = "attributes['url'] = {url:String}";
+			$query_params['url'] = $url;
 		}
 	}
 
 	$query_where = sprintf( ' AND (%s) ', implode( ') AND (', $query_where ) );
 
-	$query = $wpdb->prepare(
+	$query =
 		"SELECT
 			-- Section: group ID
 			multiIf(
@@ -406,31 +414,22 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			) as unique_fallback_conversions
 		FROM analytics
 		WHERE
-			attributes['blogId'] = %s
-			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-			AND event_timestamp < toDateTime64(intDiv(%d,1000),3)
+			blog_id = {blog_id:String}
+			AND event_timestamp >= toDateTime64({start:UInt64},3)
+			AND event_timestamp <= toDateTime64({end:UInt64},3)
 			AND event_type IN ('pageView', 'blockView', 'experienceView', 'conversion')
 			{$query_where}
-		GROUP BY multiIf(
-			event_type = 'pageView' AND attributes['postId'] != '', attributes['postId'],
-			event_type = 'blockView', attributes['blockId'],
-			event_type IN ('experienceView', 'conversion'), attributes['clientId'],
-			attributes['url']
-		)
+		GROUP BY id
 		ORDER BY views DESC
-		LIMIT 300", // Limit of the top content returned for Content Explorer, max 12 pages worth.
-		get_current_blog_id(),
-		(int) sprintf( '%d000', $start ),
-		(int) sprintf( '%d999', $end )
-	);
+		LIMIT 300"; // Limit of the top content returned for Content Explorer, max 12 pages worth.
 
-	$key = sprintf( 'analytics:top:%s', sha1( serialize( $query ) ) );
+	$key = Utils\get_cache_key( 'analytics:top', $query, $query_params );
 	$cache = wp_cache_get( $key, 'altis' );
 	if ( $cache ) {
 		return $cache;
 	}
 
-	$res = Utils\clickhouse_query( $query, '', 'array' );
+	$res = Utils\query( $query, $query_params );
 
 	if ( is_wp_error( $res ) ) {
 		return $res;
@@ -756,6 +755,7 @@ function register_term_aggregation( $field, $short_name, $options = [] ) {
 		'aggregation' => 'count()',
 		'event' => 'pageView',
 		'where' => '',
+		'where_params' => [],
 		'missing' => __( 'Unknown', 'altis' ),
 		'parse_result' => __NAMESPACE__ . '\\collect_aggregation',
 	] );
@@ -777,8 +777,6 @@ function register_term_aggregation( $field, $short_name, $options = [] ) {
  * @return array|WP_error
  */
 function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day' ) {
-	global $wpdb;
-
 	if ( empty( $post_ids ) ) {
 		return new WP_Error(
 			'analytics.error',
@@ -796,6 +794,13 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	// Real start & end.
 	$diff = $end - $start;
 
+	$query_params = [
+		'start' => (int) $start,
+		'blog_id' => get_current_blog_id(),
+		'prev_start' => $start - $diff,
+		'end' => $end,
+	];
+
 	// Store results from query / cache.
 	$data = [];
 
@@ -804,7 +809,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	$experience_view_ids = [];
 
 	foreach ( $post_ids as $id ) {
-		$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+		$key = Utils\get_cache_key( 'analytics:post_diff', $id, $start, $end, $resolution );
 		$cache = wp_cache_get( $key, 'altis' );
 		if ( $cache ) {
 			$data[ $id ] = $cache;
@@ -821,13 +826,13 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				$page_view_ids[] = $id;
 			}
 		} else {
-			$experience_view_ids[] = $id;
+			$experience_view_ids[ Blocks\get_block_post( $id )->ID ] = $id;
 		}
 	}
 
-	$page_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $page_view_ids ), '%s' ) ), ...$page_view_ids );
-	$block_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $block_view_ids ), '%s' ) ), ...$block_view_ids );
-	$experience_ids_sql = $wpdb->prepare( implode( ',', array_fill( 0, count( $experience_view_ids ), '%s' ) ), ...$experience_view_ids );
+	$query_params['page_ids'] = $page_view_ids;
+	$query_params['block_ids'] = $block_view_ids;
+	$query_params['experience_ids'] = array_values( $experience_view_ids );
 
 	$resolution = esc_sql( $resolution );
 
@@ -845,7 +850,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 	}
 	$bucket_sql = implode( ',', $buckets );
 
-	$query = $wpdb->prepare(
+	$res = Utils\query(
 		"SELECT
 			multiIf(
 				event_type = 'blockView', attributes['blockId'],
@@ -853,31 +858,24 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				attributes['postId']
 			) as id,
 			uniqCombined64(endpoint_id) as uniques,
-			uniqCombined64If(endpoint_id, event_timestamp < toDateTime64(intDiv(%d,1000),3)) as uniques_previous,
-			uniqCombined64If(endpoint_id, event_timestamp >= toDateTime64(intDiv(%d,1000),3)) as uniques_current,
+			uniqCombined64If(endpoint_id, event_timestamp < toDateTime64({start:UInt64},3)) as uniques_previous,
+			uniqCombined64If(endpoint_id, event_timestamp >= toDateTime64({start:UInt64},3)) as uniques_current,
 			{$bucket_sql}
 		FROM analytics
 		WHERE
-			attributes['blogId'] = %s
-			AND event_timestamp >= toDateTime64(intDiv(%d,1000),3)
-			AND event_timestamp <= toDateTime64(intDiv(%d,1000),3)
+			blog_id = {blog_id:String}
+			AND event_timestamp >= toDateTime64({prev_start:UInt64},3)
+			AND event_timestamp <= toDateTime64({end:UInt64},3)
 			AND event_type IN ('pageView', 'blockView', 'experienceView')
 			AND (
-				attributes['postId'] IN ({$page_ids_sql})
-				OR attributes['blockId'] IN ({$block_ids_sql})
-				OR attributes['clientId'] IN ({$experience_ids_sql})
+				(event_type = 'pageView' AND attributes['postId'] IN {page_ids:Array(UInt32)})
+				OR attributes['blockId'] IN {block_ids:Array(UInt32)}
+				OR attributes['clientId'] IN {experience_ids:Array(String)}
 			)
-		GROUP BY
-			id
+		GROUP BY id
 		ORDER BY id",
-		(int) sprintf( '%d000', $start ),
-		(int) sprintf( '%d000', $start ),
-		get_current_blog_id(),
-		(int) sprintf( '%d000', $start - $diff ),
-		(int) sprintf( '%d999', $end )
+		$query_params
 	);
-
-	$res = Utils\clickhouse_query( $query, '', 'array' );
 
 	if ( is_wp_error( $res ) ) {
 		return $res;
@@ -893,7 +891,7 @@ function get_post_diff_data( array $post_ids, $start, $end, $resolution = '1 day
 				continue;
 			}
 
-			$key = sprintf( 'analytics:post_diff:%s', sha1( serialize( [ $id, $start, $end, $resolution ] ) ) );
+			$key = Utils\get_cache_key( 'analytics:post_diff', $id, $start, $end, $resolution );
 
 			$data[ $id ] = [
 				'previous' => [

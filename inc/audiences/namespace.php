@@ -490,31 +490,37 @@ function admin_enqueue_scripts() {
  * @return array|null
  */
 function get_estimate( array $audience ) : ?array {
-	global $wpdb;
 	$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 
-	// Append the groups query.
-	$audience_where = build_audience_query( $audience );
+	// Get the audience query and params.
+	[ $audience_where, $audience_params ] = build_audience_query( $audience );
 
-	$query = $wpdb->prepare(
+	$query_params = array_merge(
+		$audience_params,
+		[
+
+			'blog_id' => get_current_blog_id(),
+			'since' => $since,
+		]
+	);
+
+	$query =
 		"SELECT uniqCombined64(endpoint_id) as uniques, histogram(42)(toUnixTimestamp64Milli(event_timestamp)) as `histogram`
 			FROM analytics
 			WHERE
-				attributes['blogId'] = %s AND event_type = 'pageView'
-				AND event_timestamp >= toDateTime(intDiv(%d,1000))
-				AND {$audience_where}",
-		get_current_blog_id(),
-		$since
-	);
+				blog_id = {blog_id:String}
+				AND event_type = 'pageView'
+				AND event_timestamp >= toDateTime64(intDiv({since:UInt64},1000),3)
+				AND {$audience_where}";
 
-	$key = sprintf( 'estimate:%s', sha1( serialize( $audience ) ) );
+	$key = Utils\get_cache_key( 'estimate', $audience );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
 		return $cache;
 	}
 
 	$unique_count = get_unique_endpoint_count( $since );
-	$result = Utils\clickhouse_query( $query );
+	$result = Utils\query( $query, $query_params, 'object' );
 
 	if ( ! $result ) {
 		$no_result = [
@@ -525,7 +531,7 @@ function get_estimate( array $audience ) : ?array {
 		return $no_result;
 	}
 
-	$histogram = Utils\normalise_clickhouse_histogram( $result->histogram ?? [] );
+	$histogram = Utils\normalise_histogram( $result->histogram ?? [] );
 
 	// Get number of unique IDs within the audience.
 	$estimate_count = intval( $result->uniques );
@@ -550,21 +556,21 @@ function get_estimate( array $audience ) : ?array {
  * @return integer|null
  */
 function get_unique_endpoint_count( int $since = null, bool $force_update = false ) : ?int {
-	global $wpdb;
-
 	if ( $since === null ) {
 		$since = Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS );
 	}
 
-	$query = $wpdb->prepare(
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'since' => $since,
+	];
+
+	$query =
 		"SELECT uniqCombined64(endpoint_id) as uniques FROM analytics
 			WHERE
 				event_type = 'pageView' AND
-				event_timestamp > toDateTime(intDiv(%d,1000)) AND
-				attributes['blogId'] = %s",
-		$since,
-		get_current_blog_id()
-	);
+				event_timestamp >= toDateTime64(intDiv({since:UInt64},1000),3) AND
+				blog_id = {blog_id:String}";
 
 	$key = sprintf( 'total-uniques-%d', $since );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
@@ -572,7 +578,7 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
 		return $cache;
 	}
 
-	$result = Utils\clickhouse_query( $query );
+	$result = Utils\query( $query, $query_params, 'object' );
 
 	if ( ! $result ) {
 		wp_cache_set( $key, 0, 'altis-audiences', MINUTE_IN_SECONDS );
@@ -619,17 +625,19 @@ function get_unique_endpoint_count( int $since = null, bool $force_update = fals
  * @return array|null
  */
 function get_field_data() : ?array {
-	global $wpdb;
-
 	$maps = get_fields();
 
-	$key = sprintf( 'fields:%s', sha1( serialize( wp_list_pluck( $maps, 'name' ) ) ) );
+	$key = Utils\get_cache_key( 'fields', wp_list_pluck( $maps, 'name' ) );
 	$cache = wp_cache_get( $key, 'altis-audiences' );
 	if ( $cache ) {
 		return $cache;
 	}
 
 	$results = [];
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'start' => Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
+	];
 
 	foreach ( $maps as $map ) {
 		if ( ! isset( $map['options']['column'] ) ) {
@@ -642,14 +650,10 @@ function get_field_data() : ?array {
 		if ( Utils\get_field_type( $map['name'] ) === 'number' ) {
 			// Select basic stats about the metric.
 			$fields = sprintf( 'count(event_type) as `count`, min(%1$s) as min, max(%1$s) as max, avg(%1$s) as avg, sum(%1$s) as sum', $column );
-			$query = $wpdb->prepare( "SELECT {$fields} FROM analytics
-				WHERE event_timestamp >= toDateTime(intDiv(%d,1000))
-					AND attributes['blogId'] = %s
-					AND event_type = 'pageView'
-				",
-				Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
-				get_current_blog_id()
-			);
+			$query = "SELECT {$fields} FROM analytics
+				WHERE event_timestamp >= toDateTime64(intDiv({start:UInt64},1000),3)
+					AND blog_id = {blog_id:String}
+					AND event_type = 'pageView'";
 		}
 
 		// Default to topK aggregation for top 20 different values available for each field.
@@ -662,22 +666,18 @@ function get_field_data() : ?array {
 			}
 
 			$fields = sprintf( '%1$s as val, count(event_type) as views, uniqCombined64(endpoint_id) as uniques', $column );
-			$query = $wpdb->prepare( "SELECT {$fields} FROM analytics
+			$query = "SELECT {$fields} FROM analytics
 				{$join}
-				WHERE event_timestamp >= toDateTime(intDiv(%d,1000))
-					AND attributes['blogId'] = %s
+				WHERE event_timestamp >= toDateTime64(intDiv({start:UInt64},1000),3)
+					AND blog_id = {blog_id:String}
 					AND event_type = 'pageView'
 					GROUP BY {$column}
 					HAVING notEmpty(val)
 					ORDER BY uniques DESC
-					LIMIT 20
-				",
-				Utils\date_in_milliseconds( '-1 week', DAY_IN_SECONDS ),
-				get_current_blog_id()
-			);
+					LIMIT 20";
 		}
 
-		$results[ $map['name'] ] = Utils\clickhouse_query( $query );
+		$results[ $map['name'] ] = Utils\query( $query, $query_params );
 	}
 
 	$results = array_filter( $results, function ( $result ) {
@@ -720,7 +720,8 @@ function get_field_data() : ?array {
 				}
 				$field['data'] = $field_data;
 			} else {
-				$field['stats'] = (array) $results[ $field_name ];
+				// Get single row for stat field.
+				$field['stats'] = (array) reset( $results[ $field_name ] );
 			}
 		}
 
@@ -739,9 +740,9 @@ function get_field_data() : ?array {
  * Convert an audience config array to an SQL query.
  *
  * @param array $audience Audience configuration array.
- * @return string SQL WHERE clauses component.
+ * @return array Tuple of SQL WHERE clause component and interpolation parameters.
  */
-function build_audience_query( array $audience ) : string {
+function build_audience_query( array $audience ) : array {
 	$fields = get_fields();
 
 	// Map the include values to elasticsearch query filters.
@@ -752,48 +753,65 @@ function build_audience_query( array $audience ) : string {
 	];
 
 	$group_queries = [];
+	$placeholders = [];
 
-	foreach ( $audience['groups'] as $group ) {
+	foreach ( $audience['groups'] as $gid => $group ) {
 		$group_include = $include_map[ $group['include'] ];
 		$group_query = [];
 
-		foreach ( $group['rules'] as $rule ) {
+		foreach ( $group['rules'] as $rid => $rule ) {
 			$rule_query = '';
+			$rule_query_pattern = '%s %s';
 
 			// Ignore rules with an empty field or no db column name.
 			if ( empty( $rule['field'] ) || ! isset( $fields[ $rule['field'] ]['options']['column'] ) ) {
 				continue;
 			}
 
+			$placeholder_key = "audience_{$gid}_{$rid}";
+
 			// Handle string comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'string' ) {
+				$placeholders[ $placeholder_key ] = (string) $rule['value'];
+				$placeholder = sprintf( '{%s:String}', $placeholder_key );
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query .= "= '{$rule['value']}'";
+						$rule_query .= "= {$placeholder}";
 						break;
 					case '!=':
-						$rule_query .= "!= '{$rule['value']}'";
+						$rule_query .= "!= {$placeholder}";
 						break;
 					case '*=':
-						$rule_query .= "ILIKE '%{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) > 0';
+						$rule_query .= $placeholder;
 						break;
 					case '!*':
-						$rule_query .= "NOT ILIKE '%{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) = 0';
+						$rule_query .= $placeholder;
 						break;
 					case '^=':
-						$rule_query .= "ILIKE '{$rule['value']}%'";
+						$rule_query_pattern = 'position(%s, %s) = 1';
+						$rule_query .= $placeholder;
 						break;
 				}
 			}
 
 			// Handle numeric field comparisons.
 			if ( Utils\get_field_type( $rule['field'] ) === 'number' ) {
+				$placeholders[ $placeholder_key ] = is_float( $rule['value'] )
+					? floatval( $rule['value'] )
+					: intval( $rule['value'] );
+				$placeholder = sprintf(
+					'{%s:%s}',
+					$placeholder_key,
+					is_float( $rule['value'] ) ? 'Float64' : 'UInt64'
+				);
 				switch ( $rule['operator'] ) {
 					case '=':
-						$rule_query .= "= {$rule['value']}";
+						$rule_query .= "= {$placeholder}";
 						break;
 					case '!=':
-						$rule_query .= "!= {$rule['value']}";
+						$rule_query .= "!= {$placeholder}";
 						break;
 					default:
 						$operator = [
@@ -802,14 +820,14 @@ function build_audience_query( array $audience ) : string {
 							'lt' => '<',
 							'lte' => '<=',
 						][ $rule['operator'] ] ?? '=';
-						$rule_query .= "{$operator} {$rule['value']}";
+						$rule_query .= "{$operator} {$placeholder}";
 				}
 			}
 
 			// Add the rule query to the group.
 			if ( ! empty( $rule_query ) ) {
 				$group_query[] = sprintf(
-					'%s %s',
+					$rule_query_pattern,
 					$fields[ $rule['field'] ]['options']['column'],
 					$rule_query
 				);
@@ -823,7 +841,7 @@ function build_audience_query( array $audience ) : string {
 	$groups_include = $include_map[ $audience['include'] ];
 	$groups_query = sprintf( ' (%s) ', implode( $groups_include, $group_queries ) );
 
-	return $groups_query;
+	return [ $groups_query, $placeholders ];
 }
 
 /**

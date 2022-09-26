@@ -9,7 +9,6 @@ namespace Altis\Analytics\Utils;
 
 use Altis\Analytics;
 use Asset_Loader;
-use Aws\S3\S3Client;
 use WP_Error;
 
 /**
@@ -175,264 +174,6 @@ function composite_stddev( array $means, array $stddevs, array $group_counts ) :
 }
 
 /**
- * Return the Elasticsearhc instance URL.
- *
- * @return string
- */
-function get_elasticsearch_url() : string {
-	$url = '';
-
-	if ( defined( 'ALTIS_ANALYTICS_ELASTICSEARCH_URL' ) ) {
-		$url = ALTIS_ANALYTICS_ELASTICSEARCH_URL;
-	}
-
-	/**
-	 * Filter the elasticsearch URL for use with analytics.
-	 *
-	 * @param string $url Elasticsearch Server URL.
-	 */
-	$url = apply_filters( 'altis.analytics.elasticsearch.url', $url );
-
-	return $url;
-}
-
-/**
- * Retrieve the elasticsearch version.
- *
- * Return the version string if found otherwise 'unknown'.
- *
- * @return string|null
- */
-function get_elasticsearch_version() : ?string {
-	if ( defined( 'ELASTICSEARCH_VERSION' ) ) {
-		return ELASTICSEARCH_VERSION;
-	}
-
-	$version = wp_cache_get( 'elasticsearch-version' );
-	if ( ! empty( $version ) ) {
-		return $version;
-	}
-
-	$response = wp_remote_get( get_elasticsearch_url() );
-
-	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
-		return null;
-	}
-
-	$json = wp_remote_retrieve_body( $response );
-	$result = json_decode( $json, true );
-	$version = $result['version']['number'] ?? 'unknown';
-
-	// Cache for a long time as it's not going to be changing particularly often.
-	wp_cache_set( 'elasticsearch-version', $version, '', DAY_IN_SECONDS );
-
-	return $version;
-}
-
-/**
- * Get the index name prefix for analytics indexes.
- *
- * @return string
- */
-function get_elasticsearch_index_prefix() : string {
-	$index_prefix = apply_filters( 'altis.analytics.elasticsearch.index-prefix', 'analytics-' );
-	return $index_prefix;
-}
-
-/**
- * Fetch available analytics indices.
- *
- * @return array
- */
-function get_indices() : array {
-	$cache = wp_cache_get( 'analytics-indices', 'altis' );
-	if ( $cache ) {
-		return $cache;
-	}
-
-	$indices_response = wp_remote_get( get_elasticsearch_url() . '/' . get_elasticsearch_index_prefix() . '*?filter_path=*.aliases' );
-
-	if ( is_wp_error( $indices_response ) ) {
-		trigger_error( sprintf(
-			'Analytics: Could not fetch analytics indexes: %s',
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			$indices_response->get_error_message()
-		), E_USER_WARNING );
-		return [];
-	}
-
-	if ( wp_remote_retrieve_response_code( $indices_response ) !== 200 ) {
-		trigger_error( sprintf(
-			"Analytics: ElasticSearch indexes not found:\n%s",
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			wp_remote_retrieve_body( $indices_response )
-		), E_USER_WARNING );
-		return [];
-	}
-
-	$indices = json_decode( wp_remote_retrieve_body( $indices_response ), true );
-	$indices = array_keys( $indices );
-
-	wp_cache_set( 'analytics-indices', $indices, 'altis', MINUTE_IN_SECONDS );
-
-	return $indices;
-}
-
-/**
- * Query Analytics data in Elasticsearch.
- *
- * @param array $query A full elasticsearch Query DSL array.
- * @param array $params URL query parameters to append to request URL.
- * @param string $path The endpoint to query against, defaults to _search.
- * @param string $method The HTTP request method to use.
- * @return array|null
- */
-function query( array $query, array $params = [], string $path = '_search', string $method = 'POST' ) : ?array {
-	// Sanitize path.
-	$path = trim( $path, '/' );
-
-	$index_paths = [ get_elasticsearch_index_prefix() . '*' ];
-
-	// Try to extract specific index names to query if possible.
-	if ( isset( $query['query']['bool']['filter'] ) && is_array( $query['query']['bool']['filter'] ) ) {
-		foreach ( $query['query']['bool']['filter'] as $filter ) {
-			if ( ! isset( $filter['range']['event_timestamp'] ) ) {
-				continue;
-			}
-
-			// Reset index paths.
-			$index_paths = [];
-
-			// Prevent fatal errors if an index doesn't exist.
-			$params['ignore_unavailable'] = 'true';
-
-			$from = absint( $filter['range']['event_timestamp']['gte'] ?? $filter['range']['event_timestamp']['gt'] ?? 0 );
-			$to = absint( $filter['range']['event_timestamp']['lte'] ?? $filter['range']['event_timestamp']['lt'] ?? milliseconds() );
-
-			$available_indices = get_indices();
-
-			foreach ( $available_indices as $index ) {
-				$day = strtotime( str_replace( get_elasticsearch_index_prefix(), '', $index ) ) * 1000;
-				if ( $day >= $from && $day <= $to ) {
-					$index_paths[] = $index;
-				}
-			}
-
-			// Revert to all index if there are no matches.
-			if ( empty( $index_paths ) ) {
-				$index_paths[] = get_elasticsearch_index_prefix() . '*';
-			}
-
-			break;
-		}
-	}
-
-	// Add performance boosting parameters.
-	if ( strpos( $path, '_search' ) !== false ) {
-		$params = wp_parse_args( $params, [
-			// Cache results for faster subsequent lookups.
-			'request_cache' => 'true',
-			// Prefer shards on the node handling the request before broadening search.
-			'preference' => '_local',
-		] );
-	}
-
-	// Get URL.
-	$url = add_query_arg( $params, sprintf(
-		'%s/%s/%s',
-		get_elasticsearch_url(),
-		implode( ',', $index_paths ),
-		$path
-	) );
-
-	// Elasticsearch supports up to 4kb URLs by default so we can revert to the wildcard in this instance.
-	// Note it should never happen as 90 indexes would be 1889 bytes total.
-	if ( strlen( $url ) > 4 * 1024 ) {
-		$url = add_query_arg( $params, sprintf(
-			'%s/%s/%s',
-			get_elasticsearch_url(),
-			get_elasticsearch_index_prefix() . '*',
-			$path
-		) );
-	}
-
-	// Escape the URL to ensure nothing strange was passed in via $path.
-	$url = esc_url_raw( $url );
-
-	/**
-	 * Filters the default analytics timeout.
-	 *
-	 * @param int $timeout Seconds to wait for a repsonse from Elasticsearch.
-	 * @return int
-	 */
-	$timeout = (int) apply_filters( 'altis.analytics.elasticsearch.timeout', 20 );
-
-	$request_args = [
-		'method' => $method,
-		'headers' => [
-			'Content-Type' => 'application/json',
-		],
-		'timeout' => min( 30, max( 5, $timeout ) ), // Minimum 5 seconds, max 30 seconds.
-	];
-
-	// Only attach the body if the method supports it.
-	if ( in_array( $method, [ 'POST', 'PUT', 'PATCH', 'DELETE' ], true ) ) {
-		$request_args['body'] = wp_json_encode( $query, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-	}
-
-	// Get the data!
-	$response = wp_remote_request( $url, $request_args );
-
-	if ( wp_remote_retrieve_response_code( $response ) !== 200 || is_wp_error( $response ) ) {
-		if ( is_wp_error( $response ) ) {
-			trigger_error(
-				sprintf(
-					"Analytics: elasticsearch query failed:\n%s\n%s",
-					esc_url( $url ),
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					$response->get_error_message()
-				),
-				E_USER_WARNING
-			);
-		} else {
-			trigger_error(
-				sprintf(
-					"Analytics: elasticsearch query failed:\n%s\n%s\n%s",
-					esc_url( $url ),
-					wp_json_encode( $query ),
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-					wp_remote_retrieve_body( $response )
-				),
-				E_USER_WARNING
-			);
-		}
-		return null;
-	}
-
-	$json = wp_remote_retrieve_body( $response );
-	$result = json_decode( $json, true );
-
-	if ( json_last_error() ) {
-		trigger_error( 'Analytics: elasticsearch response could not be decoded.', E_USER_WARNING );
-		return null;
-	}
-
-	// Enable logging for analytics queries.
-	if ( defined( 'ALTIS_ANALYTICS_LOG_QUERIES' ) && ALTIS_ANALYTICS_LOG_QUERIES ) {
-		error_log(
-			sprintf(
-				"Analytics: elasticsearch query:\n%s\n%s\n%s",
-				$url,
-				wp_json_encode( $query ),
-				wp_remote_retrieve_body( $response )
-			)
-		);
-	}
-
-	return $result;
-}
-
-/**
  * Get actual milliseconds value as integer.
  *
  * @return int Milliseconds since unix epoch.
@@ -467,31 +208,13 @@ function date_in_milliseconds( string $point_in_time, int $round_to = 0 ) : ?int
 }
 
 /**
- * Takes the 'buckets' from a historgam aggregation and normalises
- * it to something easier to work with in JS.
- *
- * @param array $histogram The raw histogram buckets from ES.
- * @param string|null $sub_count_key An optional sub aggregation key to get the count from.
- * @return array
- */
-function normalise_histogram( array $histogram, ?string $sub_count_key = null ) : array {
-	$histogram = array_map( function ( array $bucket ) use ( $sub_count_key ) {
-		return [
-			'index' => intval( $bucket['key'] ),
-			'count' => $bucket[ $sub_count_key ]['value'] ?? $bucket['doc_count'],
-		];
-	}, $histogram );
-	return array_values( $histogram );
-}
-
-/**
  * Takes the 'buckets' from a ClickHouse historgam aggregation and normalises
  * it to something easier to work with in JS.
  *
  * @param array $histogram The raw histogram buckets from ClickHouse.
  * @return array
  */
-function normalise_clickhouse_histogram( array $histogram ) : array {
+function normalise_histogram( array $histogram ) : array {
 	$histogram = array_map( function ( array $bucket ) {
 		return [
 			'index' => intval( $bucket[0] ), // Index 0 is the start number, 1 is the end.
@@ -1037,71 +760,15 @@ function get_letter( int $index ) : string {
 }
 
 /**
- * Get a configured instance of S3 Client class.
- *
- * @param array $args Additional arguments to use with the client constructor.
- *
- * @return S3Client|null
- */
-function get_s3_client( array $args = [] ) : ? S3Client {
-
-	// These constants are required to continue.
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
-		return null;
-	}
-	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
-		return null;
-	}
-
-	$params = array_merge( [
-		'version' => '2006-03-01',
-		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
-	], $args );
-
-	// Add defined credentials if available.
-	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
-		$params['credentials'] = [
-			'key' => ALTIS_ANALYTICS_S3_KEY,
-			'secret' => ALTIS_ANALYTICS_S3_SECRET,
-		];
-	}
-
-	// Allow overriding the S3 endpoint.
-	if ( defined( 'ALTIS_ANALYTICS_S3_ENDPOINT' ) ) {
-		$params['endpoint'] = ALTIS_ANALYTICS_S3_ENDPOINT;
-	}
-
-	/**
-	 * Filter the Analytics S3 client params.
-	 *
-	 * @param array $params The parameters used to instantiate the S3Client object.
-	 */
-	$params = apply_filters( 'altis.analytics.s3_client_params', $params );
-
-	$client = new S3Client( $params );
-
-	/**
-	 * Filter the S3 client used by the AWS Analytics plugin.
-	 *
-	 * @param Aws\S3\S3Client $client The S3Client object.
-	 * @param array $params The default params passed to the client.
-	 */
-	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
-
-	return $client;
-}
-
-/**
  * Make an HTTP request to ClickHouse.
  *
- * Returns null for zero results, object for a single row / or an array of objects.
- *
  * @param string $query SQL statement, if $body is present it will be encoded into the request URL.
- * @param string $body Optional query body. For use with queries like INSERT with JsonEachRow format.
- * @param string $return Optional return type. Can be 'auto', 'array', 'object' or 'raw'.
+ * @param array $params Array of query parameters to add to the query string, will be automatically prefixed with `param_` for interpolation of values.
+ * @param string $return Optional return type. Can be 'array', 'object' or 'raw', default 'array'.
+ * @param string|null $body Optional query body. For use with queries like INSERT with JsonEachRow format.
  * @return null|\stdClass|\stdClass[]|WP_Error
  */
-function clickhouse_query( string $query, string $body = '', string $return = 'auto' ) {
+function query( string $query, array $params = [], string $return = 'array', ?string $body = null ) {
 	$config = [
 		'host' => defined( 'ALTIS_CLICKHOUSE_HOST' ) ? ALTIS_CLICKHOUSE_HOST : 'clickhouse',
 		'port' => defined( 'ALTIS_CLICKHOUSE_PORT' ) ? ALTIS_CLICKHOUSE_PORT : 8123,
@@ -1145,10 +812,22 @@ function clickhouse_query( string $query, string $body = '', string $return = 'a
 		$request_args['body'] = $body;
 	}
 
+	// Add query parameters.
+	if ( ! empty( $params ) ) {
+		$prepared = [];
+		foreach ( $params as $key => $value ) {
+			$value = is_array( $value )
+				? str_replace( '"', "'", json_encode( $value ) ) // Arrays must be JSON encoded with single quotes.
+				: $value;
+			$prepared[ 'param_' . urlencode( $key ) ] = urlencode( $value );
+		}
+		$clickhouse_url = add_query_arg( $prepared, $clickhouse_url );
+	}
+
 	/**
 	 * Filter the args used to control the request type.
 	 */
-	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $body );
+	$request_args = apply_filters( 'altis.analytics.clickhouse_request_args', $request_args, $query, $params, $body );
 
 	$response = wp_remote_post(
 		$clickhouse_url,
@@ -1174,10 +853,21 @@ function clickhouse_query( string $query, string $body = '', string $return = 'a
 	$result = array_map( 'json_decode', $result );
 
 	// For single or zero results assume this is just a row of aggregate values and return it.
-	if ( $return === 'object' || ( $return === 'auto' && count( $result ) <= 1 ) ) {
+	if ( $return === 'object' ) {
 		return reset( $result );
 	}
 
 	// Return array.
 	return $result;
+}
+
+/**
+ * Get a unique cache key from a set of arguments.
+ *
+ * @param string $prefix The cache key prefix.
+ * @param mixed ...$args List of arguments to generate a cache key from.
+ * @return string
+ */
+function get_cache_key( string $prefix, ...$args ) : string {
+	return sprintf( '%s:%s', $prefix, hash( 'sha1', serialize( $args ) ) );
 }

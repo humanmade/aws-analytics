@@ -205,9 +205,11 @@ function register_test() {
 		'label' => __( 'A/B Test Block', 'altis-analytics' ),
 		'goal' => 'conversion',
 		'view' => 'experienceView',
-		'query_filter' => function ( $post_id ) : array {
-			global $wpdb;
-			return $wpdb->prepare( "attributes['clientId'] = %s", get_post( $post_id )->post_name );
+		'query_filter' => "attributes['clientId'] = {client_id:String}",
+		'query_filter_params' => function ( $post_id ) : array {
+			return [
+				'client_id' => get_post( $post_id )->post_name,
+			];
 		},
 		'post_types' => [ Blocks\POST_TYPE ],
 	] );

@@ -104,16 +104,17 @@ class Endpoint {
 			header( 'Content-Type: text/csv; charset=' . get_option( 'blog_charset' ), true );
 		}
 
+		// Track params for interpolating.
+		$query_params = [];
+
 		// Default part of the query to get all events for the current site.
-		$query_where = $wpdb->prepare(
-			"attributes['blogId'] = %s AND event_timestamp >= toDateTime64(%s,3) AND event_timestamp < toDateTime64(%s,3)",
-			get_current_blog_id(),
-			$dates['start'],
-			$dates['end']
-		);
+		$query_where = 'blog_id = {blog_id:String} AND event_timestamp >= toDateTime64({start:String},3) AND event_timestamp < toDateTime64({end:String},3)';
+		$query_params['blog_id'] = get_current_blog_id();
+		$query_params['start'] = $dates['start'];
+		$query_params['end'] = $dates['end'];
 
 		// The first query returns just the total number of items for reporting purposes.
-		$total = Utils\clickhouse_query( "SELECT count() as total FROM analytics WHERE {$query_where}" );
+		$total = Utils\query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params );
 		$total = intval( $total->total ?? 0 );
 
 		// Set total found results header.
@@ -139,11 +140,14 @@ class Endpoint {
 				$query_format = 'FORMAT CSV' . ( $page === 0 ? 'WithNames' : '' );
 			}
 
-			$results = Utils\clickhouse_query( $wpdb->prepare(
-				"SELECT * FROM analytics WHERE {$query_where} LIMIT %d OFFSET %d {$query_format}",
-				$chunk_size,
-				$chunk_size * $page
-			), '', 'raw' );
+			$results = Utils\query(
+				"SELECT * FROM analytics WHERE {$query_where} LIMIT {limit:UInt64} OFFSET {offset:UInt64} {$query_format}",
+				array_merge( $query_params, [
+					'limit' => $chunk_size,
+					'offset' => $chunk_size * $page,
+				] ),
+				'raw'
+			);
 
 			if ( is_wp_error( $results ) ) {
 				trigger_error( 'Analytics export error: ' . $results->get_error_message(), E_USER_WARNING );
@@ -162,6 +166,7 @@ class Endpoint {
 				}
 			}
 
+			// phpcs:ignore HM.Security.EscapeOutput.OutputNotEscaped -- raw data from ClickHouse.
 			echo $results;
 			flush();
 		}

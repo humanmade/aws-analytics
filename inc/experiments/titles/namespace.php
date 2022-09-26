@@ -35,8 +35,11 @@ function init() {
 			'goal' => 'click',
 			'closest' => 'a',
 			// Exclude all events from the target post page.
-			'query_filter' => function ( $post_id ) : string {
-				return sprintf( "attributes['postId'] != '%d'", $post_id );
+			'query_filter' => "attributes['postId'] != {post_id:String}",
+			'query_filter_params' => function ( $post_id ) : array {
+				return [
+					'post_id' => $post_id,
+				];
 			},
 			// Update the actual post title.
 			'winner_callback' => function ( int $post_id, string $title ) {

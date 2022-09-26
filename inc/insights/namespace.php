@@ -294,38 +294,13 @@ function get_days_view() : int {
 }
 
 /**
- * Aggregate and map the data from the ES query.
- *
- * @param array $buckets The ElasticSearch query data.
- *
- * @return array An array of aggregated data.
- */
-function get_aggregate_data( array $buckets ) : array {
-	$data = [];
-
-	foreach ( $buckets as $block ) {
-		$block_id = $block['key'];
-		$views = $block['views']['uniques']['value'] ?? 0;
-		$conversions = $block['conversions']['uniques']['value'] ?? 0;
-		$conversion_rate = $block['conversion_rate']['value'] ?? 0;
-
-		$data[ $block_id ]['views'] = $views;
-		$data[ $block_id ]['conversions'] = $conversions;
-		$data[ $block_id ]['conversion_rate'] = $conversion_rate;
-	}
-
-	return $data;
-}
-
-/**
  * Get analytics views list data.
  *
  * @param int $days How many days worth of analytics to fetch. Defaults to 7.
  *
- * @return array The array of list data from ElasticSearch.
+ * @return array The array of list data from ClickHouse.
  */
 function get_views_list( int $days = 7 ) : array {
-	global $wpdb;
 	$date_start = time() - ( $days * DAY_IN_SECONDS );
 
 	$key = sprintf( 'views:list:days:%d', $days );
@@ -335,7 +310,12 @@ function get_views_list( int $days = 7 ) : array {
 		return $cache;
 	}
 
-	$query = $wpdb->prepare(
+	$query_params = [
+		'blog_id' => get_current_blog_id(),
+		'start' => $date_start,
+	];
+
+	$query =
 		"SELECT
 			attributes['clientId'] as block_id,
 			uniqCombined64If(endpoint_id, event_type = 'experienceView') as unique_views,
@@ -344,16 +324,13 @@ function get_views_list( int $days = 7 ) : array {
 			groupUniqArray(attributes['postId']) as post_ids
 		FROM analytics
 		WHERE
-			attributes['blogId'] = %s
+			blog_id = {blog_id:String}
 			AND event_type IN ('experienceView', 'conversion')
-			AND event_timestamp >= toDateTime64(intDiv(%d,1000), 3)
+			AND event_timestamp >= toDateTime64({start:UInt64}, 3)
 		GROUP BY attributes['clientId']
-		ORDER BY unique_views DESC",
-		get_current_blog_id(),
-		$date_start * 1000
-	);
+		ORDER BY unique_views DESC";
 
-	$result = Utils\clickhouse_query( $query );
+	$result = Utils\query( $query, $query_params );
 	$data = [];
 
 	if ( ! $result ) {
@@ -368,9 +345,9 @@ function get_views_list( int $days = 7 ) : array {
 	$data = [];
 	foreach ( $result as $row ) {
 		$data[ $row->block_id ] = [
-			'views' => $row->unique_views,
-			'conversions' => $row->unique_conversions,
-			'conversion_rate' => $row->conversion_rate,
+			'views' => (int) $row->unique_views,
+			'conversions' => (int) $row->unique_conversions,
+			'conversion_rate' => (float) $row->conversion_rate,
 		];
 	}
 
