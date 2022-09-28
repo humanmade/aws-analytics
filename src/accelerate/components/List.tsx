@@ -171,19 +171,22 @@ export default function List ( props: Props ) {
 						</RadioGroup>
 					</div>
 					<div className="table-search">
-						<span className="dashicons dashicons-search"></span>
-						<input
-							type="text"
-							placeholder={ __( 'Search Pages, Posts & Blocks', 'altis' ) }
-							className="search"
-							onChange={ e => {
-								timer && clearTimeout( timer );
-								timer = setTimeout( value => {
-									trackEvent( 'Content Explorer', 'Search' );
-									setSearch( value );
-								}, 500, e.target.value );
-							} }
-						/>
+						<label htmlFor="accelerate-search">
+							<span className="dashicons dashicons-search"></span>
+							<input
+								id="accelerate-search"
+								type="text"
+								placeholder={ __( 'Search Pages, Posts & Blocks', 'altis' ) }
+								className="search"
+								onChange={ e => {
+									timer && clearTimeout( timer );
+									timer = setTimeout( value => {
+										trackEvent( 'Content Explorer', 'Search' );
+										setSearch( value );
+									}, 500, e.target.value );
+								} }
+							/>
+						</label>
 					</div>
 					<div className="table-add-new">
 						<Dropdown
