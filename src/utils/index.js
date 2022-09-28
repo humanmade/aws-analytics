@@ -9,7 +9,7 @@
  * @returns {string} A new UUID.
  */
 export const uuid = placeholder => {
-	if ( typeof window.crypto === 'object' ) {
+	if ( typeof window.crypto === 'object' && typeof window.crypto.randomUUID === 'function' ) {
 		return window.crypto.randomUUID();
 	}
 	return placeholder
