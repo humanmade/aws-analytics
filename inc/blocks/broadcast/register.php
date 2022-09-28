@@ -68,7 +68,9 @@ function enqueue_assets() {
 	wp_enqueue_style(
 		'altis-experiments-features-blocks-broadcast-style',
 		plugins_url( 'inc/blocks/broadcast/edit.css', Analytics\ROOT_FILE ),
-		[],
+		[
+			'wp-components',
+		],
 		'2021-03-26-2'
 	);
 }

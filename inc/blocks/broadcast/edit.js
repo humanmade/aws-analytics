@@ -67,11 +67,11 @@ const EditComponent = function ( props ) {
 	 * @returns {void}
 	 */
 	const setBroadcast = function ( broadcast ) {
-		if ( ! broadcast && ! window.confirm( __( 'Are you sure you want to replace this Broadcast ?', 'altis' ) ) ) {
+		if ( ! broadcast && ! window.confirm( __( 'Are you sure you want to replace this Broadcast?', 'altis' ) ) ) {
 			return;
 		}
 		_setBroadcast( broadcast );
-		setAttributes( { broadcast: broadcast?.id || null } );
+		setAttributes( { broadcast: broadcast?.id } );
 	};
 
 	/**
@@ -139,7 +139,9 @@ const EditComponent = function ( props ) {
 				<div className="components-panel__body is-opened">
 					<Button
 						href={ window.Altis.Analytics.Broadcast.ManagerURL }
+						icon="external"
 						isSecondary
+						title={ __( 'Go to Broadcast Manager', 'altis' ) }
 					>
 						{ __( 'Broadcast Manager', 'altis' ) }
 					</Button>
@@ -184,7 +186,7 @@ const EditComponent = function ( props ) {
 									<TextControl
 										className="block-editor-reusable-blocks-inserter__filter-search-keyword"
 										label={ null }
-										placeholder={ __( 'Select a Broadcast', 'altis' ) }
+										placeholder={ __( 'Search Broadcasts', 'altis' ) }
 										value={ searchKeyword }
 										onChange={ setSearchKeyword }
 									/>
@@ -200,14 +202,10 @@ const EditComponent = function ( props ) {
 												<ul className="altis-broadcast-block-list">
 													{
 														broadcasts.map( item => (
-															<li
-																className="altis-broadcast-block-list__list-item"
-																onClick={ e => {
-																	e.preventDefault();
-																	setBroadcast( item );
-																} }
-															>
-																{ item.title.rendered }
+															<li className="altis-broadcast-block-list__list-item">
+																<Button onClick={ () => setBroadcast( item ) }>
+																	{ item.title.rendered }
+																</Button>
 															</li>
 														) )
 													}

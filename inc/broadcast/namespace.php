@@ -2,7 +2,6 @@
 namespace Altis\Analytics\Broadcast;
 
 use WP_Block_Editor_Context;
-use const Altis\Accelerate\PLUGIN_FILE;
 
 "use strict;";
 
@@ -31,7 +30,6 @@ function register_broadcast_post_type() : void {
 				'author',
 			],
 			'description' => __( 'Broadcast your blocks to a larger audience.', 'altis' ),
-			'menu_icon' => plugin_dir_url( PLUGIN_FILE ) . '/assets/broadcast.svg',
 			'menu_position' => 23,
 			'show_in_rest' => true,
 			'show_in_menu' => 'index.php',

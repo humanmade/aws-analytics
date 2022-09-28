@@ -73,9 +73,11 @@
 .altis-broadcast-block-list__list-item {
 	padding: 10px;
 	list-style: none;
-	font-weight: bold;
 	border-bottom: 1px solid #000;
-	cursor: pointer;
+}
+
+.altis-broadcast-block-list__list-item button {
+	font-weight: bold;
 }
 
 .altis-broadcast-block .dashicons.dashicons-arrow-down {

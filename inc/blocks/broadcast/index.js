@@ -10,6 +10,7 @@ const settings = {
 	title: __( 'Broadcast', 'altis' ),
 	description: __( 'Broadcast your blocks to a larger audience.', 'altis' ),
 	keywords: [
+		__( 'altis', 'altis' ),
 		__( 'experience', 'altis' ),
 		__( 'experiment', 'altis' ),
 		__( 'analytics', 'altis' ),

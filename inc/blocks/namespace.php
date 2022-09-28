@@ -43,7 +43,6 @@ function setup() {
 	}
 	if ( Utils\is_feature_enabled( 'broadcast' ) ) {
 		Broadcast\setup();
-		$using_blocks = true;
 	}
 	if ( $using_blocks ) {
 		Shim\setup();
