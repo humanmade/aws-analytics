@@ -241,7 +241,7 @@ function get_graph_data( $start, $end, $resolution = '1 day', ?Filter $filter = 
 			`date`
 			WITH ROLLUP
 		ORDER BY `date` ASC
-			WITH FILL FROM toDateTime({start:UInt64}) STEP INTERVAL {$resolution}";
+			WITH FILL FROM toDateTime({start:UInt64}) TO toDateTime({end:UInt64}) STEP INTERVAL {$resolution}";
 
 	$key = Utils\get_cache_key( 'analytics:stats', $query, $query_params );
 	$cache = wp_cache_get( $key, 'altis' );
