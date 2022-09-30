@@ -20,6 +20,27 @@ const {
 
 const apiFetch = wp.apiFetch;
 
+const fetchBroadcasts = debouncePromise( function ( keyword, extraArgs ) {
+	const args = {
+		path: addQueryArgs( '/accelerate/v1/broadcast', { search: keyword } ),
+		parse: false,
+		...extraArgs,
+	};
+
+	return apiFetch( args )
+		.then( response => response.json ? response.json() : [] );
+}, 1000 );
+
+const fetchBroadcast = debouncePromise( function ( id, extraArgs ) {
+	const args = {
+		path: addQueryArgs( `accelerate/v1/broadcast/${ id }` ),
+		parse: false,
+		...extraArgs,
+	};
+
+	return apiFetch( args ).then( response => response.json ? response.json() : null );
+}, 1000 );
+
 /**
  * Block edit component.
  *
@@ -39,27 +60,6 @@ const EditComponent = function ( props ) {
 	const [ isFetching, setIsFetching ] = useState( false );
 	const [ searchKeyword, _setSearchKeyword ] = useState( '' );
 	const [ fetchError, setFetchError ] = useState( false );
-
-	const fetchBroadcasts = debouncePromise( function ( keyword, extraArgs ) {
-		const args = {
-			path: addQueryArgs( '/accelerate/v1/broadcast', { search: keyword } ),
-			parse: false,
-			...extraArgs,
-		};
-
-		return apiFetch( args )
-			.then( response => response.json ? response.json() : [] );
-	}, 1000 );
-
-	const fetchBroadcast = debouncePromise( function ( id, extraArgs ) {
-		const args = {
-			path: addQueryArgs( `accelerate/v1/broadcast/${ id }` ),
-			parse: false,
-			...extraArgs,
-		};
-
-		return apiFetch( args ).then( response => response.json ? response.json() : null );
-	}, 1000 );
 
 	/**
 	 * Select a Broadcast block.
