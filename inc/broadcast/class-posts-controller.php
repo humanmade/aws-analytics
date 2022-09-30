@@ -7,9 +7,6 @@
 
 namespace Altis\Analytics\Broadcast;
 
-use Altis\Analytics\Blocks;
-use Altis\Analytics\Utils;
-use WP_Error;
 use WP_REST_Posts_Controller;
 use WP_REST_Server;
 

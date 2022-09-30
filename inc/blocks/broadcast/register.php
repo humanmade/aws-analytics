@@ -101,6 +101,6 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$inner_content,
 		$class_name,
 		$client_id,
-		$broadcast_id,
+		$broadcast_id
 	);
 }
