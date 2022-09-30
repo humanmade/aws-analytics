@@ -120,7 +120,7 @@ const EditComponent = function ( props ) {
 		}
 
 		return () => abortController.abort();
-	}, [ attributes.broadcast, setBroadcast, broadcast?.id ] );
+	}, [ attributes.broadcast, setBroadcast, broadcast ] );
 
 	// Search broadcasts, and load initial broadcast list.
 	useEffect( () => {

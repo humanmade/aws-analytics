@@ -1,13 +1,13 @@
 <?php
 /**
  * Broadcast feature setup.
+ *
+ * @package aws-analytics
  */
 
 namespace Altis\Analytics\Broadcast;
 
 use WP_Block_Editor_Context;
-
-'use strict;';
 
 const POST_TYPE = 'broadcast';
 
