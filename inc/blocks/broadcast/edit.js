@@ -1,7 +1,7 @@
 import debouncePromise from 'debounce-promise';
 import _deburr from 'lodash/deburr';
 
-import { Fragment, useState, useEffect } from '@wordpress/element';
+import { Fragment, useState, useEffect, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { addQueryArgs } from '@wordpress/url';
 
@@ -44,9 +44,9 @@ const fetchBroadcast = debouncePromise( function ( id, extraArgs ) {
 /**
  * Block edit component.
  *
- * @param {*} props
+ * @param {*} props Block props.
  *
- * @returns {ReactElement}
+ * @returns {ReactElement} Edit block component.
  */
 const EditComponent = function ( props ) {
 	const {
@@ -67,14 +67,14 @@ const EditComponent = function ( props ) {
 	 * @param {*} broadcast Broadcast block metadata
 	 * @returns {void}
 	 */
-	const setBroadcast = function ( broadcast ) {
+	const setBroadcast = useCallback( function ( broadcast ) {
 		if ( ! broadcast && ! window.confirm( __( 'Are you sure you want to replace this Broadcast?', 'altis' ) ) ) {
 			return;
 		}
 		setFetchError( false );
 		_setBroadcast( broadcast );
 		setAttributes( { broadcast: broadcast?.id } );
-	};
+	}, [ setAttributes ] );
 
 	/**
 	 * Normalize and set search keyword.
@@ -102,7 +102,7 @@ const EditComponent = function ( props ) {
 		if ( ! attributes.clientId ) {
 			setAttributes( { clientId } );
 		}
-	}, [ attributes.clientId, setAttributes ] );
+	}, [ attributes.clientId, setAttributes, clientId ] );
 
 	// Fetch the broadcast post if we have one selected already.
 	useEffect( () => {
@@ -120,7 +120,7 @@ const EditComponent = function ( props ) {
 		}
 
 		return () => abortController.abort();
-	}, [ attributes.broadcast ] );
+	}, [ attributes.broadcast, setBroadcast, broadcast?.id ] );
 
 	// Search broadcasts, and load initial broadcast list.
 	useEffect( () => {
@@ -177,30 +177,31 @@ const EditComponent = function ( props ) {
 					{ attributes.broadcast
 						? (
 							<div className="altis-broadcast-blocks-inserter__title">
-								{ fetchError
-									? (
-										<div className="altis-broadcast-blocks-inserter__error">
-											<strong>
-												{ __( 'Error: Could not find the selected broadcast.', 'altis' ) }
-											</strong>
-											<Button
-												onClick={ () => setBroadcast( null ) }
-											>
-												{ __( 'Select another Broadcast?', 'altis' ) }
-											</Button>
-										</div>
-									)
-									: broadcast
+								{
+									fetchError
 										? (
-											<>
-												{ __( 'Broadcasting:', 'altis' ) }
-												{ ' ' }
-												<strong>{ broadcast.title.rendered }</strong>
-												<Icon className="altis-broadcast-blocks-inserter__remove-broadcast" icon="no" onClick={ () => setBroadcast( null ) } />
-											</>
-										) : (
-											<Spinner className="altis-broadcast-block-list__list-loading" />
+											<div className="altis-broadcast-blocks-inserter__error">
+												<strong>
+													{ __( 'Error: Could not find the selected broadcast.', 'altis' ) }
+												</strong>
+												<Button
+													onClick={ () => setBroadcast( null ) }
+												>
+													{ __( 'Select another Broadcast?', 'altis' ) }
+												</Button>
+											</div>
 										)
+										: broadcast
+											? (
+												<>
+													{ __( 'Broadcasting:', 'altis' ) }
+													{ ' ' }
+													<strong>{ broadcast.title.rendered }</strong>
+													<Icon className="altis-broadcast-blocks-inserter__remove-broadcast" icon="no" onClick={ () => setBroadcast( null ) } />
+												</>
+											) : (
+												<Spinner className="altis-broadcast-block-list__list-loading" />
+											)
 								}
 							</div>
 						) : (

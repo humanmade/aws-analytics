@@ -30,7 +30,7 @@
 
 .altis-broadcast-block-header__desc {
 	margin-top: 0;
-	font-weight: normal;
+	font-weight: 400;
 }
 
 .altis-broadcast-block-header__title {
@@ -81,7 +81,7 @@
 }
 
 .altis-broadcast-block-list__list-item button {
-	font-weight: bold;
+	font-weight: 600;
 }
 
 .altis-broadcast-block .dashicons.dashicons-arrow-down {
