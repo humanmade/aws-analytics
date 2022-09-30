@@ -52,6 +52,16 @@ function bootstrap() : void {
 	// Hook our cron job handler.
 	add_action( 'altis.analytics.export.cron', __NAMESPACE__ . '\cron_handler' );
 
+	// Setup cron schedule.
+	add_action( 'admin_footer', __NAMESPACE__ . '\setup_cron_schedule' );
+}
+
+/**
+ * Schedule data export background task.
+ *
+ * @return void
+ */
+function setup_cron_schedule() : void {
 	/**
 	 * Filter the cron job schedule interval.
 	 *
@@ -80,6 +90,7 @@ function setup_cron_interval( $schedules ) : array {
 	return array_merge( $schedules, [
 		ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY => [
 			'interval' => ALTIS_ANALYTICS_EXPORT_CRON_FREQUENCY_INTERVAL,
+			'display' => __( 'Altis Analytics Schedule (10 mins)', 'altis-analytics' ),
 		],
 	] );
 }

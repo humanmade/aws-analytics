@@ -1,0 +1,39 @@
+.altis-svg-shape {
+	display: block;
+	fill: transparent;
+	stroke: #152a4e;
+	stroke-width: 3px;
+}
+
+@-webkit-keyframes altis-paint {
+	0% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@-moz-keyframes altis-paint {
+	0% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@-o-keyframes altis-paint {
+	0% {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes altis-paint {
+	0% {
+		stroke-dashoffset: 0;
+	}
+}
+
+.altis-svg-shape .altis-shape {
+	stroke-dasharray: 1200;
+	stroke-dashoffset: 1200;
+	-webkit-animation: altis-paint 1500ms ease-in-out infinite alternate;
+	-moz-animation: altis-paint 1500ms ease-in-out infinite alternate;
+	-o-animation: altis-paint 1500ms ease-in-out infinite alternate;
+	animation: altis-paint 1500ms ease-in-out infinite alternate;
+}

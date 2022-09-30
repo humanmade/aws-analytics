@@ -30,16 +30,16 @@ const CustomTooltip = ( { active, payload, label, ...rest }: TooltipProps<number
 		<div className="TrafficGraph__tooltip">
 			<h3>{ formatDate( label ) }</h3>
 			<dl
-				className="TrafficGraph__tooltip-value TrafficGraph__tooltip-visitors"
-			>
-				<dt>Uniques</dt>
-				<dd>{ item.visitors }</dd>
-			</dl>
-			<dl
 				className="TrafficGraph__tooltip-value TrafficGraph__tooltip-views"
 			>
 				<dt>Views</dt>
 				<dd>{ item.views }</dd>
+			</dl>
+			<dl
+				className="TrafficGraph__tooltip-value TrafficGraph__tooltip-visitors"
+			>
+				<dt>Uniques</dt>
+				<dd>{ item.visitors }</dd>
 			</dl>
 		</div>
 	);
@@ -52,6 +52,13 @@ interface Props {
 	period: Period,
 }
 
+type FormattedData = {
+	date: Date,
+	views: number,
+	visitors: number,
+	nonunique: number,
+}[];
+
 export default function TrafficGraph( props: Props ) {
 	const { data, period } = props;
 	if ( ! data ) {
@@ -61,17 +68,15 @@ export default function TrafficGraph( props: Props ) {
 	const start = moment( period.start );
 	const end = moment( period.end );
 	const numDays = end.diff( start, 'days' ) + 1;
-	const formattedData = [];
-	for ( let i = 0; i < numDays; i++ ) {
-		const day = moment( start ).add( i, 'days' );
-		const dayData = data.by_interval[ day.format( 'Y-MM-DD' ) ];
+	const formattedData : FormattedData = [];
+	Object.entries( data.by_interval ).forEach( ( [ date, stats ] ) => {
 		formattedData.push( {
-			date: day.valueOf(),
-			views: ( dayData ? dayData.views : 0 ) || 0,
-			visitors: ( dayData ? dayData.visitors : 0 ) || 0,
-			nonunique: ( dayData ? dayData.views - dayData.visitors : 0 ) || 0,
+			date: new Date( date ),
+			views: ( stats ? stats.views : 0 ) || 0,
+			visitors: ( stats ? stats.visitors : 0 ) || 0,
+			nonunique: ( stats ? stats.views - stats.visitors : 0 ) || 0,
 		} );
-	}
+	} );
 
 	const tickInterval = Math.floor( numDays / MAX_TICKS );
 	const barWidth = 800 / numDays;

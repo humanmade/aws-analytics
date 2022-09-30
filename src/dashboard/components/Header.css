@@ -3,6 +3,7 @@
 .Header {
 	margin: 0.5em 0 -1px;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	position: sticky;
 	background: #f3f5f9;
@@ -11,6 +12,11 @@
 	z-index: 100;
 	padding: 0.5em 0;
 	border-bottom: 1px solid #ccd0d4;
+}
+
+.Header h1 {
+	width: 100%;
+	margin: 0;
 }
 
 .Header .DateRangePickerInput {
@@ -90,7 +96,7 @@
 }
 
 .Header__filter-text {
-	line-height: 24px;
+	line-height: 1.8;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -105,7 +111,7 @@
 	cursor: pointer;
 	padding: 0 2px;
 	color: #757575;
-	line-height: 10px;
+	line-height: 0.8;
 	overflow: initial;
 }
 

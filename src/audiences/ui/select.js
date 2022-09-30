@@ -116,26 +116,26 @@ class Select extends Component {
 				<div className="audience-select__info">
 					{ label && <label className="audience-select__label">{ label }</label> }
 					<div className="audience-select__controls">
-						{ audience && onClearSelection && (
+						{ audience && onClearSelection ? (
 							<IconButton
 								className="audience-select__clear"
 								icon="no-alt"
 								label={ __( 'Clear selection', 'altis-analytics' ) }
 								onClick={ onClearSelection }
 							/>
-						) }
+						) : null }
 						<IconButton
 							className="audience-select__choose"
 							icon="edit"
 							label={ buttonLabel }
 							onClick={ () => this.setState( { show: true } ) }
 						>
-							{ audience && ! audiencePost && (
+							{ audience && ! audiencePost ? (
 								<Fragment>
 									<Spinner />
 									{ __( 'Loading...', 'altis-analytics' ) }
 								</Fragment>
-							) }
+							) : null }
 							{ error && (
 								<strong className="audience-select__value audience-select__value--error">{ error }</strong>
 							) }

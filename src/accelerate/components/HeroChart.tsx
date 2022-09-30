@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
 import moment from 'moment';
 
+import { __experimentalRadioGroup as RadioGroup, __experimentalRadio as Radio } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
 import { extent, max, bisector } from 'd3-array';
 import { curveMonotoneX } from '@visx/curve';
@@ -10,17 +11,19 @@ import { Group } from '@visx/group';
 import { GridRows, GridColumns } from '@visx/grid';
 import { LinePath, AreaClosed, Bar } from '@visx/shape';
 import { AxisLeft, AxisBottom } from '@visx/axis';
-import { scaleLinear, scaleTime, scaleUtc } from '@visx/scale';
+import { scaleLinear, scaleUtc } from '@visx/scale';
 import { MarkerCircle } from '@visx/marker';
+import { Text } from '@visx/text';
 import { TooltipWithBounds, useTooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { periods } from '../../data/periods';
-import { compactMetric, Duration, padLeft, StatsResult } from '../../util';
+import { compactMetric, Duration, padLeft, StatsResult, trackEvent } from '../../util';
 
 import './Dashboard.scss';
+import Loading from './Loading';
 
 type Props = {
-	period?: Duration,
+	period: Duration,
 };
 
 type Datum = {
@@ -33,11 +36,11 @@ const getX = ( d : Datum ) => d.time;
 const getY = ( d : Datum ) => d.uniques;
 const bisectDate = bisector<Datum, Date>( d => d.time ).left;
 
-const getTooltip = ( data : Datum, period : { interval: string } ) => {
+const getTooltip = ( data : Datum, interval : string ) => {
 	const date = getX( data );
 	let dateString = moment( date ).format( 'MMM Do' );
 
-	let isIntervalHours = period.interval.match( /(\d)h/ );
+	let isIntervalHours = interval.match( /(\d)h/ );
 	let intervalHours = Number( isIntervalHours ? isIntervalHours[1] : 0 );
 
 	if ( intervalHours === 1 ) {
@@ -62,30 +65,50 @@ export default function HeroChart( props: Props ) {
 		period: periodKey,
 	} = props;
 
-	const period = periods.find( p => p.value === periodKey );
+	const period = periods.find( p => p.value === periodKey ) || periods[0];
 
 	// Get stats data.
 	const [ outerWidth, setOuterWidth ] = useState<number>( 0 );
+	const [ resolution, setResolution ] = useState<string>( period.intervals[0].interval );
 	const data = useSelect<StatsResult>( select => {
 		return select( 'accelerate' ).getStats( {
-			period: period?.value || 'P7D',
-			interval: period?.interval || '2h',
+			period: period.value || 'P7D',
+			interval: resolution || period.intervals[0].interval || '1d',
 		} );
-	}, [ period ] );
+	}, [ period, resolution ] );
+	const isLoading = useSelect<StatsResult>( select => {
+		return select( 'accelerate' ).getIsLoadingStats();
+	}, [ data ] );
 
-	const uniques : Datum[] = Object.entries( data?.by_interval || {} ).map( ( [ time, stats ] ) => {
-		const date = new Date( time );
-		const dateNow = new Date();
-		return {
-			time: date < dateNow ? date : dateNow,
-			uniques: stats.visitors,
-			views: stats.views,
-		};
-	} );
+	let uniques : Datum[] = [];
+	if ( isLoading || Object.values( data?.by_interval || {} ).length < 1 ) {
+		uniques = Array( 7 ).fill( {} ).map( ( d, i ) => {
+			return {
+				time: moment().endOf( 'day' ).subtract( 7, 'days' ).add( i, 'days' ).toDate(),
+				uniques: 0,
+				views: 0,
+			};
+		} );
+	} else {
+		uniques = Object.entries( data?.by_interval || {} ).map( ( [ time, stats ] ) => {
+			const date : Date = new Date( time );
+			const dateNow = new Date();
+			return {
+				time: date < dateNow ? date : dateNow,
+				uniques: stats.visitors,
+				views: stats.views,
+			};
+		} );
+	}
 
 	useEffect( () => {
 		setOuterWidth( document.getElementById( 'hero-chart' )?.offsetWidth || 600 );
 	}, [ outerWidth, data ] );
+
+	// Reset interval on period change.
+	useEffect( () => {
+		setResolution( period.intervals[0].interval );
+	}, [ period ] );
 
 	const xScale = scaleUtc<number>( {
 		domain: extent( uniques, getX ) as [ Date, Date ],
@@ -112,7 +135,6 @@ export default function HeroChart( props: Props ) {
 		tooltipLeft = 0,
 	} = useTooltip();
 
-
 	const handleTooltip = useCallback(
 		( event: React.TouchEvent<SVGGElement> | React.MouseEvent<SVGGElement> ) => {
 		  const { x } = localPoint( event ) || { x: 0 };
@@ -126,7 +148,7 @@ export default function HeroChart( props: Props ) {
 		  }
 		  showTooltip( {
 			tooltipData: d,
-			tooltipLeft: x - offsetleft,
+			tooltipLeft: xScale( getX( d ) ),
 			tooltipTop: yScale( getY( d ) ),
 		  } );
 		},
@@ -135,17 +157,52 @@ export default function HeroChart( props: Props ) {
 
 	return (
 		<div className="HeroChart" id="hero-chart">
+			<div className={ `HeroChart__loader HeroChart__loader--${ isLoading ? 'loading' : 'loaded' }` }>
+				<Loading
+					svgProps={ {
+						width: 32,
+						height: 32,
+					} }
+					pathProps={ {
+						strokeWidth: 12,
+					} }
+				/>
+				{ ' ' }
+				<span>{ __( 'Fetching data...', 'altis' ) }</span>
+			</div>
+			<div className="radio-group">
+				<RadioGroup
+					label='Period'
+					checked={ resolution }
+					onChange={ ( value: string ) => {
+						trackEvent( 'Content Explorer', 'Resolution', { type: value } );
+						setResolution( value );
+					} }
+				>
+					{ period.intervals.map( i => (
+						<Radio
+							checked={ i.interval === resolution }
+							key={ i.interval }
+							value={ i.interval }
+						>
+							{ i.label }
+						</Radio>
+					) ) }
+				</RadioGroup>
+			</div>
 			<svg width="100%" height={ graphHeight + ( graphPaddingY * 2 ) }>
 				<MarkerCircle id="marker-circle" fill="#333" size={ 2 } refX={ 2 } />
 				<LinearGradient
-					from="var( --wp-admin-theme-color )"
+					from={ isLoading ? '#ccc' : '#4667de' }
 					to="rgba( 255, 255, 255, 0 )"
 					id="hero-gradient"
 				/>
 				<Group
+					className={ `HeroChart__group ${ isLoading ? 'HeroChart__group--loading' : '' }` }
 					left={ offsetleft }
 					top={ graphPaddingY / 2 }
 					height={ graphHeight + graphPaddingY }
+					onMouseLeave={ () => hideTooltip() }
 				>
 					<AxisBottom
 						hideAxisLine={ true }
@@ -200,12 +257,24 @@ export default function HeroChart( props: Props ) {
 						numTicks={ 4 }
 						left={ -graphPaddingX }
 					/>
+					<AreaClosed
+						curve={ curveMonotoneX }
+						data={ uniques }
+						x={ d => xScale( getX( d ) ) ?? 0 }
+						y={ d  => yScale( getY( d ) ) ?? 0 }
+						yScale={ yScale }
+						strokeWidth={ 0 }
+						strokeOpacity={ 1 }
+						shapeRendering="geometricPrecision"
+						fill="#fff"
+						opacity={ 0.9 }
+					/>
 					<LinePath
 						curve={ curveMonotoneX }
 						data={ uniques }
 						x={ d => xScale( getX( d ) ) ?? 0 }
 						y={ d  => yScale( getY( d ) ) ?? 0 }
-						stroke="var( --wp-admin-theme-color )"
+						stroke={ isLoading ? '#ccc' : '#4667de' }
 						strokeWidth={ 2 }
 						strokeOpacity={ 1 }
 						shapeRendering="geometricPrecision"
@@ -237,9 +306,8 @@ export default function HeroChart( props: Props ) {
 						width={ outerWidthWithOffset }
 						height={ graphHeight }
 						stroke="transparent"
-						strokeWidth={ 2 }
+						strokeWidth={ outerWidthWithOffset / uniques.length }
 						fill="transparent"
-						rx={ 14 }
 						numTicks={ uniques.length }
 						onTouchStart={ handleTooltip }
 						onTouchMove={ handleTooltip }
@@ -262,14 +330,37 @@ export default function HeroChart( props: Props ) {
 								cx={ tooltipLeft }
 								cy={ tooltipTop }
 								r={ 4 }
-								fill="var( --wp-admin-theme-color )"
+								fill="#4667de"
 								stroke="white"
 								strokeWidth={ 2 }
 								pointerEvents="none"
 							/>
 						</g>
-					)}
+					) }
+					{ !! data?.by_interval && ( Object.values( data.by_interval ).length || 0 ) < 1 && (
+						<Text
+							className="HeroChart__waiting"
+							verticalAnchor="middle"
+							textAnchor="middle"
+							width={ 400 }
+							y={ graphHeight / 2 - 30 }
+							x={ outerWidthWithOffset / 2 - graphPaddingX }
+							fontSize={ 32 }
+							fill="#7d7d7d"
+						>
+							{ __( '👋 We’re collecting data, check back soon!', 'altis' ) }
+						</Text>
+					) }
 				</Group>
+				{ isLoading || ( Object.values( data?.by_interval || {} ).length || 0 ) < 1 && (
+					<Bar
+						x={ 0 }
+						y={ 0 }
+						width={ outerWidth }
+						height={ graphHeight + graphPaddingY }
+						fill="transparent"
+					/>
+				) }
 			</svg>
 			{ tooltipData && (
 				<div>
@@ -278,7 +369,7 @@ export default function HeroChart( props: Props ) {
 						top={ tooltipTop - 12 }
 						left={ tooltipLeft + 6 + offsetleft }
 					>
-						{ getTooltip( tooltipData as Datum, period as { interval : string } ) }
+						{ getTooltip( tooltipData as Datum, resolution ) }
 					</TooltipWithBounds>
 				</div>
 			) }

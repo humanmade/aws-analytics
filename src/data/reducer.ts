@@ -58,6 +58,16 @@ export default function reducer( state: State, action: Action ) : State {
 			};
 		}
 
+		case 'SET_DIFFS': {
+			return {
+				...state,
+				diffs: {
+					...state.diffs,
+					...action.diffs,
+				},
+			};
+		}
+
 		case 'SET_IS_LOADING': {
 			return {
 				...state,
@@ -69,6 +79,13 @@ export default function reducer( state: State, action: Action ) : State {
 			return {
 				...state,
 				isLoadingStats: action.isLoading,
+			};
+		}
+
+		case 'SET_IS_LOADING_DIFFS': {
+			return {
+				...state,
+				isLoadingDiffs: action.isLoading,
 			};
 		}
 

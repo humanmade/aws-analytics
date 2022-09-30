@@ -75,7 +75,7 @@ function setup() {
 	// Publication checklist integration.
 	add_action( 'altis.publication-checklist.register_prepublish_checks', __NAMESPACE__ . '\\check_conversion_goals' );
 
-	// Support Excerpts
+	// Support excerpts.
 	add_filter( 'excerpt_allowed_wrapper_blocks', __NAMESPACE__ . '\\filter_excerpt_allowed_wrapper_blocks' );
 }
 
