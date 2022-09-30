@@ -54,6 +54,10 @@
 	border-bottom: 1px solid #000;
 }
 
+.altis-broadcast-blocks-inserter__error strong {
+	border: none;
+}
+
 .altis-broadcast-block-list {
 	margin: 0;
 	padding: 0;

@@ -38,6 +38,7 @@ const EditComponent = function ( props ) {
 	const [ broadcasts, setBroadcasts ] = useState( [] );
 	const [ isFetching, setIsFetching ] = useState( false );
 	const [ searchKeyword, _setSearchKeyword ] = useState( '' );
+	const [ fetchError, setFetchError ] = useState( false );
 
 	const fetchBroadcasts = debouncePromise( function ( keyword, extraArgs ) {
 		const args = {
@@ -70,6 +71,7 @@ const EditComponent = function ( props ) {
 		if ( ! broadcast && ! window.confirm( __( 'Are you sure you want to replace this Broadcast?', 'altis' ) ) ) {
 			return;
 		}
+		setFetchError( false );
 		_setBroadcast( broadcast );
 		setAttributes( { broadcast: broadcast?.id } );
 	};
@@ -106,7 +108,15 @@ const EditComponent = function ( props ) {
 	useEffect( () => {
 		const abortController = new AbortController();
 		if ( attributes.broadcast && ! broadcast?.id ) {
-			fetchBroadcast( attributes.broadcast, { signal: abortController.signal } ).then( setBroadcast );
+			setFetchError( false );
+			fetchBroadcast( attributes.broadcast, { signal: abortController.signal } )
+				.then( setBroadcast )
+				.catch( response => {
+					console.log( response );
+					if ( response.status >= 300 ) {
+						setFetchError( true );
+					}
+				} );
 		}
 
 		return () => abortController.abort();
@@ -167,17 +177,30 @@ const EditComponent = function ( props ) {
 					{ attributes.broadcast
 						? (
 							<div className="altis-broadcast-blocks-inserter__title">
-								{ broadcast
+								{ fetchError
 									? (
-										<>
-											{ __( 'Broadcasting:', 'altis' ) }
-											{ ' ' }
-											<strong>{ broadcast.title.rendered }</strong>
-											<Icon className="altis-broadcast-blocks-inserter__remove-broadcast" icon="no" onClick={ () => setBroadcast( null ) } />
-										</>
-									) : (
-										<Spinner className="altis-broadcast-block-list__list-loading" />
+										<div className="altis-broadcast-blocks-inserter__error">
+											<strong>
+												{ __( 'Error: Could not find the selected broadcast.', 'altis' ) }
+											</strong>
+											<Button
+												onClick={ () => setBroadcast( null ) }
+											>
+												{ __( 'Select another Broadcast?', 'altis' ) }
+											</Button>
+										</div>
 									)
+									: broadcast
+										? (
+											<>
+												{ __( 'Broadcasting:', 'altis' ) }
+												{ ' ' }
+												<strong>{ broadcast.title.rendered }</strong>
+												<Icon className="altis-broadcast-blocks-inserter__remove-broadcast" icon="no" onClick={ () => setBroadcast( null ) } />
+											</>
+										) : (
+											<Spinner className="altis-broadcast-block-list__list-loading" />
+										)
 								}
 							</div>
 						) : (
