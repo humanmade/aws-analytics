@@ -15,7 +15,7 @@ use WP_REST_Server;
  */
 class Posts_Controller extends WP_REST_Posts_Controller {
 
-    /**
+	/**
 	 * API constructor.
 	 *
 	 * @param string $post_type Endpoint base.
@@ -26,7 +26,7 @@ class Posts_Controller extends WP_REST_Posts_Controller {
 		$this->rest_base = 'broadcast';
 	}
 
-    /**
+	/**
 	 * Replace default rest routes for the Broadcast post type.
 	 *
 	 * @return void

@@ -1,12 +1,21 @@
 <?php
+/**
+ * Broadcast feature setup.
+ */
+
 namespace Altis\Analytics\Broadcast;
 
 use WP_Block_Editor_Context;
 
-"use strict;";
+'use strict;';
 
 const POST_TYPE = 'broadcast';
 
+/**
+ * Feature setup code.
+ *
+ * @return void
+ */
 function setup() : void {
 	add_action( 'init', __NAMESPACE__ . '\\register_broadcast_post_type' );
 	add_filter( 'allowed_block_types_all', __NAMESPACE__ . '\\broadcast_allowed_block_types', 10, 2 );
@@ -50,10 +59,10 @@ function register_broadcast_post_type() : void {
 /**
  * Restrict block types to be used in Broadcast Zone posts.
  *
- * @param bool|string[] $allowed_block_types
- * @param WP_Block_Editor_Context $editor_context
+ * @param bool|string[] $allowed_block_types Allowed block types.
+ * @param WP_Block_Editor_Context $editor_context Editor context.
  *
- * @return bool|string[]
+ * @return bool|string[] Allowed block types.
  */
 function broadcast_allowed_block_types( $allowed_block_types, WP_Block_Editor_Context $editor_context ) {
 	if ( $editor_context->post->post_type !== POST_TYPE ) {
