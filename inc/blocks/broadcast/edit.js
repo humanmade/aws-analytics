@@ -1,6 +1,5 @@
 import debouncePromise from 'debounce-promise';
 import _deburr from 'lodash/deburr';
-import { v4 as uuid } from 'uuid';
 
 import { Fragment, useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -32,6 +31,7 @@ const EditComponent = function ( props ) {
 	const {
 		attributes,
 		setAttributes,
+		clientId,
 	} = props;
 
 	const [ broadcast, _setBroadcast ] = useState( null );
@@ -98,7 +98,7 @@ const EditComponent = function ( props ) {
 	// Set the block clientId if none currently set.
 	useEffect( () => {
 		if ( ! attributes.clientId ) {
-			setAttributes( { clientId: uuid() } );
+			setAttributes( { clientId } );
 		}
 	}, [ attributes.clientId, setAttributes ] );
 

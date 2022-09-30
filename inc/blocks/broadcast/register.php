@@ -91,12 +91,6 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	$class_name = $attributes['className'] ?? '';
 	$align = $attributes['align'] ?? 'none';
 
-	// Warn if a client ID is not set.
-	if ( ! $client_id ) {
-		trigger_error( 'Broadcast content blocks must have a client ID set to track impressions. Please re-save the post content to generate one.', E_USER_WARNING );
-		$client_id = wp_generate_uuid4();
-	}
-
 	// Add alignment class.
 	if ( ! empty( $align ) ) {
 		$class_name .= sprintf( 'align%s', $align );
