@@ -1,0 +1,93 @@
+.altis-broadcast-block {
+	display: flex;
+	flex-wrap: nowrap;
+	flex-direction: column;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Oxygen-Sans,
+		Ubuntu,
+		Cantarell,
+		"Helvetica Neue",
+		sans-serif;
+	/* stylelint-disable-next-line declaration-property-unit-blacklist */
+	font-size: 13px;
+	color: #1e1e1e;
+	padding: 12px;
+	border-radius: 2px;
+	background-color: #fff;
+	box-shadow: 0 0 0 1px #1e1e1e;
+	outline: 1px solid transparent;
+}
+
+.altis-broadcast-block-header {
+	display: flex;
+	flex-wrap: nowrap;
+	background-color: #fff;
+}
+
+.altis-broadcast-block-header__desc {
+	margin-top: 0;
+	font-weight: 400;
+}
+
+.altis-broadcast-block-header__title {
+	flex: 1;
+	font-weight: 600;
+}
+
+.altis-broadcast-block-header__title .dashicon {
+	margin-right: 8px;
+}
+
+.altis-broadcast-block-header__toplink {
+	float: right;
+}
+
+.altis-broadcast-blocks-inserter__remove-broadcast {
+	cursor: pointer;
+}
+
+.altis-broadcast-blocks-inserter__title strong {
+	border-bottom: 1px solid #000;
+}
+
+.altis-broadcast-blocks-inserter__error strong {
+	border: none;
+}
+
+.altis-broadcast-block-list {
+	margin: 0;
+	padding: 0;
+}
+
+.altis-broadcast-block-list__list {
+	margin-left: 2px;
+	margin-top: -8px;
+	box-shadow: 0 0 0 1px #1e1e1e;
+}
+
+.altis-broadcast-block-list__list-empty,
+.altis-broadcast-block-list__list-loading {
+	padding: 10px;
+}
+
+.altis-broadcast-block-list__list-item {
+	padding: 10px;
+	list-style: none;
+	border-bottom: 1px solid #000;
+}
+
+.altis-broadcast-block-list__list-item button {
+	font-weight: 600;
+}
+
+.altis-broadcast-block .dashicons.dashicons-arrow-down {
+	float: right;
+	margin-top: -34px;
+	z-index: 9999;
+	position: relative;
+	margin-right: 5px;
+}

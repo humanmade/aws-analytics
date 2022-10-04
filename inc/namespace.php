@@ -37,6 +37,10 @@ function setup() {
 		Blocks\setup();
 	}
 
+	if ( Utils\is_feature_enabled( 'broadcast' ) ) {
+		Broadcast\setup();
+	}
+
 	if ( Utils\is_feature_enabled( 'insights' ) ) {
 		Insights\setup();
 	}

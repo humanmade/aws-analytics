@@ -32,6 +32,8 @@ require_once __DIR__ . '/inc/insights/namespace.php';
 require_once __DIR__ . '/inc/blocks/namespace.php';
 require_once __DIR__ . '/inc/blocks/rest_api/namespace.php';
 require_once __DIR__ . '/inc/blocks/rest_api/class-posts-controller.php';
+require_once __DIR__ . '/inc/broadcast/namespace.php';
+require_once __DIR__ . '/inc/broadcast/class-posts-controller.php';
 require_once __DIR__ . '/inc/experiments/namespace.php';
 require_once __DIR__ . '/inc/experiments/titles/namespace.php';
 require_once __DIR__ . '/inc/experiments/featured-images/namespace.php';

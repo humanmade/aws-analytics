@@ -8,6 +8,7 @@
 	"rules": {
 		"no-multi-str": "off",
 		"no-console": "off",
-		"jsdoc/no-undefined-types": "off"
+		"jsdoc/no-undefined-types": "off",
+		"react/react-in-jsx-scope": "off"
 	}
 }
