@@ -824,6 +824,11 @@ function query( string $query, array $params = [], string $return = 'array', ?st
 		$clickhouse_url = add_query_arg( $prepared, $clickhouse_url );
 	}
 
+	// Enable compression.
+	$clickhouse_url = add_query_arg( [
+		'enable_http_compression' => 1,
+	], $clickhouse_url );
+
 	/**
 	 * Filter the args used to control the request type.
 	 */

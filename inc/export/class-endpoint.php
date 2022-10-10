@@ -71,8 +71,6 @@ class Endpoint {
 	 * @return WP_REST_Response|WP_Error Response object.
 	 */
 	public function get_items( WP_REST_Request $request ) {
-		global $wpdb;
-
 		$dates = $this->get_date_query_arguments( $request->get_param( 'date' ) );
 
 		if ( is_wp_error( $dates ) ) {
@@ -114,7 +112,7 @@ class Endpoint {
 		$query_params['end'] = $dates['end'];
 
 		// The first query returns just the total number of items for reporting purposes.
-		$total = Utils\query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params );
+		$total = Utils\query( "SELECT count() as total FROM analytics WHERE {$query_where}", $query_params, 'object' );
 		$total = intval( $total->total ?? 0 );
 
 		// Set total found results header.
