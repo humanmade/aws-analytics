@@ -7,7 +7,6 @@
 
 namespace Altis\Analytics\API;
 
-
 use Altis\Analytics\Blocks;
 use Altis\Analytics\Broadcast;
 use Altis\Analytics\Dashboard;
