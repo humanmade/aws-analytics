@@ -1,0 +1,66 @@
+@import '../index.scss';
+
+.App {
+	line-height: 1.7;
+
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	header {
+		display: flex;
+	}
+
+	&__blocks {
+		display: grid;
+		grid-template-columns: repeat( 2, 1fr );
+
+		&--three {
+			grid-template-columns: repeat( 3, 1fr );
+		}
+	}
+}
+
+#Altis_Dashboard__notices {
+	background-color: #f5f6f8;
+	overflow: hidden;
+
+	> * {
+		margin: 15px 5% 5px 5%;
+	}
+}
+
+.Header {
+	background-color: $color-light-grey-bg;
+	border-bottom: 1px solid $color-light-grey;
+	padding: 15px 5% 15px;
+	display: flex;
+	justify-content: space-between;
+
+	.Logo {
+		display: flex;
+	}
+
+	.Beta {
+		font-size: 0.7em;
+		background-color: #000;
+		color: #fff;
+		border-radius: 10px;
+		padding: 0 6px;
+		height: 1.6em;
+		line-height: 1.6;
+		margin-left: 5px;
+	}
+}
+
+.accelerate-modal-notice {
+	margin: 5px 0px 2px;
+	padding: 0 10px;
+
+	&.is-dismissible {
+		padding-right: 5px;
+	}
+}

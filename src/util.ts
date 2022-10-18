@@ -1,11 +1,7 @@
 import { Moment } from 'moment';
 
 export type InitialData = {
-	postTypes: {
-		singular_label: string,
-		label: string,
-		name: string,
-	}[],
+	postTypes: PostType[],
 	tracking: {
 		opt_in: boolean,
 	},
@@ -90,6 +86,13 @@ export type PeriodObject = {
 export type Duration = 'P7D' | 'P14D' | 'P30D' | 'P60D' | 'P90D' | 'P1M';
 export type SelectableDate = Period | Duration;
 
+export type CustomFilters = {
+	[ k: string ]: {
+		label: string,
+		callback: Function,
+	}
+}
+
 export interface Filter {
 	path?: string,
 	time?: number,
@@ -115,6 +118,23 @@ export type Post = {
 	[ k: string ]: any,
 }
 
+export type PostUpdateObject = {
+	id: number,
+	title?: string,
+	type?: string,
+	blocks?: number[],
+}
+
+export type PostType = {
+	singular_label: string,
+	label: string,
+	name: string,
+}
+
+export type PostMap = {
+	[k: number]: Post,
+}
+
 export type HistogramDiff = {
 	previous: {
 		uniques: number,
@@ -132,9 +152,27 @@ export type HistogramDiff = {
 	},
 }
 
+export type HistogramDiffs = {
+	[k: string]: HistogramDiff,
+}
+
+export type QueryArgs = {
+	diff?: SelectableDate,
+	end?: string,
+	period?: SelectableDate,
+	search?: string,
+	start?: string,
+	type?: string,
+	filter?: Filter,
+	blocks?: number[]
+};
+
 export interface State {
 	posts: {
-		[ k: string ]: Post[]
+		[ k: number ]: Post,
+	},
+	queries: {
+		[ k: string ]: number[]
 	},
 	stats: {
 		[ k: string ]: StatsResult,
@@ -147,10 +185,11 @@ export interface State {
 	isLoading: boolean,
 	isLoadingStats: boolean,
 	isLoadingDiffs: boolean,
+	isUpdating: boolean,
 	pagination: {
 		total: number,
 		pages: number,
-	}
+	},
 }
 
 export interface StandardAction {
@@ -161,6 +200,10 @@ export interface SetPostsAction extends StandardAction {
 	type: 'SET_POSTS',
 	posts: Post[],
 	key: string,
+}
+export interface SetPostAction extends StandardAction {
+	type: 'SET_POST',
+	post: Post,
 }
 export interface SetStatsAction extends StandardAction {
 	type: 'SET_STATS',
@@ -194,15 +237,20 @@ export interface SetIsLoadingDiffsAction extends StandardAction {
 	isLoading: State['isLoadingDiffs'],
 }
 
+export interface SetIsUpdatingAction extends StandardAction {
+	type: 'SET_IS_UPDATING',
+	isUpdating: State['isUpdating'],
+}
+
 export interface SetPaginationAction extends StandardAction {
 	type: 'SET_PAGINATION',
 	total: number,
 	pages: number,
 }
 
-export type Action = SetPostsAction | SetStatsAction | SetIsLoadingAction
+export type Action = SetPostsAction | SetPostAction | SetStatsAction | SetIsLoadingAction
 					| SetIsLoadingStatsAction | SetPaginationAction
-					| RefreshStatsAction | SetDiffsAction | SetIsLoadingDiffsAction;
+					| RefreshStatsAction | SetDiffsAction | SetIsLoadingDiffsAction | SetIsUpdatingAction;
 
 export interface BlockFillProps {
 	data?: StatsResult,

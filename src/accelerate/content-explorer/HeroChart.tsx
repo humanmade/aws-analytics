@@ -19,8 +19,7 @@ import { localPoint } from '@visx/event';
 import { periods } from '../../data/periods';
 import { compactMetric, Duration, padLeft, StatsResult, trackEvent } from '../../util';
 
-import './Dashboard.scss';
-import Loading from './Loading';
+import Loading from '../components/Loading';
 
 type Props = {
 	period: Duration,
