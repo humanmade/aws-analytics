@@ -8,7 +8,6 @@
 namespace Altis\Analytics\Broadcast;
 
 use WP_REST_Posts_Controller;
-use WP_REST_Server;
 
 /**
  * Broadcast Posts Controller Class.

@@ -43,7 +43,7 @@ function add_notices_wrapper_close() {
  *
  * @return void
  */
-function render_page( string $page = '' ) : void {
+function render_page() : void {
 	require_once ABSPATH . 'wp-admin/admin-header.php';
 
 	echo '<div id="altis-analytics-root">';

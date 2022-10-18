@@ -772,17 +772,17 @@ body.edit-php {
 		flex-direction: column;
 		gap: 10px;
 		min-width: 600px;
-		background-color: $color-light-grey;
 
-		background: #f5f6f8;
+		background: $color-light-grey-bg;
 		box-shadow: 0 0 0 100vmax #f5f6f8;
-		-webkit-clip-path: inset(0 -100vmax);
-		clip-path: inset(0 -100vmax);
+		-webkit-clip-path: inset( 0 -100vmax );
+		clip-path: inset( 0 -100vmax );
 		padding: 20px;
 		margin-bottom: 10px;
 
 		overflow-x: auto;
 	}
+
 	&_item {
 		display: flex;
 		flex-direction: row;
@@ -790,7 +790,7 @@ body.edit-php {
 		gap: 10px;
 		justify-content: space-between;
 
-		& > * {
+		> * {
 			display: flex;
 			align-items: center;
 		}

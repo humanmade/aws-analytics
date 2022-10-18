@@ -1,8 +1,7 @@
-@import '../index.scss';
+@import "../index.scss";
 
 .App {
 	line-height: 1.7;
-
 
 	*,
 	*::before,
@@ -57,7 +56,7 @@
 }
 
 .accelerate-modal-notice {
-	margin: 5px 0px 2px;
+	margin: 5px 0 2px;
 	padding: 0 10px;
 
 	&.is-dismissible {

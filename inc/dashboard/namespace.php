@@ -7,9 +7,9 @@
 
 namespace Altis\Analytics\Dashboard;
 
+use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
-use Altis\Accelerate\Admin;
 use WP_Post_Type;
 
 const SCRIPT_ID = 'altis-analytics-ui';
@@ -121,7 +121,6 @@ function load_dashboard() {
 	Admin\render_page();
 	exit;
 }
-
 
 /**
  * Intercept block preview requests for block thumbnail service requests.

@@ -11,7 +11,6 @@ use Altis\Analytics\Blocks;
 use Altis\Analytics\Dashboard;
 use Altis\Analytics\Utils;
 use WP_Error;
-use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -91,7 +90,7 @@ function register_endpoints() {
 					'type' => 'integer',
 				],
 				'default'     => [],
-			]
+			],
 		], $date_args ),
 	] );
 
@@ -826,13 +825,14 @@ function get_available_thumbnail_size() : string {
  * Get block preview thumbnail URL.
  *
  * @param int $post_id Post ID.
+ *
  * @return string
  */
 function get_block_preview_thumbnail( ?int $post_id ) : string {
 	$post = get_post( $post_id );
 	$thumbnail = '';
 
-	if ( empty( $post  ) ) {
+	if ( empty( $post ) ) {
 		return '';
 	}
 

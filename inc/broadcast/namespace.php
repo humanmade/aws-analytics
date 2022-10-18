@@ -11,10 +11,8 @@ use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
 use WP_Block_Editor_Context;
-use WP_Post;
 use WP_Post_Type;
-
-use function Altis\Analytics\API\get_block_preview_thumbnail;
+use WP_Post;
 
 const POST_TYPE = 'broadcast';
 
@@ -85,11 +83,11 @@ function register_rest_fields() : void {
 			$to_delete = array_diff( $prev, $value );
 			$to_add = array_filter( array_diff( $value, $prev ) );
 
-			foreach( $to_delete as $block_id ) {
+			foreach ( $to_delete as $block_id ) {
 				delete_post_meta( $post->ID, 'blocks', $block_id );
 			}
 
-			foreach( $to_add as $block_id ) {
+			foreach ( $to_add as $block_id ) {
 				add_post_meta( $post->ID, 'blocks', $block_id );
 			}
 		},
@@ -132,7 +130,12 @@ function broadcast_allowed_block_types( $allowed_block_types, WP_Block_Editor_Co
 function load_broadcast_manager() {
 	global $title;
 
-	if ( $_REQUEST['post_type'] !== 'broadcast' || ! current_user_can( 'edit_posts' ) ) {
+	// phpcs:ignore HM.Security.NonceVerification
+	if (
+		! isset( $_REQUEST['post_type' ] )
+		|| $_REQUEST['post_type'] !== 'broadcast'
+		|| ! current_user_can( 'edit_posts' )
+	) {
 		return;
 	}
 
@@ -156,6 +159,7 @@ function load_broadcast_manager() {
 		];
 	}, $post_types );
 
+	// phpcs:ignore HM.Security.NonceVerification
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
 		'version' => Utils\get_plugin_version(),
