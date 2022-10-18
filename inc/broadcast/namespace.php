@@ -11,8 +11,8 @@ use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
 use WP_Block_Editor_Context;
-use WP_Post_Type;
 use WP_Post;
+use WP_Post_Type;
 
 const POST_TYPE = 'broadcast';
 
@@ -130,9 +130,9 @@ function broadcast_allowed_block_types( $allowed_block_types, WP_Block_Editor_Co
 function load_broadcast_manager() {
 	global $title;
 
-	// phpcs:ignore HM.Security.NonceVerification
+	// phpcs:disable HM.Security.NonceVerification
 	if (
-		! isset( $_REQUEST['post_type' ] )
+		! isset( $_REQUEST['post_type'] )
 		|| $_REQUEST['post_type'] !== 'broadcast'
 		|| ! current_user_can( 'edit_posts' )
 	) {
@@ -159,7 +159,6 @@ function load_broadcast_manager() {
 		];
 	}, $post_types );
 
-	// phpcs:ignore HM.Security.NonceVerification
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
 		'version' => Utils\get_plugin_version(),
@@ -174,5 +173,6 @@ function load_broadcast_manager() {
 
 	Admin\render_page();
 	exit;
+	// phpcs:enable HM.Security.NonceVerification
 }
 

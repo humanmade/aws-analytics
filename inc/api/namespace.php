@@ -7,7 +7,9 @@
 
 namespace Altis\Analytics\API;
 
+
 use Altis\Analytics\Blocks;
+use Altis\Analytics\Broadcast;
 use Altis\Analytics\Dashboard;
 use Altis\Analytics\Utils;
 use WP_Error;
@@ -15,8 +17,6 @@ use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
-
-use const Altis\Analytics\Broadcast\POST_TYPE;
 
 const API_NAMESPACE = 'accelerate/v1';
 
@@ -765,7 +765,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 			'blocks' => [],
 		];
 
-		if ( $post->post_type === POST_TYPE ) {
+		if ( $post->post_type === Broadcast\POST_TYPE ) {
 			$query->posts[ $i ]['blocks'] = array_map( 'absint', get_post_meta( $post->ID, 'blocks' ) ) ?: [];
 		}
 

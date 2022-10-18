@@ -19,7 +19,7 @@ export default function BlockSelectorList ( props: ListProps ) {
 	} = props;
 
 	return (
-		<div className="accelerate_block-list_wrapper">
+		<div className="accelerate__block-list_wrapper">
 			{ blocks.map( block => (
 				<BlockSelectorListItem
 					block={ block }
@@ -48,8 +48,8 @@ function BlockSelectorListItem ( props: BlockItemProps ) {
 	} = props;
 
 	return (
-		<div className="accelerate_block-list_item">
-			<div className="accelerate_block-list_item--thumb">
+		<div className="accelerate__block-list_item">
+			<div className="accelerate__block-list_item--thumb">
 				{ block.thumbnail && (
 					<Image
 						src={ block.thumbnail }
@@ -59,19 +59,19 @@ function BlockSelectorListItem ( props: BlockItemProps ) {
 					/>
 				) }
 			</div>
-			<div className="accelerate_block-list_item--details">
-				<div className="accelerate_block-list_item--title" title={ block.title }>
+			<div className="accelerate__block-list_item--details">
+				<div className="accelerate__block-list_item--title" title={ block.title }>
 					{ block.title }
 				</div>
 			</div>
-			<div className="accelerate_block-list_item--actions">
+			<div className="accelerate__block-list_item--actions">
 				{ selected
 					? (
-						<Button isSecondary isSmall className="accelerate_block-list_item--remove" onClick={ () => onRemove( block.id ) }>
+						<Button isSecondary isSmall className="accelerate__block-list_item--remove" onClick={ () => onRemove( block.id ) }>
 							{ __( 'Remove', 'altis' ) }
 						</Button>
 					) : (
-						<Button isSecondary isSmall className="accelerate_block-list_item--add" onClick={ () => onAdd( block.id ) }>
+						<Button isSecondary isSmall className="accelerate__block-list_item--add" onClick={ () => onAdd( block.id ) }>
 							{ __( 'Add', 'altis' ) }
 						</Button>
 					)

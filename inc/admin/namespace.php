@@ -4,6 +4,7 @@
  *
  * @package aws-analytics
  */
+
 namespace Altis\Accelerate\Admin;
 
 use Altis;
