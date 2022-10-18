@@ -11,10 +11,13 @@ use Altis\Analytics\Blocks;
 use Altis\Analytics\Dashboard;
 use Altis\Analytics\Utils;
 use WP_Error;
+use WP_Post;
 use WP_Query;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
+
+use const Altis\Analytics\Broadcast\POST_TYPE;
 
 const API_NAMESPACE = 'accelerate/v1';
 
@@ -73,15 +76,22 @@ function register_endpoints() {
 				'type' => 'string',
 			],
 			'author' => [
-				'type' => 'number',
+				'type' => 'integer',
 			],
 			'search' => [
 				'type' => 'string',
 			],
 			'page' => [
-				'type' => 'number',
+				'type' => 'integer',
 				'default' => 1,
 			],
+			'include' => [
+				'type'        => 'array',
+				'items'       => [
+					'type' => 'integer',
+				],
+				'default'     => [],
+			]
 		], $date_args ),
 	] );
 
@@ -153,6 +163,9 @@ function get_top( WP_REST_Request $request ) {
 	}
 	if ( $request['page'] ) {
 		$filter->page = (int) $request['page'];
+	}
+	if ( $request['include'] ) {
+		$filter->include = array_map( 'absint', $request['include'] );
 	}
 
 	$data = get_top_data( $start, $end, $filter );
@@ -237,6 +250,14 @@ function get_query( array $events, int $start, int $end, array $aggs, ?Filter $f
 							],
 						],
 					],
+				],
+			];
+		}
+
+		if ( $filter->include ) {
+			$filter_clause[] = [
+				'terms' => [
+					'attributes.postId.keyword' => array_map( 'strval', $filter->include ),
 				],
 			];
 		}
@@ -686,6 +707,11 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 		'order' => 'asc',
 	] );
 
+	if ( ! empty( $filter->include ) ) {
+		$query_args['post__in'] = array_map( 'absint', $filter->include );
+		$query_args['nopaging'] = true;
+	}
+
 	// ElasticPress does not support ordering by post__in so remove if we're searching.
 	if ( ! empty( $filter ) && $filter->search ) {
 		unset( $query_args['orderby'] );
@@ -697,7 +723,7 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 
 	// Get all remaining posts not in the list to complete the data set if we have some data.
 	// If $post_ids is empty post__in is ignored.
-	if ( ! empty( $post_ids ) ) {
+	if ( ! empty( $post_ids ) && empty( $filter->include ) ) {
 		$page = max( 1, $default_query_args['paged'] - $query->max_num_pages ) - 1; // Zero indexed page value.
 		$base_offset = $query->found_posts % $posts_per_page;
 		$query_args_not_in = array_merge( $default_query_args, [
@@ -719,41 +745,6 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 	}
 
 	foreach ( $query->posts as $i => $post ) {
-		// Check if we can get a thumbnail, set to an empty string if not but support is available.
-		$thumbnail = null;
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
-			$thumbnail_id = 0;
-			if ( $post->post_type === 'attachment' ) {
-				$thumbnail_id = $post->ID;
-			} else {
-				$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
-			}
-
-			$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
-		}
-
-		// Get block thumbnail from screen grab API.
-		if ( in_array( $post->post_type, [ 'wp_block', 'xb' ], true ) && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
-			$preview_url = sprintf(
-				'%s?preview-block-id=%d&key=%s',
-				get_home_url(),
-				$post->ID,
-				Dashboard\get_block_thumbnail_request_hmac( $post->ID )
-			);
-
-			$version = strtotime( $post->post_modified_gmt );
-
-			$thumbnail = add_query_arg(
-				[
-					'url' => urlencode( $preview_url ),
-					'width' => 100,
-					'selector' => '.altis-block-preview',
-					'version' => $version,
-				],
-				'https://eu.accelerate.altis.cloud/block-image'
-			);
-		}
-
 		$query->posts[ $i ] = [
 			'id' => intval( $post->ID ),
 			'slug' => $post->post_name,
@@ -770,9 +761,14 @@ function get_top_data( $start, $end, ?Filter $filter = null ) {
 				'name' => get_the_author_meta( 'display_name', $post->post_author ),
 				'avatar' => get_avatar_url( $post->post_author ),
 			],
-			'thumbnail' => $thumbnail,
+			'thumbnail' => get_block_preview_thumbnail( $post->ID ),
 			'views' => $processed[ $post->ID ]['total'] ?? 0,
+			'blocks' => [],
 		];
+
+		if ( $post->post_type === POST_TYPE ) {
+			$query->posts[ $i ]['blocks'] = array_map( 'absint', get_post_meta( $post->ID, 'blocks' ) ) ?: [];
+		}
 
 		if ( $post->post_parent ) {
 			$query->posts[ $i ]['parent'] = [
@@ -824,6 +820,56 @@ function get_available_thumbnail_size() : string {
 	}
 
 	return $size; // Return the fallback size.
+}
+
+/**
+ * Get block preview thumbnail URL.
+ *
+ * @param int $post_id Post ID.
+ * @return string
+ */
+function get_block_preview_thumbnail( ?int $post_id ) : string {
+	$post = get_post( $post_id );
+	$thumbnail = '';
+
+	if ( empty( $post  ) ) {
+		return '';
+	}
+
+	if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+		$thumbnail_id = 0;
+		if ( $post->post_type === 'attachment' ) {
+			$thumbnail_id = $post->ID;
+		} else {
+			$thumbnail_id = get_post_thumbnail_id( $post ) ?: 0;
+		}
+
+		$thumbnail = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, get_available_thumbnail_size() ) : '';
+	}
+
+	// Get block thumbnail from screen grab API.
+	if ( in_array( $post->post_type, [ 'wp_block', 'xb' ], true ) && Dashboard\is_block_thumbnail_allowed( $post->ID ) ) {
+		$preview_url = sprintf(
+			'%s?preview-block-id=%d&key=%s',
+			get_home_url(),
+			$post->ID,
+			Dashboard\get_block_thumbnail_request_hmac( $post->ID )
+		);
+
+		$version = strtotime( $post->post_modified_gmt );
+
+		$thumbnail = add_query_arg(
+			[
+				'url' => urlencode( $preview_url ),
+				'width' => 100,
+				'selector' => '.altis-block-preview',
+				'version' => $version,
+			],
+			'https://eu.accelerate.altis.cloud/block-image'
+		);
+	}
+
+	return $thumbnail;
 }
 
 /**
