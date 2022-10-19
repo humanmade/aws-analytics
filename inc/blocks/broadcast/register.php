@@ -96,11 +96,47 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 		$class_name .= sprintf( 'align%s', $align );
 	}
 
+	$block_ids = get_post_meta( $broadcast_id, 'blocks' );
+	$block_ids = array_map( 'absint', array_values( array_filter( $block_ids ) ) );
+	$nested_blocks = array_map( function( int $block_id ) use ( $client_id ) : string {
+		return sprintf(
+			'<template data-id="%1$d" data-parent-id="%2$s"><!-- wp:block {"ref":%1$d} /--></template>',
+			$block_id,
+			$client_id
+		);
+	}, $block_ids );
+	$inner_content = do_blocks( implode( '', $nested_blocks ) );
+
+	// Preview
+	if ( current_user_can( 'edit_posts' ) && ( is_preview() || is_customize_preview() ) ) {
+		wp_enqueue_script(
+			'altis-xb-preview',
+			Utils\get_asset_url( 'blocks/altis-xb-preview.js' ),
+			[
+				'wp-i18n',
+			],
+			null,
+			true
+		);
+
+		return sprintf(
+			'%s
+			<div class="altis-xb-preview altis-xb-preview--broadcast %s" data-client-id="%s" data-post-id="%s">
+				<div class="altis-xb-preview__tabs"></div>
+				<div class="altis-xb-preview__content"></div>
+			</div>',
+			$inner_content,
+			$class_name,
+			$client_id,
+			$broadcast_id
+		);
+	}
+
 	return sprintf(
-		'%s<broadcast-block class="%s" client-id="%s" broadcast-id="%s"></broadcast-block>',
-		$inner_content,
+		'<broadcast-block class="%s" client-id="%s" broadcast-id="%s">%s</broadcast-block>',
 		$class_name,
 		$client_id,
-		$broadcast_id
+		$broadcast_id,
+		$inner_content
 	);
 }

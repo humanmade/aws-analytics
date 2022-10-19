@@ -175,4 +175,3 @@ function load_broadcast_manager() {
 	exit;
 	// phpcs:enable HM.Security.NonceVerification
 }
-
