@@ -635,7 +635,7 @@ class BroadcastBlock extends HTMLElement {
 		// Track the template we want.
 		const templates = document.querySelectorAll( `template[data-parent-id="${ this.clientId }"]` );
 		// Select a random nested template
-		const index = Math.floor( Math.random() * templates.length );
+		const index = this.getTemplateToShow( templates.length );
 		const template = templates[ index ];
 		// Populate broadcast block content.
 		const experience = template.content.cloneNode( true );
@@ -684,6 +684,26 @@ class BroadcastBlock extends HTMLElement {
 		// Trigger scroll handler.
 		observer.observe( this );
 		return;
+	}
+
+	/**
+	 * Get which variation to show, based on endpoint history.
+	 *
+	 * @param {number} count Count of available variations.
+	 *
+	 * @returns {number} Get next variation to show.
+	 */
+	getTemplateToShow( count ) {
+		const key = `altis.broadcast.${ this.broadcastId }.lastViewed`;
+		let index = 0;
+		const lastViewed = window.localStorage.getItem( key );
+		console.log( 'index:', index, lastViewed );
+		if ( lastViewed !== null && ! Number.isNaN( lastViewed ) && lastViewed < ( count - 1 ) ) {
+			index = parseInt( lastViewed, 10 ) + 1;
+		}
+
+		window.localStorage.setItem( key, index );
+		return index;
 	}
 
 }
