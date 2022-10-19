@@ -697,7 +697,6 @@ class BroadcastBlock extends HTMLElement {
 		const key = `altis.broadcast.${ this.broadcastId }.lastViewed`;
 		let index = 0;
 		const lastViewed = window.localStorage.getItem( key );
-		console.log( 'index:', index, lastViewed );
 		if ( lastViewed !== null && ! Number.isNaN( lastViewed ) && lastViewed < ( count - 1 ) ) {
 			index = parseInt( lastViewed, 10 ) + 1;
 		}
