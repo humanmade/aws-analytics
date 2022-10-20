@@ -486,6 +486,12 @@ const resolvers = {
 			return posts;
 		}
 	},
+	/**
+	 * Resolve request for a single post.
+	 *
+	 * @param {number} id Post ID to query.
+	 * @returns {object} Action objects.
+	 */
 	*getPost ( id: number, type: string ) {
 		const queryArgs = resolveQueryArgs( {
 			blocks: [ id ],
