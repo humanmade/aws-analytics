@@ -138,7 +138,7 @@ const actions = {
 	 * @param post Updated post entry.
 	 * @returns {object} Update post action object.
 	 */
-	setPost ( post: Post ): SetPostAction {
+	setPost( post: Post ) : SetPostAction {
 		return {
 			type: 'SET_POST',
 			post
@@ -225,7 +225,7 @@ const actions = {
 	 * @param {boolean} isUpdating True if UI is updating data.
 	 * @returns {object} Set updating action object.
 	 */
-	setIsUpdating ( isUpdating: boolean ): SetIsUpdatingAction {
+	setIsUpdating( isUpdating: boolean ) : SetIsUpdatingAction {
 		return {
 			type: 'SET_IS_UPDATING',
 			isUpdating,

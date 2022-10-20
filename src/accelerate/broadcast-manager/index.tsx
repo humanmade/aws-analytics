@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function Broadcasts ( props: Props ) {
-    const [ period, setPeriod ] = useState<Duration>( 'P7D' );
+	const [ period, setPeriod ] = useState<Duration>( 'P7D' );
 	const postTypes = props.postTypes.filter( type => type.name = 'broadcast' );
 	const [ broadcastId, setBroadcastId ] = useState<number|null>( props?.id || null );
 	const [ addingNewItem, setAddingNewItem ] = useState<boolean>( false );
@@ -36,14 +36,14 @@ export default function Broadcasts ( props: Props ) {
 			/>
 			{ addingNewItem && (
 				<CreateModal
-					listId='Broadcast Manager'
+					listId="Broadcast Manager"
 					onClose={ () => setAddingNewItem( false ) }
 					onSuccess={ id => setBroadcastId( id ) }
 				/>
 			) }
 			{ managingItem && (
 				<ManageModal
-					listId='Broadcast Manager'
+					listId="Broadcast Manager"
 					onClose={ () => setManagingItem( null ) }
 					onSuccess={ () => setManagingItem( null ) }
 					item={ managingItem }

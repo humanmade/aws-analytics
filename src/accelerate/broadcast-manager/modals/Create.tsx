@@ -54,7 +54,7 @@ export default function CreateModal ( props: Props ) {
 
 				<ButtonGroup>
 					<Button isPrimary disabled={ isSaving } onClick={ onSave }>
-						{ isSaving ? __( 'Creating..', 'altis' ) : __( 'Create', 'altis' ) }
+						{ isSaving ? __( 'Creating…', 'altis' ) : __( 'Create', 'altis' ) }
 					</Button>
 					<Button isSecondary disabled={ isSaving } onClick={ onClose }>
 						{ __( 'Cancel', 'altis' ) }

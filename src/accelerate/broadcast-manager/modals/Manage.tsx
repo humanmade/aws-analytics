@@ -10,7 +10,7 @@ type Props = {
 	listId: string,
 	item: Post,
 	onClose(): void,
-	onSuccess ( id: number ): void,
+	onSuccess( id: number ): void,
 };
 
 /**
