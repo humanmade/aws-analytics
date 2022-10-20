@@ -1071,3 +1071,16 @@ function get_s3_client( array $args = [] ) : ? S3Client {
 
 	return $client;
 }
+
+/**
+ * Return plugin version.
+ *
+ * @return string
+ */
+function get_plugin_version() : string {
+	// Only show version if this is embedded in the accelerate plugin.
+	if ( defined( 'Altis\\Accelerate\\VERSION' ) ) {
+		return \Altis\Accelerate\VERSION;
+	}
+	return '';
+}

@@ -6,6 +6,7 @@ declare interface Window {
 			singular_label: string,
 		}[],
 		version: string,
+		page: string,
 		tracking: {
 			opt_in: boolean,
 		},
@@ -13,6 +14,7 @@ declare interface Window {
 			id?: number,
 			name: string,
 		},
+		id?: number,
 		welcomed: boolean,
 	};
 	analytics: any;

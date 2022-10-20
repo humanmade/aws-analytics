@@ -45,4 +45,11 @@ class Filter {
 	 * @var int
 	 */
 	public $page = 1;
+
+	/**
+	 * Restrict to specific post IDs.
+	 *
+	 * @var int[]
+	 */
+	public $include = [];
 }

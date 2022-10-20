@@ -7,7 +7,7 @@
 
 namespace Altis\Analytics\Dashboard;
 
-use Altis;
+use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
 use WP_Post_Type;
@@ -69,10 +69,7 @@ function load_dashboard() {
 		return;
 	}
 
-	// High priority so the opening div is before any notices.
-	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_open', 0 );
-	// Low priority so the closing div is after any notices.
-	add_action( 'admin_notices', __NAMESPACE__ . '\\add_notices_wrapper_close', 999999 );
+	Admin\add_notices_wrapper();
 
 	Utils\enqueue_assets( 'accelerate' );
 
@@ -110,7 +107,7 @@ function load_dashboard() {
 
 	wp_localize_script( 'altis-analytics-accelerate', 'AltisAccelerateDashboardData', [
 		'api_namespace' => API\API_NAMESPACE,
-		'version' => get_plugin_version(),
+		'version' => Utils\get_plugin_version(),
 		'user' => [
 			'id' => get_current_user_id(),
 			'name' => $user->get( 'display_name' ),
@@ -118,59 +115,11 @@ function load_dashboard() {
 			'canViewInsights' => $insights_enabled && current_user_can( 'edit_audiences' ),
 		],
 		'post_types' => array_values( $post_types ),
+		'page' => 'dashboard',
 	] );
 
-	require_once ABSPATH . 'wp-admin/admin-header.php';
-	render_page();
-	require_once ABSPATH . 'wp-admin/admin-footer.php';
-
+	Admin\render_page();
 	exit;
-}
-
-/**
- * Adds an opening div to wrap around notices in the Accelerate Dashboard.
- *
- * @return void
- */
-function add_notices_wrapper_open() : void {
-	echo '<div id="Altis_Dashboard__notices">';
-}
-
-/**
- * Adds a closing div to wrap around notices in the Accelerate Dashboard.
- *
- * @return void
- */
-function add_notices_wrapper_close() {
-	echo '</div>';
-}
-
-/**
- * Display Accelerate React apps.
- *
- * @return void
- */
-function render_page() {
-	echo '<div id="altis-analytics-root">';
-
-	if ( Altis\get_environment_type() === 'local' ) {
-		echo "<p>Ensure you're running the Webpack server. You may also need to open the script URL directly to accept the SSL certificate.</p>";
-	}
-
-	echo '</div>';
-}
-
-/**
- * Return plugin version.
- *
- * @return string
- */
-function get_plugin_version() : string {
-	// Only show version if this is embedded in the accelerate plugin.
-	if ( defined( 'Altis\\Accelerate\\VERSION' ) ) {
-		return \Altis\Accelerate\VERSION;
-	}
-	return '';
 }
 
 /**

@@ -1,10 +1,9 @@
 import { __ } from '@wordpress/i18n';
 
-import { InitialData } from '../../util';
-import Logo from '../assets/altis-logo.svg';
+import Logo from './altis-logo.svg';
 
 interface Props {
-	version: InitialData['version'],
+	version: string,
 }
 
 export default function Header( props: Props ) {
