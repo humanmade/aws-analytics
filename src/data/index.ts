@@ -292,7 +292,7 @@ const actionGenerators = {
 		}
 
 		const queryArgs = resolveQueryArgs( {
-			id: post.id,
+			blocks: [ post.id ],
 			type: post.type,
 		} );
 
@@ -337,7 +337,7 @@ const actionGenerators = {
 		}
 
 		const queryArgs = resolveQueryArgs( {
-			id: post.id,
+			blocks: [ post.id ],
 			type: post.type,
 		} );
 
@@ -488,7 +488,7 @@ const resolvers = {
 	},
 	*getPost ( id: number, type: string ) {
 		const queryArgs = resolveQueryArgs( {
-			id: id,
+			blocks: [ id ],
 			type: type,
 		} );
 
