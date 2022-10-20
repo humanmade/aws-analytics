@@ -107,7 +107,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	}, $block_ids );
 	$inner_content = do_blocks( implode( '', $nested_blocks ) );
 
-	// Preview
+	// Preview.
 	if ( current_user_can( 'edit_posts' ) && ( is_preview() || is_customize_preview() ) ) {
 		wp_enqueue_script(
 			'altis-xb-preview',

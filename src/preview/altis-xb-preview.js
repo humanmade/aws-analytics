@@ -77,7 +77,9 @@ function createTabbedPreviews() {
 createTabbedPreviews();
 
 // When making changes in the customizer
-wp?.customize?.selectiveRefresh.bind( 'sidebar-updated', function () {
-	// Create the tabs for previewing
-	createTabbedPreviews();
-} );
+if ( wp.customize ) {
+	wp.customize.selectiveRefresh.bind( 'sidebar-updated', function () {
+		// Create the tabs for previewing
+		createTabbedPreviews();
+	} );
+}
