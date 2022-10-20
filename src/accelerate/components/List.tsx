@@ -107,18 +107,6 @@ export default function List ( props: Props ) {
 				setType( postType?.name || null );
 				setUser( currentUser.id || 1 );
 			}
-		},
-		mostViewed: {
-			label: __( 'Most viewed', 'altis' ),
-			callback: () => {
-				// TODO
-			}
-		},
-		empty: {
-			label: __( 'Empty', 'altis' ),
-			callback: () => {
-				// TODO
-			}
 		}
 	};
 
