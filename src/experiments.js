@@ -599,6 +599,114 @@ class PersonalizationBlock extends HTMLElement {
 
 }
 
+/**
+ * Broadcast content block element.
+ */
+class BroadcastBlock extends HTMLElement {
+
+	get clientId() {
+		return this.getAttribute( 'client-id' );
+	}
+
+	get broadcastId() {
+		return this.getAttribute( 'broadcast-id' );
+	}
+
+	connectedCallback() {
+		// Set default styles.
+		this.attachShadow( { mode: 'open' } );
+		this.shadowRoot.innerHTML = `
+			<style>
+				:host {
+					display: block;
+				}
+			</style>
+			<slot></slot>
+		`;
+
+		// Update the component content.
+		this.setContent();
+	}
+
+	/**
+	 * Updates the block content if needed and performs analytics tracking actions.
+	 */
+	setContent = () => {
+		// Track the template we want.
+		const templates = document.querySelectorAll( `template[data-parent-id="${ this.clientId }"]` );
+		// Select a random nested template
+		const index = this.getTemplateToShow( templates.length );
+		const template = templates[ index ];
+		// Populate broadcast block content.
+		const experience = template.content.cloneNode( true );
+		this.innerHTML = '';
+		this.appendChild( experience );
+
+		// Record a load event for conversion tracking.
+		window.Altis.Analytics.record( 'experienceLoad', {
+			attributes: {
+				clientId: this.clientId,
+				broadcastId: this.broadcastId,
+				selected: index,
+				type: 'broadcast',
+			},
+		} );
+
+		// Log an event for tracking views and audience when scrolled into view.
+		let tracked = false;
+		let observer = new IntersectionObserver( ( entries, observer ) => {
+			entries.forEach( entry => {
+				if ( entry.target !== this || ! entry.isIntersecting ) {
+					return;
+				}
+
+				if ( tracked ) {
+					return;
+				}
+
+				// Prevent spamming events.
+				tracked = true;
+				observer.disconnect();
+
+				window.Altis.Analytics.record( 'experienceView', {
+					attributes: {
+						clientId: this.clientId,
+						broadcastId: this.broadcastId,
+						selected: index,
+						type: 'broadcast',
+					},
+				}, false );
+			} );
+		}, {
+			threshold: 0.75,
+		} );
+
+		// Trigger scroll handler.
+		observer.observe( this );
+		return;
+	}
+
+	/**
+	 * Get which variation to show, based on endpoint history.
+	 *
+	 * @param {number} count Count of available variations.
+	 *
+	 * @returns {number} Get next variation to show.
+	 */
+	getTemplateToShow( count ) {
+		const key = `altis.broadcast.${ this.broadcastId }.lastViewed`;
+		let index = 0;
+		const lastViewed = window.localStorage.getItem( key );
+		if ( lastViewed !== null && ! Number.isNaN( lastViewed ) && lastViewed < ( count - 1 ) ) {
+			index = parseInt( lastViewed, 10 ) + 1;
+		}
+
+		window.localStorage.setItem( key, index );
+		return index;
+	}
+
+}
+
 // Expose experiments API functions.
 window.Altis.Analytics.Experiments.registerGoal = registerGoalHandler; // Back compat.
 window.Altis.Analytics.Experiments.registerGoalHandler = registerGoalHandler;
@@ -608,6 +716,7 @@ window.Altis.Analytics.onLoad( () => {
 	window.customElements.define( 'ab-test', ABTest );
 	window.customElements.define( 'ab-test-block', ABTestBlock );
 	window.customElements.define( 'personalization-block', PersonalizationBlock );
+	window.customElements.define( 'broadcast-block', BroadcastBlock );
 } );
 
 // Fire a ready event once userland API has been exported.
