@@ -10,9 +10,6 @@ namespace Altis\Analytics\Broadcast;
 use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
-
-use function Altis\Analytics\API\get_block_preview_thumbnail;
-
 use WP_Block_Editor_Context;
 use WP_Post;
 use WP_Post_Type;
@@ -109,7 +106,7 @@ function register_rest_fields() : void {
 		'get_callback' => function ( array $post ) : array {
 			$block_ids = get_post_meta( $post['id'], 'blocks' ) ?: [];
 			$thumbnails = array_map( function( int $block_post_id ) : string {
-				return get_block_preview_thumbnail( $block_post_id );
+				return API\get_block_preview_thumbnail( $block_post_id );
 			}, $block_ids );
 
 			return $thumbnails;
