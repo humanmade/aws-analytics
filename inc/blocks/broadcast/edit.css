@@ -91,3 +91,48 @@
 	position: relative;
 	margin-right: 5px;
 }
+
+.altis-broadcast-blocks-inserter__thumbnail-list {
+	background: #f5f6f8;
+	margin: 15px -10px 0;
+	height: 80px;
+	padding: 30px 10px;
+	display: flex;
+	gap: 10px;
+	overflow: hidden;
+}
+
+.altis-broadcast-blocks-inserter__thumbnail {
+	box-shadow: 0 5px 10px rgba( 0, 0, 0, 0.05 );
+	outline: 1px solid transparent;
+}
+
+a.altis-broadcast-blocks-inserter__manage {
+	height: 80px;
+	width: 160px;
+	vertical-align: middle;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	border: 1px dashed #707070;
+	color: #707070;
+	text-decoration: none;
+	flex: none;
+}
+
+a.altis-broadcast-blocks-inserter__manage span {
+	display: block;
+	width: 160px;
+	text-align: center;
+}
+
+a.altis-broadcast-blocks-inserter__manage span.dashicons {
+	border: 1px solid #707070;
+	border-radius: 50%;
+	width: 25px;
+	height: 25px;
+	display: flex;
+	flex-direction: column;
+	justify-content: end;
+}

@@ -6,6 +6,7 @@ import { __ } from '@wordpress/i18n';
 import { addQueryArgs } from '@wordpress/url';
 
 import BroadcastIcon from './icon.js';
+import Image from './image';
 
 const {
 	Button,
@@ -198,6 +199,29 @@ const EditComponent = function ( props ) {
 													{ ' ' }
 													<strong>{ broadcast.title.rendered }</strong>
 													<Icon className="altis-broadcast-blocks-inserter__remove-broadcast" icon="no" onClick={ () => setBroadcast( null ) } />
+													<div className="altis-broadcast-blocks-inserter__thumbnail-list">
+														{ broadcast.thumbnails.slice( 0, 3 ).map( thumbnailUrl => (
+															<>
+																<div className="altis-broadcast-blocks-inserter__thumbnail">
+																	<Image
+																		alt={ '' }
+																		height={ 80 }
+																		src={ thumbnailUrl }
+																		width={ 160 }
+																	/>
+																</div>
+															</>
+														) ) }
+														<a
+															className="altis-broadcast-blocks-inserter__manage"
+															href={ addQueryArgs( window.Altis.Analytics.Broadcast.ManagerURL, { id: broadcast.id } ) }
+														>
+															<Icon icon="plus"/>
+															<span>
+																{ __( 'Manage Blocks', 'altis' ) }
+															</span>
+														</a>
+													</div>
 												</>
 											) : (
 												<Spinner className="altis-broadcast-block-list__list-loading" />
