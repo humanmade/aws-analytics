@@ -7,12 +7,12 @@
 
 namespace Altis\Analytics\Broadcast;
 
-use WP_Block_Editor_Context;
-use WP_Post;
-use WP_Post_Type;
 use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
+use WP_Block_Editor_Context;
+use WP_Post_Type;
+use WP_Post;
 
 use function Altis\Analytics\API\get_block_preview_thumbnail;
 
