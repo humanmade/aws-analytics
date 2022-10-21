@@ -14,6 +14,8 @@ use WP_Block_Editor_Context;
 use WP_Post;
 use WP_Post_Type;
 
+use function Altis\Analytics\API\get_block_preview_thumbnail;
+
 const POST_TYPE = 'broadcast';
 
 /**
@@ -74,7 +76,8 @@ function register_rest_fields() : void {
 	// Handle the nested blocks data retrieval and saving via the REST API.
 	register_rest_field( POST_TYPE, 'blocks', [
 		'get_callback' => function ( array $post ) : array {
-			return get_post_meta( $post['ID'], 'blocks' ) ?: [];
+			$ids = get_post_meta( $post['id'], 'blocks' ) ?: [];
+			return $ids;
 		},
 		'update_callback' => function ( $value, WP_Post $post ) {
 			$prev = array_map( 'absint', get_post_meta( $post->ID, 'blocks' ) ) ?: [];
@@ -95,6 +98,25 @@ function register_rest_fields() : void {
 			'type' => 'array',
 			'items' => [
 				'type' => 'integer',
+			],
+			'default' => [],
+		],
+	] );
+
+	// Handle the nested blocks data retrieval and saving via the REST API.
+	register_rest_field( POST_TYPE, 'thumbnails', [
+		'get_callback' => function ( array $post ) : array {
+			$block_ids = get_post_meta( $post['id'], 'blocks' ) ?: [];
+			$thumbnails = array_map( function( int $block_post_id ) : string {
+				return get_block_preview_thumbnail( $block_post_id );
+			}, $block_ids );
+
+			return $thumbnails;
+		},
+		'schema' => [
+			'type' => 'array',
+			'items' => [
+				'type' => 'string',
 			],
 			'default' => [],
 		],
