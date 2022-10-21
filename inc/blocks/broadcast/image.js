@@ -11,7 +11,7 @@ const loaderProps = {
  * Image component, with loading state management.
  *
  * @param {object} props Component props
- * @returns React.Element
+ * @returns {ReactElement} Edit block component.
  */
 export default function Image( props ) {
 	const [ isLoaded, setIsLoaded ] = useState( false );

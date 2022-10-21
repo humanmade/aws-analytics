@@ -129,10 +129,10 @@ a.altis-broadcast-blocks-inserter__manage span {
 
 a.altis-broadcast-blocks-inserter__manage span.dashicons {
 	border: 1px solid #707070;
-    border-radius: 50%;
-    width: 25px;
-    height: 25px;
-    display: flex;
-    flex-direction: column;
-    justify-content: end;
+	border-radius: 50%;
+	width: 25px;
+	height: 25px;
+	display: flex;
+	flex-direction: column;
+	justify-content: end;
 }
