@@ -164,7 +164,7 @@ export type QueryArgs = {
 	start?: string,
 	type?: string,
 	filter?: Filter,
-	blocks?: number[]
+	include?: number[]
 };
 
 export interface State {

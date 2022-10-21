@@ -30,7 +30,7 @@ export default function CreateModal ( props: Props ) {
 	const onSave = async function ( e: React.FormEvent ) {
 		e.preventDefault();
 
-		const post: Post = await createPost( { title, type: 'broadcast', status: 'publish' } )
+		const post: Post = await createPost( { title, type: 'broadcast', status: 'publish' } );
 		trackEvent( listId, 'Action', { action: 'create', type: post.type } );
 
 		onSuccess( post.id );

@@ -292,7 +292,7 @@ const actionGenerators = {
 		}
 
 		const queryArgs = resolveQueryArgs( {
-			blocks: [ post.id ],
+			include: [ post.id ],
 			type: post.type,
 		} );
 
@@ -310,8 +310,10 @@ const actionGenerators = {
 
 		const posts: Post[] = yield actions.json( result );
 
-		yield actions.setPost( posts[ 0 ] );
-		return actions.setIsUpdating( false );
+		yield actions.setPost( posts[0] );
+		yield actions.setIsUpdating( false );
+
+		return posts[0];
 	},
 
 	/**
@@ -337,7 +339,7 @@ const actionGenerators = {
 		}
 
 		const queryArgs = resolveQueryArgs( {
-			blocks: [ post.id ],
+			include: [ post.id ],
 			type: post.type,
 		} );
 
@@ -494,7 +496,7 @@ const resolvers = {
 	 */
 	*getPost ( id: number, type: string ) {
 		const queryArgs = resolveQueryArgs( {
-			blocks: [ id ],
+			include: [ id ],
 			type: type,
 		} );
 
