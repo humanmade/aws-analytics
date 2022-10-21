@@ -10,11 +10,12 @@ namespace Altis\Analytics\Broadcast;
 use Altis\Accelerate\Admin;
 use Altis\Analytics\API;
 use Altis\Analytics\Utils;
+
+use function Altis\Analytics\API\get_block_preview_thumbnail;
+
 use WP_Block_Editor_Context;
 use WP_Post_Type;
 use WP_Post;
-
-use function Altis\Analytics\API\get_block_preview_thumbnail;
 
 const POST_TYPE = 'broadcast';
 
