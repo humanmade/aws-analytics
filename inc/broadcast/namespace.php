@@ -14,8 +14,8 @@ use Altis\Analytics\Utils;
 use function Altis\Analytics\API\get_block_preview_thumbnail;
 
 use WP_Block_Editor_Context;
-use WP_Post_Type;
 use WP_Post;
+use WP_Post_Type;
 
 const POST_TYPE = 'broadcast';
 
