@@ -47,9 +47,9 @@ function register_broadcast_post_type() : void {
 				'author',
 			],
 			'description' => __( 'Broadcast your blocks to a larger audience.', 'altis' ),
-			'menu_position' => 23,
+			'menu_position' => 2,
 			'show_in_rest' => true,
-			'show_in_menu' => 'index.php',
+			'show_in_menu' => 'accelerate',
 			'rest_base' => 'broadcasts',
 			'rest_controller_class' => __NAMESPACE__ . '\\Posts_Controller',
 			'labels' => [
