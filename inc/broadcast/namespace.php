@@ -213,7 +213,7 @@ function render( int $broadcast_id, string $client_id = '' ) : string {
 	];
 	$output = do_blocks( sprintf(
 		'<!-- wp:altis/broadcast %s /-->',
-		wp_json_encode( $args ),
+		wp_json_encode( $args )
 	) );
 
 	return $output;
