@@ -195,3 +195,24 @@ function load_broadcast_manager() {
 	exit;
 	// phpcs:enable HM.Security.NonceVerification
 }
+
+/**
+ * Render a Broadcast in a PHP template.
+ *
+ * @param integer $broadcast_id Broadcast ID.
+ * @param string $client_id [optional] Client ID, typically used to attach a custom identifier to analytics events.
+ *
+ * @return string Rendered broadcast.
+ */
+function render( int $broadcast_id, string $client_id = '' ) : string {
+	$args = [
+		'clientId' => $client_id,
+		'broadcast' => absint( $broadcast_id ),
+	];
+	$output = do_blocks( sprintf(
+		'<!-- wp:altis/broadcast %s /-->',
+		wp_json_encode( $args ),
+	) );
+
+	return $output;
+}
