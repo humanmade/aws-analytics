@@ -202,6 +202,8 @@ function load_broadcast_manager() {
  * @param integer $broadcast_id Broadcast ID.
  * @param string $client_id [optional] Client ID, typically used to attach a custom identifier to analytics events.
  *
+ * @example `echo Altis\Analytics\Broadcast\render( $broadcast_id = 120, $client_id = 'footer-hero-broadcast' );`
+ *
  * @return string Rendered broadcast.
  */
 function render( int $broadcast_id, string $client_id = '' ) : string {
