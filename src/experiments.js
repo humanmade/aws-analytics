@@ -697,8 +697,15 @@ class BroadcastBlock extends HTMLElement {
 		const key = `altis.broadcast.${ this.broadcastId }.lastViewed`;
 		let index = 0;
 		const lastViewed = window.localStorage.getItem( key );
-		if ( lastViewed !== null && ! Number.isNaN( lastViewed ) && lastViewed < ( count - 1 ) ) {
+
+		// If we have a last viewed template, and its a valid number
+		if ( lastViewed !== null && ! Number.isNaN( lastViewed ) ) {
 			index = parseInt( lastViewed, 10 ) + 1;
+		}
+
+		// If we exceeded the count of available templates, reset back to the first
+		if ( index > count - 1 ) {
+			index = 0;
 		}
 
 		window.localStorage.setItem( key, index );
