@@ -7,8 +7,8 @@
 
 namespace Altis\Analytics;
 
-use Altis\Analytics\Utils;
 use Altis\Accelerate\Admin;
+use Altis\Analytics\Utils;
 use DateInterval;
 use DateTime;
 use Exception;

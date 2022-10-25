@@ -73,31 +73,31 @@ function render_page() : void {
  */
 function register_admin_menu() : void {
 	add_menu_page(
-		$page_title = __( 'Altis Accelerate', 'altis' ),
-		$menu_title = __( 'Accelerate', 'altis' ),
-		$capability = current_user_can( 'edit_posts' ),
-		$menu_slug = 'accelerate',
-		$callback = 'Altis\\Analytics\\Dashboard\\load_dashboard',
-		$icon_url = plugins_url( '../assets/altis-logo.png', __DIR__ ),
-		$position = 3
+		__( 'Altis Accelerate', 'altis' ),
+		__( 'Accelerate', 'altis' ),
+		current_user_can( 'edit_posts' ),
+		'accelerate',
+		'Altis\\Analytics\\Dashboard\\load_dashboard',
+		plugins_url( '../assets/altis-logo.png', __DIR__ ),
+		3
 	);
 
 	add_submenu_page(
-		$parent_slug = 'accelerate',
-		$page_title = __( 'Content Explorer', 'altis' ),
-		$menu_title = __( 'Content Explorer', 'altis' ),
-		$capability = current_user_can( 'edit_posts' ),
-		$menu_slug = 'accelerate',
-		$callback = 'Altis\\Analytics\\Dashboard\\load_dashboard',
-		$position = 0,
+		'accelerate',
+		__( 'Content Explorer', 'altis' ),
+		__( 'Content Explorer', 'altis' ),
+		current_user_can( 'edit_posts' ),
+		'accelerate',
+		'Altis\\Analytics\\Dashboard\\load_dashboard',
+		0
 	);
 
 	add_submenu_page(
-		$parent_slug = 'accelerate',
-		$page_title = __( 'Global blocks', 'altis' ),
-		$menu_title = __( 'Global blocks', 'altis' ),
-		$capability = current_user_can( 'edit_posts' ),
-		$menu_slug = 'edit.php?post_type=wp_block',
-		$callback = '',
+		'accelerate',
+		__( 'Global blocks', 'altis' ),
+		__( 'Global blocks', 'altis' ),
+		current_user_can( 'edit_posts' ),
+		'edit.php?post_type=wp_block',
+		''
 	);
 }
