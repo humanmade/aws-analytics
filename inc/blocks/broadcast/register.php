@@ -133,7 +133,7 @@ function render_block( array $attributes, ?string $inner_content = '' ) : string
 	}
 
 	return sprintf(
-		'<broadcast-block class="%s" client-id="%s" broadcast-id="%s">%s</broadcast-block>',
+		'%4$s<broadcast-block class="%1$s" client-id="%2$s" broadcast-id="%3$d"></broadcast-block>',
 		$class_name,
 		$client_id,
 		$broadcast_id,
