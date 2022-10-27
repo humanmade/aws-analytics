@@ -44,6 +44,7 @@ export default function BlockSelector( props: Props ) {
 				label={ __( 'Search blocks', 'altis' ) }
 				placeholder={ __( 'Search blocks', 'altis' ) }
 				value={ search }
+				hideLabelFromVision
 				onChange={ setSearch }
 			/>
 
