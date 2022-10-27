@@ -22,6 +22,9 @@ const ListItem = function ( props: {
 	period?: Duration,
 	onManage?: Function,
 	isNested?: boolean,
+	actions?: {
+		[ k: string ]: Function
+	},
 } ) {
 	const {
 		listId,
@@ -31,6 +34,7 @@ const ListItem = function ( props: {
 		period,
 		onManage,
 		isNested,
+		actions,
 	} = props;
 
 	const [ isExpanded, setIsExpanded ] = useState<boolean>( false );
@@ -131,7 +135,10 @@ const ListItem = function ( props: {
 						</div>
 					</div>
 					<div className='record-name__title'>
-						<a href={ post.url || post.editUrl || '' } onClick={ () => trackEvent( listId, 'Navigate', { type: post.type } ) }>
+						<a href={ post.url || post.editUrl || '' } onClick={ (e: React.MouseEvent) => {
+							trackEvent( listId, 'Navigate', { type: post.type } );
+							onManage && onEdit( e );
+						} }>
 							{ decodeEntities( post.title ) }
 						</a>
 					</div>
@@ -179,7 +186,7 @@ const ListItem = function ( props: {
 						</span>
 					</div>
 					<div className="record-meta__links">
-						{ post.editUrl && ( <>
+						{ ! actions && post.editUrl && ( <>
 							{ ' ' }
 							<a href={ post.editUrl } onClick={ onEdit }>
 								{ __( 'Edit', 'altis' ) }
@@ -191,6 +198,16 @@ const ListItem = function ( props: {
 								{ __( 'View', 'altis' ) }
 							</a>
 						</> ) }
+						{
+							actions && Object.keys( actions ).map( label => (
+								<a href="https://google.com" onClick={ e => {
+									e.preventDefault();
+									actions[ label ]( post );
+								} }>
+									{ label }
+								</a>
+							) )
+						}
 					</div>
 				</td>
 			</tr>

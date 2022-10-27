@@ -35,7 +35,7 @@ export default function BlockSelector( props: Props ) {
 			type: 'wp_block,xb',
 			...args,
 		}, false );
-	}, [ search, blockIds ] );
+	}, [ search ] );
 
 	return (
 		<>

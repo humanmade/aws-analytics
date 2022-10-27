@@ -358,7 +358,9 @@ const actionGenerators = {
 		const posts: Post[] = yield actions.json( result );
 
 		yield actions.setPost( posts[0] );
-		return actions.setIsUpdating( false );
+		yield actions.setIsUpdating( false );
+
+		return posts[0];
 	},
 }
 
