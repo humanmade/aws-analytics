@@ -55,6 +55,11 @@ function createTabbedPreviews() {
 
 				// append the data
 				tabContent.appendChild( variant );
+
+				// Ensure images are loaded with GaussHolder if available.
+				if ( window.GaussHolder ) {
+					window.GaussHolder();
+				}
 			} );
 
 			// append the created tab
