@@ -52,6 +52,11 @@ export default function Selector() {
 			setSelected( nextSelected );
 			Altis.Analytics.overrideAudiences( nextSelected );
 		}
+
+		// Ensure images are loaded with GaussHolder if available.
+		if ( window.GaussHolder ) {
+			window.GaussHolder();
+		}
 	};
 	/**
 	 * Prevent link default on click.
