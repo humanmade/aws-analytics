@@ -60,6 +60,11 @@ function createTabbedPreviews() {
 
 			// append the created tab
 			tabContainer.appendChild( tab );
+
+			// Ensure images are loaded with GaussHolder if available.
+			if ( window.GaussHolder ) {
+				window.GaussHolder();
+			}
 		}
 
 		// determine if a specific tab should be clicked
