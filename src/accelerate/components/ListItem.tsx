@@ -135,9 +135,12 @@ const ListItem = function ( props: {
 						</div>
 					</div>
 					<div className='record-name__title'>
-						<a href={ post.url || post.editUrl || '' } onClick={ (e: React.MouseEvent) => {
-							trackEvent( listId, 'Navigate', { type: post.type } );
-							onManage && onEdit( e );
+						<a href={ post.url || post.editUrl || '' } onClick={ ( e: React.MouseEvent ) => {
+							if ( onManage ) {
+								onEdit( e );
+							} else if ( post.url || post.editUrl ) {
+								trackEvent( listId, 'Navigate', { type: post.type } );
+							}
 						} }>
 							{ decodeEntities( post.title ) }
 						</a>
