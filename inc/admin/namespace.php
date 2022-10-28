@@ -78,7 +78,7 @@ function register_admin_menu() : void {
 		current_user_can( 'edit_posts' ),
 		'accelerate',
 		'Altis\\Analytics\\Dashboard\\load_dashboard',
-		plugins_url( '../assets/altis-logo.png', __DIR__ ),
+		plugins_url( '../assets/altis-icon.svg', __DIR__ ),
 		3
 	);
 
@@ -100,4 +100,9 @@ function register_admin_menu() : void {
 		'edit.php?post_type=wp_block',
 		''
 	);
+
+	// Scale down the admin menu image.
+	add_action( 'admin_print_footer_scripts', function() {
+		printf( '<style>.toplevel_page_accelerate .wp-menu-image img { width: 20px }</style>' );
+	} );
 }
