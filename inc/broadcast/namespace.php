@@ -81,14 +81,13 @@ function register_rest_fields() : void {
 			$prev = array_map( 'absint', get_post_meta( $post->ID, 'blocks' ) ) ?: [];
 			$value = array_map( 'absint', $value );
 
-			$to_delete = array_diff( $prev, $value );
-			$to_add = array_filter( array_diff( $value, $prev ) );
-
-			foreach ( $to_delete as $block_id ) {
-				delete_post_meta( $post->ID, 'blocks', $block_id );
+			if ( $prev == $value ) {
+				return;
 			}
 
-			foreach ( $to_add as $block_id ) {
+			delete_post_meta( $post->ID, 'blocks' );
+
+			foreach ( $value as $block_id ) {
 				add_post_meta( $post->ID, 'blocks', $block_id );
 			}
 		},
