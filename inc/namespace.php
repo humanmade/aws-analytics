@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics;
 
+use Altis\Accelerate\Admin;
 use Altis\Analytics\Utils;
 use DateInterval;
 use DateTime;
@@ -19,6 +20,7 @@ use WP_Block;
 function setup() {
 	// Setup API.
 	API\setup();
+	Admin\setup();
 
 	if ( Utils\is_feature_enabled( 'audiences' ) ) {
 		Audiences\setup();
