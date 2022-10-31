@@ -423,6 +423,9 @@ class PersonalizationBlock extends HTMLElement {
 				},
 			} );
 		} );
+
+		// Dispatch the altisBlockContentChanged event.
+		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
 	}
 
 }
