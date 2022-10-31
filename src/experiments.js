@@ -262,7 +262,11 @@ class ABTestBlock extends Test {
 		this.appendChild( experience );
 
 		// Dispatch the altisblockcontentchanged event.
-		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
+		window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+			detail: {
+				target: this,
+			},
+		} ) );
 
 		// If variant ID is false then this viewer is not part of the test so don't log events.
 		if ( variantId === false ) {
@@ -534,7 +538,11 @@ class PersonalizationBlock extends HTMLElement {
 		this.appendChild( experience );
 
 		// Dispatch the altisBlockContentChanged event.
-		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
+		window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+			detail: {
+				target: this,
+			},
+		} ) );
 
 		// Record a load event for conversion tracking.
 		window.Altis.Analytics.record( 'experienceLoad', {
