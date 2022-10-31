@@ -341,6 +341,9 @@ class ABTestBlock extends Test {
 				},
 			}, false );
 		} );
+
+		// Dispatch the altisblockcontentchanged event.
+		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
 	}
 
 }
