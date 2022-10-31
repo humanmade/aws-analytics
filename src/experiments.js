@@ -533,6 +533,9 @@ class PersonalizationBlock extends HTMLElement {
 		this.innerHTML = '';
 		this.appendChild( experience );
 
+		// Dispatch the altisBlockContentChanged event.
+		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
+
 		// Record a load event for conversion tracking.
 		window.Altis.Analytics.record( 'experienceLoad', {
 			attributes: {
@@ -598,9 +601,6 @@ class PersonalizationBlock extends HTMLElement {
 				},
 			}, false );
 		} );
-
-		// Dispatch the altisBlockContentChanged event.
-		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
 	}
 
 }
