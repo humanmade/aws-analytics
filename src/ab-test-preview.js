@@ -56,10 +56,8 @@ function createTabbedPreviews() {
 				// append the data
 				tabContent.appendChild( variant );
 
-				// Ensure images are loaded with GaussHolder if available.
-				if ( window.GaussHolder ) {
-					window.GaussHolder();
-				}
+				// Dispatch the altisBlockContentChanged event.
+				window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
 			} );
 
 			// append the created tab
