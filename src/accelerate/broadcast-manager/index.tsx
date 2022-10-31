@@ -3,7 +3,7 @@ import { __ } from '@wordpress/i18n';
 
 import List from '../components/List';
 import { InitialData, Duration, Post } from '../../util';
-import CreateModal from './modals/Create';
+import CreateUpdateModal from './modals/Create';
 import ManageModal from './modals/Manage';
 
 interface Props {
@@ -18,6 +18,16 @@ export default function Broadcasts ( props: Props ) {
 	const [ broadcastId, setBroadcastId ] = useState<number|null>( props?.id || null );
 	const [ addingNewItem, setAddingNewItem ] = useState<boolean>( false );
 	const [ managingItem, setManagingItem ] = useState<Post | null>( null );
+	const [ renamingItem, setRenamingItem ] = useState<Post | null>( null );
+
+	const actions = {
+		[ __( 'Add/Remove blocks', 'altis' ) ]: ( post: Post ) => {
+			setManagingItem( post );
+		},
+		[ __( 'Rename', 'altis' ) ]: ( post: Post ) => {
+			setRenamingItem( post );
+		}
+	}
 
 	return (
 		<div className="Dashboard">
@@ -32,20 +42,21 @@ export default function Broadcasts ( props: Props ) {
 				filters={ [ 'all', 'mine' ] }
 				onAddNewItem={ () => setAddingNewItem( true ) }
 				onManageItem={ setManagingItem }
+				actions={ actions }
 				postId={ broadcastId }
 			/>
-			{ addingNewItem && (
-				<CreateModal
+			{ ( addingNewItem || renamingItem ) && (
+				<CreateUpdateModal
 					listId="Broadcast Manager"
-					onClose={ () => setAddingNewItem( false ) }
+					onClose={ () => addingNewItem ? setAddingNewItem( false ) : setRenamingItem( null ) }
 					onSuccess={ id => setBroadcastId( id ) }
+					item={ renamingItem }
 				/>
 			) }
 			{ managingItem && (
 				<ManageModal
 					listId="Broadcast Manager"
 					onClose={ () => setManagingItem( null ) }
-					onSuccess={ () => setManagingItem( null ) }
 					item={ managingItem }
 				/>
 			)}

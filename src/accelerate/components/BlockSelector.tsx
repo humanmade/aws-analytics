@@ -35,7 +35,7 @@ export default function BlockSelector( props: Props ) {
 			type: 'wp_block,xb',
 			...args,
 		}, false );
-	}, [ search, blockIds ] );
+	}, [ search ] );
 
 	return (
 		<>
@@ -44,6 +44,7 @@ export default function BlockSelector( props: Props ) {
 				label={ __( 'Search blocks', 'altis' ) }
 				placeholder={ __( 'Search blocks', 'altis' ) }
 				value={ search }
+				hideLabelFromVision
 				onChange={ setSearch }
 			/>
 

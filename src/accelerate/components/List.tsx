@@ -22,6 +22,9 @@ type Props = {
 	filters: string[],
 	onAddNewItem?: Function,
 	onManageItem?: Function,
+	actions?: {
+		[ k: string ]: Function
+	},
 	postId?: number | null,
 };
 
@@ -37,6 +40,7 @@ export default function List ( props: Props ) {
 		filters,
 		onAddNewItem,
 		onManageItem,
+		actions,
 		postId,
 	} = props;
 
@@ -167,6 +171,7 @@ export default function List ( props: Props ) {
 									histogramDiffs={ histogramDiffs }
 									period={ period }
 									onManage={ onManageItem }
+									actions={ actions }
 								/>
 							) ) }
 						</tbody>

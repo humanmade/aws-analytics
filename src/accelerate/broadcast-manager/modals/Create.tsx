@@ -6,6 +6,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 
 type Props = {
 	listId: string,
+	item?: Post|null,
 	onClose(): void,
 	onSuccess( id: number ): void,
 };
@@ -16,22 +17,29 @@ type Props = {
  * @param props Props
  * @returns {React.element}
  */
-export default function CreateModal ( props: Props ) {
+export default function CreateUpdateModal ( props: Props ) {
 	const {
 		listId,
+		item,
 		onClose,
 		onSuccess,
 	} = props;
 
-	const { createPost } = useDispatch( 'accelerate' );
+	const { createPost, updatePost } = useDispatch( 'accelerate' );
 	const isSaving: boolean = useSelect( select => select( 'accelerate' ).getIsUpdating<boolean>() );
-	const [ title, setTitle ] = useState<string>( '' );
+	const [ title, setTitle ] = useState<string>( item ? item.title : '' );
 
 	const onSave = async function ( e: React.FormEvent ) {
 		e.preventDefault();
+		let post: Post;
 
-		const post: Post = await createPost( { title, type: 'broadcast', status: 'publish' } );
-		trackEvent( listId, 'Action', { action: 'create', type: post.type } );
+		if ( item ) {
+			post = await updatePost( { id: item.id, title, type: 'broadcast' } );
+			trackEvent( listId, 'Action', { action: 'rename', type: 'broadcast' } );
+		} else {
+			post = await createPost( { title, type: 'broadcast', status: 'publish' } );
+			trackEvent( listId, 'Action', { action: 'create', type: 'broadcast' } );
+		}
 
 		onSuccess( post.id );
 		onClose();
@@ -39,13 +47,13 @@ export default function CreateModal ( props: Props ) {
 
 	return (
 		<Modal
-			title={ __( 'Create a new Broadcast', 'altis' ) }
+			title={ item ? __( 'Update Broadcast', 'altis' ) : __( 'Create a new Broadcast', 'altis' ) }
 			onRequestClose={ onClose }
 			style={ { maxWidth: '600px' } }
 		>
 			<form onSubmit={ onSave }>
 				<TextControl
-					label={ __( 'Choose a name for the new Broadcast:', 'altis' ) }
+					label={ __( 'Choose a name for the Broadcast:', 'altis' ) }
 					onChange={ setTitle }
 					value={ title }
 					autoFocus
@@ -54,7 +62,11 @@ export default function CreateModal ( props: Props ) {
 
 				<ButtonGroup>
 					<Button isPrimary disabled={ isSaving } onClick={ onSave }>
-						{ isSaving ? __( 'Creating…', 'altis' ) : __( 'Create', 'altis' ) }
+						{ item
+							? isSaving ? __( 'Updating…', 'altis' ) : __( 'Update', 'altis' )
+							: isSaving ? __( 'Creating…', 'altis' ) : __( 'Create', 'altis' )
+						}
+						{  }
 					</Button>
 					<Button isSecondary disabled={ isSaving } onClick={ onClose }>
 						{ __( 'Cancel', 'altis' ) }

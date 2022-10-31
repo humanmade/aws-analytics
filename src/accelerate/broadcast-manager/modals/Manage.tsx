@@ -24,58 +24,33 @@ export default function ManageModal ( props: Props ) {
 		listId,
 		item,
 		onClose,
-		onSuccess,
 	} = props;
 
 	const { post, onUpdatePost, isUpdating } = usePost( item.id );
-
-	const [ title, setTitle ] = useState<string>( item.title );
 	const [ blocks, setBlocks ] = useState<number[]>( item.blocks || [] );
 
-	const onSave = async function ( e: React.FormEvent ) {
-		e.preventDefault();
+	const onSave = async function ( blocks: number[] ) {
+		setBlocks( blocks );
 		trackEvent( listId, 'Action', { action: 'update', type: post.type, blocks: blocks.length } );
 
 		await onUpdatePost( {
 			id: post.id,
 			type: post.type.name,
-			title,
 			blocks,
 		} );
-
-		onSuccess( post.id );
 	};
 
 	return (
 		<Modal
-			title={ sprintf( __( 'Manage Broadcast blocks for: %s', 'altis' ), title ) }
+			title={ sprintf( __( 'Manage Broadcast blocks for: %s', 'altis' ), item.title ) }
 			onRequestClose={ onClose }
 			style={ { maxWidth: '600px' } }
 		>
-			<form onSubmit={ onSave }>
-				<TextControl
-					label={ __( 'Broadcast name:', 'altis' ) }
-					onChange={ setTitle }
-					value={ title }
-					autoFocus
-					disabled={ isUpdating }
-				/>
-
-				<BlockSelector
-					label={ __( 'Select nested blocks', 'altis' ) }
-					value={ blocks }
-					onChange={ setBlocks }
-				/>
-
-				<ButtonGroup>
-					<Button isPrimary disabled={ isUpdating } onClick={ onSave }>
-						{ isUpdating ? __( 'Updating..', 'altis' ) : __( 'Update', 'altis' ) }
-					</Button>
-					<Button isSecondary disabled={ isUpdating } onClick={ onClose }>
-						{ __( 'Cancel', 'altis' ) }
-					</Button>
-				</ButtonGroup>
-			</form>
+			<BlockSelector
+				label={ __( 'Select nested blocks', 'altis' ) }
+				value={ blocks }
+				onChange={ onSave }
+			/>
 		</Modal>
 	);
 }
