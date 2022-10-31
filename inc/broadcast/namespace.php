@@ -81,7 +81,7 @@ function register_rest_fields() : void {
 			$prev = array_map( 'absint', get_post_meta( $post->ID, 'blocks' ) ) ?: [];
 			$value = array_map( 'absint', $value );
 
-			if ( $prev == $value ) {
+			if ( $prev === $value ) {
 				return;
 			}
 
