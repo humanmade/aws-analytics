@@ -771,7 +771,7 @@ body.edit-php {
 		display: flex;
 		flex-direction: column;
 		gap: 10px;
-		min-width: 600px;
+		min-width: 500px;
 
 		background: $color-light-grey-bg;
 		box-shadow: 0 0 0 100vmax #f5f6f8;
@@ -790,17 +790,13 @@ body.edit-php {
 		gap: 10px;
 		justify-content: space-between;
 
+		&--sortable {
+			cursor: move;
+		}
+
 		> * {
 			display: flex;
-			align-items: center;
-		}
-
-		&--thumb {
-			width: 150px;
-		}
-
-		&--actions {
-			width: 200px;
+			align-self: center;
 		}
 
 		&--add.components-button,
@@ -817,9 +813,7 @@ body.edit-php {
 		}
 
 		&--details {
-			display: flex;
 			flex: 1;
-			width: 200px;
 		}
 
 		&--title {

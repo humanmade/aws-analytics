@@ -51,8 +51,7 @@ export default function BlockSelector( props: Props ) {
 			<BlockSelectorList
 				blocks={ blocks }
 				selected={ blockIds }
-				onAdd={ ( id: number ) => onChange( [ ...blockIds, id ] ) }
-				onRemove={ ( id: number ) => onChange( blockIds.filter( child => child !== id ) ) }
+				onChange={ onChange }
 			/>
 		</>
 	);
