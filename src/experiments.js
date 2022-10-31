@@ -261,6 +261,9 @@ class ABTestBlock extends Test {
 		this.innerHTML = '';
 		this.appendChild( experience );
 
+		// Dispatch the altisblockcontentchanged event.
+		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
+
 		// If variant ID is false then this viewer is not part of the test so don't log events.
 		if ( variantId === false ) {
 			return;
@@ -341,9 +344,6 @@ class ABTestBlock extends Test {
 				},
 			}, false );
 		} );
-
-		// Dispatch the altisblockcontentchanged event.
-		window.dispatchEvent( new Event( 'altisBlockContentChanged' ) );
 	}
 
 }
