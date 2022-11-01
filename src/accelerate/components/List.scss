@@ -3,7 +3,8 @@
 
 // Override certain WP-specific pieces
 body.index-php,
-body.edit-php {
+body.edit-php,
+body.toplevel_page_accelerate {
 
 	background-color: #fff;
 
