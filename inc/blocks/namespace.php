@@ -77,6 +77,9 @@ function setup() {
 
 	// Support excerpts.
 	add_filter( 'excerpt_allowed_wrapper_blocks', __NAMESPACE__ . '\\filter_excerpt_allowed_wrapper_blocks' );
+
+	// Analytics dashboard view.
+	add_action( 'admin_menu', __NAMESPACE__ . '\\register_admin_page' );
 }
 
 /**
@@ -282,9 +285,9 @@ function register_post_type() {
 				'editor',
 			],
 			'menu_icon' => 'dashicons-networking',
-			'menu_position' => 152,
+			'menu_position' => 200,
 			'show_in_rest' => true,
-			'show_in_menu' => 'index.php',
+			'show_in_menu' => false,
 			'rest_base' => 'xbs',
 			'rest_controller_class' => __NAMESPACE__ . '\\REST_API\Posts_Controller',
 			'hierarchical' => true,
@@ -957,4 +960,20 @@ function filter_excerpt_allowed_wrapper_blocks( array $allowed_blocks ) : array 
 	$allowed_blocks[] = 'altis/personalization-variant';
 
 	return $allowed_blocks;
+}
+
+/**
+ * Adds the admin page.
+ *
+ * @return void
+ */
+function register_admin_page() {
+	$hook = add_submenu_page(
+		'accelerate',
+		__( 'Experience Insights', 'altis' ),
+		__( 'Insights', 'altis' ),
+		'manage_options',
+		'edit.php?post_type=xb',
+		''
+	);
 }
