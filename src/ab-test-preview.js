@@ -55,6 +55,14 @@ function createTabbedPreviews() {
 
 				// append the data
 				tabContent.appendChild( variant );
+
+				// Dispatch the altisBlockContentChanged event.
+				window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+					detail: {
+						target: xb,
+						preview: true,
+					},
+				} ) );
 			} );
 
 			// append the created tab

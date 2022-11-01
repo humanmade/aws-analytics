@@ -60,6 +60,14 @@ function createTabbedPreviews() {
 
 			// append the created tab
 			tabContainer.appendChild( tab );
+
+			// Dispatch the altisblockcontentchanged event.
+			window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+				detail: {
+					target: xb,
+					preview: true,
+				},
+			} ) );
 		}
 
 		// determine if a specific tab should be clicked
