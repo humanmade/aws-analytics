@@ -28,6 +28,7 @@ function setup() {
 	require_once __DIR__ . '/shim/register.php';
 	require_once __DIR__ . '/ab-test/register.php';
 	require_once __DIR__ . '/ab-test-variant/register.php';
+	require_once __DIR__ . '/broadcast/register.php';
 
 	$using_blocks = false;
 
@@ -41,6 +42,9 @@ function setup() {
 		AB_Test\setup();
 		AB_Test_Variant\setup();
 		$using_blocks = true;
+	}
+	if ( Utils\is_feature_enabled( 'broadcast' ) ) {
+		Broadcast\setup();
 	}
 	if ( $using_blocks ) {
 		Shim\setup();

@@ -24,6 +24,8 @@ const sharedConfig = {
 		'blocks/ab-test': path.resolve( __dirname, '../inc/blocks/ab-test/index.js' ),
 		'blocks/ab-test-variant': path.resolve( __dirname, '../inc/blocks/ab-test-variant/index.js' ),
 		'blocks/ab-test-preview': path.resolve( __dirname, '../src/ab-test-preview.js' ),
+		'blocks/altis-xb-preview': path.resolve( __dirname, '../src/preview/altis-xb-preview.js' ),
+		'blocks/broadcast': path.resolve( __dirname, '../inc/blocks/broadcast/index.js' ),
 		'experiments': path.resolve( __dirname, '../src/experiments.js' ),
 		'experiments/sidebar': path.resolve( __dirname, '../src/experiments/index.js' ),
 		'titles': path.resolve( __dirname, '../src/experiments/titles/index.js' ),
@@ -56,6 +58,22 @@ const sharedConfig = {
 							require( '@wordpress/babel-plugin-import-jsx-pragma' ),
 						],
 					},
+				},
+			},
+			{
+				test: /\.svg$/,
+				loader: 'svg-inline-loader'
+			},
+			{
+				test: /\.scss$/,
+				loader: require.resolve( 'style-loader' ),
+				options: {},
+			},
+			{
+				test: /\.scss$/,
+				loader: require.resolve( 'css-loader' ),
+				options: {
+					importLoaders: 1,
 				},
 			},
 		],

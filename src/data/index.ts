@@ -9,24 +9,33 @@ import {
 	Post,
 	SelectableDate,
 	SetPostsAction,
+	SetPostAction,
 	SetPaginationAction,
 	SetStatsAction,
 	SetIsLoadingAction,
 	SetIsLoadingStatsAction,
+	SetIsUpdatingAction,
 	State,
 	StandardAction,
 	StatsResult,
 	RefreshStatsAction,
+	QueryArgs,
 	Filter,
 	DiffsResult,
 	SetDiffsAction,
 	SetIsLoadingDiffsAction,
 	Duration,
+	PostUpdateObject,
 } from '../util';
 
-const STATS_ENDPOINT = 'accelerate/v1/stats';
-const TOP_ENDPOINT = 'accelerate/v1/top';
-const DIFF_ENDPOINT = 'accelerate/v1/diff';
+const API_NAMESPACE = 'accelerate/v1';
+const STATS_ENDPOINT = `${ API_NAMESPACE }/stats`;
+const TOP_ENDPOINT = `${API_NAMESPACE}/top`;
+const DIFF_ENDPOINT = `${API_NAMESPACE}/diff`;
+
+const POST_TYPE_ENDPOINTS = {
+	broadcast: `${API_NAMESPACE}/broadcast`,
+};
 
 export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDate | null ) : Period => {
 	const diffDur = moment.duration( diff as DurationInputArg1 );
@@ -38,17 +47,6 @@ export const resolveSelectedDate = ( period: SelectableDate, diff: SelectableDat
 		end,
 	};
 }
-
-type QueryArgs = {
-	diff?: SelectableDate,
-	end?: string,
-	period?: SelectableDate,
-	search?: string,
-	start?: string,
-	type?: string,
-	filter?: Filter,
-	ids?: number[],
-};
 
 const mapToKey = ( obj: QueryArgs ) : string => {
 	return Object.entries( resolveQueryArgs( obj ) )
@@ -76,11 +74,13 @@ const initialState: State = {
 	isLoading: true,
 	isLoadingStats: true,
 	isLoadingDiffs: true,
+	isUpdating: false,
 	pagination: {
 		total: 0,
 		pages: 0,
 	},
 	posts: {},
+	queries: {},
 	stats: {},
 	diffs: {},
 };
@@ -130,6 +130,18 @@ const actions = {
 			type: 'SET_POSTS',
 			posts,
 			key,
+		};
+	},
+	/**
+	 * Update a post entry.
+	 *
+	 * @param post Updated post entry.
+	 * @returns {object} Update post action object.
+	 */
+	setPost( post: Post ) : SetPostAction {
+		return {
+			type: 'SET_POST',
+			post
 		};
 	},
 	/**
@@ -208,6 +220,18 @@ const actions = {
 		};
 	},
 	/**
+	 * Set is updating action creator.
+	 *
+	 * @param {boolean} isUpdating True if UI is updating data.
+	 * @returns {object} Set updating action object.
+	 */
+	setIsUpdating( isUpdating: boolean ) : SetIsUpdatingAction {
+		return {
+			type: 'SET_IS_UPDATING',
+			isUpdating,
+		};
+	},
+	/**
 	 * Set pagination action creator.
 	 *
 	 * @param {number} total Total found posts.
@@ -247,6 +271,99 @@ const actions = {
 	},
 };
 
+const actionGenerators = {
+	/**
+	 * Create post generator.
+	 *
+	 * @param {object} post Post object.
+	 * @returns {object} Action objects.
+	 */
+	*createPost ( post:PostUpdateObject ) {
+		yield actions.setIsUpdating( true );
+
+		const response: object = yield actions.fetch( {
+			path: `accelerate/v1/broadcast`,
+			method: 'POST',
+			data: post,
+		} );
+
+		if ( !response ) {
+			return;
+		}
+
+		const queryArgs = resolveQueryArgs( {
+			include: [ post.id ],
+			type: post.type,
+		} );
+
+		const result: Response = yield actions.fetch( {
+			path: addQueryArgs( TOP_ENDPOINT, queryArgs ),
+			headers: {
+				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
+			},
+			parse: false,
+		} );
+
+		if ( !result ) {
+			return;
+		}
+
+		const posts: Post[] = yield actions.json( result );
+
+		yield actions.setPost( posts[0] );
+		yield actions.setIsUpdating( false );
+
+		return posts[0];
+	},
+
+	/**
+	 * Update post action generator.
+	 *
+	 * @param {Post} post Post object.
+	 * @returns {object} Action objects.
+	 */
+	*updatePost ( post: PostUpdateObject ) {
+		if ( !post.id ) {
+			return;
+		}
+		yield actions.setIsUpdating( true );
+
+		const response: object = yield actions.fetch( {
+			path: `accelerate/v1/broadcast/${post.id}`,
+			method: 'PATCH',
+			data: post,
+		} );
+
+		if ( !response ) {
+			return;
+		}
+
+		const queryArgs = resolveQueryArgs( {
+			include: [ post.id ],
+			type: post.type,
+		} );
+
+		const result: Response = yield actions.fetch( {
+			path: addQueryArgs( TOP_ENDPOINT, queryArgs ),
+			headers: {
+				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
+			},
+			parse: false,
+		} );
+
+		if ( ! result ) {
+			return;
+		}
+
+		const posts: Post[] = yield actions.json( result );
+
+		yield actions.setPost( posts[0] );
+		yield actions.setIsUpdating( false );
+
+		return posts[0];
+	},
+}
+
 const selectors = {
 	/**
 	 * Get stats.
@@ -266,7 +383,18 @@ const selectors = {
 	 * @returns {Array} List of all available posts.
 	 */
 	getPosts( state: State, queryArgs: QueryArgs = {} ) {
-		return state.posts[ mapToKey( queryArgs ) ] || [];
+		const postIds = state.queries[ mapToKey( queryArgs ) ] || [];
+		return postIds.map( id => state.posts[ id ] || null );
+	},
+	/**
+	 * Get a post.
+	 *
+	 * @param {object} state  The redux store state.
+	 * @param {number} id     The post ID.
+	 * @returns {Post | null} The requested post object.
+	 */
+	getPost( state: State, id: number ) {
+		return state.posts[ id ] || null;
 	},
 	/**
 	 * Get all post diffs.
@@ -314,6 +442,15 @@ const selectors = {
 	getIsLoadingDiffs( state: State ) {
 		return state.isLoadingDiffs;
 	},
+	/**
+	 * Get loading status.
+	 *
+	 * @param {object} state The redux store state.
+	 * @returns {boolean} True if currently loading.
+	 */
+	getIsUpdating ( state: State ) {
+		return state.isUpdating;
+	},
 };
 
 const resolvers = {
@@ -323,8 +460,10 @@ const resolvers = {
 	 * @param {object} queryArgs Query args to pass to the REST API query. Possible parameters include context, per_page, page, search or status.
 	 * @returns {object} Action objects.
 	 */
-	*getPosts( queryArgs: QueryArgs = {} ) {
-		yield actions.setIsLoading( true );
+	*getPosts( queryArgs: QueryArgs = {}, isMainQuery = true ) {
+		if ( isMainQuery ) {
+			yield actions.setIsLoading( true );
+		}
 
 		queryArgs = resolveQueryArgs( queryArgs );
 
@@ -340,11 +479,43 @@ const resolvers = {
 		}
 		const posts: Post[] = yield actions.json( response );
 		yield actions.setPosts( posts, mapToKey( queryArgs ) );
-		yield actions.setPagination(
-			parseInt( response.headers.get( 'x-wp-total' ) || '0', 10 ),
-			parseInt( response.headers.get( 'x-wp-totalpages' ) || '0', 10 )
-		);
-		return actions.setIsLoading( false );
+
+		if ( isMainQuery ) {
+			yield actions.setPagination(
+				parseInt( response.headers.get( 'x-wp-total' ) || '0', 10 ),
+				parseInt( response.headers.get( 'x-wp-totalpages' ) || '0', 10 )
+			);
+			return actions.setIsLoading( false );
+		} else {
+			return posts;
+		}
+	},
+	/**
+	 * Resolve request for a single post.
+	 *
+	 * @param {number} id Post ID to query.
+	 * @returns {object} Action objects.
+	 */
+	*getPost ( id: number, type: string ) {
+		const queryArgs = resolveQueryArgs( {
+			include: [ id ],
+			type: type,
+		} );
+
+		const result: Response = yield actions.fetch( {
+			path: addQueryArgs( TOP_ENDPOINT, queryArgs ),
+			headers: {
+				'Access-Control-Expose-Headers': 'X-WP-Total, X-WP-TotalPages',
+			},
+			parse: false,
+		} );
+
+		if ( ! result ) {
+			return;
+		}
+
+		const posts: Post[] = yield actions.json( result );
+		return posts[0];
 	},
 	/**
 	 * Resolve request for stats.
@@ -387,7 +558,10 @@ const resolvers = {
 };
 
 export const store = createReduxStore( 'accelerate', {
-	actions,
+	actions: {
+		...actions,
+		...actionGenerators,
+	},
 	controls,
 	initialState,
 	reducer,

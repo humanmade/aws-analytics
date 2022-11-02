@@ -1,4 +1,4 @@
-import { Action, Post, State } from '../util';
+import { Action, Post, State, PostMap } from '../util';
 
 /**
  * Sort posts ascending order.
@@ -22,6 +22,19 @@ const sortPosts = ( a: Post, b: Post ) : number => {
 };
 
 /**
+ * Convert posts array to a map.
+ *
+ * @param {Post[]} posts Posts array.
+ * @returns {PostsMap}   Posts map keyed by ID.
+ */
+const arrayToMap = ( posts: Post[] ) : PostMap => {
+	return posts.reduce( ( all: PostMap, post: Post ) => ( {
+		...all,
+		[ post.id ]: post
+	} ), {} );
+}
+
+/**
  * Reducer for the dashboard data store.
  *
  * @param {object} state The current state object.
@@ -36,7 +49,21 @@ export default function reducer( state: State, action: Action ) : State {
 				...state,
 				posts: {
 					...state.posts,
-					[ action.key ]: action.posts.sort( sortPosts ),
+					...arrayToMap( action.posts ),
+				},
+				queries: {
+					...state.queries,
+					[ action.key ]: action.posts.sort( sortPosts ).map( post => post.id ),
+				},
+			};
+		}
+
+		case 'SET_POST': {
+			return {
+				...state,
+				posts: {
+					...state.posts,
+					[ action.post.id ]: action.post,
 				},
 			};
 		}
@@ -86,6 +113,13 @@ export default function reducer( state: State, action: Action ) : State {
 			return {
 				...state,
 				isLoadingDiffs: action.isLoading,
+			};
+		}
+
+		case 'SET_IS_UPDATING': {
+			return {
+				...state,
+				isUpdating: action.isUpdating,
 			};
 		}
 

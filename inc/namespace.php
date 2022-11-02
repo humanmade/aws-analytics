@@ -7,6 +7,7 @@
 
 namespace Altis\Analytics;
 
+use Altis\Accelerate\Admin;
 use Altis\Analytics\Utils;
 use WP_Block;
 
@@ -16,6 +17,7 @@ use WP_Block;
 function setup() {
 	// Setup API.
 	API\setup();
+	Admin\setup();
 
 	if ( Utils\is_feature_enabled( 'audiences' ) ) {
 		Audiences\setup();
@@ -32,6 +34,10 @@ function setup() {
 
 	if ( Utils\is_feature_enabled( 'blocks' ) ) {
 		Blocks\setup();
+	}
+
+	if ( Utils\is_feature_enabled( 'broadcast' ) ) {
+		Broadcast\setup();
 	}
 
 	if ( Utils\is_feature_enabled( 'insights' ) ) {
@@ -147,7 +153,7 @@ function get_client_side_data() : array {
 
 		if ( is_date() ) {
 			$data['Attributes']['archiveType'] = 'date';
-			$data['Attributes']['date'] = get_the_date();
+			$data['Attributes']['archiveDate'] = get_the_date();
 		}
 
 		if ( is_search() ) {
@@ -156,7 +162,7 @@ function get_client_side_data() : array {
 		}
 
 		if ( is_post_type_archive() ) {
-			$data['archiveType'] = get_post_type();
+			$data['Attributes']['archiveType'] = get_post_type();
 		}
 
 		if ( is_tag() || is_category() || is_tax() ) {

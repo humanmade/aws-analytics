@@ -1,0 +1,19 @@
+// Global variables and styles, used in multiple pages.
+
+// Variables
+$dark-blue: #152a4e;
+$active-blue: #4667de;
+$score-pos: #3cc66d;
+$score-neg: #c6403c;
+$sidebar-padding: 5%;
+$color-grey: #cbc9c9;
+$color-light-grey: #eef0f4;
+$color-dark-grey: #707070;
+$color-light-grey-bg: #f5f6f8;
+$color-light-blue-bg: #eceef1; // Thumbnail BG + Ghost Bars
+
+@keyframes altis-bounce {
+	0% {
+		opacity: 0.5;
+	}
+}

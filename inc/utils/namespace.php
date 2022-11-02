@@ -876,3 +876,16 @@ function query( string $query, array $params = [], string $return = 'array', ?st
 function get_cache_key( string $prefix, ...$args ) : string {
 	return sprintf( '%s:%s', $prefix, hash( 'sha1', serialize( $args ) ) );
 }
+
+/**
+ * Return plugin version.
+ *
+ * @return string
+ */
+function get_plugin_version() : string {
+	// Only show version if this is embedded in the accelerate plugin.
+	if ( defined( 'Altis\\Accelerate\\VERSION' ) ) {
+		return \Altis\Accelerate\VERSION;
+	}
+	return '';
+}

@@ -1,17 +1,18 @@
-import { getLetter } from '../src/utils';
+import { getLetter } from '../../src/utils';
+import './altis-xb-preview.scss';
 
 const { __, sprintf } = wp.i18n;
-
 /**
  * Create the preview tabs
  */
 function createTabbedPreviews() {
-	document.querySelectorAll( '.ab-test-xb-preview' ).forEach( xb => {
 
+	const mainClass = 'altis-xb-preview';
+	document.querySelectorAll( `.${ mainClass }` ).forEach( xb => {
 		const xbPostId = xb.dataset.postId;
 		const templates = document.querySelectorAll( 'template[data-parent-id="' + xb.dataset.clientId + '"]' );
-		const tabContainer = xb.querySelector( '.ab-test-xb-preview__tabs' );
-		const tabContent = xb.querySelector( '.ab-test-xb-preview__content' );
+		const tabContainer = xb.querySelector( `.${ mainClass }__tabs` );
+		const tabContent = xb.querySelector( `.${ mainClass }__content` );
 
 		// Return if we've processed this XB already.
 		if ( tabContainer.children.length > 0 ) {
@@ -30,7 +31,7 @@ function createTabbedPreviews() {
 			const tab = document.createElement( 'button' );
 
 			// if the title is empty the set the title based on the index
-			if ( templates[i].dataset.title === '' ) {
+			if ( ! templates[i].dataset.title ) {
 				tab.innerHTML = sprintf( __( 'Variant %s', 'altis-analytics' ), getLetter( i ) );
 			} else {
 				// set the button inner html to the test title
@@ -38,14 +39,14 @@ function createTabbedPreviews() {
 			}
 
 			// set the class for the button
-			tab.className = 'ab-test-xb-preview__tab';
+			tab.className = `.${ mainClass }__tab`;
 
 			tab.addEventListener( 'click', function ( e ) {
 				// clone the correspnding data for the tab clicked
 				const variant = templates[i].content.cloneNode( true );
 
 				// remove the active class from any tab
-				tabContainer.querySelectorAll( '.ab-test-xb-preview__tab' ).forEach( el => {
+				tabContainer.querySelectorAll( `.${ mainClass }__tab` ).forEach( el => {
 					el.classList.remove( 'active' );
 				} );
 
@@ -55,18 +56,18 @@ function createTabbedPreviews() {
 
 				// append the data
 				tabContent.appendChild( variant );
-
-				// Dispatch the altisBlockContentChanged event.
-				window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
-					detail: {
-						target: xb,
-						preview: true,
-					},
-				} ) );
 			} );
 
 			// append the created tab
 			tabContainer.appendChild( tab );
+
+			// Dispatch the altisblockcontentchanged event.
+			window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+				detail: {
+					target: xb,
+					preview: true,
+				},
+			} ) );
 		}
 
 		// determine if a specific tab should be clicked
@@ -84,7 +85,9 @@ function createTabbedPreviews() {
 createTabbedPreviews();
 
 // When making changes in the customizer
-wp.customize.selectiveRefresh.bind( 'sidebar-updated', function () {
-	// Create the tabs for previewing
-	createTabbedPreviews();
-} );
+if ( wp.customize ) {
+	wp.customize.selectiveRefresh.bind( 'sidebar-updated', function () {
+		// Create the tabs for previewing
+		createTabbedPreviews();
+	} );
+}

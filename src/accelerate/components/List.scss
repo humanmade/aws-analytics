@@ -1,18 +1,9 @@
 /* stylelint-disable max-nesting-depth, no-descending-specificity */
-// Variables
-$dark-blue: #152a4e;
-$active-blue: #4667de;
-$score-pos: #3cc66d;
-$score-neg: #c6403c;
-$sidebar-padding: 5%;
-$color-grey: #cbc9c9;
-$color-light-grey: #eef0f4;
-$color-dark-grey: #707070;
-$color-light-grey-bg: #f5f6f8;
-$color-light-blue-bg: #eceef1; // Thumbnail BG + Ghost Bars
+@import "../index.scss";
 
 // Override certain WP-specific pieces
-body.index-php {
+body.index-php,
+body.edit-php {
 
 	background-color: #fff;
 
@@ -389,6 +380,22 @@ body.index-php {
 			box-shadow: 0 0 0 100vmax $color-light-grey-bg;
 			clip-path: inset( 0 -100vmax );
 			margin-bottom: 10px;
+
+			&.record-item--nested,
+			&.record-item--nested-empty,
+			&.record-item--nested-loading {
+				background: none;
+				margin: 0;
+				box-shadow: none;
+
+				td {
+					border-bottom: 1px solid $color-grey;
+				}
+
+				&:last-child td {
+					border-bottom: none;
+				}
+			}
 		}
 
 		th,
@@ -421,6 +428,15 @@ body.index-php {
 				border-radius: 2px;
 			}
 
+			.record-thumbnail-group-wrap--multiple {
+				svg:nth-of-type(1),
+				img:nth-of-type(1) {
+					position: absolute;
+					margin-top: 10px;
+					margin-left: -10px;
+				}
+			}
+
 			img {
 				width: 105px;
 				height: 47px;
@@ -434,9 +450,6 @@ body.index-php {
 		.record-name {
 			color: $color-dark-grey;
 			font-size: 0.65rem;
-			display: flex;
-			flex-direction: column;
-			align-items: stretch;
 
 			a {
 				text-decoration: none;
@@ -751,4 +764,68 @@ body.index-php {
 		stroke-dashoffset: 1200;
 		animation: paint 1500ms ease-in-out infinite alternate;
 	}
+}
+
+.accelerate__block-list {
+	&_wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-width: 500px;
+
+		background: $color-light-grey-bg;
+		box-shadow: 0 0 0 100vmax #f5f6f8;
+		-webkit-clip-path: inset( 0 -100vmax );
+		clip-path: inset( 0 -100vmax );
+		padding: 20px;
+		margin-bottom: 10px;
+
+		overflow-x: auto;
+	}
+
+	&_item {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		gap: 10px;
+		justify-content: space-between;
+
+		&--sortable {
+			cursor: move;
+		}
+
+		> * {
+			display: flex;
+			align-self: center;
+		}
+
+		&--add.components-button,
+		&--remove.components-button {
+			background: #fff;
+			box-shadow: 0 5px 10px rgba( 0, 0, 0, 0.05 );
+			border: 1px solid $color-grey;
+			font-weight: 600;
+			color: $color-dark-grey;
+		}
+
+		&--remove.components-button {
+			color: $score-neg;
+		}
+
+		&--details {
+			flex: 1;
+		}
+
+		&--title {
+			font-weight: 600;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		&--meta {
+			font-size: 0.8em;
+		}
+	}
+
 }

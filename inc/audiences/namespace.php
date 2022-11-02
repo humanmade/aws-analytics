@@ -253,7 +253,8 @@ function register_default_event_data_maps() {
  * This is a React app placeholder.
  */
 function admin_page() {
-	add_menu_page(
+	add_submenu_page(
+		'accelerate',
 		__( 'Manage Audiences' ),
 		__( 'Audiences' ),
 		'edit_audiences',
@@ -475,7 +476,7 @@ function register_scripts() {
  */
 function admin_enqueue_scripts() {
 	// Only queue things up by default on the audience edit pages.
-	if ( get_current_screen()->id !== 'toplevel_page_' . POST_TYPE ) {
+	if ( get_current_screen()->id !== 'accelerate_page_' . POST_TYPE ) {
 		return;
 	}
 

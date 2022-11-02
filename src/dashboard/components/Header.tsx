@@ -6,7 +6,7 @@ import { DateRangePicker, FocusedInputShape } from 'react-dates';
 
 import { Duration, Filter, SelectableDate } from '../../util';
 
-import Logo from '../../accelerate/assets/altis-logo.svg';
+import Logo from '../../accelerate/components/altis-logo.svg';
 import './Header.css';
 
 type FilterItemProps = {
