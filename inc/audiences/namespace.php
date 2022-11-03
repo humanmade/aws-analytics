@@ -210,7 +210,6 @@ function admin_page() {
 				esc_html__( 'JavaScript is required to use the audience editor.', 'altis-analytics' )
 			);
 		},
-		'dashicons-groups',
 		152
 	);
 }
