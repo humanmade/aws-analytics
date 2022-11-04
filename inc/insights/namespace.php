@@ -40,7 +40,8 @@ function setup() {
  * @return void
  */
 function register_analytics_page() {
-	$hook = add_dashboard_page(
+	$hook = add_submenu_page(
+		'accelerate',
 		__( 'Altis Analytics', 'altis' ),
 		__( 'Analytics', 'altis' ),
 		'manage_options',
