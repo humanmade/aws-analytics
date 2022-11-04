@@ -358,6 +358,13 @@ class PersonalizationBlock extends HTMLElement {
 		this.innerHTML = '';
 		this.appendChild( experience );
 
+		// Dispatch the altisBlockContentChanged event.
+		window.dispatchEvent( new CustomEvent( 'altisBlockContentChanged', {
+			detail: {
+				target: this,
+			},
+		} ) );
+
 		// Record a load event for conversion tracking.
 		window.Altis.Analytics.record( 'experienceLoad', {
 			attributes: {
