@@ -49,6 +49,10 @@ const isBot = detectRobot( navigator.userAgent || '' );
 let hasAnonConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics-anonymous=allow` );
 let hasFullConsent = Consent.CookiePrefix && document.cookie.match( `${ Consent.CookiePrefix }_statistics=allow` );
 
+// Secondary check for force enabled consent.
+hasAnonConsent = hasAnonConsent || Consent.Allowed.indexOf( 'statistics-anonymous' ) >= 0;
+hasFullConsent = hasFullConsent || Consent.Allowed.indexOf( 'statistics' ) >= 0;
+
 /**
  * Custom global attributes and metrics, extended by the
  * registerAttribute and registerMetric functions.
@@ -842,6 +846,11 @@ Altis.Analytics.registerMetric = ( name, value ) => {
 	_metrics[ name ] = value;
 	Analytics.updateAudiences();
 };
+
+// Fire a loaded event when the global is fully set up but before we check consent to start logging.
+Altis.Analytics.Loaded = true;
+const loadedEvent = new CustomEvent( 'altis.analytics.loaded' );
+window.dispatchEvent( loadedEvent );
 
 /**
  * Start recording default events and trigger onReady event.

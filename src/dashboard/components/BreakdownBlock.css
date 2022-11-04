@@ -1,0 +1,11 @@
+.BreakdownBlock {
+	padding: 0;
+}
+
+.BreakdownBlock .BreakdownList__item-title {
+	padding-left: 12px;
+}
+
+.BreakdownBlock .BreakdownList__item-value {
+	padding-right: 12px;
+}

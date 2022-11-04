@@ -6,9 +6,12 @@
 namespace Altis\Analytics\Utils;
 
 use Altis\Analytics;
+use Asset_Loader;
 
 /**
  * Return asset file name based on generated manifest.json file.
+ *
+ * @todo remove after converting JS to typescript.
  *
  * @param string $filename The webpack entry point file name.
  * @return string|false The real URL of the asset or false if it couldn't be found.
@@ -35,6 +38,53 @@ function get_asset_url( string $filename ) {
 	}
 
 	return plugins_url( $manifest[ $filename ], Analytics\ROOT_DIR . '/build/assets' );
+}
+
+/**
+ * Queue up JS and CSS assets for the given entrypoint.
+ *
+ * @param string $entrypoint The webpack entrypoint key.
+ * @return void
+ */
+function enqueue_assets( string $entrypoint ) {
+	if ( is_readable( dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json' ) ) {
+		$manifest = dirname( __DIR__, 2 ) . '/build/production-asset-manifest.json';
+		Asset_Loader\enqueue_asset(
+			$manifest,
+			"{$entrypoint}.css",
+			[
+				'handle' => "altis-analytics-{$entrypoint}",
+				'dependencies' => [
+					'wp-components',
+				],
+			]
+		);
+	}
+
+	// Local dev.
+	if ( is_readable( dirname( __DIR__, 2 ) . '/build/asset-manifest.json' ) ) {
+		$manifest = dirname( __DIR__, 2 ) . '/build/asset-manifest.json';
+	}
+
+	if ( empty( $manifest ) ) {
+		return;
+	}
+
+	Asset_Loader\enqueue_asset(
+		$manifest,
+		"{$entrypoint}.js",
+		[
+			'handle' => "altis-analytics-{$entrypoint}",
+			'dependencies' => [
+				'wp-api-fetch',
+				'wp-components',
+				'wp-data',
+				'wp-element',
+				'wp-i18n',
+				'wp-url',
+			],
+		]
+	);
 }
 
 /**
@@ -878,4 +928,17 @@ function get_countries() : array {
 		'ZM' => 'Zambia',
 		'ZW' => 'Zimbabwe',
 	];
+}
+
+/**
+ * Get a letter of the alphabet corresponding to the passed zero based index.
+ *
+ * @param integer $index Letter of the alphabet to get.
+ * @return string
+ */
+function get_letter( int $index ) : string {
+	for ( $out = ''; $index >= 0; $index = intval( $index / 26 ) - 1 ) {
+		$out = chr( $index % 26 + 0x41 ) . $out;
+	}
+	return $out;
 }
