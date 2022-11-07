@@ -152,7 +152,7 @@ function get_client_side_data() : array {
 			$data['archiveType'] = get_post_type();
 		}
 
-		if ( is_tag() || is_category() || is_tax() ) {
+		if ( ! is_search() && ( is_tag() || is_category() || is_tax() ) ) {
 			$data['Attributes']['archiveType'] = get_queried_object()->taxonomy;
 			$data['Attributes']['term'] = get_queried_object()->slug;
 		}
