@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
+import { Pagination } from 'react-pagination-bar';
 
 import { compactMetric, Duration, getConversionRateLift, InitialData, Post, State } from '../../util';
 
@@ -100,9 +101,9 @@ export default function List( props: Props ) {
 				<div className="table-content dashboard-shadow">
 					<table aria-live="polite">
 						<tr className="record-header">
-							<th>{ __( 'Views', 'altis' ) }</th>
-							<th>{ __( 'Name', 'altis' ) }</th>
-							<th>{ __( 'Lift', 'altis' ) }</th>
+							<th className="table-th-views">{ __( 'Views', 'altis' ) }</th>
+							<th className="table-th-name">{ __( 'Name', 'altis' ) }</th>
+							<th className="table-th-lift">{ __( 'Lift', 'altis' ) }</th>
 							<th className="table-th-author">{ __( 'Author', 'altis' ) }</th>
 							<th className="table-th-links">{ __( 'Links', 'altis' ) }</th>
 						</tr>
@@ -140,7 +141,7 @@ export default function List( props: Props ) {
 									</td>
 									<td className={ `record-lift score-${ lift && lift >= 0 ? 'pos' : 'neg' }` }>
 										{ !! lift && ! isNaN( lift ) && ( lift >= 0 ? '↑' : '↓' ) }
-										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ) ) }
+										{ !! lift && ! isNaN( lift ) && compactMetric( parseFloat( lift.toFixed( 1 ) ), '%' ) }
 									</td>
 									<td className="record-author">
 										<img alt="" className="record-avatar" src={ post.author.avatar } />
@@ -154,37 +155,20 @@ export default function List( props: Props ) {
 							);
 						} ) }
 					</table>
-					<div className="table-footer">
-						<div className="pagination">
-							<button
-								disabled={ page < 2 }
-								type="button"
-								onClick={ () => setPage( page - 1 ) }
-							>
-								← { __( 'Prev', 'altis' ) }
-							</button>
-							{ Array( pagination.pages ).fill( null ).map( ( _, p ) => {
-								if ( p + 1 === page ) {
-									return ( <div className="current">{ p + 1 }</div> );
-								}
-								return (
-									<button
-										type="button"
-										onClick={ () => setPage( p + 1 ) }
-									>
-										{ p + 1 }
-									</button>
-								);
-							} ) }
-							<button
-								disabled={ page <= pagination.pages }
-								type="button"
-								onClick={ () => setPage( page + 1 ) }
-							>
-								{ __( 'Next', 'altis' ) } →
-							</button>
+					{ pagination.total > 0 && (
+						<div className="table-footer">
+							<div className="pagination">
+								<Pagination
+									initialPage={ 1 }
+									itemsPerPage={ 25 }
+									onPageСhange={ pageNumber => setPage( pageNumber ) }
+									totalItems={ pagination.total }
+									pageNeighbours={ 10 }
+								/>
+								<span className="current-page">{ sprintf( __( 'Page %d of %d ', 'altis' ), page, pagination.pages ) }</span>
+							</div>
 						</div>
-					</div>
+					) }
 				</div>
 			</div>
 		</div>

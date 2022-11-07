@@ -58,6 +58,9 @@ function setup() {
 
 	// Publication checklist integration.
 	add_action( 'altis.publication-checklist.register_prepublish_checks', __NAMESPACE__ . '\\check_conversion_goals' );
+
+	// Support Excerpts
+	add_filter( 'excerpt_allowed_wrapper_blocks', __NAMESPACE__ . '\filter_excerpt_allowed_wrapper_blocks' );
 }
 
 /**
@@ -787,9 +790,7 @@ function get_views( string $block_id, $args = [] ) {
 		return $cache;
 	}
 
-	$result = Utils\query( $query, [
-		'request_cache' => 'true',
-	] );
+	$result = Utils\query( $query );
 
 	if ( ! $result ) {
 		$data = [
@@ -836,7 +837,7 @@ function check_conversion_goals() {
 	$post_types = get_post_types_by_support( 'editor' );
 	$post_types = array_filter( $post_types, function ( $post_type ) : bool {
 		$post_type_object = get_post_type_object( $post_type );
-		return (bool) apply_filters( 'use_block_editor_for_post_type', $post_type_object->show_in_rest, $post_type );
+		return (bool) $post_type_object->show_in_rest;
 	} );
 
 	PublicationChecklist\register_prepublish_check( 'xbs-valid-conversions', [
@@ -924,4 +925,20 @@ function check_conversion_goals() {
 			return new Status( Status::INFO, __( 'Experience Blocks without fallback content found', 'altis-analytics' ), $empty_fallback );
 		},
 	] );
+}
+
+/**
+ * Allow the ab-test and personalization blocks to contribute towards an excerpt.
+ *
+ * @param array $allowed_blocks The current array of allowed wrapper blocks;
+ *
+ * @return array The updated wrapper blocks.
+ */
+function filter_excerpt_allowed_wrapper_blocks( array $allowed_blocks ) : array {
+	$allowed_blocks[] = 'altis/ab-test';
+	$allowed_blocks[] = 'altis/ab-test-variant';
+	$allowed_blocks[] = 'altis/personalization';
+	$allowed_blocks[] = 'altis/personalization-variant';
+
+	return $allowed_blocks;
 }

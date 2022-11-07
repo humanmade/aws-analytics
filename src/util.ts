@@ -11,6 +11,8 @@ export type InitialData = {
 	user: {
 		id?: number,
 		name: string,
+		canViewAnalytics: boolean,
+		canViewInsights: boolean,
 	},
 	welcomed: boolean,
 }
@@ -159,48 +161,43 @@ export interface BlockFillProps {
  * Convert a number into a short string representation eg 3k.
  *
  * @param {number} metric The metric to get a condensed version of.
+ * @param {string} suffix The unit or suffix to append.
  * @returns {string} The metric compacted for display.
  */
-export const compactMetric = ( metric: number ) : string => {
+ export const compactMetric = ( metric : number, suffix : string = '' ) => {
 	if ( isNaN( metric ) ) {
 		return '0';
 	}
 
 	// Infinity can happen with percentage calculations.
 	if ( ! isFinite( metric ) ) {
-		return metric >= 0 ? '∞%' : '-∞%';
+		return '';
 	}
 
-	let suffix = '';
+	let volumeSuffix = '';
 	let value = metric;
-
-	// Assume percentage.
-	if ( ! Number.isInteger( metric ) ) {
-		suffix = '%';
-		value = Math.round( value );
-		return `${ value }${ suffix }`;
-	}
+	const positiveMetric = metric < 0 ? metric * -1 : metric;
 
 	// Thousands.
-	if ( metric >= 1000 ) {
-		suffix = 'k';
+	if ( positiveMetric >= 1000 ) {
+		volumeSuffix = 'k';
 		value = metric / 1000;
 	}
 
 	// Millions.
-	if ( metric >= 1000000 ) {
-		suffix = 'M';
+	if ( positiveMetric >= 1000000 ) {
+		volumeSuffix = 'M';
 		value = metric / 1000000;
 	}
 
 	// Below 10 we use a fixed single decimal point eg. 2.3k, 1.4M.
-	if ( value < 10 && value > 0 ) {
+	if ( value < 10 && value > -10 ) {
 		value = ! Number.isInteger( value ) ? parseFloat( value.toFixed( 1 ) ) : value;
 	} else {
 		value = Math.round( value );
 	}
 
-	return `${ value }${ suffix }`;
+	return `${ value }${ volumeSuffix }${ suffix }`;
 };
 
 export const getConversionRate = ( conversions: number, views: number ) => conversions / views * 100;

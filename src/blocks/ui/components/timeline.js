@@ -64,6 +64,7 @@ const StyledTimeline = styled.div`
 			text-align: right;
 			bottom: -4px;
 			padding-bottom: 4px;
+			white-space: nowrap;
 			&:before {
 				top: auto;
 				bottom: -7px;
