@@ -130,43 +130,46 @@ export const prepareMetrics = async metrics => {
  * Convert a number into a short string representation eg 3k.
  *
  * @param {number} metric The metric to get a condensed version of.
- * @param {string} suffix The unit or suffix to append.
  * @returns {string} The metric compacted for display.
  */
-export const compactMetric = ( metric, suffix = '' ) => {
+export const compactMetric = metric => {
 	if ( isNaN( metric ) ) {
-		return '0';
+		return 0;
 	}
 
 	// Infinity can happen with percentage calculations.
 	if ( ! isFinite( metric ) ) {
-		return '';
+		return metric >= 0 ? '∞%' : '-∞%';
 	}
 
-	let volumeSuffix = '';
+	let suffix = '';
 	let value = metric;
-	const positiveMetric = metric < 0 ? metric * -1 : metric;
 
 	// Thousands.
-	if ( positiveMetric >= 1000 ) {
-		volumeSuffix = 'k';
+	if ( metric >= 1000 ) {
+		suffix = 'k';
 		value = metric / 1000;
 	}
 
 	// Millions.
-	if ( positiveMetric >= 1000000 ) {
-		volumeSuffix = 'M';
+	if ( metric >= 1000000 ) {
+		suffix = 'M';
 		value = metric / 1000000;
 	}
 
 	// Below 10 we use a fixed single decimal point eg. 2.3k, 1.4M.
-	if ( value < 10 && value > -10 ) {
-		value = ! Number.isInteger( value ) ? parseFloat( value.toFixed( 1 ) ) : value;
+	if ( value < 10 && value > 0 ) {
+		value = value.toFixed( 1 );
 	} else {
 		value = Math.round( value );
 	}
 
-	return `${ value }${ volumeSuffix }${ suffix }`;
+	// Assume percentage.
+	if ( ! Number.isInteger( metric ) ) {
+		suffix = '%';
+	}
+
+	return `${ value }${ suffix }`;
 };
 
 /**

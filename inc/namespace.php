@@ -8,6 +8,7 @@
 namespace Altis\Analytics;
 
 use Altis\Analytics\Utils;
+use Aws\S3\S3Client;
 use DateInterval;
 use DateTime;
 use Exception;
@@ -152,7 +153,7 @@ function get_client_side_data() : array {
 			$data['archiveType'] = get_post_type();
 		}
 
-		if ( ! is_search() && ( is_tag() || is_category() || is_tax() ) ) {
+		if ( is_tag() || is_category() || is_tax() ) {
 			$data['Attributes']['archiveType'] = get_queried_object()->taxonomy;
 			$data['Attributes']['term'] = get_queried_object()->slug;
 		}
@@ -163,10 +164,12 @@ function get_client_side_data() : array {
 		}
 	}
 
-	$data['Attributes']['blog'] = home_url();
-	$data['Attributes']['network'] = network_home_url();
-	$data['Attributes']['blogId'] = get_current_blog_id();
-	$data['Attributes']['networkId'] = get_current_network_id();
+	if ( is_multisite() ) {
+		$data['Attributes']['blog'] = home_url();
+		$data['Attributes']['network'] = network_home_url();
+		$data['Attributes']['blogId'] = get_current_blog_id();
+		$data['Attributes']['networkId'] = get_current_network_id();
+	}
 
 	/**
 	 * Filter the custom analytics endpoint/user data.
@@ -285,7 +288,7 @@ function enqueue_scripts() {
 	// Use polyfills.io to fix IE compat issues, only polyfilling features where not supported.
 	wp_enqueue_script(
 		'altis-analytics-polyfill.io',
-		plugins_url( '/assets/polyfill-ie11-es6.min.js', __DIR__ ),
+		'https://polyfill.io/v3/polyfill.js?features=es6&callback=polyfills_loaded',
 		[],
 		'3',
 		false
@@ -423,9 +426,11 @@ function delete_old_indexes() {
  */
 function clean_s3_store() : void {
 
-	// Get S3 client.
-	$client = Utils\get_s3_client();
-	if ( ! $client ) {
+	// These constants are required to continue.
+	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_ARN' ) ) {
+		return;
+	}
+	if ( ! defined( 'ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION' ) ) {
 		return;
 	}
 
@@ -442,6 +447,42 @@ function clean_s3_store() : void {
 	$date = new DateTime( 'midnight' );
 	$date->sub( new DateInterval( 'P' . $max_age . 'D' ) );
 	$max_age_date = $date->format( 'U' );
+
+	// Get S3 client.
+	$params = [
+		'version' => '2006-03-01',
+		'region' => ALTIS_ANALYTICS_PINPOINT_BUCKET_REGION,
+	];
+
+	// Add defined credentials if available.
+	if ( defined( 'ALTIS_ANALYTICS_S3_KEY' ) && defined( 'ALTIS_ANALYTICS_S3_SECRET' ) ) {
+		$params['credentials'] = [
+			'key' => ALTIS_ANALYTICS_S3_KEY,
+			'secret' => ALTIS_ANALYTICS_S3_SECRET,
+		];
+	}
+
+	// Allow overriding the S3 endpoint.
+	if ( defined( 'ALTIS_ANALYTICS_S3_ENDPOINT' ) ) {
+		$params['endpoint'] = ALTIS_ANALYTICS_S3_ENDPOINT;
+	}
+
+	/**
+	 * Filter the Analytics S3 client params.
+	 *
+	 * @param array $params The parameters used to instantiate the S3Client object.
+	 */
+	$params = apply_filters( 'altis.analytics.s3_client_params', $params );
+
+	$client = new S3Client( $params );
+
+	/**
+	 * Filter the S3 client used by the AWS Analytics plugin.
+	 *
+	 * @param Aws\S3\S3Client $client The S3Client object.
+	 * @param array $params The default params passed to the client.
+	 */
+	$client = apply_filters( 'altis.analytics.s3_client', $client, $params );
 
 	// Fetch first batch of items.
 	try {
