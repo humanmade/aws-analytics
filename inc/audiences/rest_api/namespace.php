@@ -103,7 +103,7 @@ function init() {
 					'$schema' => 'http://json-schema.org/draft-04/schema#',
 					'title' => 'Get audience size estimate',
 				],
-				get_estimate_schema(),
+				get_estimate_schema()
 			);
 		},
 	] );
