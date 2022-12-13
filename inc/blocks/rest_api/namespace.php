@@ -56,37 +56,41 @@ function init() : void {
 				],
 			],
 		],
-		'schema' => [
-			'type' => 'object',
-			'properties' => [
-				'start' => [
-					'description' => __( 'Start date', 'altis-analytics' ),
-					'type' => 'string',
-				],
-				'end' => [
-					'description' => __( 'End date', 'altis-analytics' ),
-					'type' => 'string',
-				],
-				'loads' => [ 'type' => 'number' ],
-				'views' => [ 'type' => 'number' ],
-				'conversions' => [ 'type' => 'number' ],
-				'variants' => [
-					'type' => 'array',
-					'items' => get_variants_data_schema(),
-				],
-				'posts' => [
-					'type' => 'array',
-					'items' => [
-						'type' => 'object',
-						'properties' => array_merge(
-							get_variants_data_schema()['properties'],
-							[ 'variants' => get_variants_data_schema() ]
-						),
+		'schema' => function () {
+			return [
+				'$schema' => 'http://json-schema.org/draft-04/schema#',
+				'title' => 'Get Experience Block views',
+				'type' => 'object',
+				'properties' => [
+					'start' => [
+						'description' => __( 'Start date', 'altis-analytics' ),
+						'type' => 'string',
 					],
+					'end' => [
+						'description' => __( 'End date', 'altis-analytics' ),
+						'type' => 'string',
+					],
+					'loads' => [ 'type' => 'number' ],
+					'views' => [ 'type' => 'number' ],
+					'conversions' => [ 'type' => 'number' ],
+					'variants' => [
+						'type' => 'array',
+						'items' => get_variants_data_schema(),
+					],
+					'posts' => [
+						'type' => 'array',
+						'items' => [
+							'type' => 'object',
+							'properties' => array_merge(
+								get_variants_data_schema()['properties'],
+								[ 'variants' => get_variants_data_schema() ]
+							),
+						],
+					],
+					'postId' => [ 'type' => 'number' ],
 				],
-				'postId' => [ 'type' => 'number' ],
-			],
-		],
+			];
+		},
 	] );
 }
 
