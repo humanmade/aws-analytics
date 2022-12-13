@@ -32,49 +32,53 @@ function init() {
 			'callback' => 'Altis\\Analytics\\Audiences\\get_field_data',
 			'permission_callback' => __NAMESPACE__ . '\\check_edit_permission',
 		],
-		'schema' => [
-			'type' => 'array',
-			'items' => [
-				'type' => 'object',
-				'properties' => [
-					'name' => [
-						'type' => 'string',
-						'required' => true,
-					],
-					'label' => [
-						'type' => 'string',
-						'required' => true,
-					],
-					'description' => [
-						'type' => 'string',
-					],
-					'type' => [
-						'type' => 'string',
-						'required' => true,
-					],
-					'data' => [
-						'type' => 'array',
-						'items' => [
+		'schema' => function () {
+			return [
+				'$schema' => 'http://json-schema.org/draft-04/schema#',
+				'title' => 'Get field data for audience creation',
+				'type' => 'array',
+				'items' => [
+					'type' => 'object',
+					'properties' => [
+						'name' => [
+							'type' => 'string',
+							'required' => true,
+						],
+						'label' => [
+							'type' => 'string',
+							'required' => true,
+						],
+						'description' => [
+							'type' => 'string',
+						],
+						'type' => [
+							'type' => 'string',
+							'required' => true,
+						],
+						'data' => [
+							'type' => 'array',
+							'items' => [
+								'type' => 'object',
+								'properties' => [
+									'value' => [ 'type' => 'string' ],
+									'count' => [ 'type' => 'number' ],
+								],
+							],
+						],
+						'stats' => [
 							'type' => 'object',
 							'properties' => [
-								'value' => [ 'type' => 'string' ],
 								'count' => [ 'type' => 'number' ],
+								'min' => [ 'type' => 'number' ],
+								'max' => [ 'type' => 'number' ],
+								'avg' => [ 'type' => 'number' ],
+								'sum' => [ 'type' => 'number' ],
 							],
 						],
 					],
-					'stats' => [
-						'type' => 'object',
-						'properties' => [
-							'count' => [ 'type' => 'number' ],
-							'min' => [ 'type' => 'number' ],
-							'max' => [ 'type' => 'number' ],
-							'avg' => [ 'type' => 'number' ],
-							'sum' => [ 'type' => 'number' ],
-						],
-					],
 				],
-			],
-		],
+			];
+		},
 	] );
 
 	// Fetch an audience size estimate.
@@ -93,7 +97,15 @@ function init() {
 				],
 			],
 		],
-		'schema' => get_estimate_schema(),
+		'schema' => function () {
+			return array_merge(
+				[
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'title' => 'Get audience size estimate',
+				],
+				get_estimate_schema()
+			);
+		},
 	] );
 
 	// Handle the audience configuration data retrieval and saving via the REST API.
