@@ -99,6 +99,7 @@ const ABTest = ( {
 							icon: 'thumbs-up',
 							title: __( 'Conversion Rate', 'altis-analytics' ),
 							metric: aggregateData.size > 0 ? ( aggregateData.rate * 100 ) : null,
+							metricSuffix: '%',
 							description: aggregateData.hits && aggregateData.hits === 0
 								? __( 'There are no conversions recorded yet, you may need to choose a conversion goal other than impressions for your variants.' )
 								: __( 'Average conversion rate of the block as a percentage of total views of the block.', 'altis-analytics' ),
@@ -108,6 +109,7 @@ const ABTest = ( {
 							icon: 'chart-line',
 							title: __( 'Lift', 'altis-analytics' ),
 							metric: getLift( variantsData.rate, originalData.rate ),
+							metricSuffix: '%',
 							description: __( 'The aggregated lift of all variants versus the original.', 'altis-analytics' ),
 						},
 					] }
@@ -154,7 +156,7 @@ const ABTest = ( {
 			<Variants
 				analytics={ analytics }
 				append={ ( { variant } ) => {
-					const result = test?.results?.variants[ variant.id ] || {};
+					const result = ( test?.results?.variants || [] )[ variant.id ] || {};
 					const pValue = result.p || 1;
 					const relativeRate = result.rate / maxRate;
 					const p2bb = relativeRate * ( 1 - pValue );
