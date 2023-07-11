@@ -135,7 +135,7 @@ export const prepareMetrics = async metrics => {
  */
 export const compactMetric = ( metric, suffix = '' ) => {
 	if ( isNaN( metric ) ) {
-		return '0';
+		return '0' + suffix;
 	}
 
 	// Infinity can happen with percentage calculations.
