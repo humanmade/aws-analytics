@@ -38,7 +38,7 @@ const Personalization = ( {
 	}, [ clientId ] );
 
 	// Get percentage of personalised block views.
-	let personalisedCoverage = null;
+	let personalisedCoverage = 0;
 	if ( analytics ) {
 		const fallback = analytics.variants.find( variant => variant.id === 0 ) || defaultVariantAnalytics;
 		personalisedCoverage = 100 - ( ( fallback.unique.views / analytics.unique.views ) * 100 );
@@ -66,6 +66,7 @@ const Personalization = ( {
 							icon: 'thumbs-up',
 							title: __( 'Conversion Rate', 'altis-analytics' ),
 							metric: analytics ? ( ( analytics.unique.conversions / analytics.unique.views ) * 100 ) : null,
+							metricSuffix: '%',
 							lift: {
 								current: lift.current && ( lift.current.unique.conversions / lift.current.unique.views ),
 								previous: lift.previous && ( lift.previous.unique.conversions / lift.previous.unique.views ),
@@ -79,6 +80,7 @@ const Personalization = ( {
 							icon: 'groups',
 							title: __( 'Personalization Coverage', 'altis-analytics' ),
 							metric: personalisedCoverage,
+							metricSuffix: '%',
 							description: __( 'The percentage of visitors who are seeing personalised content.', 'altis-analytics' ),
 						},
 					] }
