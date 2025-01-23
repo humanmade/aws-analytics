@@ -6,7 +6,7 @@ import { context, getSidebarTests } from './data';
 const {
 	PluginSidebar,
 	PluginSidebarMoreMenuItem,
-} = wp.editPost;
+} = wp.editor;
 const { __ } = wp.i18n;
 
 /**
